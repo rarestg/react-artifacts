@@ -88,7 +88,8 @@ const meta = {
   name: 'My Artifact',
   subtitle: 'Short description',
   kind: 'single', // or 'app'
-  symbol: 'S', // e.g., S = single-file, A = app
+  model: 'claude',
+  version: 'opus 4.5', // optional
 } as const;
 
 export default meta;
@@ -102,6 +103,14 @@ to the `<html>` element and syncing to localStorage (`artifact-theme`).
 Notes:
 - `system` respects `prefers-color-scheme`.
 - An inline script in `index.html` applies the saved/system theme early to avoid FOUC.
+
+## Artifact URLs
+
+The selected artifact is reflected in the URL as a query param, so reloads and sharing keep context:
+
+```
+/?artifact=sharp2
+```
 
 ## Scripts
 

@@ -1,0 +1,236 @@
+## What We Built: A Design System Showcase
+
+This artifact is a **living component library** — a single interactive document that contains every UI primitive you'll need to build your app, rendered in a way you can see, click, and test. It serves the same purpose as tools like Figma (design) or Storybook (development), but in a self-contained React file.
+
+### What Figma and Storybook Do (and how this compares)
+
+**Figma** is a design tool where designers create static mockups of interfaces. The problem: designs are pictures, not code. Developers have to interpret them, and drift happens.
+
+**Storybook** is a developer tool that renders React components in isolation so you can see all their states (hover, active, disabled, error, etc.) without building the full app. The problem: it requires setup, config files, and a build process.
+
+**This artifact** combines both ideas:
+- It's visual like Figma — you can see exactly how things look
+- It's interactive like Storybook — you can click buttons, toggle states, type in inputs
+- It's just code — copy any component directly into your app
+- It's zero-config — runs in Claude's artifact viewer or any React environment
+
+---
+
+## The Sharp UI Visual Style Guide
+
+The design system follows a strict set of constraints we call **Sharp UI**. These rules create a dense, scannable, terminal-adjacent aesthetic that prioritizes information density over decoration.
+
+### The Core Rules
+
+| Rule | What it means | Why |
+|------|---------------|-----|
+| **Zero border-radius** | No `rounded-*` classes anywhere | Sharp edges = professional, dense, no wasted pixels |
+| **Zero shadows** | No `shadow-*` for hierarchy | Use borders instead — shadows are fuzzy and imprecise |
+| **Zero alpha backgrounds** | No `bg-white/80` or transparency | Solid colors only — alpha causes layering issues |
+| **Border-driven hierarchy** | Distinguish elements with borders, not shadows or blur | Crisp, predictable, works at any zoom level |
+| **Focus-visible rings** | `focus-visible:ring-2` + offset | Rings are allowed for keyboard focus; keep them high-contrast and unclipped |
+| **Monospace-forward** | Message content uses `font-mono` | Terminal-adjacent feel, consistent character widths |
+
+### What's Explicitly Forbidden
+
+```jsx
+// ❌ NEVER do this in Sharp UI
+className="rounded-lg shadow-md bg-white/90 backdrop-blur"
+
+// ✅ Do this instead
+className="border border-slate-200 bg-white"
+```
+
+---
+
+## The Component Inventory
+
+Here's every component in the system and when to use it:
+
+### Layout & Containers
+
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| `Panel` | Basic container | `variant`: `default`, `muted`, `dashed` |
+| `Section` | Page section with header | `title`, `cols` |
+| `SubSection` | Labeled group within a section | `label` |
+| `Modal` | Overlay dialog (uses scrim — allowed exception) | `open`, `onClose`, `title` |
+| `Popover` | Dropdown menu anchored to trigger | `open`, `onToggle`, `trigger` |
+
+### Interactive Elements
+
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| `Button` | Actions | `variant`: `default`, `primary`, `ghost`, `danger`; `size`: `sm`, `default`, `lg` |
+| `Input` | Text entry | `error` for validation state |
+| `Checkbox` | Boolean selection | `checked`, `onChange`, `label`, `reserveLabel` |
+| `Toggle` | On/off switch | `checked`, `onChange`, `label`, `reserveLabel` |
+| `SearchInput` | Search with floating dropdown | `value`, `onChange`, `results`, `onSelect` |
+| `Row` | Clickable list item | `selected`, `onClick` |
+
+### Data Display
+
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| `Tag` | Inline label/badge | `variant`: `base`, `muted`, `solid` |
+| `StatusTag` | Active/inactive indicator with stable width | `label`, `active`, `reserveLabel`, `icon` |
+| `CopyButton` | Copy text to clipboard | `text` |
+| `CopyableLabel` | Metadata with copy affordance | `value`, `icon` |
+| `CodeBlock` | Syntax-highlighted code | `language`, `children` |
+| `TokenCounter` | Context window usage meter | `used`, `limit`, `label` |
+
+### Conversation Rendering
+
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| `MessageCard` | Single message (user/assistant/thinking) | `role`, `content`, `renderMode`, `onToggleRender` |
+| `ToolCall` | Tool invocation with input/output | `tool`, `input`, `output`, `status` |
+| `ConversationTurn` | Groups messages into a turn | `turnNumber`, `items`, `visibleTypes` |
+| `MessageTypeToggle` | Filter toggle for message types | `label`, `count`, `checked`, `color` |
+
+---
+
+## Key Patterns to Understand
+
+### 1. The Reserve Label Pattern (Stable Width)
+
+When a label changes (like "Copy" → "Copied"), the button width can jump. This is jarring. The **reserve label** pattern fixes it:
+
+```jsx
+<span className="relative inline-grid">
+  {/* Hidden text reserves the width */}
+  <span className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+    {reserveLabel}
+  </span>
+  {/* Visible text renders on top */}
+  <span className="col-start-1 row-start-1">
+    {currentLabel}
+  </span>
+</span>
+```
+
+Used in: `StatusTag`, `CopyButton`, `CopyableLabel`, `Checkbox`, `Toggle`
+
+### 2. The Clickability Contract
+
+Every clickable element must have ALL THREE:
+
+1. **`cursor-pointer`** — pointer cursor on hover
+2. **Visible hover state** — background, border, or text change
+3. **Active/pressed state** — darker feedback when clicked
+
+```jsx
+// ✅ Correct
+className="cursor-pointer hover:bg-slate-50 active:bg-slate-200"
+
+// ❌ Missing active state
+className="cursor-pointer hover:bg-slate-50"
+```
+
+### 3. Focus States
+
+All interactive elements use focus-visible rings with a small offset for keyboard clarity:
+
+```jsx
+className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
+```
+
+The `focus-visible` variant means the ring only appears for keyboard navigation, not mouse clicks.
+Prefer a high-contrast ring; avoid dim-only focus on filled/dark buttons.
+Use a single ring color (`ring-slate-400`) across controls to keep focus cues consistent.
+Use one primary focus cue per component: rows use a left bar + background; controls use a ring.
+
+### 4. Message Rendering Modes
+
+Messages have two render modes:
+- **Literal**: `whitespace-pre-wrap`, preserves exact input (default for User)
+- **Rendered**: Parses markdown into headings, lists, code blocks (default for Assistant)
+
+The toggle button shows "Raw" when in literal mode, "Rendered" when in rendered mode.
+
+---
+
+## How to Use This as You Build
+
+### Workflow 1: Copy Components Directly
+
+When you need a button in your app:
+
+1. Open the artifact
+2. Find the `Button` component (around line 200)
+3. Copy the entire function into your codebase
+4. Import `useState` if needed
+5. Use it: `<Button variant="primary">Save</Button>`
+
+### Workflow 2: Reference for Styling Decisions
+
+When you're styling something custom:
+
+1. Check the design tokens at the top of the file
+2. Use the same color scale (`slate-50` through `slate-900`)
+3. Follow the same border/spacing patterns
+4. Apply the clickability contract
+
+### Workflow 3: Test States Before Building
+
+Before implementing a feature:
+
+1. Find a similar component in the showcase
+2. Click through its states (hover, active, focus, disabled)
+3. Understand the expected behavior
+4. Then build your version
+
+---
+
+## The Design Token Scale
+
+These are the foundational values everything is built from:
+
+```js
+// Surfaces (backgrounds)
+surface.0 = 'bg-white'       // panels, cards
+surface.1 = 'bg-slate-50'    // muted sections, hover states
+surface.2 = 'bg-slate-100'   // pressed states, strong hover
+
+// Borders
+border.default = 'border-slate-200'  // standard borders
+border.muted   = 'border-slate-100'  // subtle dividers
+border.strong  = 'border-slate-300'  // emphasis
+
+// Text
+text.0 = 'text-slate-900'    // primary content
+text.1 = 'text-slate-600'    // secondary content
+text.2 = 'text-slate-400'    // muted, timestamps, hints
+```
+
+### Semantic Colors
+
+| Color | Meaning | Used For |
+|-------|---------|----------|
+| `blue-500` | User | User message borders |
+| `emerald-500` | Assistant/Success | Assistant borders, success states |
+| `amber-400` | Thinking/Warning | Thinking borders, warnings |
+| `violet-500` | Tool | Tool call borders |
+| `red-500` | Error/Danger | Error states, danger buttons |
+| `slate-*` | Neutral | Everything else |
+
+---
+
+## Quick Reference: Sharp UI Checklist
+
+Before shipping any component, verify:
+
+- [ ] No `rounded-*` classes
+- [ ] No `shadow-*` classes
+- [ ] No alpha backgrounds (`bg-*/80`, `bg-white/50`)
+- [ ] Borders used for hierarchy, not shadows
+- [ ] `cursor-pointer` on all clickables
+- [ ] Hover state visible (bg or border change)
+- [ ] Active state visible (darker than hover)
+- [ ] Focus uses `focus-visible:ring-2` + `ring-offset-1` (high-contrast)
+- [ ] Dynamic labels use reserve label pattern
+- [ ] Monospace font for data/code content
+
+---
+
+This artifact is your source of truth. When in doubt, open it, find a similar component, and match its patterns. The goal is visual consistency across your entire app — every button should feel like it belongs with every other button.

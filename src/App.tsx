@@ -1,5 +1,15 @@
 import { Layers, Square } from 'lucide-react';
-import { type ComponentType, lazy, Suspense, useEffect, useState } from 'react';
+import {
+  type ComponentType,
+  lazy,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 type ArtifactMeta = {
   name?: string;
@@ -11,6 +21,13 @@ type ArtifactMeta = {
 
 const modules = import.meta.glob<{ default: ComponentType }>('./artifacts/*/index.tsx');
 const metaModules = import.meta.glob<{ default: ArtifactMeta }>('./artifacts/*/meta.ts', { eager: true });
+
+const SIDEBAR_WIDTH_KEY = 'artifact-sidebar-width';
+const DEFAULT_SIDEBAR_WIDTH = 224;
+const MIN_SIDEBAR_WIDTH = 180;
+const MIN_CONTENT_WIDTH = 0;
+const RESIZE_STEP = 12;
+const RESIZE_STEP_FAST = 32;
 
 const artifacts = Object.entries(modules).map(([path, loader]) => {
   const folder = path.replace('./artifacts/', '').replace('/index.tsx', '');
@@ -56,7 +73,23 @@ export default function App() {
     const ids = artifacts.map((a) => a.id);
     return getArtifactIdFromUrl(ids) ?? artifacts[0]?.id;
   });
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_SIDEBAR_WIDTH;
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem(SIDEBAR_WIDTH_KEY);
+    } catch {
+      stored = null;
+    }
+    const parsed = stored ? Number.parseInt(stored, 10) : DEFAULT_SIDEBAR_WIDTH;
+    return Number.isFinite(parsed) ? parsed : DEFAULT_SIDEBAR_WIDTH;
+  });
+  const [isDragging, setIsDragging] = useState(false);
   const current = artifacts.find((a) => a.id === selected);
+  const layoutRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const widthRef = useRef<number>(sidebarWidth);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -117,15 +150,134 @@ export default function App() {
     }
   }, [selected]);
 
+  const getClampBounds = useCallback(() => {
+    const layoutWidth = layoutRef.current?.getBoundingClientRect().width ?? window.innerWidth;
+    const maxByLayout = Math.max(MIN_SIDEBAR_WIDTH, layoutWidth - MIN_CONTENT_WIDTH);
+    return {
+      min: MIN_SIDEBAR_WIDTH,
+      max: maxByLayout,
+    };
+  }, []);
+
+  const clampWidth = useCallback(
+    (value: number) => {
+      const { min, max } = getClampBounds();
+      return Math.min(Math.max(value, min), max);
+    },
+    [getClampBounds],
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    widthRef.current = sidebarWidth;
+    if (sidebarRef.current) {
+      sidebarRef.current.style.width = `${sidebarWidth}px`;
+    }
+    try {
+      window.localStorage.setItem(SIDEBAR_WIDTH_KEY, String(sidebarWidth));
+    } catch {
+      // ignore storage failures
+    }
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      const nextWidth = clampWidth(widthRef.current);
+      widthRef.current = nextWidth;
+      if (sidebarRef.current) {
+        sidebarRef.current.style.width = `${nextWidth}px`;
+      }
+      setSidebarWidth(nextWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [clampWidth]);
+
+  useEffect(() => {
+    if (!layoutRef.current) return;
+    const nextWidth = clampWidth(widthRef.current);
+    widthRef.current = nextWidth;
+    if (sidebarRef.current) {
+      sidebarRef.current.style.width = `${nextWidth}px`;
+    }
+    setSidebarWidth(nextWidth);
+  }, [clampWidth]);
+
+  const handleDragStart = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    setIsDragging(true);
+    const startX = event.clientX;
+    const startWidth = widthRef.current;
+    const bodyStyle = document.body.style;
+    bodyStyle.userSelect = 'none';
+    bodyStyle.cursor = 'col-resize';
+    if (mainRef.current) {
+      mainRef.current.style.pointerEvents = 'none';
+    }
+
+    const handleMove = (moveEvent: MouseEvent) => {
+      const nextWidth = clampWidth(startWidth + (moveEvent.clientX - startX));
+      widthRef.current = nextWidth;
+      if (sidebarRef.current) {
+        sidebarRef.current.style.width = `${nextWidth}px`;
+      }
+    };
+
+    const handleUp = () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+      bodyStyle.userSelect = '';
+      bodyStyle.cursor = '';
+      if (mainRef.current) {
+        mainRef.current.style.pointerEvents = '';
+      }
+      setIsDragging(false);
+      setSidebarWidth(widthRef.current);
+    };
+
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleUp);
+  };
+
+  const handleHandleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const step = event.shiftKey ? RESIZE_STEP_FAST : RESIZE_STEP;
+    const delta = event.key === 'ArrowRight' ? step : -step;
+    const nextWidth = clampWidth(widthRef.current + delta);
+    widthRef.current = nextWidth;
+    if (sidebarRef.current) {
+      sidebarRef.current.style.width = `${nextWidth}px`;
+    }
+    setSidebarWidth(nextWidth);
+  };
+
+  const handleResetWidth = () => {
+    const nextWidth = clampWidth(DEFAULT_SIDEBAR_WIDTH);
+    widthRef.current = nextWidth;
+    if (sidebarRef.current) {
+      sidebarRef.current.style.width = `${nextWidth}px`;
+    }
+    setSidebarWidth(nextWidth);
+  };
+
+  const clampBounds = getClampBounds();
+
   return (
-    <div className="flex min-h-screen bg-white text-gray-900 dark:bg-slate-950 dark:text-slate-100">
-      <nav className="w-56 shrink-0 border-r border-gray-200 bg-gray-50 p-4 max-h-screen overflow-y-auto sticky top-0 dark:border-slate-800 dark:bg-slate-900">
+    <div ref={layoutRef} className="flex min-h-screen bg-white text-gray-900 dark:bg-slate-950 dark:text-slate-100">
+      <nav
+        ref={sidebarRef}
+        className="shrink-0 border-r border-gray-200 bg-gray-50 p-4 max-h-screen overflow-y-auto sticky top-0 dark:border-slate-800 dark:bg-slate-900"
+      >
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3 dark:text-slate-400">Artifacts</h2>
         <div className="mb-4 space-y-2">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
             Theme
           </div>
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid w-full max-w-[220px] grid-cols-3 gap-1">
             <button
               type="button"
               aria-pressed={theme === 'light'}
@@ -218,7 +370,29 @@ export default function App() {
           ))}
         </ul>
       </nav>
-      <main className="flex-1 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]">
+      <hr
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
+        aria-valuemin={MIN_SIDEBAR_WIDTH}
+        aria-valuemax={Math.round(clampBounds.max)}
+        aria-valuenow={Math.round(sidebarWidth)}
+        tabIndex={0}
+        onMouseDown={handleDragStart}
+        onDoubleClick={handleResetWidth}
+        onKeyDown={handleHandleKeyDown}
+        className={[
+          'm-0 h-auto w-2 self-stretch cursor-col-resize border-0 border-r border-gray-200 bg-gray-50',
+          'hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
+          'dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-700 dark:focus-visible:ring-offset-slate-950',
+          isDragging ? 'bg-gray-300 dark:bg-slate-700' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      />
+      <main
+        ref={mainRef}
+        className="flex-1 min-w-0 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]"
+      >
         {current ? (
           <Suspense fallback={<div className="text-gray-400">Loading…</div>}>
             <current.Component />

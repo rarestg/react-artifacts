@@ -1,5 +1,5 @@
 import { ArrowBigUpDash as CapsLockIcon } from 'lucide-react';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AppHeader } from './components/AppHeader';
 import { Button, Panel, Tag } from './components/Primitives';
@@ -111,6 +111,7 @@ export default function ExampleApp() {
   });
   const [capsLockActive, setCapsLockActive] = useState(false);
   const [capsLockSeen, setCapsLockSeen] = useState(false);
+  const rowRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const sessions = useMemo<SessionRow[]>(
     () => [
@@ -122,6 +123,7 @@ export default function ExampleApp() {
   );
 
   const visibleSessions = view === 'active' ? sessions.filter((row) => row.status === 'active') : sessions;
+  const lastVisibleIndex = visibleSessions.length - 1;
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -142,6 +144,40 @@ export default function ExampleApp() {
     };
   }, []);
 
+  useEffect(() => {
+    rowRefs.current = rowRefs.current.slice(0, visibleSessions.length);
+  }, [visibleSessions.length]);
+
+  const handleRowKeyDown = (index: number, event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (lastVisibleIndex < 0) {
+      return;
+    }
+
+    let nextIndex = index;
+
+    switch (event.key) {
+      case 'ArrowUp':
+        nextIndex = Math.max(0, index - 1);
+        break;
+      case 'ArrowDown':
+        nextIndex = Math.min(lastVisibleIndex, index + 1);
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = lastVisibleIndex;
+        break;
+      default:
+        return;
+    }
+
+    if (nextIndex !== index) {
+      event.preventDefault();
+      rowRefs.current[nextIndex]?.focus();
+    }
+  };
+
   return (
     <div className="example-app-theme min-h-screen border border-[var(--border)] bg-[var(--surface)] text-[var(--text)]">
       <AppHeader
@@ -159,30 +195,70 @@ export default function ExampleApp() {
 
         <Panel className="p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Tag variant="muted">Filter</Tag>
-              <Button variant={view === 'all' ? 'primary' : 'ghost'} size="sm" onClick={() => setView('all')}>
-                All
-              </Button>
-              <Button variant={view === 'active' ? 'primary' : 'ghost'} size="sm" onClick={() => setView('active')}>
-                Active only
-              </Button>
+            <div className="flex items-center gap-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                Session filter
+              </div>
+              <fieldset
+                aria-label="Session filter"
+                className="inline-flex border border-[var(--border-strong)] divide-x divide-[color:var(--border)]"
+              >
+                <button
+                  type="button"
+                  aria-pressed={view === 'all'}
+                  onClick={() => setView('all')}
+                  className={[
+                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+                    'relative focus-visible:z-10',
+                    view === 'all'
+                      ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                      : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === 'active'}
+                  onClick={() => setView('active')}
+                  className={[
+                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+                    'relative focus-visible:z-10',
+                    view === 'active'
+                      ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                      : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  Active only
+                </button>
+              </fieldset>
             </div>
             <Button variant="default" size="sm">
               New Session
             </Button>
           </div>
 
+          {/* Exception: keep inner border to clearly frame the scan-first session rows within the panel. */}
           <div className="border border-[var(--border)] divide-y divide-[color:var(--border)] bg-[var(--surface)]">
-            {visibleSessions.map((row) => (
+            {visibleSessions.map((row, index) => (
               <button
                 key={row.id}
+                ref={(node) => {
+                  rowRefs.current[index] = node;
+                }}
                 type="button"
                 onClick={() => setActiveRow(row.id)}
+                onKeyDown={(event) => handleRowKeyDown(index, event)}
                 className={[
                   // Only animate background so divider borders don't flash during list changes.
                   'w-full text-left px-3 py-2.5 flex items-center justify-between gap-4 transition-[background-color] motion-reduce:transition-none cursor-pointer border-l-2',
-                  'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] focus:outline-none focus-visible:bg-[var(--surface-muted)]',
+                  'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] focus:outline-none focus-visible:bg-[var(--surface-strong)]',
                   // Apply transparent left border only when not selected; prevents utility order from hiding selection.
                   activeRow === row.id
                     ? 'bg-[var(--surface-muted)] border-l-[color:var(--primary)]'
@@ -253,6 +329,7 @@ export default function ExampleApp() {
                 }
                 className={[
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeSwatches[swatch.id]
                     ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',

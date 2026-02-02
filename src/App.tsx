@@ -25,9 +25,10 @@ const metaModules = import.meta.glob<{ default: ArtifactMeta }>('./artifacts/*/m
 const SIDEBAR_WIDTH_KEY = 'artifact-sidebar-width';
 const DEFAULT_SIDEBAR_WIDTH = 224;
 const MIN_SIDEBAR_WIDTH = 180;
-const MIN_CONTENT_WIDTH = 0;
+const MIN_CONTENT_WIDTH = 240;
 const RESIZE_STEP = 12;
 const RESIZE_STEP_FAST = 32;
+const RESIZE_HANDLE_WIDTH = 8;
 
 const artifacts = Object.entries(modules).map(([path, loader]) => {
   const folder = path.replace('./artifacts/', '').replace('/index.tsx', '');
@@ -90,6 +91,7 @@ export default function App() {
   const sidebarRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   const widthRef = useRef<number>(sidebarWidth);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -152,7 +154,10 @@ export default function App() {
 
   const getClampBounds = useCallback(() => {
     const layoutWidth = layoutRef.current?.getBoundingClientRect().width ?? window.innerWidth;
-    const maxByLayout = Math.max(MIN_SIDEBAR_WIDTH, layoutWidth - MIN_CONTENT_WIDTH);
+    const maxByLayout = Math.max(
+      MIN_SIDEBAR_WIDTH,
+      layoutWidth - MIN_CONTENT_WIDTH - RESIZE_HANDLE_WIDTH,
+    );
     return {
       min: MIN_SIDEBAR_WIDTH,
       max: maxByLayout,
@@ -205,6 +210,15 @@ export default function App() {
     setSidebarWidth(nextWidth);
   }, [clampWidth]);
 
+  useEffect(() => {
+    return () => {
+      if (dragCleanupRef.current) {
+        dragCleanupRef.current();
+        dragCleanupRef.current = null;
+      }
+    };
+  }, []);
+
   const handleDragStart = (event: ReactMouseEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     event.preventDefault();
@@ -226,7 +240,7 @@ export default function App() {
       }
     };
 
-    const handleUp = () => {
+    const cleanupDrag = () => {
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseup', handleUp);
       bodyStyle.userSelect = '';
@@ -234,12 +248,18 @@ export default function App() {
       if (mainRef.current) {
         mainRef.current.style.pointerEvents = '';
       }
+    };
+
+    const handleUp = () => {
+      cleanupDrag();
       setIsDragging(false);
       setSidebarWidth(widthRef.current);
+      dragCleanupRef.current = null;
     };
 
     document.addEventListener('mousemove', handleMove);
     document.addEventListener('mouseup', handleUp);
+    dragCleanupRef.current = cleanupDrag;
   };
 
   const handleHandleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -270,6 +290,7 @@ export default function App() {
     <div ref={layoutRef} className="flex min-h-screen bg-white text-gray-900 dark:bg-slate-950 dark:text-slate-100">
       <nav
         ref={sidebarRef}
+        style={{ width: sidebarWidth }}
         className="shrink-0 border-r border-gray-200 bg-gray-50 p-4 max-h-screen overflow-y-auto sticky top-0 dark:border-slate-800 dark:bg-slate-900"
       >
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3 dark:text-slate-400">Artifacts</h2>

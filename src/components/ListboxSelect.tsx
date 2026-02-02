@@ -103,28 +103,32 @@ export function ListboxSelect<T extends string>({
   };
 
   const handleListboxKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (options.length === 0) return;
-
+    // Escape/Tab should always work even if the list is empty.
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
+        if (options.length === 0) break;
         setActiveIndex((prev) => Math.min(options.length - 1, prev + 1));
         break;
       case 'ArrowUp':
         event.preventDefault();
+        if (options.length === 0) break;
         setActiveIndex((prev) => Math.max(0, prev - 1));
         break;
       case 'Home':
         event.preventDefault();
+        if (options.length === 0) break;
         setActiveIndex(0);
         break;
       case 'End':
         event.preventDefault();
+        if (options.length === 0) break;
         setActiveIndex(options.length - 1);
         break;
       case 'Enter':
       case ' ':
         event.preventDefault();
+        if (options.length === 0) break;
         if (activeIndex >= 0) {
           selectIndex(activeIndex);
         }
@@ -160,7 +164,7 @@ export function ListboxSelect<T extends string>({
         aria-controls={listboxId}
         className={[
           'flex h-9 w-full items-center justify-between gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)]',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
           triggerClassName,
         ]
           .filter(Boolean)

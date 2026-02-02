@@ -490,7 +490,7 @@ export default function JsonlStructureViewer() {
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                       'relative focus-visible:z-10',
                       layoutMode === 'two-column'
-                        ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                         : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                     ]
                       .filter(Boolean)
@@ -514,7 +514,7 @@ export default function JsonlStructureViewer() {
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                       'relative focus-visible:z-10',
                       layoutMode === 'three-column'
-                        ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                         : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                     ]
                       .filter(Boolean)
@@ -547,7 +547,7 @@ export default function JsonlStructureViewer() {
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                       'relative focus-visible:z-10',
                       wrapOutput
-                        ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                         : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                     ]
                       .filter(Boolean)
@@ -569,7 +569,7 @@ export default function JsonlStructureViewer() {
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                       'relative focus-visible:z-10',
                       !wrapOutput
-                        ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                         : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                     ]
                       .filter(Boolean)

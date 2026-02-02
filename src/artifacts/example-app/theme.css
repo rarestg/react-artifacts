@@ -7,6 +7,7 @@
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
   --ring: #94a3b8;
+  --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
 
   --primary: #0f172a;
   --primary-hover: #1e293b;
@@ -34,6 +35,7 @@
   --border: #1f2937;
   --border-strong: #334155;
   --ring: #94a3b8;
+  --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
 
   --primary: #e2e8f0;
   --primary-hover: #cbd5e1;
@@ -51,3 +53,34 @@
   --info: #a78bfa;
   --info-weak: #4c1d95;
 }
+
+/* Optional theme overrides (example template)
+   Add data-theme="festive" to the container to enable.
+   Keep Base as the source of truth; overrides should only set what changes. */
+/* .example-app-theme[data-theme="festive"] {
+  --surface: #fff7ed;
+  --surface-muted: #ffedd5;
+  --text: #3b1a0f;
+  --text-muted: #9a3412;
+  --border: #fed7aa;
+  --accent: #f97316;
+  --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
+  --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
+  --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
+  --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);
+  --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
+}
+
+.dark .example-app-theme[data-theme="festive"] {
+  --surface: #2a150f;
+  --surface-muted: #3b1c12;
+  --text: #fdecd4;
+  --text-muted: #f0b784;
+  --border: #7c2d12;
+  --accent: #fb923c;
+  --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
+  --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
+  --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
+  --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);
+  --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
+} */

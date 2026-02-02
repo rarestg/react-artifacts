@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import './theme.css';
+import { ListboxSelect } from '../../components/ListboxSelect';
 import { type ThemeId, themes } from './themes';
 
 const storageKey = 'artifact-theme-example';
@@ -87,58 +88,7 @@ export default function Example() {
   }, [theme]);
 
   const activeTheme = themes.find((item) => item.id === theme) ?? themes[0];
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const listboxId = useId();
-  const selectedIndex = themes.findIndex((item) => item.id === theme);
-
-  useEffect(() => {
-    if (!menuOpen) {
-      setActiveIndex(-1);
-      return;
-    }
-    setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
-  }, [menuOpen, selectedIndex]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [menuOpen]);
-
-  const handleThemeSelect = (nextTheme: ThemeId) => {
-    setTheme(nextTheme);
-  };
-
-  const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    const activeItem = activeIndex >= 0 ? themes[activeIndex] : null;
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      setMenuOpen(true);
-      setActiveIndex((prev) => {
-        if (prev === -1) return selectedIndex >= 0 ? selectedIndex : 0;
-        if (event.key === 'ArrowDown') return (prev + 1) % themes.length;
-        return (prev - 1 + themes.length) % themes.length;
-      });
-    } else if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      if (menuOpen && activeItem) {
-        handleThemeSelect(activeItem.id);
-        return;
-      }
-      setMenuOpen(true);
-    } else if (event.key === 'Escape') {
-      setMenuOpen(false);
-    } else if (menuOpen && event.key === 'Tab') {
-      setMenuOpen(false);
-    }
-  };
+  const themeOptions = themes.map((item) => ({ value: item.id, label: item.label }));
 
   return (
     <div className="example-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)]" data-theme={theme}>
@@ -162,57 +112,17 @@ export default function Example() {
               Theme
             </label>
             <div className="flex flex-wrap items-center gap-3">
-              <div ref={dropdownRef} className="relative w-52">
-                <button
-                  id="example-theme"
-                  type="button"
-                  onClick={() => setMenuOpen((open) => !open)}
-                  onKeyDown={handleTriggerKeyDown}
-                  aria-haspopup="listbox"
-                  aria-expanded={menuOpen}
-                  aria-controls={listboxId}
-                  className="flex h-9 w-full items-center justify-between gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm font-mono text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
-                >
-                  <span className="truncate">{activeTheme.label}</span>
-                  <span className="text-[var(--text-muted)]">▾</span>
-                </button>
-                {menuOpen && (
-                  <div
-                    id={listboxId}
-                    role="listbox"
-                    className="absolute left-0 right-0 top-full z-10 mt-1 border border-[var(--border)] bg-[var(--surface)]"
-                  >
-                    {themes.map((item, index) => {
-                      const isActive = index === activeIndex;
-                      const isSelected = item.id === theme;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          role="option"
-                          aria-selected={isSelected}
-                          onMouseEnter={() => setActiveIndex(index)}
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => handleThemeSelect(item.id)}
-                          className={[
-                            'flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm font-mono cursor-pointer',
-                            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-muted)]',
-                            isActive && 'bg-[var(--surface-muted)]',
-                            isSelected && 'border-l-2 border-l-[var(--accent)] pl-[calc(0.75rem-2px)]',
-                          ]
-                            .filter(Boolean)
-                            .join(' ')}
-                        >
-                          <span className="truncate">{item.label}</span>
-                          {isSelected && (
-                            <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent)]">On</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              <ListboxSelect
+                id="example-theme"
+                ariaLabel="Theme"
+                className="w-52"
+                triggerClassName="font-mono"
+                optionClassName="font-mono"
+                closeOnSelect={false}
+                options={themeOptions}
+                value={theme}
+                onChange={setTheme}
+              />
               <div className="border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-1 text-xs font-mono text-[var(--text-muted)]">
                 active: {activeTheme.label}
               </div>

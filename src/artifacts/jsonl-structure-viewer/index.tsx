@@ -21,6 +21,7 @@ const LEGACY_STORAGE_PREFIX = 'jsonl-structure-viewer';
 const debounceDelay = 300;
 const THREE_COLUMN_MIN_WIDTH = 1140;
 const TWO_COLUMN_MIN_WIDTH = 900;
+const HEADER_STACK_LABELS_WIDTH = 790;
 
 function formatErrorsReport(errors: { line: number; message: string; preview: string }[]) {
   return errors.map((error) => `Line ${error.line}: ${error.message} | ${error.preview}`).join('\n');
@@ -149,9 +150,17 @@ export default function JsonlStructureViewer() {
   const outputStats = useMemo(() => getOutputStats(output), [output]);
   const itemCount = useMemo(() => getItemCount(parsed.data, parsed.format), [parsed.data, parsed.format]);
   const tokenEstimate = useMemo(() => Math.max(0, Math.round(outputStats.characters / 4)), [outputStats.characters]);
-  const canUseThreeColumns = containerWidth >= THREE_COLUMN_MIN_WIDTH;
-  const canUseTwoColumns = containerWidth >= TWO_COLUMN_MIN_WIDTH;
-  const effectiveLayoutMode = !canUseTwoColumns ? 'one-column' : canUseThreeColumns ? layoutMode : 'two-column';
+  const layoutWidth = Math.round(containerWidth);
+  const canUseThreeColumns = layoutWidth >= THREE_COLUMN_MIN_WIDTH;
+  const canUseTwoColumns = layoutWidth >= TWO_COLUMN_MIN_WIDTH;
+  const stackHeaderLabels = layoutWidth <= HEADER_STACK_LABELS_WIDTH;
+  const effectiveLayoutMode = !canUseTwoColumns
+    ? 'one-column'
+    : canUseThreeColumns
+      ? layoutMode
+      : layoutMode === 'three-column'
+        ? 'two-column'
+        : layoutMode;
 
   const handleToggleSubtree = (path: string, nextValue: boolean) => {
     const targets = [path, ...(descendantMap[path] ?? [])];
@@ -422,11 +431,7 @@ export default function JsonlStructureViewer() {
         .filter(Boolean)
         .join(' ')}
     >
-      <div
-        className={['flex flex-col border border-[var(--border)] bg-[var(--surface)]']
-          .filter(Boolean)
-          .join(' ')}
-      >
+      <div className={['flex flex-col border border-[var(--border)] bg-[var(--surface)]'].filter(Boolean).join(' ')}>
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Output</div>
@@ -531,20 +536,20 @@ export default function JsonlStructureViewer() {
     >
       <div className="mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-10 lg:px-8 xl:px-10">
         <header className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-6">
-          <div className={`grid gap-6 ${canUseThreeColumns ? 'grid-cols-[minmax(0,1fr)_auto]' : ''}`}>
-            <div className="flex flex-col gap-2">
+          <div className="grid gap-6 grid-cols-[minmax(0,1fr)_auto]">
+            <div className="min-w-0 flex flex-col gap-2">
               <h1 className="m-0 text-3xl font-semibold leading-tight">JSONL Structure Viewer</h1>
               <p className="m-0 max-w-3xl text-sm text-[var(--text-muted)]">
                 Explore JSON arrays, single objects, or JSONL streams. Trim long strings, filter by path, and copy a
                 structure-first view without the noise.
               </p>
             </div>
-            <div className={`flex flex-col gap-2 ${canUseThreeColumns ? 'items-end' : 'items-start'}`}>
-              {canUseThreeColumns && (
+            <div className="flex flex-col items-end gap-2 w-auto">
+              {canUseTwoColumns && (
                 <div
-                  className={`flex flex-wrap items-center gap-2 ${
-                    canUseThreeColumns ? 'justify-end' : 'justify-start'
-                  }`}
+                  className={`w-auto ${
+                    stackHeaderLabels ? 'flex flex-col items-start gap-1' : 'flex flex-wrap items-center gap-2'
+                  } ${stackHeaderLabels ? '' : 'justify-end'}`}
                 >
                   <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                     Layout
@@ -601,35 +606,39 @@ export default function JsonlStructureViewer() {
                       </span>
                       <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
-                    <button
-                      type="button"
-                      aria-pressed={layoutMode === 'three-column'}
-                      onClick={() => setLayoutMode('three-column')}
-                      className={[
-                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                        'inline-flex items-center gap-1.5',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                        'relative focus-visible:z-10',
-                        layoutMode === 'three-column'
-                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                    >
-                      <span className="relative inline-grid">
-                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          {layoutReserveLabel}
+                    {canUseThreeColumns && (
+                      <button
+                        type="button"
+                        aria-pressed={layoutMode === 'three-column'}
+                        onClick={() => setLayoutMode('three-column')}
+                        className={[
+                          'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                          'inline-flex items-center gap-1.5',
+                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                          'relative focus-visible:z-10',
+                          layoutMode === 'three-column'
+                            ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                            : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                      >
+                        <span className="relative inline-grid">
+                          <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                            {layoutReserveLabel}
+                          </span>
+                          <span className="col-start-1 row-start-1">3</span>
                         </span>
-                        <span className="col-start-1 row-start-1">3</span>
-                      </span>
-                      <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
+                        <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    )}
                   </fieldset>
                 </div>
               )}
               <div
-                className={`flex flex-wrap items-center gap-2 ${canUseThreeColumns ? 'justify-end' : 'justify-start'}`}
+                className={`w-auto ${
+                  stackHeaderLabels ? 'flex flex-col items-start gap-1' : 'flex flex-wrap items-center gap-2'
+                } ${stackHeaderLabels ? '' : 'justify-end'}`}
               >
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Word Wrap

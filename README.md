@@ -117,8 +117,21 @@ track the actual browser viewport (or when using DevTools device emulation).
 ## UI Implementation Notes (Living Guide)
 
 Before making UI/layout changes, skim the index in `design/UI_IMPLEMENTATION_NOTES.md` and read any relevant entries.
+Each index row includes a line range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
 If a UI decision takes back-and-forth to settle (layout, responsiveness, Tailwind patterns, etc.), add a new entry so we
 don’t re-litigate it later.
+
+To add a new entry:
+1) Draft the entry body as raw markdown in a temporary `.md` file (no top-level `##` heading).
+2) Run:
+
+```bash
+python3 design/update_ui_implementation_notes.py \
+  --entry-md /path/to/entry.md \
+  --title "Short Title" \
+  --when-read "When should someone read this?" \
+  --keywords "comma, separated, keywords"
+```
 
 ## Artifact URLs
 

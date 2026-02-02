@@ -1,3 +1,7 @@
+## EXAMPLE ENTRY (FOR REFERENCE)
+
+This file is a sample entry to show formatting and depth. Use it as a template, not as content.
+
 ### When it applies
 - A user preference is stored, but constraints force a different visible mode.
 - Options are hidden/disabled when space or capability is limited.

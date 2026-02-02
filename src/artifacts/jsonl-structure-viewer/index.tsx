@@ -1,4 +1,4 @@
-import { Columns2, Columns3 } from 'lucide-react';
+import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import Checkbox from './components/Checkbox';
@@ -19,6 +19,8 @@ import './theme.css';
 const STORAGE_PREFIX = 'jsonl-structure-viewer-v2';
 const LEGACY_STORAGE_PREFIX = 'jsonl-structure-viewer';
 const debounceDelay = 300;
+const THREE_COLUMN_MIN_WIDTH = 1140;
+const TWO_COLUMN_MIN_WIDTH = 900;
 
 function formatErrorsReport(errors: { line: number; message: string; preview: string }[]) {
   return errors.map((error) => `Line ${error.line}: ${error.message} | ${error.preview}`).join('\n');
@@ -37,6 +39,10 @@ export default function JsonlStructureViewer() {
   const [onlyLeaves, setOnlyLeaves] = useLocalStorageState(`${STORAGE_PREFIX}-only-leaves`, false);
   const [searchQuery, setSearchQuery] = useLocalStorageState(`${STORAGE_PREFIX}-path-search`, '');
   const [showHelp, setShowHelp] = useLocalStorageState(`${STORAGE_PREFIX}-help`, false);
+  const [containerWidth, setContainerWidth] = useState(() => {
+    if (typeof window === 'undefined') return THREE_COLUMN_MIN_WIDTH;
+    return window.innerWidth;
+  });
 
   const [selection, setSelection] = useLocalStorageState<Record<string, boolean>>(`${STORAGE_PREFIX}-selection`, {});
   const [expandedPaths, setExpandedPaths] = useLocalStorageState<Record<string, boolean>>(
@@ -47,6 +53,7 @@ export default function JsonlStructureViewer() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const copyButtonRef = useRef<CopyButtonHandle>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const debouncedInput = useDebouncedValue(input, debounceDelay);
   const flushRef = useRef(debouncedInput.flush);
@@ -65,6 +72,22 @@ export default function JsonlStructureViewer() {
         storage.removeItem(key);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const element = containerRef.current;
+    if (!element) return;
+    const update = () => {
+      const width = element.getBoundingClientRect().width;
+      setContainerWidth(width);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   const tree = useMemo(() => {
@@ -126,6 +149,9 @@ export default function JsonlStructureViewer() {
   const outputStats = useMemo(() => getOutputStats(output), [output]);
   const itemCount = useMemo(() => getItemCount(parsed.data, parsed.format), [parsed.data, parsed.format]);
   const tokenEstimate = useMemo(() => Math.max(0, Math.round(outputStats.characters / 4)), [outputStats.characters]);
+  const canUseThreeColumns = containerWidth >= THREE_COLUMN_MIN_WIDTH;
+  const canUseTwoColumns = containerWidth >= TWO_COLUMN_MIN_WIDTH;
+  const effectiveLayoutMode = !canUseTwoColumns ? 'one-column' : canUseThreeColumns ? layoutMode : 'two-column';
 
   const handleToggleSubtree = (path: string, nextValue: boolean) => {
     const targets = [path, ...(descendantMap[path] ?? [])];
@@ -221,14 +247,14 @@ export default function JsonlStructureViewer() {
 
   const errorsReport = parsed.errors.length ? formatErrorsReport(parsed.errors) : '';
   const errorReserveLabel = 'Invalid JSONL. Each line must be valid JSON.';
-  const layoutReserveLabel = '3 Col';
+  const layoutReserveLabel = '3';
   const outputModeReserveLabel = 'Structure Only';
   const wrapReserveLabel = 'Off';
 
   const inputPanel = (
-    <section className={['min-w-0 flex flex-col gap-6 lg:flex-[1.4] lg:min-h-0'].filter(Boolean).join(' ')}>
+    <section className={['min-w-0 flex flex-col gap-6 lg:flex-[1.4]'].filter(Boolean).join(' ')}>
       <div
-        className={['min-w-0 flex flex-1 flex-col border border-[var(--border)] bg-[var(--surface)] lg:min-h-0']
+        className={['min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]']
           .filter(Boolean)
           .join(' ')}
       >
@@ -265,8 +291,8 @@ export default function JsonlStructureViewer() {
             </div>
           </div>
         </div>
-        <div className={['flex flex-1 flex-col gap-4 px-4 py-4 min-h-0'].filter(Boolean).join(' ')}>
-          <div className="min-h-0 flex-1">
+        <div className={['flex flex-col gap-4 px-4 py-4'].filter(Boolean).join(' ')}>
+          <div className="min-w-0">
             <textarea
               ref={inputRef}
               value={input}
@@ -274,7 +300,7 @@ export default function JsonlStructureViewer() {
               wrap={wrapOutput ? 'soft' : 'off'}
               spellCheck={false}
               rows={10}
-              className={`h-full w-full resize-none overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] ${
+              className={`w-full min-h-[240px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] ${
                 wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'
               }`}
             />
@@ -353,7 +379,7 @@ export default function JsonlStructureViewer() {
   );
 
   const pathPanel = (
-    <section className="min-w-0 flex flex-col gap-6 lg:flex-[0.9] lg:min-h-0">
+    <section className="min-w-0 flex flex-col gap-6 lg:flex-[0.9]">
       <PathList
         tree={tree}
         flatNodes={flatNodes}
@@ -390,14 +416,14 @@ export default function JsonlStructureViewer() {
   const outputPanel = (
     <section
       className={[
-        'min-w-0 flex flex-col gap-6 lg:flex-1 lg:min-h-0',
-        layoutMode === 'two-column' ? 'lg:self-stretch' : '',
+        'min-w-0 flex flex-col gap-6 lg:flex-1',
+        effectiveLayoutMode === 'two-column' ? 'lg:self-stretch' : '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
       <div
-        className={['flex flex-1 flex-col border border-[var(--border)] bg-[var(--surface)] lg:min-h-0']
+        className={['flex flex-col border border-[var(--border)] bg-[var(--surface)]']
           .filter(Boolean)
           .join(' ')}
       >
@@ -419,7 +445,7 @@ export default function JsonlStructureViewer() {
             />
           </div>
         </div>
-        <div className={['flex flex-1 flex-col gap-4 px-4 py-4 min-h-0'].filter(Boolean).join(' ')}>
+        <div className={['flex flex-col gap-4 px-4 py-4'].filter(Boolean).join(' ')}>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <button
@@ -476,12 +502,14 @@ export default function JsonlStructureViewer() {
             chars | ~{tokenEstimate} tokens
           </div>
           <div
-            className={['min-w-0 flex-1 min-h-0 border border-[var(--border)] bg-[var(--surface-muted)]']
+            className={[
+              'min-w-0 min-h-[240px] border border-[var(--border)] bg-[var(--surface-muted)] resize-y overflow-auto',
+            ]
               .filter(Boolean)
               .join(' ')}
           >
             <pre
-              className={`h-full min-w-0 overflow-auto p-3 text-xs leading-relaxed text-[var(--text)] ${
+              className={`min-w-0 p-3 text-xs leading-relaxed text-[var(--text)] ${
                 wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'
               }`}
             >
@@ -497,74 +525,112 @@ export default function JsonlStructureViewer() {
   );
 
   return (
-    <div className="jsonl-structure-theme h-screen overflow-hidden bg-[var(--surface-muted)] text-[var(--text)] flex flex-col">
-      <div className="mx-auto flex w-full max-w-none flex-1 min-h-0 flex-col gap-6 overflow-auto px-6 py-10 lg:px-8 xl:px-10">
+    <div
+      ref={containerRef}
+      className="jsonl-structure-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col"
+    >
+      <div className="mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-10 lg:px-8 xl:px-10">
         <header className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.4em] text-[var(--text-muted)]">
-            JSON Structure Viewer
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-3xl font-semibold">JSONL Structure Viewer</h1>
+          <div className={`grid gap-6 ${canUseThreeColumns ? 'grid-cols-[minmax(0,1fr)_auto]' : ''}`}>
             <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Layout
-                </span>
-                <fieldset
-                  aria-label="Layout mode"
-                  className="inline-flex border border-[var(--border-strong)] divide-x divide-[var(--border)]"
+              <h1 className="m-0 text-3xl font-semibold leading-tight">JSONL Structure Viewer</h1>
+              <p className="m-0 max-w-3xl text-sm text-[var(--text-muted)]">
+                Explore JSON arrays, single objects, or JSONL streams. Trim long strings, filter by path, and copy a
+                structure-first view without the noise.
+              </p>
+            </div>
+            <div className={`flex flex-col gap-2 ${canUseThreeColumns ? 'items-end' : 'items-start'}`}>
+              {canUseThreeColumns && (
+                <div
+                  className={`flex flex-wrap items-center gap-2 ${
+                    canUseThreeColumns ? 'justify-end' : 'justify-start'
+                  }`}
                 >
-                  <button
-                    type="button"
-                    aria-pressed={layoutMode === 'two-column'}
-                    onClick={() => setLayoutMode('two-column')}
-                    className={[
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'inline-flex items-center gap-1.5',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      layoutMode === 'two-column'
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                    Layout
+                  </span>
+                  <fieldset
+                    aria-label="Layout mode"
+                    className="inline-flex border border-[var(--border-strong)] divide-x divide-[var(--border)]"
                   >
-                    <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {layoutReserveLabel}
+                    <button
+                      type="button"
+                      aria-pressed={layoutMode === 'one-column'}
+                      onClick={() => setLayoutMode('one-column')}
+                      className={[
+                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                        'inline-flex items-center gap-1.5',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                        'relative focus-visible:z-10',
+                        layoutMode === 'one-column'
+                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <span className="relative inline-grid">
+                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                          {layoutReserveLabel}
+                        </span>
+                        <span className="col-start-1 row-start-1">1</span>
                       </span>
-                      <span className="col-start-1 row-start-1">2 Col</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={layoutMode === 'three-column'}
-                    onClick={() => setLayoutMode('three-column')}
-                    className={[
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'inline-flex items-center gap-1.5',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      layoutMode === 'three-column'
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-                    <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {layoutReserveLabel}
+                      <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={layoutMode === 'two-column'}
+                      onClick={() => setLayoutMode('two-column')}
+                      className={[
+                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                        'inline-flex items-center gap-1.5',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                        'relative focus-visible:z-10',
+                        layoutMode === 'two-column'
+                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <span className="relative inline-grid">
+                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                          {layoutReserveLabel}
+                        </span>
+                        <span className="col-start-1 row-start-1">2</span>
                       </span>
-                      <span className="col-start-1 row-start-1">3 Col</span>
-                    </span>
-                  </button>
-                </fieldset>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
+                      <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={layoutMode === 'three-column'}
+                      onClick={() => setLayoutMode('three-column')}
+                      className={[
+                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                        'inline-flex items-center gap-1.5',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                        'relative focus-visible:z-10',
+                        layoutMode === 'three-column'
+                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <span className="relative inline-grid">
+                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                          {layoutReserveLabel}
+                        </span>
+                        <span className="col-start-1 row-start-1">3</span>
+                      </span>
+                      <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </fieldset>
+                </div>
+              )}
+              <div
+                className={`flex flex-wrap items-center gap-2 ${canUseThreeColumns ? 'justify-end' : 'justify-start'}`}
+              >
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Word Wrap
                 </span>
@@ -618,74 +684,74 @@ export default function JsonlStructureViewer() {
                   </button>
                 </fieldset>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowHelp((prev) => !prev)}
+                className="border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+              >
+                {showHelp ? 'Hide Help' : 'Show Help'}
+              </button>
             </div>
-          </div>
-          <p className="max-w-3xl text-sm text-[var(--text-muted)]">
-            Explore JSON arrays, single objects, or JSONL streams. Trim long strings, filter by path, and copy a
-            structure-first view without the noise.
-          </p>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                Shortcuts
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Enter</span>
-                <span>Parse now</span>
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+F</span>
-                <span>Search paths</span>
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+L</span>
-                <span>Focus input</span>
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+C</span>
-                <span>Copy output</span>
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowHelp((prev) => !prev)}
-              className="border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
-            >
-              {showHelp ? 'Hide Help' : 'Show Help'}
-            </button>
           </div>
           {showHelp && (
-            <div className="flex flex-col gap-2 border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-xs text-[var(--text-muted)]">
-              <div className="font-semibold uppercase tracking-[0.2em] text-[10px] text-[var(--text-muted)]">
-                How to use
+            <div className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-xs text-[var(--text-muted)]">
+              <div className="flex flex-col gap-2">
+                <div className="font-semibold uppercase tracking-[0.2em] text-[10px] text-[var(--text-muted)]">
+                  How to use
+                </div>
+                <div>
+                  Paste JSON, JSON arrays, or JSONL. Use the path filters to include or exclude fields, then copy the
+                  trimmed output. Toggle Structure Only for a schema-like view.
+                </div>
               </div>
-              <div>
-                Paste JSON, JSON arrays, or JSONL. Use the path filters to include or exclude fields, then copy the
-                trimmed output. Toggle Structure Only for a schema-like view.
+              <div className="flex flex-col gap-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Shortcuts
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Enter</span>
+                    <span>Parse now</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+F</span>
+                    <span>Search paths</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+L</span>
+                    <span>Focus input</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+C</span>
+                    <span>Copy output</span>
+                  </span>
+                </div>
               </div>
             </div>
           )}
         </header>
 
         <div
-          className={`grid grid-cols-1 gap-6 flex-1 min-h-0 lg:grid-rows-[minmax(0,1fr)] ${
-            layoutMode === 'three-column'
-              ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]'
-              : 'lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]'
+          className={`grid grid-cols-1 gap-6 ${
+            effectiveLayoutMode === 'three-column'
+              ? 'lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]'
+              : effectiveLayoutMode === 'two-column'
+                ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
+                : ''
           }`}
         >
-          {layoutMode === 'three-column' ? (
+          {effectiveLayoutMode === 'two-column' ? (
             <>
-              {inputPanel}
+              <div className="min-w-0 flex flex-col gap-6 lg:flex-1">
+                {inputPanel}
+                {outputPanel}
+              </div>
               {pathPanel}
-              {outputPanel}
             </>
           ) : (
             <>
-              <div className="min-w-0 flex flex-col gap-6 lg:flex-1 lg:min-h-0">
-                {inputPanel}
-                {pathPanel}
-              </div>
+              {inputPanel}
+              {pathPanel}
               {outputPanel}
             </>
           )}

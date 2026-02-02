@@ -149,7 +149,7 @@ export default function PathList({
 
         result.push(
           <div
-            key={child.id}
+            key={child.key}
             className={`flex items-center justify-between gap-3 px-3 py-2 text-sm ${disabled ? 'opacity-50' : ''}`}
             style={{ paddingLeft: 12 + depthPadding }}
           >
@@ -218,7 +218,6 @@ export default function PathList({
 
     walk(
       {
-        id: 'root',
         key: 'root',
         label: 'root',
         path: '',
@@ -255,7 +254,7 @@ export default function PathList({
             {visibleCount} shown - {includedCount}/{flatNodes.length} included
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           <button
             type="button"
             onClick={onExpandAll}

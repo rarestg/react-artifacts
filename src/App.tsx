@@ -1,4 +1,14 @@
-import { Layers, Square } from 'lucide-react';
+import {
+  Layers,
+  Monitor,
+  Moon,
+  RectangleHorizontal,
+  RectangleVertical,
+  Smartphone,
+  Square,
+  Sun,
+  Tablet,
+} from 'lucide-react';
 import {
   type ComponentType,
   lazy,
@@ -20,16 +30,24 @@ type ArtifactMeta = {
   version?: string;
 };
 
+type DevicePreview = 'none' | 'iphone' | 'ipad';
+type DeviceOrientation = 'portrait' | 'landscape';
+
 const modules = import.meta.glob<{ default: ComponentType }>('./artifacts/*/index.tsx');
 const metaModules = import.meta.glob<{ default: ArtifactMeta }>('./artifacts/*/meta.ts', { eager: true });
 
 const SIDEBAR_WIDTH_KEY = 'artifact-sidebar-width';
-const DEFAULT_SIDEBAR_WIDTH = 224;
-const MIN_SIDEBAR_WIDTH = 180;
+const DEFAULT_SIDEBAR_WIDTH = 300;
+const MIN_SIDEBAR_WIDTH = 300;
 const MIN_CONTENT_WIDTH = 240;
 const RESIZE_STEP = 12;
 const RESIZE_STEP_FAST = 32;
 const RESIZE_HANDLE_WIDTH = 8;
+
+const DEVICE_PRESETS = {
+  iphone: { width: 390, height: 844 },
+  ipad: { width: 834, height: 1194 },
+} as const;
 
 const artifacts = Object.entries(modules).map(([path, loader]) => {
   const folder = path.replace('./artifacts/', '').replace('/index.tsx', '');
@@ -90,10 +108,13 @@ export default function App() {
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [rootFontSize, setRootFontSize] = useState(16);
   const [sizeCopied, setSizeCopied] = useState(false);
+  const [devicePreview, setDevicePreview] = useState<DevicePreview>('none');
+  const [deviceOrientation, setDeviceOrientation] = useState<DeviceOrientation>('portrait');
   const current = artifacts.find((a) => a.id === selected);
   const layoutRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const widthRef = useRef<number>(sidebarWidth);
   const dragCleanupRef = useRef<(() => void) | null>(null);
 
@@ -164,16 +185,19 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const target = mainRef.current;
-    if (!target) return;
+
+    const isPreviewActive = devicePreview !== 'none';
+    const resolveTarget = () =>
+      (isPreviewActive && previewRef.current ? previewRef.current : null) ?? mainRef.current;
 
     const updateSize = () => {
-      const rect = target.getBoundingClientRect();
+      const target = resolveTarget();
+      if (!target) return;
       const styles = window.getComputedStyle(target);
       const paddingX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight);
       const paddingY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom);
-      const innerWidth = Math.max(0, rect.width - paddingX);
-      const innerHeight = Math.max(0, rect.height - paddingY);
+      const innerWidth = Math.max(0, target.clientWidth - paddingX);
+      const innerHeight = Math.max(0, target.clientHeight - paddingY);
       setCanvasSize({ width: innerWidth, height: innerHeight });
       const rootSize = Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize);
       if (Number.isFinite(rootSize)) {
@@ -183,14 +207,17 @@ export default function App() {
 
     updateSize();
     const observer = new ResizeObserver(() => updateSize());
-    observer.observe(target);
+    const target = resolveTarget();
+    if (target) {
+      observer.observe(target);
+    }
     window.addEventListener('resize', updateSize);
 
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', updateSize);
     };
-  }, []);
+  }, [devicePreview]);
 
   const getClampBounds = useCallback(() => {
     const layoutWidth = layoutRef.current?.getBoundingClientRect().width ?? window.innerWidth;
@@ -374,6 +401,18 @@ export default function App() {
   const widthRem = rootFontSize ? (canvasSize.width / rootFontSize).toFixed(2) : '0.00';
   const heightRem = rootFontSize ? (canvasSize.height / rootFontSize).toFixed(2) : '0.00';
   const sizeLabel = `W ${widthPx}px · ${widthPt}pt · ${widthRem}rem\nH ${heightPx}px · ${heightPt}pt · ${heightRem}rem`;
+  const isDevicePreviewActive = devicePreview !== 'none';
+  const activePreset = isDevicePreviewActive ? DEVICE_PRESETS[devicePreview] : null;
+  const previewWidth = activePreset
+    ? deviceOrientation === 'portrait'
+      ? activePreset.width
+      : activePreset.height
+    : 0;
+  const previewHeight = activePreset
+    ? deviceOrientation === 'portrait'
+      ? activePreset.height
+      : activePreset.width
+    : 0;
   const handleCopySize = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(sizeLabel);
@@ -390,12 +429,14 @@ export default function App() {
         style={{ width: sidebarWidth }}
         className="shrink-0 border-r border-gray-200 bg-gray-50 p-4 max-h-screen overflow-y-auto sticky top-0 dark:border-slate-800 dark:bg-slate-900"
       >
-        <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3 dark:text-slate-400">Artifacts</h2>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2 dark:text-slate-400">
+          Controls
+        </div>
         <div className="mb-4 space-y-2">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
             Theme
           </div>
-          <div className="grid w-full max-w-[220px] grid-cols-3 gap-1">
+          <div className="grid w-full grid-cols-3 gap-1">
             <button
               type="button"
               aria-pressed={theme === 'light'}
@@ -409,7 +450,10 @@ export default function App() {
                 .filter(Boolean)
                 .join(' ')}
             >
-              Light
+              <span className="inline-flex items-center gap-1.5">
+                <Sun className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Light</span>
+              </span>
             </button>
             <button
               type="button"
@@ -424,7 +468,10 @@ export default function App() {
                 .filter(Boolean)
                 .join(' ')}
             >
-              System
+              <span className="inline-flex items-center gap-1.5">
+                <Monitor className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>System</span>
+              </span>
             </button>
             <button
               type="button"
@@ -439,10 +486,100 @@ export default function App() {
                 .filter(Boolean)
                 .join(' ')}
             >
-              Dark
+              <span className="inline-flex items-center gap-1.5">
+                <Moon className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Dark</span>
+              </span>
             </button>
           </div>
         </div>
+        <div className="mb-4 space-y-2">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+            Device Preview
+          </div>
+          <div className="grid w-full grid-cols-2 gap-1">
+            <button
+              type="button"
+              aria-pressed={devicePreview === 'iphone'}
+              onClick={() => setDevicePreview((prev) => (prev === 'iphone' ? 'none' : 'iphone'))}
+              className={[
+                'px-2 py-1.5 text-xs font-medium border transition-colors',
+                devicePreview === 'iphone'
+                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
+                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>iPhone</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={devicePreview === 'ipad'}
+              onClick={() => setDevicePreview((prev) => (prev === 'ipad' ? 'none' : 'ipad'))}
+              className={[
+                'px-2 py-1.5 text-xs font-medium border transition-colors',
+                devicePreview === 'ipad'
+                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
+                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Tablet className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>iPad</span>
+              </span>
+            </button>
+          </div>
+          <div className="grid w-full grid-cols-2 gap-1">
+            <button
+              type="button"
+              aria-pressed={deviceOrientation === 'portrait'}
+              onClick={() => setDeviceOrientation('portrait')}
+              disabled={!isDevicePreviewActive}
+              className={[
+                'px-2 py-1.5 text-xs font-medium border transition-colors',
+                deviceOrientation === 'portrait' && isDevicePreviewActive
+                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
+                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                !isDevicePreviewActive ? 'cursor-not-allowed opacity-50' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Portrait</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={deviceOrientation === 'landscape'}
+              onClick={() => setDeviceOrientation('landscape')}
+              disabled={!isDevicePreviewActive}
+              className={[
+                'px-2 py-1.5 text-xs font-medium border transition-colors',
+                deviceOrientation === 'landscape' && isDevicePreviewActive
+                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
+                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                !isDevicePreviewActive ? 'cursor-not-allowed opacity-50' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <RectangleHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Landscape</span>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div className="my-3 h-px w-full bg-gray-200 dark:bg-slate-800" />
+        <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3 dark:text-slate-400">Artifacts</h2>
         <ul className="space-y-1">
           {artifacts.map((a) => (
             <li key={a.id}>
@@ -510,7 +647,12 @@ export default function App() {
       />
       <main
         ref={mainRef}
-        className="relative flex-1 min-w-0 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]"
+        className={[
+          'relative flex-1 min-w-0 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]',
+          isDevicePreviewActive ? 'flex items-center justify-center' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         {canvasSize.width > 0 && (
           <button
@@ -526,9 +668,21 @@ export default function App() {
           </button>
         )}
         {current ? (
-          <Suspense fallback={<div className="text-gray-400">Loading…</div>}>
-            <current.Component />
-          </Suspense>
+          isDevicePreviewActive ? (
+            <div
+              ref={previewRef}
+              className="overflow-auto rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950"
+              style={{ width: previewWidth, height: previewHeight }}
+            >
+              <Suspense fallback={<div className="p-4 text-gray-400">Loading…</div>}>
+                <current.Component />
+              </Suspense>
+            </div>
+          ) : (
+            <Suspense fallback={<div className="text-gray-400">Loading…</div>}>
+              <current.Component />
+            </Suspense>
+          )
         ) : (
           <div className="text-gray-400">Select an artifact</div>
         )}

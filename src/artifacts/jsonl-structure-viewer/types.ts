@@ -4,6 +4,16 @@ export type OutputFormat = 'pretty' | 'compact';
 
 export type LayoutMode = 'two-column' | 'three-column';
 
+export type PathSegment =
+  | {
+      kind: 'key';
+      key: string;
+    }
+  | {
+      kind: 'array';
+      key?: string;
+    };
+
 export type JsonlError = {
   line: number;
   message: string;
@@ -19,6 +29,7 @@ export type ParseResult = {
 
 export type PathNode = {
   id: string;
+  key: string;
   label: string;
   path: string;
   isArray: boolean;

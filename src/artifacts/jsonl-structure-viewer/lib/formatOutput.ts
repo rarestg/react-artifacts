@@ -3,8 +3,7 @@ import type { FormatKind, OutputFormat } from '../types';
 export function formatOutput(value: unknown, format: FormatKind, outputFormat: OutputFormat) {
   if (format === 'jsonl') {
     if (!Array.isArray(value)) return '';
-    const spacing = outputFormat === 'pretty' ? 2 : 0;
-    return value.map((item) => JSON.stringify(item, null, spacing)).join('\n');
+    return value.map((item) => JSON.stringify(item)).join('\n');
   }
 
   if (outputFormat === 'compact') {
@@ -15,7 +14,7 @@ export function formatOutput(value: unknown, format: FormatKind, outputFormat: O
 }
 
 export function getItemCount(value: unknown, format: FormatKind) {
-  if (!value) return 0;
+  if (value == null) return 0;
   if (format === 'array' || format === 'jsonl') {
     return Array.isArray(value) ? value.length : 0;
   }

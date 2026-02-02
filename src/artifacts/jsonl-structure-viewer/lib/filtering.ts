@@ -1,17 +1,23 @@
-import type { TruncateResult } from '../types';
+import type { PathSegment, TruncateResult } from '../types';
+import { encodePath } from './pathTree';
 
-export function applyFilter(value: unknown, segments: string[], includedPaths: Record<string, boolean>): unknown {
-  const isIncluded = (path: string) => includedPaths[path] !== false;
+const normalizeTruncateLimit = (limit: number) => {
+  if (!Number.isFinite(limit)) return 0;
+  return Math.max(0, Math.floor(limit));
+};
+
+export function applyFilter(value: unknown, segments: PathSegment[], includedPaths: Record<string, boolean>): unknown {
+  const isIncluded = (pathSegments: PathSegment[]) => includedPaths[encodePath(pathSegments)] !== false;
 
   if (Array.isArray(value)) {
-    const path = segments.length === 0 ? '[]' : segments.join('->');
-    const nextSegments = segments.length === 0 ? ['[]'] : segments;
-    if (path && !isIncluded(path)) {
+    const rootArraySegment: PathSegment = { kind: 'array' };
+    const nextSegments = segments.length === 0 ? [rootArraySegment] : segments;
+    if (!isIncluded(nextSegments)) {
       return [];
     }
     return value.map((item) => {
       if (Array.isArray(item)) {
-        return applyFilter(item, [...nextSegments, '[]'], includedPaths);
+        return applyFilter(item, [...nextSegments, { kind: 'array' } as PathSegment], includedPaths);
       }
       if (item && typeof item === 'object') {
         return applyFilter(item, nextSegments, includedPaths);
@@ -25,20 +31,22 @@ export function applyFilter(value: unknown, segments: string[], includedPaths: R
     const next: Record<string, unknown> = {};
     Object.entries(obj).forEach(([key, entry]) => {
       if (Array.isArray(entry)) {
-        const arraySegment = `${key}[]`;
-        if (!isIncluded([...segments, arraySegment].join('->'))) {
+        const arraySegment: PathSegment = { kind: 'array', key };
+        const arraySegments = [...segments, arraySegment];
+        if (!isIncluded(arraySegments)) {
           return;
         }
-        next[key] = applyFilter(entry, [...segments, arraySegment], includedPaths);
+        next[key] = applyFilter(entry, arraySegments, includedPaths);
         return;
       }
 
-      const path = [...segments, key].join('->');
-      if (!isIncluded(path)) {
+      const keySegment: PathSegment = { kind: 'key', key };
+      const keySegments = [...segments, keySegment];
+      if (!isIncluded(keySegments)) {
         return;
       }
       if (entry && typeof entry === 'object') {
-        next[key] = applyFilter(entry, [...segments, key], includedPaths);
+        next[key] = applyFilter(entry, keySegments, includedPaths);
       } else {
         next[key] = entry;
       }
@@ -70,14 +78,15 @@ export function applyStructureOnly(value: unknown): unknown {
 }
 
 export function truncateValue(value: unknown, limit: number): TruncateResult {
+  const safeLimit = normalizeTruncateLimit(limit);
   if (typeof value === 'string') {
-    if (value.length <= limit) return { value, truncated: 0 };
-    return { value: `${value.slice(0, limit)}...`, truncated: 1 };
+    if (value.length <= safeLimit) return { value, truncated: 0 };
+    return { value: `${value.slice(0, safeLimit)}...`, truncated: 1 };
   }
   if (Array.isArray(value)) {
     let truncated = 0;
     const next = value.map((item) => {
-      const result = truncateValue(item, limit);
+      const result = truncateValue(item, safeLimit);
       truncated += result.truncated;
       return result.value;
     });
@@ -87,7 +96,7 @@ export function truncateValue(value: unknown, limit: number): TruncateResult {
     let truncated = 0;
     const next: Record<string, unknown> = {};
     Object.entries(value as Record<string, unknown>).forEach(([key, entry]) => {
-      const result = truncateValue(entry, limit);
+      const result = truncateValue(entry, safeLimit);
       truncated += result.truncated;
       next[key] = result.value;
     });

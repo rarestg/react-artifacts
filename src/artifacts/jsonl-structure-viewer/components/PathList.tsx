@@ -76,7 +76,7 @@ function buildMatchMap(root: PathNode, query: string) {
       }
     });
 
-    map[node.path] = { matches, hasMatch };
+    map[node.key] = { matches, hasMatch };
     return hasMatch;
   };
 
@@ -111,7 +111,7 @@ export default function PathList({
   }, [tree, normalizedQuery]);
 
   const includedCount = useMemo(
-    () => flatNodes.filter((node) => effectiveSelection[node.path] !== false).length,
+    () => flatNodes.filter((node) => effectiveSelection[node.key] !== false).length,
     [flatNodes, effectiveSelection],
   );
 
@@ -121,106 +121,105 @@ export default function PathList({
     const result: ReactNode[] = [];
 
     const walk = (node: PathNode, ancestorExcluded: boolean) => {
-      node.children
-        .sort((a, b) => a.label.localeCompare(b.label))
-        .forEach((child) => {
-          const hasChildren = child.children.length > 0;
-          const isLeaf = !hasChildren;
-          const isExcluded = effectiveSelection[child.path] === false;
-          const isDirectOff = selection[child.path] === false;
-          const disabled = ancestorExcluded && !isDirectOff;
+      node.children.forEach((child) => {
+        const hasChildren = child.children.length > 0;
+        const isLeaf = !hasChildren;
+        const isExcluded = effectiveSelection[child.key] === false;
+        const isDirectOff = selection[child.key] === false;
+        const disabled = ancestorExcluded && !isDirectOff;
 
-          const matches = matchMap ? matchMap[child.path]?.matches : true;
-          const hasMatch = matchMap ? matchMap[child.path]?.hasMatch : true;
+        const matches = matchMap ? matchMap[child.key]?.matches : true;
+        const hasMatch = matchMap ? matchMap[child.key]?.hasMatch : true;
 
-          if (matchMap && !hasMatch) {
-            return;
-          }
+        if (matchMap && !hasMatch) {
+          return;
+        }
 
-          if (onlyLeaves && !isLeaf) {
-            walk(child, ancestorExcluded || isExcluded);
-            return;
-          }
+        if (onlyLeaves && !isLeaf) {
+          walk(child, ancestorExcluded || isExcluded);
+          return;
+        }
 
-          const isExpanded = matchMap ? Boolean(matchMap[child.path]?.hasMatch) : (expandedPaths[child.path] ?? false);
+        const isExpanded = matchMap ? Boolean(matchMap[child.key]?.hasMatch) : (expandedPaths[child.key] ?? false);
 
-          const depthPadding = child.depth * 12;
-          const isTopLevel = child.depth === 0;
-          const isArray = child.isArray;
-          const descendantCount = Math.max(0, child.subtreeCount - 1);
+        const depthPadding = child.depth * 12;
+        const isTopLevel = child.depth === 0;
+        const isArray = child.isArray;
+        const descendantCount = Math.max(0, child.subtreeCount - 1);
 
-          result.push(
-            <div
-              key={child.id}
-              className={`flex items-center justify-between gap-3 px-3 py-2 text-sm ${disabled ? 'opacity-50' : ''}`}
-              style={{ paddingLeft: 12 + depthPadding }}
-            >
-              <div className="flex items-center gap-2">
-                {!onlyLeaves && hasChildren ? (
+        result.push(
+          <div
+            key={child.id}
+            className={`flex items-center justify-between gap-3 px-3 py-2 text-sm ${disabled ? 'opacity-50' : ''}`}
+            style={{ paddingLeft: 12 + depthPadding }}
+          >
+            <div className="flex items-center gap-2">
+              {!onlyLeaves && hasChildren ? (
+                <button
+                  type="button"
+                  onClick={() => onToggleExpand(child.key)}
+                  className="border border-[var(--border)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+                  aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                >
+                  {isExpanded ? '-' : '+'}
+                </button>
+              ) : (
+                <span className="inline-block w-5" aria-hidden="true" />
+              )}
+              <Checkbox
+                checked={selection[child.key] ?? true}
+                onChange={(event) => onTogglePath(child.key, event.target.checked)}
+                disabled={disabled}
+                ariaLabel={`Toggle ${child.path}`}
+              />
+              <span
+                className={`font-mono ${
+                  isArray ? 'text-[var(--info)]' : isTopLevel ? 'text-[var(--accent)]' : 'text-[var(--text)]'
+                }`}
+              >
+                {highlightText(child.label, normalizedQuery)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+              {descendantCount > 0 && !onlyLeaves && (
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => onToggleExpand(child.path)}
-                    className="border border-[var(--border)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
-                    aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                    onClick={() => onToggleSubtree(child.key, true)}
+                    disabled={disabled}
+                    className={`${actionButtonCompact} tracking-[0.18em]`}
                   >
-                    {isExpanded ? '-' : '+'}
+                    +{descendantCount}
                   </button>
-                ) : (
-                  <span className="inline-block w-5" aria-hidden="true" />
-                )}
-                <Checkbox
-                  checked={selection[child.path] ?? true}
-                  onChange={(event) => onTogglePath(child.path, event.target.checked)}
-                  disabled={disabled}
-                  ariaLabel={`Toggle ${child.path}`}
-                />
-                <span
-                  className={`font-mono ${
-                    isArray ? 'text-[var(--info)]' : isTopLevel ? 'text-[var(--accent)]' : 'text-[var(--text)]'
-                  }`}
-                >
-                  {highlightText(child.label, normalizedQuery)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                {descendantCount > 0 && !onlyLeaves && (
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => onToggleSubtree(child.path, true)}
-                      disabled={disabled}
-                      className={`${actionButtonCompact} tracking-[0.18em]`}
-                    >
-                      +{descendantCount}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onToggleSubtree(child.path, false)}
-                      disabled={disabled}
-                      className={`${actionButtonCompact} tracking-[0.18em]`}
-                    >
-                      -{descendantCount}
-                    </button>
-                  </div>
-                )}
-                <span className="font-mono">{highlightText(child.path, normalizedQuery)}</span>
-                {disabled && <span className="text-[10px] uppercase">parent off</span>}
-                {!disabled && matches === false && normalizedQuery && (
-                  <span className="text-[10px] uppercase">hidden</span>
-                )}
-              </div>
-            </div>,
-          );
+                  <button
+                    type="button"
+                    onClick={() => onToggleSubtree(child.key, false)}
+                    disabled={disabled}
+                    className={`${actionButtonCompact} tracking-[0.18em]`}
+                  >
+                    -{descendantCount}
+                  </button>
+                </div>
+              )}
+              <span className="font-mono">{highlightText(child.path, normalizedQuery)}</span>
+              {disabled && <span className="text-[10px] uppercase">parent off</span>}
+              {!disabled && matches === false && normalizedQuery && (
+                <span className="text-[10px] uppercase">hidden</span>
+              )}
+            </div>
+          </div>,
+        );
 
-          if (!onlyLeaves && (isExpanded || matchMap)) {
-            walk(child, ancestorExcluded || isExcluded);
-          }
-        });
+        if (!onlyLeaves && (isExpanded || matchMap)) {
+          walk(child, ancestorExcluded || isExcluded);
+        }
+      });
     };
 
     walk(
       {
         id: 'root',
+        key: 'root',
         label: 'root',
         path: '',
         isArray: false,

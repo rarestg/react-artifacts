@@ -87,7 +87,6 @@ export function buildPaths(data: unknown) {
 
 export function buildTree(paths: PathSegment[][]) {
   const root: PathNode = {
-    id: 'root',
     key: 'root',
     label: 'root',
     path: '',
@@ -109,7 +108,6 @@ export function buildTree(paths: PathSegment[][]) {
       }
       const label = formatSegment(segment);
       const node: PathNode = {
-        id: nodeKey,
         key: nodeKey,
         label,
         path: formatPath(nextSegments),

@@ -4,6 +4,7 @@ import {
   lazy,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type TouchEvent as ReactTouchEvent,
   Suspense,
   useCallback,
   useEffect,
@@ -86,6 +87,9 @@ export default function App() {
     return Number.isFinite(parsed) ? parsed : DEFAULT_SIDEBAR_WIDTH;
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [rootFontSize, setRootFontSize] = useState(16);
+  const [sizeCopied, setSizeCopied] = useState(false);
   const current = artifacts.find((a) => a.id === selected);
   const layoutRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -152,6 +156,42 @@ export default function App() {
     }
   }, [selected]);
 
+  useEffect(() => {
+    if (!sizeCopied) return;
+    const timeout = window.setTimeout(() => setSizeCopied(false), 1500);
+    return () => window.clearTimeout(timeout);
+  }, [sizeCopied]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const target = mainRef.current;
+    if (!target) return;
+
+    const updateSize = () => {
+      const rect = target.getBoundingClientRect();
+      const styles = window.getComputedStyle(target);
+      const paddingX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight);
+      const paddingY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom);
+      const innerWidth = Math.max(0, rect.width - paddingX);
+      const innerHeight = Math.max(0, rect.height - paddingY);
+      setCanvasSize({ width: innerWidth, height: innerHeight });
+      const rootSize = Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize);
+      if (Number.isFinite(rootSize)) {
+        setRootFontSize(rootSize);
+      }
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(() => updateSize());
+    observer.observe(target);
+    window.addEventListener('resize', updateSize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
+  }, []);
+
   const getClampBounds = useCallback(() => {
     const layoutWidth = layoutRef.current?.getBoundingClientRect().width ?? window.innerWidth;
     const maxByLayout = Math.max(MIN_SIDEBAR_WIDTH, layoutWidth - MIN_CONTENT_WIDTH - RESIZE_HANDLE_WIDTH);
@@ -216,11 +256,8 @@ export default function App() {
     };
   }, []);
 
-  const handleDragStart = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
+  const startDrag = (startX: number) => {
     setIsDragging(true);
-    const startX = event.clientX;
     const startWidth = widthRef.current;
     const bodyStyle = document.body.style;
     bodyStyle.userSelect = 'none';
@@ -229,17 +266,15 @@ export default function App() {
       mainRef.current.style.pointerEvents = 'none';
     }
 
-    const handleMove = (moveEvent: MouseEvent) => {
-      const nextWidth = clampWidth(startWidth + (moveEvent.clientX - startX));
+    const updateWidth = (clientX: number) => {
+      const nextWidth = clampWidth(startWidth + (clientX - startX));
       widthRef.current = nextWidth;
       if (sidebarRef.current) {
         sidebarRef.current.style.width = `${nextWidth}px`;
       }
     };
 
-    const cleanupDrag = () => {
-      document.removeEventListener('mousemove', handleMove);
-      document.removeEventListener('mouseup', handleUp);
+    const cleanupStyles = () => {
       bodyStyle.userSelect = '';
       bodyStyle.cursor = '';
       if (mainRef.current) {
@@ -247,8 +282,22 @@ export default function App() {
       }
     };
 
+    return { updateWidth, cleanupStyles };
+  };
+
+  const handleDragStart = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    const { updateWidth, cleanupStyles } = startDrag(event.clientX);
+
+    const handleMove = (moveEvent: MouseEvent) => {
+      updateWidth(moveEvent.clientX);
+    };
+
     const handleUp = () => {
-      cleanupDrag();
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+      cleanupStyles();
       setIsDragging(false);
       setSidebarWidth(widthRef.current);
       dragCleanupRef.current = null;
@@ -256,7 +305,43 @@ export default function App() {
 
     document.addEventListener('mousemove', handleMove);
     document.addEventListener('mouseup', handleUp);
-    dragCleanupRef.current = cleanupDrag;
+    dragCleanupRef.current = () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+      cleanupStyles();
+    };
+  };
+
+  const handleTouchStart = (event: ReactTouchEvent<HTMLDivElement>) => {
+    if (event.touches.length !== 1) return;
+    event.preventDefault();
+    const { updateWidth, cleanupStyles } = startDrag(event.touches[0].clientX);
+
+    const handleMove = (moveEvent: TouchEvent) => {
+      if (moveEvent.touches.length !== 1) return;
+      updateWidth(moveEvent.touches[0].clientX);
+      moveEvent.preventDefault();
+    };
+
+    const handleUp = () => {
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleUp);
+      document.removeEventListener('touchcancel', handleUp);
+      cleanupStyles();
+      setIsDragging(false);
+      setSidebarWidth(widthRef.current);
+      dragCleanupRef.current = null;
+    };
+
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', handleUp);
+    document.addEventListener('touchcancel', handleUp);
+    dragCleanupRef.current = () => {
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleUp);
+      document.removeEventListener('touchcancel', handleUp);
+      cleanupStyles();
+    };
   };
 
   const handleHandleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -282,6 +367,21 @@ export default function App() {
   };
 
   const clampBounds = getClampBounds();
+  const widthPx = Math.round(canvasSize.width);
+  const heightPx = Math.round(canvasSize.height);
+  const widthPt = (canvasSize.width * 0.75).toFixed(1);
+  const heightPt = (canvasSize.height * 0.75).toFixed(1);
+  const widthRem = rootFontSize ? (canvasSize.width / rootFontSize).toFixed(2) : '0.00';
+  const heightRem = rootFontSize ? (canvasSize.height / rootFontSize).toFixed(2) : '0.00';
+  const sizeLabel = `W ${widthPx}px · ${widthPt}pt · ${widthRem}rem\nH ${heightPx}px · ${heightPt}pt · ${heightRem}rem`;
+  const handleCopySize = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(sizeLabel);
+      setSizeCopied(true);
+    } catch {
+      setSizeCopied(false);
+    }
+  }, [sizeLabel]);
 
   return (
     <div ref={layoutRef} className="flex min-h-screen bg-white text-gray-900 dark:bg-slate-950 dark:text-slate-100">
@@ -396,10 +496,11 @@ export default function App() {
         aria-valuenow={Math.round(sidebarWidth)}
         tabIndex={0}
         onMouseDown={handleDragStart}
+        onTouchStart={handleTouchStart}
         onDoubleClick={handleResetWidth}
         onKeyDown={handleHandleKeyDown}
         className={[
-          'm-0 h-auto w-2 self-stretch cursor-col-resize border-0 border-r border-gray-200 bg-gray-50',
+          'm-0 h-auto w-2 self-stretch cursor-col-resize border-0 border-r border-gray-200 bg-gray-50 touch-none',
           'hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
           'dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-700 dark:focus-visible:ring-offset-slate-950',
           isDragging ? 'bg-gray-300 dark:bg-slate-700' : '',
@@ -409,8 +510,21 @@ export default function App() {
       />
       <main
         ref={mainRef}
-        className="flex-1 min-w-0 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]"
+        className="relative flex-1 min-w-0 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]"
       >
+        {canvasSize.width > 0 && (
+          <button
+            type="button"
+            onClick={handleCopySize}
+            className="absolute right-4 top-4 rounded border border-gray-200 bg-white/90 px-2 py-1 text-[11px] font-mono text-gray-700 shadow-sm transition-colors hover:bg-white dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900"
+            aria-label="Copy canvas size"
+            title="Copy canvas size"
+          >
+            <div>{`W ${widthPx}px · ${widthPt}pt · ${widthRem}rem`}</div>
+            <div>{`H ${heightPx}px · ${heightPt}pt · ${heightRem}rem`}</div>
+            {sizeCopied && <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-600">Copied</div>}
+          </button>
+        )}
         {current ? (
           <Suspense fallback={<div className="text-gray-400">Loading…</div>}>
             <current.Component />

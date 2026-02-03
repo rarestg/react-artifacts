@@ -2,7 +2,7 @@ export type FormatKind = 'array' | 'object' | 'jsonl' | 'empty' | 'invalid' | 'u
 
 export type OutputFormat = 'pretty' | 'compact';
 
-export type LayoutMode = 'two-column' | 'three-column';
+export type LayoutMode = 'one-column' | 'two-column' | 'three-column';
 
 export type PathSegment =
   | {
@@ -28,7 +28,6 @@ export type ParseResult = {
 };
 
 export type PathNode = {
-  id: string;
   key: string;
   label: string;
   path: string;

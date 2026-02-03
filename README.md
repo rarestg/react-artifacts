@@ -161,6 +161,7 @@ Configuration lives in `wrangler.jsonc`, and the Worker entry is `worker/index.t
 TypeScript for the Worker uses Wrangler-generated types:
 - Run `npm run generate-types` after changing `wrangler.jsonc` or bindings.
 - The generated file is `worker-configuration.d.ts`.
+- `npm run typecheck` runs `wrangler types --check` and will not write types.
 
 ## Scripts
 

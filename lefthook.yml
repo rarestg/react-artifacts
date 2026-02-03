@@ -7,7 +7,8 @@ pre-commit:
 
 pre-push:
   # Full suite before pushing (use `npx lefthook run pre-push --force` to run manually).
-  # Note: `typecheck` runs `wrangler types`, which can update worker-configuration.d.ts.
+  # Note: `typecheck` runs `wrangler types --check` (no writes). Run `npm run generate-types`
+  # if worker-configuration.d.ts is out of date after config/bindings changes.
   parallel: true
   commands:
     lint:

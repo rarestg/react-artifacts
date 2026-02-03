@@ -16,8 +16,8 @@
     "hooks:pre-commit": "lefthook run pre-commit",
     "hooks:pre-push": "lefthook run pre-push --force",
     "generate-types": "wrangler types",
-    "typecheck": "npm run generate-types && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json",
-    "typecheck:worker": "npm run generate-types && tsc --noEmit -p tsconfig.worker.json",
+    "typecheck": "wrangler types --check && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json",
+    "typecheck:worker": "wrangler types --check && tsc --noEmit -p tsconfig.worker.json",
     "preview": "vite preview",
     "deploy": "wrangler deploy"
   },

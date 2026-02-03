@@ -10,8 +10,6 @@ import {
   Tablet,
 } from 'lucide-react';
 import {
-  type ComponentType,
-  lazy,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type TouchEvent as ReactTouchEvent,
@@ -21,20 +19,10 @@ import {
   useRef,
   useState,
 } from 'react';
-
-type ArtifactMeta = {
-  name?: string;
-  subtitle?: string;
-  kind?: 'single' | 'app';
-  model?: string;
-  version?: string;
-};
+import { artifacts } from './artifacts';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
 type DeviceOrientation = 'portrait' | 'landscape';
-
-const modules = import.meta.glob<{ default: ComponentType }>('./artifacts/*/index.tsx');
-const metaModules = import.meta.glob<{ default: ArtifactMeta }>('./artifacts/*/meta.ts', { eager: true });
 
 const SIDEBAR_WIDTH_KEY = 'artifact-sidebar-width';
 const DEFAULT_SIDEBAR_WIDTH = 300;
@@ -48,20 +36,6 @@ const DEVICE_PRESETS = {
   iphone: { width: 390, height: 844 },
   ipad: { width: 834, height: 1194 },
 } as const;
-
-const artifacts = Object.entries(modules).map(([path, loader]) => {
-  const folder = path.replace('./artifacts/', '').replace('/index.tsx', '');
-  const meta = metaModules[`./artifacts/${folder}/meta.ts`]?.default;
-  return {
-    id: folder,
-    name: meta?.name ?? folder,
-    subtitle: meta?.subtitle,
-    kind: meta?.kind,
-    model: meta?.model,
-    version: meta?.version,
-    Component: lazy(loader),
-  };
-});
 
 const getArtifactIdFromUrl = (availableIds: string[]) => {
   if (typeof window === 'undefined') return undefined;

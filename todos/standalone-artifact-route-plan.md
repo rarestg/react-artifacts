@@ -10,6 +10,7 @@ Artifacts can only be viewed inside the shell (sidebar + resize handle + size ov
 - The existing shell at `/?artifact=<id>` continues to work unchanged.
 - No new dependencies introduced.
 - Standalone and shell paths don't load each other's code (lazy-loaded roots).
+- Standalone routing works under a non-root `BASE_URL` (e.g. `/myapp/artifact/<id>`).
 
 ## 2) System Context
 
@@ -30,7 +31,7 @@ Artifacts can only be viewed inside the shell (sidebar + resize handle + size ov
 **What to do**
 - Create `src/artifacts.ts`.
 - Move from `App.tsx` into it: the `ArtifactMeta` type, both `import.meta.glob` calls, and the `artifacts` array construction.
-- Export: `ArtifactMeta` type, `ArtifactEntry` type, `artifacts` array, and a `findArtifactById(id: string)` helper.
+- Export: `ArtifactMeta` type, `artifacts` array, inferred `ArtifactEntry` type, and a `findArtifactById(id: string)` helper.
 
 **Where**: New file `src/artifacts.ts`; remove corresponding code from `src/App.tsx`.
 
@@ -48,20 +49,10 @@ export type ArtifactMeta = {
   version?: string;
 };
 
-export type ArtifactEntry = {
-  id: string;
-  name: string;
-  subtitle?: string;
-  kind?: 'single' | 'app';
-  model?: string;
-  version?: string;
-  Component: ComponentType;
-};
-
 const modules = import.meta.glob<{ default: ComponentType }>('./artifacts/*/index.tsx');
 const metaModules = import.meta.glob<{ default: ArtifactMeta }>('./artifacts/*/meta.ts', { eager: true });
 
-export const artifacts: ArtifactEntry[] = Object.entries(modules).map(([path, loader]) => {
+export const artifacts = Object.entries(modules).map(([path, loader]) => {
   const folder = path.replace('./artifacts/', '').replace('/index.tsx', '');
   const meta = metaModules[`./artifacts/${folder}/meta.ts`]?.default;
   return {
@@ -75,18 +66,20 @@ export const artifacts: ArtifactEntry[] = Object.entries(modules).map(([path, lo
   };
 });
 
+export type ArtifactEntry = (typeof artifacts)[number];
+
 export const findArtifactById = (id?: string) => artifacts.find((a) => a.id === id);
 ```
 
-**Dependencies**: None. Do this first since Steps 2–4 import from it.
+**Dependencies**: None. Do this first since Steps 2, 4, and 5 import from it.
 
 ---
 
 ### Step 2: Create `src/StandaloneRoot.tsx`
 
 **What to do**
-- Create a minimal component that receives an artifact `id` prop, looks it up via `findArtifactById`, and renders it in a `Suspense` boundary.
-- Show a "not found" message if the id doesn't match any artifact.
+- Create a minimal component that receives an artifact `id` prop, looks it up via `findArtifactById`, and renders it in a `Suspense` boundary with `fallback={null}`.
+- Show a minimal "not found" message with no wrapper elements (text node only).
 
 **Where**: New file `src/StandaloneRoot.tsx`.
 
@@ -101,11 +94,11 @@ export default function StandaloneRoot({ id }: { id: string }) {
   const artifact = findArtifactById(id);
 
   if (!artifact) {
-    return <div className="p-6 text-sm text-gray-500">Artifact not found.</div>;
+    return <>Artifact not found.</>;
   }
 
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading…</div>}>
+    <Suspense fallback={null}>
       <artifact.Component />
     </Suspense>
   );
@@ -116,16 +109,56 @@ export default function StandaloneRoot({ id }: { id: string }) {
 
 ---
 
-### Step 3: Update `src/main.tsx` — route gate + lazy roots
+### Step 3: Update `index.html` — force system theme for standalone
+
+**What to do**
+- Update the inline theme script to detect `/artifact/<id>` paths (respecting `%BASE_URL%`) and ignore any stored `artifact-theme` value.
+- When on a standalone route, always use `prefers-color-scheme` (system theme).
+
+**Where**: `index.html` inline script in `<head>`.
+
+**Why**: Standalone should inherit OS/browser theme, regardless of shell-specific stored theme. This avoids applying an explicit light/dark choice made in the shell.
+
+```html
+<script>
+  (() => {
+    try {
+      const base = '%BASE_URL%'.replace(/\/$/, '');
+      const pathname = window.location.pathname;
+      const stripped = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
+      const isStandalone = /^\/artifact\/[^/]+\/?$/.test(stripped);
+
+      const stored = localStorage.getItem('artifact-theme');
+      const storedTheme =
+        stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+      const theme = isStandalone ? 'system' : storedTheme;
+
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const shouldDark = theme === 'dark' || (theme === 'system' && prefersDark);
+      document.documentElement.classList.toggle('dark', shouldDark);
+      document.documentElement.style.colorScheme = shouldDark ? 'dark' : 'light';
+    } catch {
+      // no-op
+    }
+  })();
+</script>
+```
+
+**Dependencies**: None.
+
+---
+
+### Step 4: Update `src/main.tsx` — route gate + lazy roots
 
 **What to do**
 - Add a `getStandaloneIdFromPath()` function that parses `window.location.pathname` for the pattern `/artifact/<id>`, respecting `import.meta.env.BASE_URL`.
+- Guard for non-browser environments with `if (typeof window === 'undefined') return undefined;`.
 - Lazy-import both `App` and `StandaloneRoot`.
 - Conditionally render one or the other based on whether a standalone id was found.
 
 **Where**: `src/main.tsx` (rewrite).
 
-**Why**: The entry point is the right place to decide which root to mount. Lazy-loading both means the standalone path doesn't pull in sidebar/resize code, and the shell path doesn't pull in `StandaloneRoot`.
+**Why**: The entry point is the right place to decide which root to mount. Lazy-loading both means the standalone path doesn't pull in sidebar/resize code, and the shell path doesn't pull in `StandaloneRoot` (the artifact registry still loads in both). Use `Suspense` with `fallback={null}` to avoid any shell chrome appearing on standalone paths while the bundle loads.
 
 ```tsx
 // src/main.tsx
@@ -137,6 +170,7 @@ const App = lazy(() => import('./App'));
 const StandaloneRoot = lazy(() => import('./StandaloneRoot'));
 
 const getStandaloneIdFromPath = (): string | undefined => {
+  if (typeof window === 'undefined') return undefined;
   const base = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
   const pathname = window.location.pathname;
   const stripped = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
@@ -158,7 +192,7 @@ const standaloneId = getStandaloneIdFromPath();
 
 createRoot(rootElement).render(
   <StrictMode>
-    <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading…</div>}>
+    <Suspense fallback={null}>
       {standaloneId ? <StandaloneRoot id={standaloneId} /> : <App />}
     </Suspense>
   </StrictMode>,
@@ -169,7 +203,7 @@ createRoot(rootElement).render(
 
 ---
 
-### Step 4: Update `src/App.tsx` — use shared registry
+### Step 5: Update `src/App.tsx` — use shared registry
 
 **What to do**
 - Remove the `ArtifactMeta` type, both `import.meta.glob` calls, and the `artifacts` array construction.
@@ -192,7 +226,7 @@ createRoot(rootElement).render(
 | Route gate in `main.tsx`, not inside `App` | Avoids initializing shell state/effects then bailing out; no hook-order hazards from early returns | Early return inside `App` — simpler but wasteful |
 | Lazy-load both roots | Standalone doesn't bundle sidebar/resize code; shell doesn't bundle StandaloneRoot | Eager imports — simpler but standalone loads unused code |
 | No `?artifact=` backward-compat redirect | This is a local dev tool, not a public API. No users to migrate. | Add redirect logic — unnecessary complexity |
-| No theme handling in standalone | Artifacts that need theming can handle it themselves; keeps StandaloneRoot minimal | Extract `useTheme` hook shared by both roots — adds complexity, can be done later if needed |
+| Force system theme for standalone | Standalone should inherit OS/browser theme and ignore shell’s stored theme | Apply stored theme everywhere — simpler but violates “system only” requirement |
 | No react-router | One route fork doesn't justify a dependency | react-router — overkill |
 
 ## 5) Risks & Landmines
@@ -205,7 +239,7 @@ createRoot(rootElement).render(
 - The glob patterns in `src/artifacts.ts` use relative paths (`./artifacts/*/index.tsx`). This works because the file lives in `src/`. If someone moves `artifacts.ts` to a different directory, the globs break silently (no artifacts found, no error).
 
 ### Theme in standalone mode
-- Standalone mode will not apply the dark/light/system theme logic. Artifacts that rely on the `dark` class on `<html>` will render in whatever the browser default is. This is an accepted tradeoff — if it becomes a problem, extract theme handling into a shared hook later.
+- Standalone mode forces **system** theme via the inline script. Stored `artifact-theme` is ignored on `/artifact/*`, so shell theme choices won’t leak into standalone previews. Note: the inline script sets the theme once on load; it will not live-update if the OS theme changes while the page stays open.
 
 ### Artifact IDs with special characters
 - `decodeURIComponent` handles encoded slashes/spaces. If an artifact folder name contains characters that are invalid in URL paths (unlikely given filesystem conventions), the match will fail silently and show "Artifact not found."
@@ -219,20 +253,22 @@ createRoot(rootElement).render(
 ### After Step 2
 - `npm run typecheck` passes.
 
-### After Steps 3 + 4
+### After Steps 3–5
 - `npm run typecheck` passes.
 - `npx biome check --write .` for formatting.
-- **Manual test — shell**: `npm run dev`, open `http://localhost:5173/?artifact=example`. Sidebar, theme toggle, resize handle, size overlay all work as before.
-- **Manual test — standalone**: open `http://localhost:5173/artifact/example`. Artifact renders full-page, no sidebar or shell chrome visible.
-- **Manual test — not found**: open `http://localhost:5173/artifact/nonexistent`. Shows "Artifact not found." message.
-- **Manual test — shell default**: open `http://localhost:5173/`. Shell loads with first artifact selected as before.
+- **Manual test — shell**: `npm run dev`, open `http://localhost:<vite-port>/?artifact=example`. Sidebar, theme toggle, resize handle, size overlay all work as before.
+- **Manual test — standalone**: open `http://localhost:<vite-port>/artifact/example`. Artifact renders full-page, no sidebar or shell chrome visible.
+- **Manual test — not found**: open `http://localhost:<vite-port>/artifact/nonexistent`. Shows "Artifact not found." message.
+- **Manual test — shell default**: open `http://localhost:<vite-port>/`. Shell loads with first artifact selected as before.
+- **Manual test — standalone theme**: set `localStorage.artifact-theme` to `dark` and `light` in the shell, then open `/artifact/example`. The page should still follow OS/browser theme (toggle system dark/light to verify).
+- **Manual test — BASE_URL**: if using a non-root base (e.g. `BASE_URL=/myapp/`), confirm `http://localhost:<vite-port>/myapp/artifact/example` resolves to the standalone view.
 - `npm run build` succeeds. Check that the production build includes two lazy chunks (one for App, one for StandaloneRoot).
 
 ### Rollback
-All changes are additive except the extraction from `App.tsx`. To rollback: revert `main.tsx`, delete `artifacts.ts` and `StandaloneRoot.tsx`, restore the inline registry in `App.tsx`.
+All changes are additive except the extraction from `App.tsx`. To rollback: revert `index.html` and `main.tsx`, delete `artifacts.ts` and `StandaloneRoot.tsx`, restore the inline registry in `App.tsx`.
 
 ## 7) Open Questions / Follow-ups
 
-- **Theme in standalone**: If artifacts frequently need dark mode in standalone view, extract theme logic into a `useTheme()` hook and call it from `StandaloneRoot`. Not needed now.
+- **Theme in standalone**: If artifacts need custom theming beyond system preferences, add an optional standalone-specific toggle later.
 - **Hot-reload for path changes**: Vite HMR works for component edits but won't re-evaluate the `main.tsx` route gate. Changing between shell and standalone requires a full page reload (normal browser navigation). Not a problem in practice.
 - **Link from shell to standalone**: Could add a small "open standalone" icon button next to the artifact name in the sidebar that opens `/artifact/<id>` in a new tab. Nice-to-have, not in scope.

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main.tsx",
+    "src/artifacts/*/index.tsx",
+    "src/artifacts/*/meta.ts",
+    "worker/index.ts",
+    "tests/**/*.{test,spec}.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "worker/**/*.ts", "tests/**/*.ts", "!**/*.d.ts", "!dist/**", "!.wrangler/**"],
+  "ignoreDependencies": ["tailwindcss"],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "devDependencies": "error",
+    "unlisted": "error",
+    "exports": "error",
+    "types": "warn",
+    "duplicates": "warn"
+  },
+  "typescript": {
+    "config": ["tsconfig.json"]
+  }
+}

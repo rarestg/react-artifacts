@@ -44,7 +44,7 @@ export function Button({ variant = 'default', size = 'md', className, ...props }
       type="button"
       className={[
         'inline-flex items-center gap-2 font-medium transition-colors motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         buttonVariants[variant],
         buttonSizes[size],
         className,

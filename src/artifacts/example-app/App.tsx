@@ -154,6 +154,7 @@ export default function ExampleApp() {
     }
 
     let nextIndex = index;
+    let handled = true;
 
     switch (event.key) {
       case 'ArrowUp':
@@ -169,11 +170,17 @@ export default function ExampleApp() {
         nextIndex = lastVisibleIndex;
         break;
       default:
-        return;
+        handled = false;
+        break;
     }
 
+    if (!handled) {
+      return;
+    }
+
+    // Prevent page scrolling for handled navigation keys, even at list boundaries.
+    event.preventDefault();
     if (nextIndex !== index) {
-      event.preventDefault();
       rowRefs.current[nextIndex]?.focus();
     }
   };
@@ -209,10 +216,10 @@ export default function ExampleApp() {
                   onClick={() => setView('all')}
                   className={[
                     'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'all'
-                      ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
                   ]
                     .filter(Boolean)
@@ -226,10 +233,10 @@ export default function ExampleApp() {
                   onClick={() => setView('active')}
                   className={[
                     'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'active'
-                      ? 'bg-[var(--primary)] text-[var(--primary-contrast)]'
+                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
                   ]
                     .filter(Boolean)
@@ -261,7 +268,7 @@ export default function ExampleApp() {
                   'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] focus:outline-none focus-visible:bg-[var(--surface-strong)]',
                   // Apply transparent left border only when not selected; prevents utility order from hiding selection.
                   activeRow === row.id
-                    ? 'bg-[var(--surface-muted)] border-l-[color:var(--primary)]'
+                    ? 'bg-[var(--surface-muted)] border-l-[color:var(--accent)]'
                     : 'border-l-transparent',
                 ]
                   .filter(Boolean)
@@ -329,7 +336,7 @@ export default function ExampleApp() {
                 }
                 className={[
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeSwatches[swatch.id]
                     ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',

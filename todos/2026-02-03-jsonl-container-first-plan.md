@@ -136,8 +136,9 @@
 
 6) `src/artifacts/jsonl-structure-viewer/index.tsx` (Content padding)
    - Current: `px-6 py-10 lg:px-8 xl:px-10`
-   - Replace with: `px-6 py-10` + conditional `px-8` when `isContentPaddingWide` + `px-10` when `isContentPaddingXL`.
-   - Ensure class ordering so `px-10` overrides `px-8` at XL widths.
+   - Replace with: compute a single `paddingX` class so only one `px-*` is ever applied.
+     - Example: `const paddingX = isContentPaddingXL ? 'px-10' : isContentPaddingWide ? 'px-8' : 'px-6';`
+     - Use: ``className={`${paddingX} py-10`}``
 
 7) `src/artifacts/jsonl-structure-viewer/index.tsx` (Panels grid - 3 column)
    - Current: `lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]`
@@ -209,7 +210,7 @@
 
 ## 5) Risks & Landmines
 
-- **Initial width = 0:** can cause a flash of narrow layout. Mitigate via `initialWidth` seed and `minDelta`.
+- **Initial width = 0:** can cause a flash of narrow layout. Mitigate via `initialWidth` seed (use `containerWidth` for panels; fallback to `window.innerWidth` on client) and `minDelta`.
 - **Threshold oscillation:** column switches can change panel widths; use a `minDelta`, rounding, and if needed hysteresis (enter/exit thresholds) to reduce thrash.
 - **Scrollbar width:** can shift width ~15px; keep thresholds with some buffer.
 - **ResizeObserver cleanup:** hook must handle ref changes and clean up properly.
@@ -259,12 +260,15 @@ export function useElementWidth<T extends HTMLElement>(
   const { initialWidth = 0, minDelta = 8, round = true } = options;
   const [width, setWidth] = useState<number>(initialWidth);
   const lastWidthRef = useRef<number>(initialWidth);
+  const element = ref.current;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (typeof ResizeObserver === 'undefined') return;
-    const element = ref.current;
     if (!element) return;
+
+    // Reset tracking when the observed element changes.
+    lastWidthRef.current = initialWidth;
 
     const apply = (next: number) => {
       const value = round ? Math.round(next) : next;
@@ -279,7 +283,7 @@ export function useElementWidth<T extends HTMLElement>(
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [ref, minDelta, round]);
+  }, [element, minDelta, round, initialWidth]);
 
   return width;
 }

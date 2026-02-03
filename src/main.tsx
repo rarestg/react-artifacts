@@ -1,6 +1,8 @@
-import { StrictMode, Suspense, lazy } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
+import { findArtifactById } from './artifacts';
 import './index.css';
+import StandaloneFallback from './StandaloneFallback';
 
 const App = lazy(() => import('./App'));
 const StandaloneRoot = lazy(() => import('./StandaloneRoot'));
@@ -26,9 +28,13 @@ if (!rootElement) {
 }
 
 const standaloneId = getStandaloneIdFromPath();
+const standaloneArtifact = standaloneId ? findArtifactById(standaloneId) : undefined;
+const standaloneFallback = standaloneId ? (
+  <StandaloneFallback title={standaloneArtifact?.name ?? standaloneId} subtitle={standaloneArtifact?.subtitle} />
+) : null;
 
 createRoot(rootElement).render(
   <StrictMode>
-    <Suspense fallback={null}>{standaloneId ? <StandaloneRoot id={standaloneId} /> : <App />}</Suspense>
+    <Suspense fallback={standaloneFallback}>{standaloneId ? <StandaloneRoot id={standaloneId} /> : <App />}</Suspense>
   </StrictMode>,
 );

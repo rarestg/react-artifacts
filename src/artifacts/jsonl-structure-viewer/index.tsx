@@ -163,10 +163,7 @@ export default function JsonlStructureViewer() {
   const headerGridClass = ['grid gap-6', headerStacked ? 'grid-cols-1' : 'grid-cols-[minmax(0,1fr)_auto]']
     .filter(Boolean)
     .join(' ');
-  const headerControlsClass = [
-    'flex flex-col gap-2 min-w-0',
-    headerStacked ? 'items-start w-full' : 'items-end w-auto',
-  ]
+  const headerControlsClass = ['flex flex-col gap-2 min-w-0', headerStacked ? 'items-start w-full' : 'items-end w-auto']
     .filter(Boolean)
     .join(' ');
   const headerControlGroupClass = [
@@ -453,10 +450,7 @@ export default function JsonlStructureViewer() {
 
   const outputPanel = (
     <section
-      className={[
-        'min-w-0 flex flex-col gap-6 lg:flex-1',
-        visibleLayoutMode === 'two-column' ? 'lg:self-stretch' : '',
-      ]
+      className={['min-w-0 flex flex-col gap-6 lg:flex-1', visibleLayoutMode === 'two-column' ? 'lg:self-stretch' : '']
         .filter(Boolean)
         .join(' ')}
     >

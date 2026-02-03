@@ -6,6 +6,7 @@ import {
   RectangleVertical,
   Smartphone,
   Square,
+  SquareArrowOutUpRight,
   Sun,
   Tablet,
 } from 'lucide-react';
@@ -36,6 +37,12 @@ const DEVICE_PRESETS = {
   iphone: { width: 390, height: 844 },
   ipad: { width: 834, height: 1194 },
 } as const;
+
+const getStandaloneUrl = (id: string) => {
+  const base = import.meta.env.BASE_URL ?? '/';
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+  return `${normalizedBase}artifact/${encodeURIComponent(id)}`;
+};
 
 const getArtifactIdFromUrl = (availableIds: string[]) => {
   if (typeof window === 'undefined') return undefined;
@@ -161,8 +168,7 @@ export default function App() {
     if (typeof window === 'undefined') return;
 
     const isPreviewActive = devicePreview !== 'none';
-    const resolveTarget = () =>
-      (isPreviewActive && previewRef.current ? previewRef.current : null) ?? mainRef.current;
+    const resolveTarget = () => (isPreviewActive && previewRef.current ? previewRef.current : null) ?? mainRef.current;
 
     const updateSize = () => {
       const target = resolveTarget();
@@ -377,11 +383,7 @@ export default function App() {
   const sizeLabel = `W ${widthPx}px · ${widthPt}pt · ${widthRem}rem\nH ${heightPx}px · ${heightPt}pt · ${heightRem}rem`;
   const isDevicePreviewActive = devicePreview !== 'none';
   const activePreset = isDevicePreviewActive ? DEVICE_PRESETS[devicePreview] : null;
-  const previewWidth = activePreset
-    ? deviceOrientation === 'portrait'
-      ? activePreset.width
-      : activePreset.height
-    : 0;
+  const previewWidth = activePreset ? (deviceOrientation === 'portrait' ? activePreset.width : activePreset.height) : 0;
   const previewHeight = activePreset
     ? deviceOrientation === 'portrait'
       ? activePreset.height
@@ -557,31 +559,35 @@ export default function App() {
         <ul className="space-y-1">
           {artifacts.map((a) => (
             <li key={a.id}>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelected(a.id);
-                  updateArtifactUrl(a.id, 'push');
-                }}
-                className={`w-full text-left px-3 py-2 rounded text-sm ${
+              <div
+                className={`w-full rounded text-sm ${
                   selected === a.id
                     ? 'bg-blue-100 text-blue-800 font-medium dark:bg-slate-800 dark:text-slate-100'
                     : 'text-gray-700 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  {a.kind === 'app' ? (
-                    <Layers className="h-3.5 w-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
-                  ) : a.kind === 'single' ? (
-                    <Square className="h-3.5 w-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
-                  ) : null}
-                  <span className="truncate">{a.name}</span>
-                </div>
-                {a.subtitle && (
-                  <div className="text-[11px] text-gray-500 truncate mt-0.5 dark:text-slate-400">{a.subtitle}</div>
-                )}
-                {(a.model || a.version) && (
-                  <div className="mt-1 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelected(a.id);
+                    updateArtifactUrl(a.id, 'push');
+                  }}
+                  className="w-full text-left px-3 pt-2 pb-1"
+                >
+                  <div className="flex items-center gap-2">
+                    {a.kind === 'app' ? (
+                      <Layers className="h-3.5 w-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
+                    ) : a.kind === 'single' ? (
+                      <Square className="h-3.5 w-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
+                    ) : null}
+                    <span className="truncate">{a.name}</span>
+                  </div>
+                  {a.subtitle && (
+                    <div className="text-[11px] text-gray-500 truncate mt-0.5 dark:text-slate-400">{a.subtitle}</div>
+                  )}
+                </button>
+                <div className="mt-1 flex items-center gap-2 px-3 pb-2">
+                  <div className="flex min-w-0 flex-wrap gap-1.5">
                     {a.model && (
                       <span className="inline-flex items-center border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-gray-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                         {a.model}
@@ -593,8 +599,24 @@ export default function App() {
                       </span>
                     )}
                   </div>
-                )}
-              </button>
+                  <a
+                    href={getStandaloneUrl(a.id)}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Open ${a.name} standalone`}
+                    title="Open standalone view"
+                    className={[
+                      'ml-auto inline-flex h-7 w-7 items-center justify-center border border-transparent text-gray-500 transition',
+                      'hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
+                      'dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
             </li>
           ))}
         </ul>

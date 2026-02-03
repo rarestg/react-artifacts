@@ -115,6 +115,11 @@ def main() -> None:
     parser.add_argument("--keywords", required=True)
     args = parser.parse_args()
 
+    for field_name in ("title", "when_read", "keywords"):
+        value = getattr(args, field_name)
+        if "|" in value or "\n" in value or "\r" in value:
+            raise ValueError(f"{field_name} cannot contain '|' or newlines (breaks the index table).")
+
     path = Path(args.file)
     lines = path.read_text().splitlines()
 

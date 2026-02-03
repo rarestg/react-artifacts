@@ -1,3 +1,22 @@
+## Implementation Summary (Completed)
+
+**Implemented changes**
+- Added standalone routing in `src/main.tsx` with lazy-loaded roots and BASE_URL-aware path parsing.
+- Extracted the artifact registry into `src/artifacts.ts` and updated `src/App.tsx` to consume it.
+- Added `src/StandaloneRoot.tsx` plus `src/StandaloneFallback.tsx` for standalone loading and not-found UI.
+- Added a sidebar link to open standalone view using `SquareArrowOutUpRight` next to model/version tags.
+- Updated `index.html` inline script to force system theme on `/artifact/*` routes and documented behavior in `README.md`.
+
+**Notes / deviations from plan**
+- Suspense fallbacks are now a styled skeleton (not `null`) to avoid blank screens.
+- Standalone “not found” is styled and uses sharp UI surfaces.
+- Added the standalone link UI in the sidebar (nice-to-have, not originally in scope).
+- Standalone theme follows OS/browser only and ignores stored shell theme; it does not live-update if the OS theme changes mid-session.
+
+**Validation**
+- `npm run lint`
+- `npm run typecheck`
+
 # Standalone Artifact Route Plan
 
 ## 1) Problem & Motivation

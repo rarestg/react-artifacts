@@ -1,0 +1,89 @@
+Resize + Slack System (JSONL Structure Viewer)
+=============================================
+
+Purpose
+- Provide a predictable “double‑click to expand” behavior for the native bottom‑right resize handles.
+- Avoid page scrollbars (no layout jog), while still allowing panels to expand into available space.
+- Keep behavior consistent across 2‑column and 3‑column layouts.
+
+Where the logic lives
+- Main file: `src/artifacts/jsonl-structure-viewer/index.tsx`
+- Key functions:
+  - `isResizeHandleDoubleClick(...)` – hit‑test for the native resize handle (bottom‑right corner).
+  - `expandHeightWithoutScroll(...)` – computes slack and expands height safely.
+  - `handleResizeDoubleClick(...)` – event handler that wires the UI to the expand logic.
+
+Key refs used for geometry
+- `contentRef` – the padded page container (the inner content block). Used to account for top/bottom padding.
+- `panelsGridRef` – the grid that holds input/path/output panels. Used for grid‑level slack.
+- `inputPanelRef` / `outputPanelRef` – the overall panel columns.
+- `inputCardRef` / `outputCardRef` – the primary card inside each panel (Input/Output card).
+- `inputRef` / `outputResizeRef` – the actual resizable elements (textarea and output pane).
+
+Slack model (what it means)
+We compute three kinds of slack and take the max:
+
+1) viewportSlack
+- “How much space is left between the bottom of the content container and the bottom of the viewport.”
+- Computed with:
+  - `viewportSlackBase = contentRect.bottom` (fallback: grid/panel/element)
+  - `viewportSlack = max(0, window.innerHeight - viewportSlackBase)`
+- This is the key to honoring the page padding (top/bottom). It prevents the 1px scrollbar issue.
+
+2) gridSlack
+- “How much a panel can grow to match the tallest panel in its grid row.”
+- Computed with:
+  - `gridSlack = max(0, gridRect.bottom - panelRect.bottom)`
+
+3) panelSlack
+- “How much empty space exists inside the panel itself.”
+- Computed only when the panel content is the last child in that panel:
+  - `panelSlack = max(0, panelRect.bottom - panelContentRect.bottom)`
+- This allows the Input textarea to expand even after the Output panel has already increased the row height.
+
+Final slack
+- `internalSlack = gridSlack + panelSlack`
+- `slack = viewportSlack + internalSlack`
+  - `safeSlack = max(0, floor(slack) - 1)`
+  - The `-1` is a safety buffer to avoid a 1px scrollbar due to sub‑pixel rounding.
+
+Double‑click behavior
+- Triggered only when the pointer is inside the native resize handle area (bottom‑right 16px).
+- We do not create a custom handle; we use the native resize handle and double‑click.
+- For the output pane, we use a Biome ignore on the static div:
+  - `// biome-ignore lint/a11y/noStaticElementInteractions`
+  - Rationale: the native handle is the interaction point and doesn’t allow a semantic control.
+
+Debug logging (dev only)
+- All logs are gated by `DEBUG_RESIZE = import.meta.env.DEV`.
+- Prefix: `[resize-debug]` to keep them searchable.
+
+Key debug events
+- `page load` – dumps viewport + panel sizes on first render.
+- `window resize` – debounced (1s) after a resize.
+- `container resize` – fired by `ResizeObserver` on the container.
+- `layout mode change` – logs `layoutMode`, `visibleLayoutMode`, and width thresholds.
+- `output view change` – logs view/format switches.
+- `element resize` – ResizeObserver on the input textarea & output pane; catches drag resizing.
+- `dblclick handler` – shows if the double‑click was detected.
+- `handle hit test` – shows the hit‑test for the bottom‑right resize handle.
+- `expand start` – prints all slack components + geometry.
+- `expand applied` / `expand skipped` – confirms expansion or why it was skipped.
+
+How to verify intended behavior
+1) Fresh load (3‑column):
+   - `page load` shows `rootScrollHeight == windowInnerHeight` (no scroll).
+   - Panels have equal heights (grid row driven by max).
+
+2) Double‑click output handle:
+   - `expand start` should show `viewportSlack > 0`.
+   - `expand applied` should show `rootScrollHeight == windowInnerHeight` (no scrollbar).
+
+3) Double‑click input handle after output expanded:
+   - `panelSlack > 0` (input card is shorter than its panel).
+   - Input textarea expands to fill the column, without affecting page scroll.
+
+Notes / caveats
+- If `panelContentIsLast` is false (e.g., error card appears), we skip `panelSlack` to avoid expanding into other stacked content.
+- Native resize handles don’t emit JS events; we rely on `ResizeObserver` for drag‑resize logging.
+- The 1px buffer (`safeSlack`) is intentional to avoid sub‑pixel scrollbars.

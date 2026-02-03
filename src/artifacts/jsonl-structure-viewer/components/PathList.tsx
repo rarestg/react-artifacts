@@ -1,5 +1,6 @@
 import { type ReactNode, type RefObject, useMemo } from 'react';
 
+import { headerActionClass, panelHeaderRowClass } from '../lib/ui';
 import type { PathNode } from '../types';
 import Checkbox from './Checkbox';
 
@@ -10,7 +11,6 @@ const actionButtonBase = [
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
 ].join(' ');
 
-const actionButtonSmall = `${actionButtonBase} px-2 py-1`;
 const actionButtonCompact = `${actionButtonBase} px-1.5 py-0.5`;
 
 type PathListProps = {
@@ -247,7 +247,7 @@ export default function PathList({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3">
+      <div className={panelHeaderRowClass}>
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Path Filters</div>
           <div className="text-xs text-[var(--text-muted)]">
@@ -258,7 +258,7 @@ export default function PathList({
           <button
             type="button"
             onClick={onExpandAll}
-            className={actionButtonSmall}
+            className={headerActionClass}
             disabled={!tree || flatNodes.length === 0 || onlyLeaves}
           >
             Expand All
@@ -266,7 +266,7 @@ export default function PathList({
           <button
             type="button"
             onClick={onCollapseAll}
-            className={actionButtonSmall}
+            className={headerActionClass}
             disabled={!tree || flatNodes.length === 0 || onlyLeaves}
           >
             Collapse All
@@ -301,16 +301,16 @@ export default function PathList({
           className="text-xs text-[var(--text-muted)]"
         />
         <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
-          <button type="button" onClick={() => onSelectAll(true)} className={actionButtonSmall}>
+          <button type="button" onClick={() => onSelectAll(true)} className={headerActionClass}>
             Select All
           </button>
-          <button type="button" onClick={() => onSelectAll(false)} className={actionButtonSmall}>
+          <button type="button" onClick={() => onSelectAll(false)} className={headerActionClass}>
             Deselect All
           </button>
-          <button type="button" onClick={onInvert} className={actionButtonSmall}>
+          <button type="button" onClick={onInvert} className={headerActionClass}>
             Invert
           </button>
-          <button type="button" onClick={onResetFilters} className={actionButtonSmall}>
+          <button type="button" onClick={onResetFilters} className={headerActionClass}>
             Reset
           </button>
         </div>

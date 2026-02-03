@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { findArtifactById } from './artifacts';
+import { type ArtifactEntry, findArtifactById } from './artifacts';
 import StandaloneFallback from './StandaloneFallback';
 
 const StandaloneNotFound = ({ id }: { id: string }) => (
@@ -21,7 +21,7 @@ const StandaloneNotFound = ({ id }: { id: string }) => (
 );
 
 export default function StandaloneRoot({ id }: { id: string }) {
-  const artifact = findArtifactById(id);
+  const artifact: ArtifactEntry | undefined = findArtifactById(id);
 
   if (!artifact) {
     return <StandaloneNotFound id={id} />;

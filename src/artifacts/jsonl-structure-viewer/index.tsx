@@ -427,11 +427,11 @@ export default function JsonlStructureViewer() {
     return outputForCopy;
   }, [parsed.data, outputView, isJsonl, outputFormat, truncated.value, outputForCopy]);
 
-  const outputStats = useMemo(
-    () => getOutputStats(outputView === 'raw' ? outputForDisplay : outputForCopy),
-    [outputView, outputForDisplay, outputForCopy],
-  );
-  const inputStats = useMemo(() => getOutputStats(debouncedInput.value), [debouncedInput.value]);
+  const outputStats = useMemo(() => getOutputStats(outputForCopy), [outputForCopy]);
+  const inputStats = useMemo(() => {
+    if (!input) return { characters: 0, lines: 0 };
+    return { characters: input.length, lines: input.split('\n').length };
+  }, [input]);
   const itemCount = useMemo(() => getItemCount(parsed.data, parsed.format), [parsed.data, parsed.format]);
   const tokenEstimate = useMemo(() => Math.max(0, Math.round(outputStats.characters / 4)), [outputStats.characters]);
   const inputTokenEstimate = useMemo(() => Math.max(0, Math.round(inputStats.characters / 4)), [inputStats.characters]);
@@ -965,10 +965,6 @@ export default function JsonlStructureViewer() {
                 />
               </div>
             )}
-          </div>
-          <div className="text-[11px] text-[var(--text-muted)]">
-            {truncated.truncated} string{truncated.truncated === 1 ? '' : 's'} truncated - {outputStats.characters}{' '}
-            chars | ~{tokenEstimate} tokens
           </div>
           {/* biome-ignore lint/a11y/noStaticElementInteractions: support double-click on native resize handle */}
           <div

@@ -71,4 +71,4 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run knip
-        run: npm run knip
+        run: npm run knip:ci

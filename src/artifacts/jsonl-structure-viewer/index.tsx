@@ -638,7 +638,7 @@ export default function JsonlStructureViewer() {
   const jsonViewTheme = isDarkTheme ? darkTheme : lightTheme;
 
   const inputPanel = (
-    <section ref={inputPanelRef} className={['min-w-0 flex flex-col gap-6 lg:flex-[1.4]'].filter(Boolean).join(' ')}>
+    <section ref={inputPanelRef} className={['min-w-0 flex flex-col gap-6'].filter(Boolean).join(' ')}>
       <div
         ref={inputCardRef}
         className={['min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]']
@@ -802,7 +802,7 @@ export default function JsonlStructureViewer() {
   const outputPanel = (
     <section
       ref={outputPanelRef}
-      className={['min-w-0 flex flex-col gap-6 lg:flex-1', visibleLayoutMode === 'two-column' ? 'lg:self-stretch' : '']
+      className={['min-w-0 flex flex-col gap-6', visibleLayoutMode === 'two-column' ? 'lg:self-stretch' : '']
         .filter(Boolean)
         .join(' ')}
     >
@@ -1219,13 +1219,13 @@ export default function JsonlStructureViewer() {
             visibleLayoutMode === 'three-column'
               ? 'lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]'
               : visibleLayoutMode === 'two-column'
-                ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
+                ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start'
                 : ''
           }`}
         >
           {visibleLayoutMode === 'two-column' ? (
             <>
-              <div className="min-w-0 flex flex-col gap-6 lg:flex-1">
+              <div className="min-w-0 flex flex-col gap-6 lg:self-start">
                 {inputPanel}
                 {outputPanel}
               </div>

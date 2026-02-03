@@ -989,9 +989,7 @@ export default function JsonlStructureViewer() {
                 shortenTextAfterLength={0}
                 highlightUpdates={false}
                 style={{ ...jsonViewTheme, whiteSpace: wrapOutput ? 'pre-wrap' : 'pre' }}
-                className={`min-w-0 p-3 text-xs leading-relaxed ${
-                  wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'
-                }`}
+                className={`min-w-0 p-3 text-xs leading-relaxed ${wrapOutput ? 'break-words' : ''}`}
               />
             ) : (
               <pre

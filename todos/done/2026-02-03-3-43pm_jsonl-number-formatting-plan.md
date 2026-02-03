@@ -1,3 +1,8 @@
+# Implementation Summary (Completed)
+- Implemented changes: Added `formatCompactNumber` helper for compact counts and applied it to chars/tokens in Input/Output stats; kept items/lines and truncated-string counts precise.
+- Notes / deviations from plan: Added a guard to render `1m` instead of `1000k` when rounding pushes near the million mark.
+- Validation steps run (commands): Not run (not requested).
+
 # Humanized Count Formatting Plan (JSONL Structure Viewer)
 
 ## 1) Problem & Motivation

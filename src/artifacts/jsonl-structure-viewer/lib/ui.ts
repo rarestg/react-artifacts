@@ -7,3 +7,6 @@ export const headerActionClass = [
 
 export const panelHeaderRowClass =
   'flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3';
+
+export const panelHeaderSubtitleClass =
+  'flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--text-muted)]';

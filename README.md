@@ -153,16 +153,28 @@ Notes:
 - Standalone view always follows the OS/browser theme (`prefers-color-scheme`) and ignores any saved shell theme.
 - The theme is applied on load and will not live-update if the OS theme changes while the page stays open.
 
+## Cloudflare Workers Deployment
+
+This app is deployed as a Cloudflare Worker with static assets + SPA routing.
+Configuration lives in `wrangler.jsonc`, and the Worker entry is `worker/index.ts` (handles `/api/*`).
+
+TypeScript for the Worker uses Wrangler-generated types:
+- Run `npm run generate-types` after changing `wrangler.jsonc` or bindings.
+- The generated file is `worker-configuration.d.ts`.
+
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start dev server |
 | `npm run build` | Type-check + production build |
+| `npm run generate-types` | Generate Worker runtime types (Wrangler) |
 | `npm run format` | Run Biome with auto-fix (format + lint + imports) |
 | `npm run lint` | Run Biome (format + lint + imports check) |
 | `npm run lint:fix` | Run Biome and auto-fix |
+| `npm run typecheck:worker` | Type-check Worker code |
 | `npm run preview` | Preview production build |
+| `npm run deploy` | Deploy Worker |
 
 ## Workflow for Cleaning Up Artifacts
 

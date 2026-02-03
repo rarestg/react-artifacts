@@ -36,7 +36,14 @@
     }
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!**/node_modules", "!!**/coverage", "!!**/build"]
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!!**/node_modules",
+      "!!**/coverage",
+      "!!**/build",
+      "!!**/worker-configuration.d.ts"
+    ]
   },
   "javascript": {
     "formatter": {

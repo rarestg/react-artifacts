@@ -602,7 +602,7 @@ export default function App() {
                   <a
                     href={getStandaloneUrl(a.id)}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     aria-label={`Open ${a.name} standalone`}
                     title="Open standalone view"
                     className={[

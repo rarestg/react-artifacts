@@ -10,7 +10,7 @@ import PathList from './components/PathList';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
 import { useLocalStorageState } from './hooks/useLocalStorageState';
 import { defaultTruncation, sampleInput } from './lib/constants';
-import { applyFilter, applyStructureOnly, countTruncatedStrings, truncateValue } from './lib/filtering';
+import { applyFilter, applyStructureOnly, truncateValue } from './lib/filtering';
 import { formatOutput, getItemCount, getOutputStats } from './lib/formatOutput';
 import { formatBadge, parseInput } from './lib/parseInput';
 import { buildDescendantMap, buildPaths, buildTree, computeEffectiveSelection, flattenTree } from './lib/pathTree';
@@ -37,8 +37,13 @@ function formatErrorsReport(errors: { line: number; message: string; preview: st
 
 const formatCount = (value: number, singular: string) => `${value} ${value === 1 ? singular : `${singular}s`}`;
 
-const formatStatsLine = (characters: number, tokens: number, truncated: number) =>
-  `${characters} chars | ~${formatCount(tokens, 'token')} | ${formatCount(truncated, 'string')} truncated`;
+const formatStatsLine = (characters: number, tokens: number, truncated?: number) => {
+  const parts = [`${characters} chars`, `~${formatCount(tokens, 'token')}`];
+  if (typeof truncated === 'number') {
+    parts.push(`${formatCount(truncated, 'string')} truncated`);
+  }
+  return parts.join(' | ');
+};
 
 const logResize = (...args: unknown[]) => {
   if (!DEBUG_RESIZE) return;
@@ -427,7 +432,9 @@ export default function JsonlStructureViewer() {
     return outputForCopy;
   }, [parsed.data, outputView, isJsonl, outputFormat, truncated.value, outputForCopy]);
 
+  // Stats reflect the copy payload, not the current view rendering, to keep them stable across toggles.
   const outputStats = useMemo(() => getOutputStats(outputForCopy), [outputForCopy]);
+  // Input stats are based on raw input (no trim/debounce) to match user expectations for the source text.
   const inputStats = useMemo(() => {
     if (!input) return { characters: 0, lines: 0 };
     return { characters: input.length, lines: input.split('\n').length };
@@ -435,10 +442,6 @@ export default function JsonlStructureViewer() {
   const itemCount = useMemo(() => getItemCount(parsed.data, parsed.format), [parsed.data, parsed.format]);
   const tokenEstimate = useMemo(() => Math.max(0, Math.round(outputStats.characters / 4)), [outputStats.characters]);
   const inputTokenEstimate = useMemo(() => Math.max(0, Math.round(inputStats.characters / 4)), [inputStats.characters]);
-  const inputTruncatedCount = useMemo(
-    () => (parsed.data ? countTruncatedStrings(parsed.data, truncateAt) : 0),
-    [parsed.data, truncateAt],
-  );
   const layoutWidth = Math.round(containerWidth);
   const canUseThreeColumns = layoutWidth >= THREE_COLUMN_MIN_WIDTH;
   const canUseTwoColumns = layoutWidth >= TWO_COLUMN_MIN_WIDTH;
@@ -624,7 +627,7 @@ export default function JsonlStructureViewer() {
   const hasOutput = outputForCopy.length > 0;
   const parsingLabel = debouncedInput.isPending ? 'Parsing...' : 'Up to date';
   const parsingReserveLabel = 'Up to date';
-  const inputMetaLine = formatStatsLine(inputStats.characters, inputTokenEstimate, inputTruncatedCount);
+  const inputMetaLine = formatStatsLine(inputStats.characters, inputTokenEstimate);
   const outputMetaLine = formatStatsLine(outputStats.characters, tokenEstimate, truncated.truncated);
   const outputItemsLabel = formatCount(itemCount, 'item');
   const outputLinesLabel = formatCount(outputStats.lines, 'line');

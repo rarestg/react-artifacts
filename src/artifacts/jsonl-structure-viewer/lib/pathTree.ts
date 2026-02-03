@@ -1,22 +1,43 @@
-import type { PathNode } from '../types';
+import type { PathNode, PathSegment } from '../types';
+
+const encodeSegment = (segment: PathSegment) =>
+  segment.kind === 'key' ? (['k', segment.key] as const) : (['a', segment.key ?? null] as const);
+
+export function encodePath(segments: PathSegment[]) {
+  return JSON.stringify(segments.map(encodeSegment));
+}
+
+const formatSegment = (segment: PathSegment) => {
+  if (segment.kind === 'array') {
+    return segment.key ? `${segment.key}[]` : '[]';
+  }
+  return segment.key;
+};
+
+const formatPath = (segments: PathSegment[]) => segments.map(formatSegment).join('->');
 
 export function buildPaths(data: unknown) {
-  const paths = new Set<string>();
+  const paths: PathSegment[][] = [];
+  const pathKeys = new Set<string>();
 
-  const addPath = (segments: string[]) => {
-    const path = segments.join('->');
-    if (path) paths.add(path);
+  const addPath = (segments: PathSegment[]) => {
+    if (segments.length === 0) return;
+    const key = encodePath(segments);
+    if (pathKeys.has(key)) return;
+    pathKeys.add(key);
+    paths.push(segments);
   };
 
-  const visitValue = (value: unknown, segments: string[]) => {
+  const visitValue = (value: unknown, segments: PathSegment[]) => {
     if (Array.isArray(value)) {
+      const rootArraySegment: PathSegment = { kind: 'array' };
       if (segments.length === 0) {
-        addPath(['[]']);
+        addPath([rootArraySegment]);
       }
-      const nextSegments = segments.length === 0 ? ['[]'] : segments;
+      const nextSegments = segments.length === 0 ? [rootArraySegment] : segments;
       value.forEach((item) => {
         if (Array.isArray(item)) {
-          const nestedSegments = [...nextSegments, '[]'];
+          const nestedSegments = [...nextSegments, { kind: 'array' } as PathSegment];
           addPath(nestedSegments);
           visitValue(item, nestedSegments);
           return;
@@ -33,14 +54,14 @@ export function buildPaths(data: unknown) {
     }
   };
 
-  const visitObject = (obj: Record<string, unknown>, segments: string[]) => {
+  const visitObject = (obj: Record<string, unknown>, segments: PathSegment[]) => {
     Object.entries(obj).forEach(([key, value]) => {
       if (Array.isArray(value)) {
-        const arraySegment = `${key}[]`;
+        const arraySegment: PathSegment = { kind: 'array', key };
         addPath([...segments, arraySegment]);
         value.forEach((item) => {
           if (Array.isArray(item)) {
-            const nested = [...segments, arraySegment, '[]'];
+            const nested = [...segments, arraySegment, { kind: 'array' } as PathSegment];
             addPath(nested);
             visitValue(item, nested);
           } else if (item && typeof item === 'object') {
@@ -50,7 +71,7 @@ export function buildPaths(data: unknown) {
         return;
       }
 
-      const nextSegments = [...segments, key];
+      const nextSegments = [...segments, { kind: 'key', key } as PathSegment];
       addPath(nextSegments);
 
       if (value && typeof value === 'object') {
@@ -61,12 +82,13 @@ export function buildPaths(data: unknown) {
 
   visitValue(data, []);
 
-  return Array.from(paths);
+  return paths;
 }
 
-export function buildTree(paths: string[]) {
+export function buildTree(paths: PathSegment[][]) {
   const root: PathNode = {
     id: 'root',
+    key: 'root',
     label: 'root',
     path: '',
     isArray: false,
@@ -75,23 +97,23 @@ export function buildTree(paths: string[]) {
     subtreeCount: 0,
   };
 
-  paths.forEach((path) => {
-    const segments = path.split('->');
+  paths.forEach((segments) => {
     let current = root;
-    let currentPath = '';
     segments.forEach((segment, index) => {
-      currentPath = currentPath ? `${currentPath}->${segment}` : segment;
-      const id = currentPath;
-      const existing = current.children.find((child) => child.id === id);
+      const nextSegments = segments.slice(0, index + 1);
+      const nodeKey = encodePath(nextSegments);
+      const existing = current.children.find((child) => child.key === nodeKey);
       if (existing) {
         current = existing;
         return;
       }
+      const label = formatSegment(segment);
       const node: PathNode = {
-        id,
-        label: segment,
-        path: currentPath,
-        isArray: segment.endsWith('[]'),
+        id: nodeKey,
+        key: nodeKey,
+        label,
+        path: formatPath(nextSegments),
+        isArray: segment.kind === 'array',
         depth: index,
         children: [],
         subtreeCount: 1,
@@ -112,6 +134,13 @@ export function buildTree(paths: string[]) {
 
   computeCounts(root);
 
+  const sortTree = (node: PathNode) => {
+    node.children.sort((a, b) => a.label.localeCompare(b.label));
+    node.children.forEach(sortTree);
+  };
+
+  sortTree(root);
+
   return root;
 }
 
@@ -119,12 +148,10 @@ export function flattenTree(root: PathNode) {
   const list: PathNode[] = [];
 
   const walk = (node: PathNode) => {
-    node.children
-      .sort((a, b) => a.label.localeCompare(b.label))
-      .forEach((child) => {
-        list.push(child);
-        walk(child);
-      });
+    node.children.forEach((child) => {
+      list.push(child);
+      walk(child);
+    });
   };
 
   walk(root);
@@ -138,9 +165,9 @@ export function buildDescendantMap(root: PathNode) {
     const descendants: string[] = [];
     node.children.forEach((child) => {
       const childDescendants = walk(child);
-      descendants.push(child.path, ...childDescendants);
+      descendants.push(child.key, ...childDescendants);
     });
-    map[node.path] = descendants;
+    map[node.key] = descendants;
     return descendants;
   };
 
@@ -154,8 +181,8 @@ export function computeEffectiveSelection(root: PathNode | null, selection: Reco
 
   const walk = (node: PathNode, parentIncluded: boolean) => {
     node.children.forEach((child) => {
-      const included = parentIncluded && selection[child.path] !== false;
-      map[child.path] = included;
+      const included = parentIncluded && selection[child.key] !== false;
+      map[child.key] = included;
       walk(child, included);
     });
   };

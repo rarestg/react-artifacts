@@ -154,10 +154,7 @@ export default function App() {
 
   const getClampBounds = useCallback(() => {
     const layoutWidth = layoutRef.current?.getBoundingClientRect().width ?? window.innerWidth;
-    const maxByLayout = Math.max(
-      MIN_SIDEBAR_WIDTH,
-      layoutWidth - MIN_CONTENT_WIDTH - RESIZE_HANDLE_WIDTH,
-    );
+    const maxByLayout = Math.max(MIN_SIDEBAR_WIDTH, layoutWidth - MIN_CONTENT_WIDTH - RESIZE_HANDLE_WIDTH);
     return {
       min: MIN_SIDEBAR_WIDTH,
       max: maxByLayout,

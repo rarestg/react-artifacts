@@ -16,7 +16,8 @@ import type { LayoutMode, OutputFormat } from './types';
 
 import './theme.css';
 
-const STORAGE_PREFIX = 'jsonl-structure-viewer';
+const STORAGE_PREFIX = 'jsonl-structure-viewer-v2';
+const LEGACY_STORAGE_PREFIX = 'jsonl-structure-viewer';
 const debounceDelay = 300;
 
 function formatErrorsReport(errors: { line: number; message: string; preview: string }[]) {
@@ -48,7 +49,23 @@ export default function JsonlStructureViewer() {
   const copyButtonRef = useRef<CopyButtonHandle>(null);
 
   const debouncedInput = useDebouncedValue(input, debounceDelay);
+  const flushRef = useRef(debouncedInput.flush);
+  useEffect(() => {
+    flushRef.current = debouncedInput.flush;
+  }, [debouncedInput.flush]);
   const parsed = useMemo(() => parseInput(debouncedInput.value), [debouncedInput.value]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storage = window.localStorage;
+    const legacyPrefix = `${LEGACY_STORAGE_PREFIX}-`;
+    const currentPrefix = `${STORAGE_PREFIX}-`;
+    Object.keys(storage).forEach((key) => {
+      if (key.startsWith(legacyPrefix) && !key.startsWith(currentPrefix)) {
+        storage.removeItem(key);
+      }
+    });
+  }, []);
 
   const tree = useMemo(() => {
     if (!parsed.data) return null;
@@ -67,14 +84,14 @@ export default function JsonlStructureViewer() {
     setSelection((prev) => {
       const next: Record<string, boolean> = {};
       flatNodes.forEach((node) => {
-        next[node.path] = prev[node.path] ?? true;
+        next[node.key] = prev[node.key] ?? true;
       });
       return next;
     });
     setExpandedPaths((prev) => {
       const next: Record<string, boolean> = {};
       flatNodes.forEach((node) => {
-        if (prev[node.path]) next[node.path] = true;
+        if (prev[node.key]) next[node.key] = true;
       });
       return next;
     });
@@ -98,10 +115,13 @@ export default function JsonlStructureViewer() {
     return truncateValue(structured, truncateAt);
   }, [structured, structureOnly, truncateAt]);
 
+  const isJsonl = parsed.format === 'jsonl';
+  const effectiveOutputFormat = isJsonl ? 'compact' : outputFormat;
+
   const output = useMemo(() => {
     if (!parsed.data) return '';
-    return formatOutput(truncated.value, parsed.format, outputFormat);
-  }, [parsed.data, truncated.value, parsed.format, outputFormat]);
+    return formatOutput(truncated.value, parsed.format, effectiveOutputFormat);
+  }, [parsed.data, truncated.value, parsed.format, effectiveOutputFormat]);
 
   const outputStats = useMemo(() => getOutputStats(output), [output]);
   const itemCount = useMemo(() => getItemCount(parsed.data, parsed.format), [parsed.data, parsed.format]);
@@ -122,7 +142,7 @@ export default function JsonlStructureViewer() {
     setSelection((prev) => {
       const next = { ...prev };
       flatNodes.forEach((node) => {
-        next[node.path] = value;
+        next[node.key] = value;
       });
       return next;
     });
@@ -132,7 +152,7 @@ export default function JsonlStructureViewer() {
     setSelection((prev) => {
       const next = { ...prev };
       flatNodes.forEach((node) => {
-        next[node.path] = !(prev[node.path] ?? true);
+        next[node.key] = !(prev[node.key] ?? true);
       });
       return next;
     });
@@ -150,7 +170,7 @@ export default function JsonlStructureViewer() {
       const next: Record<string, boolean> = {};
       flatNodes.forEach((node) => {
         if (node.children.length > 0) {
-          next[node.path] = true;
+          next[node.key] = true;
         }
       });
       return next;
@@ -161,11 +181,16 @@ export default function JsonlStructureViewer() {
     setExpandedPaths({});
   };
 
+  const clampTruncation = (value: number) => {
+    if (!Number.isFinite(value)) return defaultTruncation;
+    return Math.min(200, Math.max(0, Math.floor(value)));
+  };
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
-        debouncedInput.flush();
+        flushRef.current();
         return;
       }
 
@@ -189,7 +214,7 @@ export default function JsonlStructureViewer() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [debouncedInput]);
+  }, []);
 
   const hasOutput = output.length > 0;
   const parsingLabel = debouncedInput.isPending ? 'Parsing...' : 'Up to date';
@@ -264,10 +289,13 @@ export default function JsonlStructureViewer() {
               </div>
               <input
                 type="number"
-                min={10}
+                min={0}
                 max={200}
                 value={truncateAt}
-                onChange={(event) => setTruncateAt(Number(event.target.value) || defaultTruncation)}
+                onChange={(event) => {
+                  const raw = event.target.value;
+                  setTruncateAt(raw === '' ? defaultTruncation : clampTruncation(Number(raw)));
+                }}
                 className="h-9 w-20 shrink-0 border border-[var(--border)] bg-[var(--surface)] px-2 text-sm font-mono text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
               />
             </div>
@@ -397,21 +425,22 @@ export default function JsonlStructureViewer() {
               <button
                 type="button"
                 onClick={() => setOutputFormat('pretty')}
-                aria-pressed={outputFormat === 'pretty'}
+                disabled={isJsonl}
+                aria-pressed={effectiveOutputFormat === 'pretty'}
                 className={`border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] ${
-                  outputFormat === 'pretty'
+                  effectiveOutputFormat === 'pretty'
                     ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]'
-                }`}
+                } ${isJsonl ? 'cursor-not-allowed opacity-60' : ''}`}
               >
                 Pretty
               </button>
               <button
                 type="button"
                 onClick={() => setOutputFormat('compact')}
-                aria-pressed={outputFormat === 'compact'}
+                aria-pressed={effectiveOutputFormat === 'compact'}
                 className={`border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] ${
-                  outputFormat === 'compact'
+                  effectiveOutputFormat === 'compact'
                     ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]'
                 }`}
@@ -420,6 +449,11 @@ export default function JsonlStructureViewer() {
               </button>
             </div>
           </div>
+          {isJsonl && (
+            <div className="text-[11px] text-[var(--text-muted)]">
+              JSONL output is always compact to keep one record per line.
+            </div>
+          )}
           <div className="text-[11px] text-[var(--text-muted)]">
             <span className="mr-2">Output mode:</span>
             <span className="inline-flex flex-wrap items-center gap-2">

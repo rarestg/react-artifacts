@@ -27,7 +27,13 @@ export default function Checkbox({
   const wrapperClass =
     layout === 'between' ? 'flex min-w-0 items-center justify-between gap-3' : 'inline-flex items-center gap-2';
   const labelText = typeof label === 'string' ? label : null;
+  const resolvedAriaLabel = ariaLabel ?? labelText ?? undefined;
   const resolvedReserveLabel = reserveLabel ?? labelText ?? '';
+
+  if (import.meta.env.DEV && !label && !ariaLabel) {
+    // eslint-disable-next-line no-console
+    console.warn('Checkbox: provide either `label` or `ariaLabel` for an accessible name.');
+  }
 
   return (
     <label
@@ -59,7 +65,7 @@ export default function Checkbox({
           checked={checked}
           onChange={onChange}
           disabled={disabled}
-          aria-label={ariaLabel}
+          aria-label={resolvedAriaLabel}
           className="sr-only"
         />
       </span>

@@ -1,0 +1,203 @@
+Cloudflare + Astro + Tailwind v4.1 + Credits Layer Notes
+
+Purpose
+- Capture practical guidance for an Astro-based portfolio plus a Cloudflare Workers API layer
+- Focus on static SEO pages, React islands for tools, and a paid credits system for LLM features
+
+High-level architecture (static site + API)
+
+  Browser
+     |
+     |  static HTML/CSS/JS (Astro build output)
+     v
+  Cloudflare Pages / static assets
+     |
+     |  /api/* requests
+     v
+  Cloudflare Worker API
+     |       |         |
+     |       |         +--> LLM provider (secret API key)
+     |       +------------> Stripe (checkout + webhooks)
+     +--------------------> D1 (users/credits/ledger)
+
+
+Astro + Cloudflare deployment modes
+1) Static (SSG) output
+   - Astro pre-renders all pages at build time by default.
+   - No Cloudflare adapter required.
+   - Good for SEO and portfolio pages.
+
+2) SSR output (Cloudflare adapter)
+   - Use @astrojs/cloudflare and output: 'server' to render on-demand in Workers.
+   - You can still pre-render specific pages with: export const prerender = true.
+   - Use this only when you need dynamic HTML at request time.
+
+3) Static + separate Worker API (recommended for this repo)
+   - Keep Astro static for SEO pages.
+   - Deploy a Worker as /api for billing, credits, LLM calls.
+
+
+Workers runtime notes (Node compatibility)
+- Workers run on Web APIs by default; Node APIs are not available unless enabled.
+- If needed, enable nodejs_compat in wrangler config and set a modern compatibility_date.
+- nodejs_compat_v2 may be enabled automatically and can increase bundle size.
+
+Example wrangler.jsonc for Worker API:
+{
+  "name": "artifact-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "artifact_db", "database_id": "..." }
+  ]
+}
+
+
+Tailwind v4.1 with Astro (Vite plugin)
+- Tailwind v4 uses the Vite plugin @tailwindcss/vite.
+- Add the plugin in astro.config.mjs via the Vite config.
+- Import Tailwind in a global CSS file.
+
+astro.config.mjs
+import { defineConfig } from 'astro/config';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  vite: {
+    plugins: [tailwindcss()],
+  },
+});
+
+src/styles/global.css
+@import "tailwindcss";
+
+
+SEO per artifact
+- Keep per-artifact metadata in src/artifacts/<id>/meta.ts (add a seo block).
+- Generate one static HTML page per artifact in Astro for real SEO.
+
+Example meta shape
+export type ArtifactMeta = {
+  name?: string;
+  subtitle?: string;
+  kind?: 'single' | 'app';
+  model?: string;
+  version?: string;
+  seo?: {
+    title?: string;
+    description?: string;
+    ogImage?: string;      // e.g. /og/<id>.png
+    ogImageAlt?: string;
+    twitterCard?: 'summary' | 'summary_large_image';
+    canonical?: string;
+    noindex?: boolean;
+  };
+};
+
+Astro route to emit SEO tags (sketch)
+// src/pages/artifact/[id].astro
+---
+import { artifacts } from '../../artifacts';
+export const getStaticPaths = () =>
+  artifacts.map((artifact) => ({ params: { id: artifact.id }, props: { artifact } }));
+
+const { artifact } = Astro.props;
+const seo = artifact.seo ?? {};
+const title = seo.title ?? artifact.name ?? 'Artifact';
+const description = seo.description ?? artifact.subtitle ?? 'Artifact preview';
+const ogImage = seo.ogImage ?? `/og/${artifact.id}.png`;
+---
+<html>
+  <head>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site).toString()} />
+    <meta name="twitter:card" content={seo.twitterCard ?? 'summary_large_image'} />
+  </head>
+  <body>
+    <ArtifactComponent client:load />
+  </body>
+</html>
+
+
+User + Credits system (concrete example)
+Goal: allow users to buy credits and spend them on LLM analysis.
+
+Storage choice
+- D1 (SQL) for users, credits, ledger, Stripe mapping.
+- Durable Objects if you need strict per-user locking for concurrent debit operations.
+- KV is not ideal for balances (eventual consistency).
+
+Schema sketch (D1)
+users
+- id (text, pk)
+- email (text, unique)
+- stripe_customer_id (text, unique)
+- created_at (timestamp)
+
+credit_balance
+- user_id (text, pk)
+- balance (integer)
+- updated_at (timestamp)
+
+credit_ledger
+- id (text, pk)
+- user_id (text)
+- delta (integer)   // positive for purchase, negative for usage
+- reason (text)     // purchase, refund, llm_use
+- stripe_event_id (text, unique)
+- request_id (text, unique) // idempotency for LLM calls
+- created_at (timestamp)
+
+
+Endpoints (Worker API)
+- POST /api/checkout
+  - create Stripe Checkout Session for credits plan
+  - return session URL
+
+- POST /api/webhooks/stripe
+  - verify signature
+  - on payment success: insert credit_ledger + update credit_balance
+
+- GET /api/credits/balance
+  - return current balance for user
+
+- POST /api/llm/analyze
+  - check balance
+  - if insufficient: 402
+  - call LLM provider
+  - write ledger entry (negative delta)
+  - return analysis
+
+
+Stripe flow (simplified)
+1) Client hits /api/checkout.
+2) Worker creates Checkout Session using Stripe secret key.
+3) User pays on Stripe-hosted page.
+4) Stripe webhook hits /api/webhooks/stripe.
+5) Worker verifies signature, then credits user.
+
+Notes
+- Store Stripe secret key and webhook signing secret as Worker secrets.
+- Stripe requires raw request body for webhook verification.
+- Use idempotency: store stripe_event_id to avoid double credits.
+- Consider using Stripe Billing Credits only if it matches policy constraints.
+
+
+Security and operational notes
+- Keep all secret keys in Worker secrets (never in the client).
+- Validate request auth before charging credits or calling LLM APIs.
+- Consider rate limits on /api/llm/analyze.
+- Log Stripe events and LLM requests for auditability.
+- Use a queue if LLM calls are slow and you want async processing.
+
+
+Minimal implementation plan (static Astro + Worker API)
+1) Add Astro site for static SEO pages.
+2) Keep artifacts as React islands for tools.
+3) Create Worker API with D1 + Stripe + LLM proxy.
+4) Wire frontend to call /api endpoints for credits and analysis.
+

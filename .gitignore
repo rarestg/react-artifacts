@@ -29,3 +29,7 @@ coverage/
 .parcel-cache/
 .turbo/
 .eslintcache
+
+# Cloudflare
+.wrangler/
+.dev.vars*

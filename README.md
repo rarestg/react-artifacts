@@ -141,6 +141,18 @@ The selected artifact is reflected in the URL as a query param, so reloads and s
 /?artifact=sharp2
 ```
 
+## Standalone Artifact View
+
+You can open an artifact as a full-page view (no shell UI) at:
+
+```
+/artifact/<id>
+```
+
+Notes:
+- Standalone view always follows the OS/browser theme (`prefers-color-scheme`) and ignores any saved shell theme.
+- The theme is applied on load and will not live-update if the OS theme changes while the page stays open.
+
 ## Scripts
 
 | Command | Description |

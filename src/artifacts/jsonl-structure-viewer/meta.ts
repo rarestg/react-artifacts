@@ -1,8 +1,8 @@
 const meta = {
   name: 'JSONL Structure Viewer',
   kind: 'single',
-  model: 'claude',
-  version: 'opus 4.5',
+  model: 'codex',
+  version: 'gpt 5.2',
 } as const;
 
 export default meta;

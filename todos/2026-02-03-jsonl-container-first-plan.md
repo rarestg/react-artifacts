@@ -260,19 +260,20 @@ export function useElementWidth<T extends HTMLElement>(
   const { initialWidth = 0, minDelta = 8, round = true } = options;
   const [width, setWidth] = useState<number>(initialWidth);
   const lastWidthRef = useRef<number>(initialWidth);
-  const element = ref.current;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (typeof ResizeObserver === 'undefined') return;
+    const element = ref.current;
     if (!element) return;
 
-    // Reset tracking when the observed element changes.
-    lastWidthRef.current = initialWidth;
+    // Reset tracking on mount / effect re-run.
+    // Use NaN so the first apply always updates, even if within minDelta.
+    lastWidthRef.current = Number.NaN;
 
     const apply = (next: number) => {
       const value = round ? Math.round(next) : next;
-      if (Math.abs(value - lastWidthRef.current) < minDelta) return;
+      if (!Number.isNaN(lastWidthRef.current) && Math.abs(value - lastWidthRef.current) < minDelta) return;
       lastWidthRef.current = value;
       setWidth(value);
     };
@@ -283,7 +284,7 @@ export function useElementWidth<T extends HTMLElement>(
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [element, minDelta, round, initialWidth]);
+  }, [ref, minDelta, round, initialWidth]);
 
   return width;
 }

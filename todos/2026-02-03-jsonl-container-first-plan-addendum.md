@@ -139,7 +139,7 @@ Manual verification should remain identical to the original plan:
 
 ## 5) Risks & Edge Cases (Container Query Approach)
 
-- **Browser support**: Container queries require modern browsers. This repo targets modern dev usage; document if older browser support matters.
+- **Browser support**: Chrome/Edge 106+, Safari/iOS Safari 16.0+, Firefox 110+. Internet Explorer not supported. Baseline: Widely available (since 2025-08-14).
 - **CSS specificity**: ensure container query rules are scoped under `.jsonl-structure-theme` to avoid leaking styles.
 - **Overlapping containers**: avoid nested containers unless intentional; otherwise queries may apply in unexpected places.
 - **Layout mode interplay**: container queries should not override explicit `visibleLayoutMode` grid template logic.
@@ -196,4 +196,3 @@ If you want to move safely:
 ## 8) Summary Recommendation
 
 The container query approach is **cleaner, more robust, and easier to maintain** than JS‑based width flags. The best immediate path is **Hybrid**: keep layout mode controls but move all local responsiveness to container queries. This gives correct device preview behavior with fewer moving parts and no measurement jitter.
-

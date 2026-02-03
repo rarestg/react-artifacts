@@ -259,7 +259,8 @@ export function useElementWidth<T extends HTMLElement>(
 ) {
   const { initialWidth = 0, minDelta = 8, round = true } = options;
   const [width, setWidth] = useState<number>(initialWidth);
-  const lastWidthRef = useRef<number>(initialWidth);
+  // Note: initialWidth seeds state; the ref starts as NaN so first apply is never gated.
+  const lastWidthRef = useRef<number>(Number.NaN);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -289,6 +290,10 @@ export function useElementWidth<T extends HTMLElement>(
   return width;
 }
 ```
+
+> Note: This sketch assumes the ref target is stable across renders (as in this artifact’s panel refs).
+> If the ref can be reassigned to a different element, prefer a callback‑ref variant that stores the node in state
+> and uses `element` (not `ref`) in the effect dependency array.
 
 ### `actionGroupClass` (UI helper)
 ```ts

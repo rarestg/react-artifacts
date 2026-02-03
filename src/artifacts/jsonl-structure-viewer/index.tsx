@@ -21,7 +21,6 @@ const LEGACY_STORAGE_PREFIX = 'jsonl-structure-viewer';
 const debounceDelay = 300;
 const THREE_COLUMN_MIN_WIDTH = 1140;
 const TWO_COLUMN_MIN_WIDTH = 900;
-const HEADER_STACK_LABELS_WIDTH = 790;
 
 function formatErrorsReport(errors: { line: number; message: string; preview: string }[]) {
   return errors.map((error) => `Line ${error.line}: ${error.message} | ${error.preview}`).join('\n');
@@ -153,14 +152,44 @@ export default function JsonlStructureViewer() {
   const layoutWidth = Math.round(containerWidth);
   const canUseThreeColumns = layoutWidth >= THREE_COLUMN_MIN_WIDTH;
   const canUseTwoColumns = layoutWidth >= TWO_COLUMN_MIN_WIDTH;
-  const stackHeaderLabels = layoutWidth <= HEADER_STACK_LABELS_WIDTH;
-  const effectiveLayoutMode = !canUseTwoColumns
+  const headerStacked = !canUseTwoColumns;
+  const visibleLayoutMode = !canUseTwoColumns
     ? 'one-column'
     : canUseThreeColumns
       ? layoutMode
       : layoutMode === 'three-column'
         ? 'two-column'
         : layoutMode;
+  const headerGridClass = ['grid gap-6', headerStacked ? 'grid-cols-1' : 'grid-cols-[minmax(0,1fr)_auto]']
+    .filter(Boolean)
+    .join(' ');
+  const headerControlsClass = [
+    'flex flex-col gap-2 min-w-0',
+    headerStacked ? 'items-start w-full' : 'items-end w-auto',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const headerControlGroupClass = [
+    'min-w-0',
+    headerStacked ? 'w-auto max-w-full' : 'w-auto',
+    'flex flex-wrap items-center gap-2',
+    !headerStacked ? 'justify-end' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const headerControlsRowClass = [
+    'min-w-0',
+    headerStacked ? 'flex flex-wrap items-center gap-2 w-full' : 'flex flex-col items-end gap-2 w-auto',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const headerHelpButtonClass = [
+    'border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
+    'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+    headerStacked ? 'ml-auto' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const handleToggleSubtree = (path: string, nextValue: boolean) => {
     const targets = [path, ...(descendantMap[path] ?? [])];
@@ -280,7 +309,7 @@ export default function JsonlStructureViewer() {
               )}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
             <button
               type="button"
               onClick={() => setInput('')}
@@ -426,7 +455,7 @@ export default function JsonlStructureViewer() {
     <section
       className={[
         'min-w-0 flex flex-col gap-6 lg:flex-1',
-        effectiveLayoutMode === 'two-column' ? 'lg:self-stretch' : '',
+        visibleLayoutMode === 'two-column' ? 'lg:self-stretch' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -440,7 +469,7 @@ export default function JsonlStructureViewer() {
               {outputStats.lines === 1 ? '' : 's'}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
             <CopyButton
               ref={copyButtonRef}
               text={output}
@@ -536,7 +565,7 @@ export default function JsonlStructureViewer() {
     >
       <div className="mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-10 lg:px-8 xl:px-10">
         <header className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-6">
-          <div className="grid gap-6 grid-cols-[minmax(0,1fr)_auto]">
+          <div className={headerGridClass}>
             <div className="min-w-0 flex flex-col gap-2">
               <h1 className="m-0 text-3xl font-semibold leading-tight">JSONL Structure Viewer</h1>
               <p className="m-0 max-w-3xl text-sm text-[var(--text-muted)]">
@@ -544,30 +573,26 @@ export default function JsonlStructureViewer() {
                 structure-first view without the noise.
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2 w-auto">
+            <div className={headerControlsClass}>
               {canUseTwoColumns && (
-                <div
-                  className={`w-auto ${
-                    stackHeaderLabels ? 'flex flex-col items-start gap-1' : 'flex flex-wrap items-center gap-2'
-                  } ${stackHeaderLabels ? '' : 'justify-end'}`}
-                >
+                <div className={headerControlGroupClass}>
                   <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                     Layout
                   </span>
                   <fieldset
                     aria-label="Layout mode"
-                    className="inline-flex border border-[var(--border-strong)] divide-x divide-[var(--border)]"
+                    className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
                   >
                     <button
                       type="button"
-                      aria-pressed={layoutMode === 'one-column'}
+                      aria-pressed={visibleLayoutMode === 'one-column'}
                       onClick={() => setLayoutMode('one-column')}
                       className={[
                         'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                         'inline-flex items-center gap-1.5',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                         'relative focus-visible:z-10',
-                        layoutMode === 'one-column'
+                        visibleLayoutMode === 'one-column'
                           ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                           : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                       ]
@@ -584,14 +609,14 @@ export default function JsonlStructureViewer() {
                     </button>
                     <button
                       type="button"
-                      aria-pressed={layoutMode === 'two-column'}
+                      aria-pressed={visibleLayoutMode === 'two-column'}
                       onClick={() => setLayoutMode('two-column')}
                       className={[
                         'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                         'inline-flex items-center gap-1.5',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                         'relative focus-visible:z-10',
-                        layoutMode === 'two-column'
+                        visibleLayoutMode === 'two-column'
                           ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                           : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                       ]
@@ -609,14 +634,14 @@ export default function JsonlStructureViewer() {
                     {canUseThreeColumns && (
                       <button
                         type="button"
-                        aria-pressed={layoutMode === 'three-column'}
+                        aria-pressed={visibleLayoutMode === 'three-column'}
                         onClick={() => setLayoutMode('three-column')}
                         className={[
                           'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                           'inline-flex items-center gap-1.5',
                           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                           'relative focus-visible:z-10',
-                          layoutMode === 'three-column'
+                          visibleLayoutMode === 'three-column'
                             ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                             : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                         ]
@@ -635,71 +660,65 @@ export default function JsonlStructureViewer() {
                   </fieldset>
                 </div>
               )}
-              <div
-                className={`w-auto ${
-                  stackHeaderLabels ? 'flex flex-col items-start gap-1' : 'flex flex-wrap items-center gap-2'
-                } ${stackHeaderLabels ? '' : 'justify-end'}`}
-              >
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Word Wrap
-                </span>
-                <fieldset
-                  aria-label="Word wrap"
-                  className="inline-flex border border-[var(--border-strong)] divide-x divide-[var(--border)]"
-                >
-                  <button
-                    type="button"
-                    aria-pressed={wrapOutput}
-                    onClick={() => setWrapOutput(true)}
-                    className={[
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      wrapOutput
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
+              <div className={headerControlsRowClass}>
+                <div className={headerControlGroupClass}>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                    Word Wrap
+                  </span>
+                  <fieldset
+                    aria-label="Word wrap"
+                    className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
                   >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {wrapReserveLabel}
+                    <button
+                      type="button"
+                      aria-pressed={wrapOutput}
+                      onClick={() => setWrapOutput(true)}
+                      className={[
+                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                        'relative focus-visible:z-10',
+                        wrapOutput
+                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <span className="relative inline-grid">
+                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                          {wrapReserveLabel}
+                        </span>
+                        <span className="col-start-1 row-start-1">On</span>
                       </span>
-                      <span className="col-start-1 row-start-1">On</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={!wrapOutput}
-                    onClick={() => setWrapOutput(false)}
-                    className={[
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      !wrapOutput
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {wrapReserveLabel}
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={!wrapOutput}
+                      onClick={() => setWrapOutput(false)}
+                      className={[
+                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                        'relative focus-visible:z-10',
+                        !wrapOutput
+                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <span className="relative inline-grid">
+                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                          {wrapReserveLabel}
+                        </span>
+                        <span className="col-start-1 row-start-1">Off</span>
                       </span>
-                      <span className="col-start-1 row-start-1">Off</span>
-                    </span>
-                  </button>
-                </fieldset>
+                    </button>
+                  </fieldset>
+                </div>
+                <button type="button" onClick={() => setShowHelp((prev) => !prev)} className={headerHelpButtonClass}>
+                  {showHelp ? 'Hide Help' : 'Show Help'}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowHelp((prev) => !prev)}
-                className="border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
-              >
-                {showHelp ? 'Hide Help' : 'Show Help'}
-              </button>
             </div>
           </div>
           {showHelp && (
@@ -742,14 +761,14 @@ export default function JsonlStructureViewer() {
 
         <div
           className={`grid grid-cols-1 gap-6 ${
-            effectiveLayoutMode === 'three-column'
+            visibleLayoutMode === 'three-column'
               ? 'lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]'
-              : effectiveLayoutMode === 'two-column'
+              : visibleLayoutMode === 'two-column'
                 ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
                 : ''
           }`}
         >
-          {effectiveLayoutMode === 'two-column' ? (
+          {visibleLayoutMode === 'two-column' ? (
             <>
               <div className="min-w-0 flex flex-col gap-6 lg:flex-1">
                 {inputPanel}

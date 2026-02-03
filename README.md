@@ -104,6 +104,35 @@ Notes:
 - `system` respects `prefers-color-scheme`.
 - An inline script in `index.html` applies the saved/system theme early to avoid FOUC.
 
+## Device Preview & Responsive Styling
+
+The sidebar includes device preview controls (iPhone/iPad + portrait/landscape) that render the artifact inside a
+fixed-size container. This is **not** a real viewport, so Tailwind `sm:`/`md:`/`lg:` breakpoints will still follow the
+browser window size, not the preview size.
+
+**Recommendation:** for artifacts meant to match the preview, use container-driven responsiveness (container queries or
+container-width logic) instead of viewport breakpoints. Reserve `sm:`/`lg:` for full-page prototypes that are meant to
+track the actual browser viewport (or when using DevTools device emulation).
+
+## UI Implementation Notes (Living Guide)
+
+Before making UI/layout changes, skim the index in `design/UI_IMPLEMENTATION_NOTES.md` and read any relevant entries.
+Each index row includes a line range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
+If a UI decision takes back-and-forth to settle (layout, responsiveness, Tailwind patterns, etc.), add a new entry so we
+don’t re-litigate it later.
+
+To add a new entry:
+1) Draft the entry body as raw markdown in a temporary `.md` file (no top-level `##` heading).
+2) Run:
+
+```bash
+python3 design/update_ui_implementation_notes.py \
+  --entry-md /path/to/entry.md \
+  --title "Short Title" \
+  --when-read "When should someone read this?" \
+  --keywords "comma, separated, keywords"
+```
+
 ## Artifact URLs
 
 The selected artifact is reflected in the URL as a query param, so reloads and sharing keep context:

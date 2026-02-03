@@ -254,7 +254,7 @@ export default function PathList({
             {visibleCount} shown - {includedCount}/{flatNodes.length} included
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
           <button
             type="button"
             onClick={onExpandAll}
@@ -300,7 +300,7 @@ export default function PathList({
           label="Leaf paths only"
           className="text-xs text-[var(--text-muted)]"
         />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
           <button type="button" onClick={() => onSelectAll(true)} className={actionButtonSmall}>
             Select All
           </button>

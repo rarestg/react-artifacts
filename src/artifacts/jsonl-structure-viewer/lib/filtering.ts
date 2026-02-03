@@ -6,6 +6,25 @@ const normalizeTruncateLimit = (limit: number) => {
   return Math.max(0, Math.floor(limit));
 };
 
+export function countTruncatedStrings(value: unknown, limit: number): number {
+  const safeLimit = normalizeTruncateLimit(limit);
+
+  const walk = (node: unknown): number => {
+    if (typeof node === 'string') {
+      return node.length > safeLimit ? 1 : 0;
+    }
+    if (Array.isArray(node)) {
+      return node.reduce((sum, item) => sum + walk(item), 0);
+    }
+    if (node && typeof node === 'object') {
+      return Object.values(node as Record<string, unknown>).reduce<number>((sum, item) => sum + walk(item), 0);
+    }
+    return 0;
+  };
+
+  return walk(value);
+}
+
 export function applyFilter(value: unknown, segments: PathSegment[], includedPaths: Record<string, boolean>): unknown {
   const isIncluded = (pathSegments: PathSegment[]) => includedPaths[encodePath(pathSegments)] !== false;
 

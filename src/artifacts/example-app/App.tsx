@@ -1,6 +1,7 @@
 import { ArrowBigUpDash as CapsLockIcon } from 'lucide-react';
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
+import StatusTag from '../../components/StatusTag';
 import { AppHeader } from './components/AppHeader';
 import { Button, Panel, Tag } from './components/Primitives';
 import { StatCard } from './components/StatCard';
@@ -59,45 +60,6 @@ const themeSwatches = [
 ] as const;
 
 type ThemeSwatchId = (typeof themeSwatches)[number]['id'];
-
-type StatusTagProps = {
-  label: string;
-  reserveLabel?: string;
-  active?: boolean;
-  icon?: ReactNode;
-};
-
-function StatusTag({ label, reserveLabel, active = true, icon }: StatusTagProps) {
-  const resolvedReserveLabel = reserveLabel ?? label;
-
-  return (
-    <span
-      className={[
-        'inline-flex items-center gap-2 border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] leading-none',
-        'transition-[background-color,color,border-color] motion-reduce:transition-none',
-        active
-          ? 'border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]'
-          : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
-      ].join(' ')}
-    >
-      {icon && <span className={`shrink-0 ${active ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'}`}>{icon}</span>}
-      <span
-        className={[
-          'h-2 w-2 shrink-0 border',
-          active ? 'border-[color:var(--success)] bg-[var(--success)]' : 'border-[var(--border-strong)] bg-transparent',
-        ].join(' ')}
-        aria-hidden="true"
-      />
-      <span className="relative inline-grid min-w-0">
-        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-          {resolvedReserveLabel}
-        </span>
-        <span className="col-start-1 row-start-1 min-w-0 truncate">{label}</span>
-      </span>
-      <span className="sr-only">{active ? 'On' : 'Off'}</span>
-    </span>
-  );
-}
 
 export default function ExampleApp() {
   const [activeRow, setActiveRow] = useState<string>('session-01');

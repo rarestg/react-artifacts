@@ -172,9 +172,47 @@ TypeScript for the Worker uses Wrangler-generated types:
 | `npm run format` | Run Biome with auto-fix (format + lint + imports) |
 | `npm run lint` | Run Biome (format + lint + imports check) |
 | `npm run lint:fix` | Run Biome and auto-fix |
+| `npm run knip` | Detect unused files, exports, and dependencies |
+| `npm run test` | Run Node test runner |
+| `npm run typecheck` | Type-check app + worker |
 | `npm run typecheck:worker` | Type-check Worker code |
 | `npm run preview` | Preview production build |
 | `npm run deploy` | Deploy Worker |
+
+## Pre-PR Checks
+
+Before opening a PR, run:
+
+```bash
+npm run lint
+npm run typecheck
+npm run knip
+npm run test
+```
+
+## Git Hooks
+
+This repo uses Lefthook to keep commits clean:
+
+- **pre-commit:** runs Biome on staged files (auto-fixes and re-stages).
+- **pre-push:** runs `lint`, `typecheck`, `knip`, and `test`.
+
+Hooks are installed automatically on `npm install` via the `prepare` script. If needed, run:
+
+```bash
+npx lefthook install
+```
+
+You can run hooks manually without committing/pushing:
+
+```bash
+npx lefthook run pre-commit
+npx lefthook run pre-push
+```
+
+Notes:
+- `pre-commit` operates on staged files, so run `git add` first.
+- `pre-push` uses the push file list; when running manually, add `--force` (or `--all-files`) to avoid “no matching push files” skips.
 
 ## Workflow for Cleaning Up Artifacts
 

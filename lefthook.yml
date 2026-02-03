@@ -1,0 +1,20 @@
+pre-commit:
+  # Run Biome only on staged files; re-stage auto-fixes.
+  commands:
+    biome:
+      run: npx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
+      stage_fixed: true
+
+pre-push:
+  # Full suite before pushing (use `npx lefthook run pre-push --force` to run manually).
+  # Note: `typecheck` runs `wrangler types`, which can update worker-configuration.d.ts.
+  parallel: true
+  commands:
+    lint:
+      run: npm run lint
+    typecheck:
+      run: npm run typecheck
+    knip:
+      run: npm run knip
+    test:
+      run: npm run test

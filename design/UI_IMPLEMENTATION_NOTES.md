@@ -9,8 +9,9 @@
 
 | ID | Title | When to read | Keywords | Lines |
 | --- | --- | --- | --- | --- |
-| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 24-51 |
-| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 52-64 |
+| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 25-52 |
+| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 53-68 |
+| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 69-78 |
 
 ## Format for new entries
 - Title
@@ -62,3 +63,16 @@
 ### Why it matters
 - Prevents confusing states when a saved option disappears.
 - Keeps accessibility (aria-pressed/aria-selected) consistent with what users see.
+
+---
+
+## 003 — Conditional Control Stability
+
+When a control *governs* another control, keep the governor visually anchored. Avoid layout jogs when dependent options appear/disappear.
+
+Guidelines
+- Prefer **stable layouts**: if a mode toggle adds/removes options, keep the toggle in a fixed position. Use reserved width, a placeholder label, or swap labels in-place (e.g., "Format" → "Options") instead of shifting the toggle.
+- If controls must be hidden, ensure the trigger **does not move**; otherwise consider disabling instead of hiding.
+- Disabled controls should look disabled *and* explain why. Use muted text/opacity plus a short tooltip that changes with context.
+- Keep control heights/visual language consistent within a row so mode changes don’t read as a style regression.
+- When display vs copy semantics diverge (e.g., JSONL displayed as an array but copied as JSONL), make the behavior discoverable via labels/tooltips.

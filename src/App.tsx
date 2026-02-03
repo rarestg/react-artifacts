@@ -20,7 +20,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { artifacts } from './artifacts';
+import { type ArtifactEntry, artifacts } from './artifacts';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
 type DeviceOrientation = 'portrait' | 'landscape';
@@ -91,7 +91,7 @@ export default function App() {
   const [sizeCopied, setSizeCopied] = useState(false);
   const [devicePreview, setDevicePreview] = useState<DevicePreview>('none');
   const [deviceOrientation, setDeviceOrientation] = useState<DeviceOrientation>('portrait');
-  const current = artifacts.find((a) => a.id === selected);
+  const current: ArtifactEntry | undefined = artifacts.find((a) => a.id === selected);
   const layoutRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);

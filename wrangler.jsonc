@@ -13,5 +13,6 @@
       "custom_domain": true
     }
   ],
-  "workers_dev": false
+  "workers_dev": false, // Disable the public workers.dev production route; custom domain remains active.
+  "preview_urls": true // Still allow preview URLs on workers.dev for PRs.
 }

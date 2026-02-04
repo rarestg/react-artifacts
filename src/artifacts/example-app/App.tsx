@@ -1,6 +1,7 @@
 import { ArrowBigUpDash as CapsLockIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import StatusTag from '../../components/StatusTag';
 import { AppHeader } from './components/AppHeader';
 import { Button, Panel, Tag } from './components/Primitives';
@@ -147,7 +148,7 @@ export default function ExampleApp() {
   };
 
   return (
-    <div className="artifact-theme min-h-screen border border-[var(--border)] bg-[var(--surface)] text-[var(--text)]">
+    <ArtifactThemeRoot className="min-h-screen border border-[var(--border)] bg-[var(--surface)] text-[var(--text)]">
       <AppHeader
         title="Example App Artifact"
         subtitle="A multi-file artifact (App.tsx + components/) rendered by the shell"
@@ -324,6 +325,6 @@ export default function ExampleApp() {
           </div>
         </Panel>
       </div>
-    </div>
+    </ArtifactThemeRoot>
   );
 }

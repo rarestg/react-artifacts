@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
+import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Checkbox } from '../../components/Checkbox';
 import { CopyableLabel } from '../../components/CopyableLabel';
 import { Toggle } from '../../components/Toggle';
@@ -575,7 +576,7 @@ function SpacingMixCompare({ variant }: { variant: 'current' | 'compliant' }) {
 
 export default function FocusCompare() {
   return (
-    <div className="artifact-theme focus-compare-theme min-h-screen bg-[var(--surface-muted)] p-8 text-[var(--text)]">
+    <ArtifactThemeRoot className="focus-compare-theme min-h-screen bg-[var(--surface-muted)] p-8 text-[var(--text)]">
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <div className="border border-[var(--border)] bg-[var(--surface)] p-6">
           <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
@@ -980,6 +981,6 @@ export default function FocusCompare() {
           </NotesCard>
         </div>
       </div>
-    </div>
+    </ArtifactThemeRoot>
   );
 }

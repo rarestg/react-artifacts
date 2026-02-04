@@ -4,6 +4,7 @@ import { lightTheme } from '@uiw/react-json-view/light';
 import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
 import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import Checkbox from './components/Checkbox';
 import CopyButton, { type CopyButtonHandle } from './components/CopyButton';
 import PathList from './components/PathList';
@@ -1012,9 +1013,9 @@ export default function JsonlStructureViewer() {
   );
 
   return (
-    <div
+    <ArtifactThemeRoot
       ref={containerRef}
-      className="artifact-theme jsonl-structure-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col"
+      className="jsonl-structure-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col"
     >
       <div ref={contentRef} className="mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-10 lg:px-8 xl:px-10">
         <header
@@ -1242,6 +1243,6 @@ export default function JsonlStructureViewer() {
           )}
         </div>
       </div>
-    </div>
+    </ArtifactThemeRoot>
   );
 }

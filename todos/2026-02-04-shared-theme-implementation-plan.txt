@@ -1,0 +1,225 @@
+Shared Theme Unification Plan (Light/Dark) — Sharp UI
+
+1) Problem & Motivation
+- We currently define base light/dark tokens independently in each artifact:
+  - src/artifacts/example/theme.css
+  - src/artifacts/example-app/theme.css
+  - src/artifacts/jsonl-structure-viewer/theme.css
+- This duplication causes drift (token values, missing tokens, inconsistent defaults).
+- Focus Compare and shared components rely on tokens (e.g., --ring) that may be undefined.
+- Focus Compare is hardcoded to slate colors and is not dark-mode compliant; tokens alone are insufficient.
+
+Why now
+- The style guide now treats tokens as the contract; we want a single canonical theme.
+- We want consistent focus/selection/semantic colors across artifacts and fewer missing-token bugs.
+
+Success criteria
+- One shared light/dark token source is used by all artifacts (including focus-compare).
+- Every theme defines the full token set (no missing token fallbacks in steady state).
+- Example palette demo still works via data-theme overrides.
+- Focus Compare is fully tokenized (or has equivalent dark: variants) and respects dark mode.
+- Visuals remain consistent with the Sharp UI guide (no rounding/shadows/translucency except scrim).
+
+2) System Context
+Relevant files/modules
+- Token consumers:
+  - src/components/Checkbox.tsx (uses --ring + checkbox tokens)
+  - src/components/Toggle.tsx (uses --ring + toggle tokens)
+  - src/components/CopyableLabel.tsx (uses --ring + copy tokens)
+  - src/components/ListboxSelect.tsx (uses --ring, --surface, --border, --text)
+  - src/components/StatusTag.tsx (uses --success, --border, --text, --surface)
+- Artifact roots:
+  - src/artifacts/example/index.tsx (uses class "example-theme" and data-theme)
+  - src/artifacts/example-app/App.tsx (uses class "example-app-theme")
+  - src/artifacts/jsonl-structure-viewer/index.tsx (uses class "jsonl-structure-theme")
+  - src/artifacts/focus-compare/index.tsx (currently uses raw colors; will still need tokens defined)
+- Shell roots (possible component usage outside artifacts):
+  - src/App.tsx (shell UI)
+  - src/StandaloneRoot.tsx (standalone artifact view + fallback)
+- Current theme files:
+  - src/artifacts/example/theme.css (base tokens + multiple data-theme variants)
+  - src/artifacts/example-app/theme.css (base tokens only)
+  - src/artifacts/jsonl-structure-viewer/theme.css (base tokens + app-specific rules)
+- Global CSS:
+  - src/index.css (loads Tailwind + shared component styles)
+
+How it connects
+- The shell toggles dark mode by applying `.dark` to <html>.
+- Token variables are scoped by per-artifact root class (example-theme, example-app-theme, etc.).
+- Focus-compare and shared components expect --ring to exist; missing tokens fall back or leak UA defaults.
+
+3) Implementation Plan (ordered)
+
+Step 1: Decide component scope before removing fallbacks
+- Audit usage of shared components outside artifact roots.
+  - Search for Checkbox/Toggle/CopyableLabel/ListboxSelect/StatusTag usage in src/App.tsx and src/StandaloneRoot.tsx.
+- Choose one:
+  - Option A: Add "artifact-theme" to shell roots so shared components always have tokens.
+  - Option B: Keep fallbacks in shared components for non-artifact contexts.
+- This decision gates Step 8 (fallback removal).
+
+Step 2: Freeze the token contract (document first)
+- Define the canonical token surface. Include core + semantic + required component tokens.
+- Decide primary strategy: Option A (primary = text/ink). This is the agreed direction.
+- Output a token list that every theme must define.
+
+Suggested token contract
+Core
+- --surface
+- --surface-muted
+- --surface-strong (derived)
+- --text
+- --text-muted
+- --border
+- --border-strong (derived)
+- --accent
+- --accent-weak (derived)
+- --ring (derived)
+- --highlight (derived)
+- --overlay (scrim)
+Primary (Option A)
+- --primary (derived from text)
+- --primary-hover (derived)
+- --primary-active (derived)
+- --primary-contrast (derived from surface)
+Semantic
+- --success / --success-weak
+- --warning / --warning-weak
+- --danger / --danger-weak
+- --info / --info-weak
+Optional component tokens (define for completeness)
+- --toggle-track-on-bg / --toggle-track-on-border
+- --toggle-track-off-bg / --toggle-track-off-border
+- --toggle-knob-on-bg / --toggle-knob-off-bg
+- --checkbox-on-bg / --checkbox-on-border
+- --checkbox-off-bg / --checkbox-off-border
+- --copy-idle-border / --copy-idle-bg / --copy-idle-text
+- --copy-hover-border / --copy-hover-bg / --copy-hover-text
+- --copy-success-border / --copy-success-bg / --copy-success-text
+- --copy-fail-border / --copy-fail-bg / --copy-fail-text
+
+Why
+- This keeps a rich surface while centralizing derived values and eliminating token gaps.
+
+Step 3: Create the shared theme file
+- Add a new file: src/theme/artifact-theme.css
+- Define the canonical tokens for light and dark:
+  - .artifact-theme { ...light tokens... }
+  - .dark .artifact-theme { ...dark tokens... }
+- Use color-mix() to derive:
+  - --surface-strong, --border-strong, --accent-weak, --ring, --highlight
+- Implement Option A primary tokens via derived values:
+  - --primary: var(--text)
+  - --primary-contrast: var(--surface)
+  - --primary-hover / --primary-active: derived mixes of text+surface
+- Define --overlay as the single allowed translucent token (e.g. rgba(..., 0.5)).
+
+Step 4: Load the shared theme globally
+- Update src/index.css to import the shared theme:
+  - Add @import "./theme/artifact-theme.css"; immediately after @import "tailwindcss"; and before @custom-variant/@layer rules.
+- This makes token definitions available for any artifact that uses .artifact-theme.
+
+Step 5: Update artifact roots to use .artifact-theme
+- src/artifacts/example/index.tsx:
+  - Root div class should include "artifact-theme".
+  - Keep "example-theme" for scoping data-theme overrides.
+- src/artifacts/example-app/App.tsx:
+  - Replace "example-app-theme" with "artifact-theme" (drop old class if unused).
+- src/artifacts/jsonl-structure-viewer/index.tsx:
+  - Add "artifact-theme" to the root class list.
+  - Keep "jsonl-structure-theme" if needed for app-specific styling.
+- src/artifacts/focus-compare/index.tsx:
+  - Add "artifact-theme" to the top-level container so --ring/--surface are defined.
+
+Step 6: Tokenize Focus Compare for dark mode
+- Replace hardcoded slate/white colors with token usage where feasible.
+- Where tokens are not appropriate, add dark: variants so focus-compare respects dark mode.
+- Confirm focus/hover/selected states still match the style guide.
+- File: src/artifacts/focus-compare/index.tsx
+
+Step 7: Refactor per-artifact theme files
+- src/artifacts/example-app/theme.css:
+  - Remove base token definitions (now in shared theme).
+  - If no overrides remain, delete the file and remove import from App.tsx.
+- src/artifacts/jsonl-structure-viewer/theme.css:
+  - Remove base token definitions.
+  - Keep only app-specific rules (e.g. .jsonl-structure-theme .path-highlight).
+- src/artifacts/example/theme.css:
+  - Remove base token definitions.
+  - Keep data-theme overrides for palette demo, but scope them to:
+    - .example-theme[data-theme="..."] (and .dark .example-theme[...])
+  - Overrides should be minimal and only change what the palette intends (accent + semantic + optional surface/text if desired).
+  - Ensure overrides load after the shared base tokens and apply to the same element that has .artifact-theme.
+
+Step 8: Remove token fallbacks after verification
+- Once all tokens are defined in the shared theme, remove default fallbacks in components:
+  - src/components/Checkbox.tsx
+  - src/components/Toggle.tsx
+  - src/components/CopyableLabel.tsx
+- Keep fallbacks only if there are hard requirements for external usage.
+
+Step 9: Update the style guide token contract
+- Update design/VISUAL_STYLE_GUIDE.txt to list the full shared token contract:
+  - Include --overlay and --primary* if they remain part of the system.
+  - Confirm derived tokens and theme completeness rule.
+
+Step 10: Provide an audit prompt to surface leftovers
+- After implementation, use a helper agent to scan for:
+  - Any leftover per-artifact base tokens
+  - Any usage of old theme classes
+  - Any missing tokens or newly hardcoded colors
+
+4) Key Decisions & Tradeoffs
+- Primary strategy: Option A (primary = text/ink) keeps the UI calm and scan-first.
+  - Tradeoff: CTA emphasis is less punchy unless you use accent variants explicitly.
+- Shared theme in a single file keeps tokens consistent and avoids drift.
+  - Tradeoff: requires up-front refactor of all artifact roots and theme files.
+- Keep Example data-theme palette for demo value.
+  - Tradeoff: extra override maintenance; must ensure overrides don’t drift from base contract.
+- Token surface is large, but derived where possible.
+  - Tradeoff: CSS color-mix reliance; ensure browser support is acceptable.
+
+5) Risks & Landmines
+- Missing token definitions will fall back to currentColor or UA defaults (e.g., rings turning black/blue).
+- Removing per-artifact theme files without updating imports can silently drop token definitions or custom rules.
+- Focus Compare remains light-only unless it is tokenized or given dark: variants.
+- Removing fallbacks without scoping .artifact-theme to all usage sites can break the shell/standalone UI.
+- @import ordering is strict; placing @import after @custom-variant/@layer makes the CSS invalid.
+- data-theme overrides only win if they load after base tokens and apply on the same element as .artifact-theme.
+- data-theme overrides can accidentally override base tokens too broadly (watch for unintended surface/text changes).
+- Focus Compare uses raw colors; token availability affects ring and any tokenized controls inside it.
+- color-mix() support: ensure target browsers are compatible or add fallbacks/explicit values.
+- Deleting theme files can drop non-token styling (e.g. .path-highlight).
+
+6) Verification & Validation
+Step-by-step checks
+- After Step 3/4: confirm tokens are defined by inspecting computed styles on .artifact-theme root.
+- After Step 5/6: open each artifact and verify:
+  - Focus ring uses --ring
+  - Surfaces/text/borders match expected light/dark values
+  - No UA outlines or rounding appear on sharp controls
+- Focus Compare respects dark mode (no bright light UI on dark background)
+- After Step 7: switch Example palettes (data-theme) and verify only intended tokens change.
+- After Step 8: grep for fallback usage; ensure removal doesn’t break tokens.
+
+Tests to run
+- npm run lint
+- npm run typecheck
+- Manually preview artifacts:
+  - /?artifact=example
+  - /?artifact=example-app
+  - /?artifact=jsonl-structure-viewer
+  - /?artifact=focus-compare
+
+Rollback plan
+- Revert to previous theme.css files if any artifact becomes unreadable.
+- Restore token fallbacks in components if missing tokens are found in production.
+
+7) Open Questions / Follow-ups
+- Are shared components used anywhere outside artifact roots? If yes, add .artifact-theme to the shell or keep fallbacks.
+- Is color-mix() required for target browsers, or do we want explicit fallback values?
+- Should Focus Compare be fully tokenized or is limited dark: coverage acceptable?
+- Confirm exact derived formulas for primary hover/active (text+surface ratios).
+- Decide whether palette overrides are limited to accent/semantic or can also adjust surfaces.
+- Decide whether component-specific tokens (copy/toggle/checkbox) should remain configurable or be removed in favor of core tokens only.
+- Build an audit prompt for a helper agent to scan for missing tokens and old theme class usage.

@@ -38,7 +38,7 @@ The design system follows a strict set of constraints we call **Sharp UI**. Thes
 className="rounded-lg shadow-md bg-white/90 backdrop-blur"
 
 // ✅ Do this instead
-className="border border-slate-200 bg-white"
+className="border border-[var(--border)] bg-[var(--surface)]"
 ```
 
 ---
@@ -121,10 +121,10 @@ Every clickable element must have ALL THREE:
 
 ```jsx
 // ✅ Correct
-className="cursor-pointer hover:bg-slate-50 active:bg-slate-200"
+className="cursor-pointer hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]"
 
 // ❌ Missing active state
-className="cursor-pointer hover:bg-slate-50"
+className="cursor-pointer hover:bg-[var(--surface-muted)]"
 ```
 
 ### 3. Focus States
@@ -132,12 +132,12 @@ className="cursor-pointer hover:bg-slate-50"
 All interactive elements use focus-visible rings with a small offset for keyboard clarity:
 
 ```jsx
-className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
+className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
 ```
 
 The `focus-visible` variant means the ring only appears for keyboard navigation, not mouse clicks.
 Prefer a high-contrast ring; avoid dim-only focus on filled/dark buttons.
-Use a single ring color (`ring-slate-400`) across controls to keep focus cues consistent.
+Use the ring token (`--ring`) across controls to keep focus cues consistent.
 Use one primary focus cue per component: rows use a left bar + background; controls use a ring.
 
 ### 4. Message Rendering Modes
@@ -167,7 +167,7 @@ When you need a button in your app:
 When you're styling something custom:
 
 1. Check the design tokens at the top of the file
-2. Use the same color scale (`slate-50` through `slate-900`)
+2. Use the shared token palette (`var(--surface)`, `var(--text)`, `var(--border)`, etc.)
 3. Follow the same border/spacing patterns
 4. Apply the clickability contract
 
@@ -188,31 +188,46 @@ These are the foundational values everything is built from:
 
 ```js
 // Surfaces (backgrounds)
-surface.0 = 'bg-white'       // panels, cards
-surface.1 = 'bg-slate-50'    // muted sections, hover states
-surface.2 = 'bg-slate-100'   // pressed states, strong hover
+surface.0 = 'var(--surface)'          // panels, cards
+surface.1 = 'var(--surface-muted)'    // muted sections, hover states
+surface.2 = 'var(--surface-strong)'   // strong hover / grouping
+surface.3 = 'var(--surface-pressed)'  // pressed / active states
 
 // Borders
-border.default = 'border-slate-200'  // standard borders
-border.muted   = 'border-slate-100'  // subtle dividers
-border.strong  = 'border-slate-300'  // emphasis
+border.default = 'var(--border)'        // standard borders + dividers
+border.strong  = 'var(--border-strong)' // emphasis
 
 // Text
-text.0 = 'text-slate-900'    // primary content
-text.1 = 'text-slate-600'    // secondary content
-text.2 = 'text-slate-400'    // muted, timestamps, hints
+text.0 = 'var(--text)'         // primary content
+text.1 = 'var(--text-muted)'   // secondary content
+text.2 = 'var(--text-subtle)'  // muted, timestamps, hints
 ```
 
-### Semantic Colors
+### Semantic Status Tokens
 
-| Color | Meaning | Used For |
+| Token | Meaning | Used For |
 |-------|---------|----------|
-| `blue-500` | User | User message borders |
-| `emerald-500` | Assistant/Success | Assistant borders, success states |
-| `amber-400` | Thinking/Warning | Thinking borders, warnings |
-| `violet-500` | Tool | Tool call borders |
-| `red-500` | Error/Danger | Error states, danger buttons |
-| `slate-*` | Neutral | Everything else |
+| `--success` / `--success-weak` | Success | Success states, confirmations |
+| `--warning` / `--warning-weak` | Warning | Warnings, caution states |
+| `--danger` / `--danger-weak` | Error/Danger | Error states, destructive actions |
+| `--info` / `--info-weak` | Info | Informational accents |
+
+### Categorical Palette (Message Type Colors)
+
+These are categorical (not status) colors for classifying message types and tags.
+
+| Token | Meaning | Used For |
+|-------|---------|----------|
+| `--category-blue` / `--category-blue-weak` | User | Left bars, dots, filter chips |
+| `--category-green` / `--category-green-weak` | Assistant | Left bars, dots, filter chips |
+| `--category-amber` / `--category-amber-weak` | Thinking | Left bars, dots, filter chips |
+| `--category-violet` / `--category-violet-weak` | Tool | Left bars, dots, filter chips |
+| `--category-red` / `--category-red-weak` | Critical | Special highlights if needed |
+
+Guidelines:
+- Use `--category-*-weak` for selected row backgrounds or filter chips.
+- Use `--category-*` for dots, left bars, or badges.
+- Keep text labels in `--text` or `--text-muted` so color is not the only cue.
 
 ---
 

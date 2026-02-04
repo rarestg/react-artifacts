@@ -55,8 +55,10 @@ Token contract (Base)
   - --surface
   - --surface-muted
   - --surface-strong (derived)
+  - --surface-pressed (derived)
   - --text
   - --text-muted
+  - --text-subtle
   - --border
   - --border-strong (derived)
   - --accent
@@ -74,6 +76,18 @@ Token contract (Base)
   - --warning / --warning-weak
   - --danger / --danger-weak
   - --info / --info-weak
+  Categorical (message types / tags)
+  - --category-blue / --category-blue-weak
+  - --category-green / --category-green-weak
+  - --category-amber / --category-amber-weak
+  - --category-violet / --category-violet-weak
+  - --category-red / --category-red-weak
+
+  Categorical usage
+  - Use --category-*-weak for selected row backgrounds or filter chips.
+  - Use --category-* for dots, left bars, or badges.
+  - Keep text labels in --text or --text-muted so color is not the only cue.
+  - Categorical tokens currently alias the semantic palette for consistency.
   Component tokens (define for completeness)
   - --toggle-track-on-bg / --toggle-track-on-border
   - --toggle-track-off-bg / --toggle-track-off-border
@@ -87,7 +101,7 @@ Token contract (Base)
 
 Theme overrides (if any)
 - If --accent changes, also change --accent-weak and --ring.
-- If --surface or --border changes, also provide --surface-strong and --border-strong.
+- If --surface or --border changes, also provide --surface-strong, --surface-pressed, and --border-strong.
 - Derived tokens are allowed (ex: color-mix) if documented and verified in both modes.
 - Light-only or dark-only themes must be explicitly documented as exceptions.
 
@@ -100,7 +114,6 @@ Theme boundary
 - All artifacts must wrap their root in `ArtifactThemeRoot` (applies the `.artifact-theme` token scope).
 - Shared components require the artifact theme boundary; usage elsewhere warns in dev.
 - Shell UI remains outside this boundary unless explicitly wrapped.
-- Exception (temporary): `sharp2` is a legacy artifact and is not wrapped yet; migration pending.
 
 Naming
 - “Tag” is the preferred name. “Chip” may remain temporarily if it means sharp tag.

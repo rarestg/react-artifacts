@@ -1,8 +1,10 @@
 .artifact-theme {
   --surface: #ffffff;
   --surface-muted: #f8fafc;
+  --surface-pressed: #eaf0f3;
   --text: #0f172a;
   --text-muted: #64748b;
+  --text-subtle: #94a3b8;
   --border: #e2e8f0;
   --accent: #2563eb;
   --success: #059669;
@@ -26,6 +28,18 @@
   --warning-weak: #fef3c7;
   --danger-weak: #fee2e2;
   --info-weak: #ede9fe;
+
+  --category-blue: var(--accent);
+  --category-green: var(--success);
+  --category-amber: var(--warning);
+  --category-violet: var(--info);
+  --category-red: var(--danger);
+
+  --category-blue-weak: var(--accent-weak);
+  --category-green-weak: var(--success-weak);
+  --category-amber-weak: var(--warning-weak);
+  --category-violet-weak: var(--info-weak);
+  --category-red-weak: var(--danger-weak);
 
   --toggle-track-on-bg: var(--primary);
   --toggle-track-on-border: var(--primary);
@@ -56,8 +70,10 @@
 .dark .artifact-theme {
   --surface: #0b1120;
   --surface-muted: #0f172a;
+  --surface-pressed: #1b2435;
   --text: #e2e8f0;
   --text-muted: #94a3b8;
+  --text-subtle: #64748b;
   --border: #1f2937;
   --accent: #60a5fa;
   --success: #34d399;
@@ -89,6 +105,7 @@
 @supports (color: color-mix(in srgb, #000 50%, #fff 50%)) {
   .artifact-theme {
     --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
+    --surface-pressed: color-mix(in srgb, var(--surface) 60%, var(--border-strong) 40%);
     --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
     --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
     --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);
@@ -101,6 +118,7 @@
 
   .dark .artifact-theme {
     --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
+    --surface-pressed: color-mix(in srgb, var(--surface) 60%, var(--border-strong) 40%);
     --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
     --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
     --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);

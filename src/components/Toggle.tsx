@@ -1,4 +1,5 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode, useRef } from 'react';
+import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type ToggleProps = {
   label: string;
@@ -27,7 +28,10 @@ export function Toggle({
   knobClassName,
   suffix,
 }: ToggleProps) {
+  const rootRef = useRef<HTMLLabelElement>(null);
   const resolvedReserveLabel = reserveLabel ?? label;
+
+  useArtifactThemeGuard('Toggle', rootRef);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -50,6 +54,7 @@ export function Toggle({
 
   return (
     <label
+      ref={rootRef}
       className={[
         'inline-flex items-center gap-3 cursor-pointer select-none py-1',
         focusTarget === 'container' ? 'relative' : '',

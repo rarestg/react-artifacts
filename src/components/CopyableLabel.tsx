@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type CopyableLabelStatus = 'idle' | 'hover' | 'copied' | 'failed';
 
@@ -27,6 +28,9 @@ export function CopyableLabel({
   const [status, setStatus] = useState<CopyableLabelStatus>('idle');
   const isHoveredRef = useRef(false);
   const isFocusedRef = useRef(false);
+  const rootRef = useRef<HTMLButtonElement>(null);
+
+  useArtifactThemeGuard('CopyableLabel', rootRef);
 
   const resolvedReserveLabel = useMemo(() => {
     if (reserveLabel) return reserveLabel;
@@ -98,6 +102,7 @@ export function CopyableLabel({
 
   return (
     <button
+      ref={rootRef}
       type="button"
       onClick={handleCopy}
       onMouseEnter={handleMouseEnter}

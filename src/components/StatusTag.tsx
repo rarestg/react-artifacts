@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
+import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type StatusTagProps = {
   label: string;
@@ -19,10 +20,14 @@ export default function StatusTag({
   showState = true,
   className,
 }: StatusTagProps) {
+  const rootRef = useRef<HTMLSpanElement>(null);
   const resolvedReserveLabel = reserveLabel ?? label;
+
+  useArtifactThemeGuard('StatusTag', rootRef);
 
   return (
     <span
+      ref={rootRef}
       className={[
         'inline-flex items-center gap-2 border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] leading-none',
         'transition-[background-color,color,border-color] motion-reduce:transition-none',

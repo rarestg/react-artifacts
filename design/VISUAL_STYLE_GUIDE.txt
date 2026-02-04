@@ -96,6 +96,12 @@ Theme modes
 - Themes swap tokens; components keep the same structure across modes.
 - Avoid hardcoded colors inside components.
 
+Theme boundary
+- All artifacts must wrap their root in `ArtifactThemeRoot` (applies the `.artifact-theme` token scope).
+- Shared components require the artifact theme boundary; usage elsewhere warns in dev.
+- Shell UI remains outside this boundary unless explicitly wrapped.
+- Exception (temporary): `sharp2` is a legacy artifact and is not wrapped yet; migration pending.
+
 Naming
 - “Tag” is the preferred name. “Chip” may remain temporarily if it means sharp tag.
 

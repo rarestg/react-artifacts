@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
-import type { KeyboardEvent, ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode, useRef } from 'react';
+import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type CheckboxProps = {
   label: string;
@@ -30,7 +31,10 @@ export function Checkbox({
   checkClassName,
   suffix,
 }: CheckboxProps) {
+  const rootRef = useRef<HTMLLabelElement>(null);
   const resolvedReserveLabel = reserveLabel ?? label;
+
+  useArtifactThemeGuard('Checkbox', rootRef);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -54,6 +58,7 @@ export function Checkbox({
 
   return (
     <label
+      ref={rootRef}
       className={[
         'inline-flex items-center gap-2 cursor-pointer select-none py-1',
         focusTarget === 'container' ? 'relative' : '',

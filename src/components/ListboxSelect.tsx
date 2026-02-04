@@ -1,5 +1,6 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type ListboxOption<T extends string> = {
   value: T;
@@ -42,6 +43,8 @@ export function ListboxSelect<T extends string>({
   const listboxId = useId();
   const selectedIndex = options.findIndex((option) => option.value === value);
   const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : options[0];
+
+  useArtifactThemeGuard('ListboxSelect', containerRef);
 
   useEffect(() => {
     if (!open) {

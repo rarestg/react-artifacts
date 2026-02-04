@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import './theme.css';
+import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { ListboxSelect } from '../../components/ListboxSelect';
 import { type ThemeId, themes } from './themes';
 
@@ -91,8 +92,8 @@ export default function Example() {
   const themeOptions = themes.map((item) => ({ value: item.id, label: item.label }));
 
   return (
-    <div
-      className="artifact-theme example-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)]"
+    <ArtifactThemeRoot
+      className="example-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)]"
       data-theme={theme}
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-6 p-8">
@@ -194,6 +195,6 @@ export default function Example() {
           </div>
         </div>
       </div>
-    </div>
+    </ArtifactThemeRoot>
   );
 }

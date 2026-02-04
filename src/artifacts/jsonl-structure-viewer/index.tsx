@@ -1014,7 +1014,7 @@ export default function JsonlStructureViewer() {
   return (
     <div
       ref={containerRef}
-      className="jsonl-structure-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col"
+      className="artifact-theme jsonl-structure-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col"
     >
       <div ref={contentRef} className="mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-10 lg:px-8 xl:px-10">
         <header

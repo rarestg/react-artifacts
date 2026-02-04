@@ -1,0 +1,113 @@
+.artifact-theme {
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #2563eb;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #7c3aed;
+
+  --surface-strong: #f1f5f9;
+  --border-strong: #cbd5e1;
+  --accent-weak: #dbeafe;
+  --ring: #94a3b8;
+  --highlight: #dbeafe;
+  --overlay: rgba(15, 23, 42, 0.5);
+
+  --primary: var(--text);
+  --primary-contrast: var(--surface);
+  --primary-hover: #1e293b;
+  --primary-active: #020617;
+
+  --success-weak: #d1fae5;
+  --warning-weak: #fef3c7;
+  --danger-weak: #fee2e2;
+  --info-weak: #ede9fe;
+
+  --toggle-track-on-bg: var(--primary);
+  --toggle-track-on-border: var(--primary);
+  --toggle-track-off-bg: var(--surface-strong);
+  --toggle-track-off-border: var(--border-strong);
+  --toggle-knob-on-bg: var(--primary-contrast);
+  --toggle-knob-off-bg: var(--surface);
+
+  --checkbox-on-bg: var(--primary);
+  --checkbox-on-border: var(--primary);
+  --checkbox-off-bg: var(--surface);
+  --checkbox-off-border: var(--border-strong);
+
+  --copy-idle-border: var(--border);
+  --copy-idle-bg: var(--surface);
+  --copy-idle-text: var(--text-muted);
+  --copy-hover-border: var(--border-strong);
+  --copy-hover-bg: var(--surface-muted);
+  --copy-hover-text: var(--text);
+  --copy-success-border: #6ee7b7;
+  --copy-success-bg: var(--success-weak);
+  --copy-success-text: var(--success);
+  --copy-fail-border: #fca5a5;
+  --copy-fail-bg: var(--danger-weak);
+  --copy-fail-text: var(--danger);
+}
+
+.dark .artifact-theme {
+  --surface: #0b1120;
+  --surface-muted: #0f172a;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: #1f2937;
+  --accent: #60a5fa;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --info: #a78bfa;
+
+  --surface-strong: #1e293b;
+  --border-strong: #334155;
+  --accent-weak: #1e3a8a;
+  --ring: #94a3b8;
+  --highlight: #1e3a8a;
+  --overlay: rgba(2, 6, 23, 0.6);
+
+  --primary: var(--text);
+  --primary-contrast: var(--surface);
+  --primary-hover: #cbd5e1;
+  --primary-active: #94a3b8;
+
+  --success-weak: #064e3b;
+  --warning-weak: #78350f;
+  --danger-weak: #7f1d1d;
+  --info-weak: #4c1d95;
+
+  --copy-success-border: var(--success);
+  --copy-fail-border: var(--danger);
+}
+
+@supports (color: color-mix(in srgb, #000 50%, #fff 50%)) {
+  .artifact-theme {
+    --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
+    --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
+    --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
+    --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);
+    --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
+    --primary-hover: color-mix(in srgb, var(--primary) 92%, var(--surface) 8%);
+    --primary-active: color-mix(in srgb, var(--primary) 96%, var(--surface) 4%);
+    --copy-success-border: color-mix(in srgb, var(--success) 50%, var(--success-weak) 50%);
+    --copy-fail-border: color-mix(in srgb, var(--danger) 50%, var(--danger-weak) 50%);
+  }
+
+  .dark .artifact-theme {
+    --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
+    --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
+    --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
+    --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);
+    --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
+    --primary-hover: color-mix(in srgb, var(--primary) 92%, var(--surface) 8%);
+    --primary-active: color-mix(in srgb, var(--primary) 96%, var(--surface) 4%);
+    --copy-success-border: color-mix(in srgb, var(--success) 50%, var(--success-weak) 50%);
+    --copy-fail-border: color-mix(in srgb, var(--danger) 50%, var(--danger-weak) 50%);
+  }
+}

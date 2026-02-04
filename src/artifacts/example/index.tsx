@@ -91,7 +91,10 @@ export default function Example() {
   const themeOptions = themes.map((item) => ({ value: item.id, label: item.label }));
 
   return (
-    <div className="example-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)]" data-theme={theme}>
+    <div
+      className="artifact-theme example-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)]"
+      data-theme={theme}
+    >
       <div className="mx-auto flex max-w-3xl flex-col gap-6 p-8">
         <div className="flex flex-col gap-5 border border-[var(--border)] bg-[var(--surface)] p-6">
           <div className="flex flex-col gap-2">
@@ -100,7 +103,8 @@ export default function Example() {
             </div>
             <h1 className="text-2xl font-semibold">Example Artifact</h1>
             <p className="text-sm text-[var(--text-muted)]">
-              This artifact hosts its own theme tokens. The shell theme toggle swaps each theme's light/dark set.
+              This artifact uses the shared Sharp UI tokens. The shell theme toggle swaps light/dark tokens, while the
+              palette menu overrides the accent/surface mix.
             </p>
           </div>
 

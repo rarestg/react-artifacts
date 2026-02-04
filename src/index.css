@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme/artifact-theme.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -8,10 +9,10 @@
     --decision-ring-width: 2px;
     --decision-ring-offset: 1px;
     --decision-ring-outset: calc(var(--decision-ring-width) + var(--decision-ring-offset));
-    --decision-ring-offset-color: #ffffff;
-    --decision-ring: #d97706;
-    --decision-bg: #fef3c7;
-    --decision-text: #b45309;
+    --decision-ring-offset-color: var(--surface);
+    --decision-ring: var(--warning);
+    --decision-bg: var(--warning-weak);
+    --decision-text: var(--warning);
   }
 
   .decision-ring {
@@ -34,21 +35,29 @@
   }
 
   .decision-theme-amber {
-    --decision-ring: #d97706;
-    --decision-bg: #fef3c7;
-    --decision-text: #b45309;
+    --decision-ring: var(--warning);
+    --decision-bg: var(--warning-weak);
+    --decision-text: var(--warning);
   }
 
   .decision-theme-emerald {
-    --decision-ring: #059669;
-    --decision-bg: #d1fae5;
-    --decision-text: #047857;
+    --decision-ring: var(--success);
+    --decision-bg: var(--success-weak);
+    --decision-text: var(--success);
   }
 
   .decision-theme-slate {
-    --decision-ring: #64748b;
-    --decision-bg: #e2e8f0;
-    --decision-text: #475569;
+    --decision-ring: var(--border-strong);
+    --decision-bg: var(--surface-strong);
+    --decision-text: var(--text-muted);
+  }
+
+  .focus-compare-theme {
+    --overlay-legacy: rgba(15, 23, 42, 0.5);
+  }
+
+  .dark .focus-compare-theme {
+    --overlay-legacy: rgba(2, 6, 23, 0.6);
   }
 
   .sharp-toggle {

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type CopyableLabelStatus = 'idle' | 'hover' | 'copied' | 'failed';
 
@@ -25,12 +25,16 @@ export function CopyableLabel({
   showHoverOnFocus = true,
 }: CopyableLabelProps) {
   const [status, setStatus] = useState<CopyableLabelStatus>('idle');
+  const isHoveredRef = useRef(false);
+  const isFocusedRef = useRef(false);
 
   const resolvedReserveLabel = useMemo(() => {
     if (reserveLabel) return reserveLabel;
-    const fallback = copiedLabel.length > failedLabel.length ? copiedLabel : failedLabel;
+    const fallback = [copiedLabel, failedLabel, hoverLabel].reduce((longest, next) =>
+      next.length > longest.length ? next : longest,
+    );
     return value.length > fallback.length ? value : fallback;
-  }, [reserveLabel, value, copiedLabel, failedLabel]);
+  }, [reserveLabel, value, copiedLabel, failedLabel, hoverLabel]);
 
   const displayText: Record<CopyableLabelStatus, string> = {
     idle: value,
@@ -39,11 +43,18 @@ export function CopyableLabel({
     failed: failedLabel,
   };
 
+  const shouldShowHover = useCallback(
+    () => isHoveredRef.current || (showHoverOnFocus && isFocusedRef.current),
+    [showHoverOnFocus],
+  );
+
   useEffect(() => {
     if (status !== 'copied' && status !== 'failed') return;
-    const timeout = window.setTimeout(() => setStatus('idle'), 2000);
+    const timeout = window.setTimeout(() => {
+      setStatus(shouldShowHover() ? 'hover' : 'idle');
+    }, 2000);
     return () => window.clearTimeout(timeout);
-  }, [status]);
+  }, [status, shouldShowHover]);
 
   const handleCopy = async () => {
     try {
@@ -55,21 +66,25 @@ export function CopyableLabel({
   };
 
   const handleMouseEnter = () => {
+    isHoveredRef.current = true;
     if (status === 'idle') setStatus('hover');
   };
 
   const handleMouseLeave = () => {
-    if (status === 'hover') setStatus('idle');
+    isHoveredRef.current = false;
+    if (status === 'hover' && !shouldShowHover()) setStatus('idle');
   };
 
   const handleFocus = () => {
+    isFocusedRef.current = true;
     if (!showHoverOnFocus) return;
     if (status === 'idle') setStatus('hover');
   };
 
   const handleBlur = () => {
+    isFocusedRef.current = false;
     if (!showHoverOnFocus) return;
-    if (status === 'hover') setStatus('idle');
+    if (status === 'hover' && !shouldShowHover()) setStatus('idle');
   };
 
   const tone =

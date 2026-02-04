@@ -1,3 +1,19 @@
+## Implementation Summary (Completed)
+
+Implemented changes
+- Added ArtifactThemeRoot with a dev-only guard and context.
+- Wired the guard into shared components (Checkbox, Toggle, CopyableLabel, ListboxSelect, StatusTag).
+- Wrapped artifact roots with ArtifactThemeRoot (example, example-app, jsonl-structure-viewer, focus-compare, sharp2).
+- Documented the boundary requirement in design/VISUAL_STYLE_GUIDE.txt.
+- Added a UI implementation note entry for the artifact theme boundary.
+
+Notes / deviations from plan
+- Wrangler typecheck required elevated permissions to write its log file; reran successfully.
+
+Validation steps run (commands)
+- npm run lint
+- npm run typecheck
+
 # Artifact Theme Boundary + Guard Plan
 
 ## 1) Problem & Motivation

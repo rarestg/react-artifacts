@@ -1,3 +1,20 @@
+## Implementation Summary (Completed)
+
+Implemented changes
+- Added shared token contract in src/theme/artifact-theme.css (including surface-pressed, text-subtle, categorical tokens) and imported it in src/index.css.
+- Updated artifacts to use ArtifactThemeRoot (example, example-app, jsonl-structure-viewer, focus-compare, sharp2).
+- Tokenized focus-compare and sharp2; trimmed per-artifact theme files to overrides only.
+- Removed token fallbacks in shared components and updated the style guide token contract.
+- Updated sharp2 docs and migration guide; added a UI implementation note entry.
+
+Notes / deviations from plan
+- Step 10 (audit prompt) was not created; manual checks were used instead.
+- Wrangler typecheck required elevated permissions to write its log file; reran successfully.
+
+Validation steps run (commands)
+- npm run lint
+- npm run typecheck
+
 Shared Theme Unification Plan (Light/Dark) — Sharp UI
 
 1) Problem & Motivation

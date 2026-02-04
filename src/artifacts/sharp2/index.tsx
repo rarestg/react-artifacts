@@ -12,11 +12,13 @@ import {
   type MouseEventHandler,
   type ReactElement,
   type ReactNode,
+  useCallback,
   useEffect,
   useId,
   useRef,
   useState,
 } from 'react';
+import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 
 type SectionCols = 1 | 2 | 3;
 type TagVariant = 'base' | 'muted' | 'solid';
@@ -242,19 +244,19 @@ type ConversationTurnProps = {
 // Conceptual reference — not consumed in code, kept as a design token inventory
 const tokens = {
   surface: {
-    0: 'bg-white', // panel
-    1: 'bg-slate-50', // muted grouping
-    2: 'bg-slate-100', // pressed/strong hover
+    0: 'bg-[var(--surface)]', // panel
+    1: 'bg-[var(--surface-muted)]', // muted grouping
+    2: 'bg-[var(--surface-strong)]', // pressed/strong hover
   },
   border: {
-    default: 'border-slate-200',
-    muted: 'border-slate-100',
-    strong: 'border-slate-300',
+    default: 'border-[var(--border)]',
+    muted: 'border-[color:var(--border)]',
+    strong: 'border-[var(--border-strong)]',
   },
   text: {
-    0: 'text-slate-900', // primary
-    1: 'text-slate-600', // secondary
-    2: 'text-slate-400', // muted
+    0: 'text-[var(--text)]', // primary
+    1: 'text-[var(--text-muted)]', // secondary
+    2: 'text-[var(--text-subtle)]', // muted
   },
 };
 void tokens;
@@ -288,9 +290,9 @@ const colsClass: Record<SectionCols, string> = {
 
 function Section({ title, children, cols = 1 }: SectionProps) {
   return (
-    <div className="border border-slate-200 bg-white">
-      <div className="border-b border-slate-200 px-4 py-2 bg-slate-50">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-600">{title}</h2>
+    <div className="border border-[var(--border)] bg-[var(--surface)]">
+      <div className="border-b border-[var(--border)] px-4 py-2 bg-[var(--surface-muted)]">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{title}</h2>
       </div>
       <div className={`p-6 ${colsClass[cols] ?? ''}`}>{children}</div>
     </div>
@@ -300,7 +302,7 @@ function Section({ title, children, cols = 1 }: SectionProps) {
 function SubSection({ label, children, className }: SubSectionProps) {
   return (
     <div className={['space-y-2', className].filter(Boolean).join(' ')}>
-      <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">{label}</div>
+      <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">{label}</div>
       {children}
     </div>
   );
@@ -326,6 +328,7 @@ import {
 // ============================================
 // PRIMITIVES: STATUS TAG
 // ============================================
+// TODO: Compare these local primitives with src/components equivalents and consolidate or promote canonical versions.
 function StatusTag({ label, reserveLabel, active = true, icon, className }: StatusTagProps) {
   const resolvedReserveLabel = reserveLabel ?? label;
 
@@ -335,7 +338,9 @@ function StatusTag({ label, reserveLabel, active = true, icon, className }: Stat
       className={[
         'inline-flex items-center gap-2 border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] leading-none',
         'transition-colors duration-150 motion-reduce:transition-none',
-        active ? 'border-slate-300 bg-white text-slate-700' : 'border-slate-200 bg-slate-50 text-slate-400',
+        active
+          ? 'border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]'
+          : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-subtle)]',
         className,
       ]
         .filter(Boolean)
@@ -345,7 +350,9 @@ function StatusTag({ label, reserveLabel, active = true, icon, className }: Stat
       <span
         className={[
           'w-2 h-2 shrink-0 transition-colors duration-150 motion-reduce:transition-none',
-          active ? 'bg-emerald-500 border border-emerald-500' : 'bg-transparent border border-slate-400',
+          active
+            ? 'bg-[var(--success)] border border-[color:var(--success)]'
+            : 'bg-transparent border border-[var(--border-strong)]',
         ].join(' ')}
         aria-hidden="true"
       />
@@ -364,9 +371,9 @@ function StatusTag({ label, reserveLabel, active = true, icon, className }: Stat
 // ============================================
 function Tag({ children, variant = 'base', className }: TagProps) {
   const variants: Record<TagVariant, string> = {
-    base: 'border border-slate-200 bg-white text-slate-600',
-    muted: 'border-transparent bg-slate-100 text-slate-600',
-    solid: 'border-transparent bg-slate-800 text-white',
+    base: 'border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+    muted: 'border-transparent bg-[var(--surface-strong)] text-[var(--text-muted)]',
+    solid: 'border-transparent bg-[var(--primary)] text-[var(--primary-contrast)]',
   };
 
   return (
@@ -386,10 +393,13 @@ function Tag({ children, variant = 'base', className }: TagProps) {
 function Button({ children, variant = 'default', size = 'default', disabled, className, ...props }: ButtonProps) {
   const variants: Record<ButtonVariant, string> = {
     default:
-      'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-200 active:border-slate-400',
-    primary: 'border border-slate-800 bg-slate-800 text-white hover:bg-slate-700 active:bg-slate-950',
-    ghost: 'border border-transparent bg-transparent text-slate-600 hover:bg-slate-100 active:bg-slate-200',
-    danger: 'border border-red-200 bg-white text-red-600 hover:bg-red-50 active:bg-red-100 active:border-red-300',
+      'border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] active:border-[var(--border-strong)]',
+    primary:
+      'border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-contrast)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]',
+    ghost:
+      'border border-transparent bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)]',
+    danger:
+      'border border-[color:var(--danger)] bg-[var(--surface)] text-[var(--danger)] hover:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)]',
   };
 
   const sizes: Record<ButtonSize, string> = {
@@ -403,7 +413,7 @@ function Button({ children, variant = 'default', size = 'default', disabled, cla
       disabled={disabled}
       className={[
         'inline-flex items-center justify-center gap-2 font-medium transition-colors motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         'disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed',
         variants[variant],
         sizes[size],
@@ -428,23 +438,23 @@ function Input({ label, error, className, ...props }: InputProps) {
   return (
     <div className="space-y-1">
       {label && (
-        <label htmlFor={inputId} className="block text-xs font-medium text-slate-600">
+        <label htmlFor={inputId} className="block text-xs font-medium text-[var(--text-muted)]">
           {label}
         </label>
       )}
       <input
         id={inputId}
         className={[
-          'w-full h-9 px-3 text-sm border bg-white text-slate-900 placeholder:text-slate-400',
-          'focus:outline-none focus-visible:border-slate-400 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
-          error ? 'border-red-300' : 'border-slate-200',
+          'w-full h-9 px-3 text-sm border bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-subtle)]',
+          'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+          error ? 'border-[color:var(--danger)]' : 'border-[var(--border)]',
           className,
         ]
           .filter(Boolean)
           .join(' ')}
         {...props}
       />
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-[var(--danger)]">{error}</p>}
     </div>
   );
 }
@@ -480,6 +490,8 @@ function SearchInput({
   }, [showResults, results.length]);
 
   const activeResult = activeIndex >= 0 && activeIndex < results.length ? results[activeIndex] : null;
+  const activeOptionId =
+    activeIndex >= 0 && activeIndex < results.length ? `${listboxId}-option-${activeIndex}` : undefined;
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (event) => {
     if (!showResults || results.length === 0) return;
@@ -506,7 +518,7 @@ function SearchInput({
     <div className="relative">
       {/* Input container */}
       <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)] pointer-events-none" />
         <input
           type="text"
           value={value}
@@ -519,11 +531,11 @@ function SearchInput({
           aria-autocomplete="list"
           aria-expanded={showResults && results.length > 0}
           aria-controls={listboxId}
-          aria-activedescendant={activeResult ? `${listboxId}-option-${getSearchResultKey(activeResult)}` : undefined}
+          aria-activedescendant={activeOptionId}
           className={[
-            'w-full h-9 pl-9 pr-3 text-sm border bg-white text-slate-900 placeholder:text-slate-400',
-            'focus:outline-none focus-visible:border-slate-400 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
-            'border-slate-200',
+            'w-full h-9 pl-9 pr-3 text-sm border bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-subtle)]',
+            'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+            'border-[var(--border)]',
           ].join(' ')}
         />
       </div>
@@ -533,7 +545,7 @@ function SearchInput({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute top-full left-0 right-0 z-50 mt-1 border border-slate-200 bg-white max-h-64 overflow-y-auto"
+          className="absolute top-full left-0 right-0 z-50 mt-1 border border-[var(--border)] bg-[var(--surface)] max-h-64 overflow-y-auto"
         >
           {results.map((result, index) => (
             <button
@@ -543,22 +555,22 @@ function SearchInput({
                 e.preventDefault(); // Prevent input blur
                 onSelect?.(result);
               }}
-              id={`${listboxId}-option-${getSearchResultKey(result)}`}
+              id={`${listboxId}-option-${index}`}
               role="option"
               aria-selected={index === activeIndex}
               className={[
                 'w-full text-left px-3 py-2 flex items-center gap-3 cursor-pointer',
-                'hover:bg-slate-50 active:bg-slate-200 focus:bg-slate-50 focus:outline-none',
-                index === activeIndex && 'bg-slate-50',
-                'border-b border-slate-100 last:border-b-0',
+                'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:bg-[var(--surface-muted)] focus:outline-none',
+                index === activeIndex && 'bg-[var(--surface-muted)]',
+                'border-b border-[color:var(--border)] last:border-b-0',
               ].join(' ')}
             >
-              {result.icon && <span className="shrink-0 text-slate-400">{result.icon}</span>}
+              {result.icon && <span className="shrink-0 text-[var(--text-subtle)]">{result.icon}</span>}
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-800 truncate">{result.title}</div>
-                {result.subtitle && <div className="text-xs text-slate-500 truncate">{result.subtitle}</div>}
+                <div className="text-sm text-[var(--text)] truncate">{result.title}</div>
+                {result.subtitle && <div className="text-xs text-[var(--text-subtle)] truncate">{result.subtitle}</div>}
               </div>
-              {result.meta && <span className="shrink-0 text-xs text-slate-400">{result.meta}</span>}
+              {result.meta && <span className="shrink-0 text-xs text-[var(--text-subtle)]">{result.meta}</span>}
             </button>
           ))}
         </div>
@@ -585,16 +597,16 @@ function Checkbox({ label, reserveLabel, checked, onChange, disabled }: Checkbox
       <span
         className={[
           'w-4 h-4 shrink-0 border flex items-center justify-center transition-colors motion-reduce:transition-none',
-          'focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-1 focus-within:ring-offset-white',
+          'focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-1 focus-within:ring-offset-[color:var(--surface)]',
           checked
-            ? 'bg-slate-800 border-slate-800'
-            : 'bg-white border-slate-300 hover:border-slate-400 active:bg-slate-100',
+            ? 'bg-[var(--checkbox-on-bg)] border-[var(--checkbox-on-border)]'
+            : 'bg-[var(--checkbox-off-bg)] border-[var(--checkbox-off-border)] hover:border-[var(--border-strong)] active:bg-[var(--surface-pressed)]',
         ].join(' ')}
       >
-        {checked && <CheckIcon className="w-3 h-3 text-white" />}
+        {checked && <CheckIcon className="w-3 h-3 text-[var(--primary-contrast)]" />}
         <input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="sr-only" />
       </span>
-      <span className="relative inline-grid min-w-0 text-sm text-slate-700">
+      <span className="relative inline-grid min-w-0 text-sm text-[var(--text)]">
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {resolvedReserveLabel}
         </span>
@@ -622,21 +634,22 @@ function Toggle({ label, reserveLabel, checked, onChange, disabled }: ToggleProp
       <span
         className={[
           'relative w-8 h-4 shrink-0 border transition-colors motion-reduce:transition-none',
-          'focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-1 focus-within:ring-offset-white',
+          'focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-1 focus-within:ring-offset-[color:var(--surface)]',
           checked
-            ? 'bg-slate-800 border-slate-800 active:bg-slate-900'
-            : 'bg-slate-200 border-slate-300 hover:border-slate-400 active:bg-slate-300',
+            ? 'bg-[var(--toggle-track-on-bg)] border-[var(--toggle-track-on-border)] active:bg-[var(--primary-active)]'
+            : 'bg-[var(--toggle-track-off-bg)] border-[var(--toggle-track-off-border)] hover:border-[var(--border-strong)] active:bg-[var(--surface-pressed)]',
         ].join(' ')}
       >
         <span
           className={[
-            'absolute top-0.5 left-0.5 w-2.5 h-2.5 bg-white transition-transform duration-150 motion-reduce:transition-none',
+            'absolute top-0.5 left-0.5 w-2.5 h-2.5 transition-transform duration-150 motion-reduce:transition-none',
+            checked ? 'bg-[var(--toggle-knob-on-bg)]' : 'bg-[var(--toggle-knob-off-bg)]',
             checked ? 'translate-x-4' : 'translate-x-0',
           ].join(' ')}
         />
         <input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="sr-only" />
       </span>
-      <span className="relative inline-grid min-w-0 text-sm text-slate-700">
+      <span className="relative inline-grid min-w-0 text-sm text-[var(--text)]">
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {resolvedReserveLabel}
         </span>
@@ -656,10 +669,10 @@ function Row({ children, selected, onClick, className }: RowProps) {
       onClick={onClick}
       className={[
         'w-full text-left px-3 py-2.5 flex items-center gap-3 transition-[background-color] motion-reduce:transition-none cursor-pointer border-l-2',
-        'focus:outline-none focus-visible:bg-slate-50',
-        'hover:bg-slate-50 active:bg-slate-200',
+        'focus:outline-none focus-visible:bg-[var(--surface-muted)]',
+        'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]',
         // Apply transparent left border only when not selected; prevents utility order from hiding selection.
-        selected ? 'bg-slate-50 border-l-slate-800' : 'border-l-transparent',
+        selected ? 'bg-[var(--surface-muted)] border-l-[var(--accent)]' : 'border-l-transparent',
         className,
       ]
         .filter(Boolean)
@@ -675,9 +688,9 @@ function Row({ children, selected, onClick, className }: RowProps) {
 // ============================================
 function Panel({ children, variant = 'default', className }: PanelProps) {
   const variants: Record<PanelVariant, string> = {
-    default: 'border border-slate-200 bg-white',
-    muted: 'bg-slate-50',
-    dashed: 'border border-dashed border-slate-300 bg-white',
+    default: 'border border-[var(--border)] bg-[var(--surface)]',
+    muted: 'bg-[var(--surface-muted)]',
+    dashed: 'border border-dashed border-[var(--border-strong)] bg-[var(--surface)]',
   };
 
   return <div className={[variants[variant], className].filter(Boolean).join(' ')}>{children}</div>;
@@ -715,12 +728,16 @@ function CopyButton({ text, idleLabel = 'Copy', showIcon = true, className }: Co
       onClick={handleCopy}
       className={[
         'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         status === 'copied'
-          ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+          ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
           : status === 'failed'
-            ? 'border-red-300 bg-red-50 text-red-700'
-            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 active:bg-slate-200 active:border-slate-400',
+            ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
+            : [
+                'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]',
+                'hover:border-[color:var(--copy-hover-border)] hover:bg-[var(--copy-hover-bg)] hover:text-[var(--copy-hover-text)]',
+                'active:bg-[var(--copy-hover-bg)]',
+              ].join(' '),
         className,
       ]
         .filter(Boolean)
@@ -747,16 +764,46 @@ function CopyButton({ text, idleLabel = 'Copy', showIcon = true, className }: Co
 // ============================================
 function CopyableLabel({ value, icon, className }: CopyableLabelProps) {
   const [status, setStatus] = useState<CopyableLabelStatus>('idle'); // idle | hover | copied | failed
+  const isHoveredRef = useRef(false);
+  const isFocusedRef = useRef(false);
+
+  const shouldShowHover = useCallback(() => isHoveredRef.current || isFocusedRef.current, []);
+
+  useEffect(() => {
+    if (status !== 'copied' && status !== 'failed') return;
+    const timeout = window.setTimeout(() => {
+      setStatus(shouldShowHover() ? 'hover' : 'idle');
+    }, 2000);
+    return () => window.clearTimeout(timeout);
+  }, [status, shouldShowHover]);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
       setStatus('copied');
-      setTimeout(() => setStatus('idle'), 2000);
     } catch {
       setStatus('failed');
-      setTimeout(() => setStatus('idle'), 2000);
     }
+  };
+
+  const handleMouseEnter = () => {
+    isHoveredRef.current = true;
+    if (status === 'idle') setStatus('hover');
+  };
+
+  const handleMouseLeave = () => {
+    isHoveredRef.current = false;
+    if (status === 'hover' && !shouldShowHover()) setStatus('idle');
+  };
+
+  const handleFocus = () => {
+    isFocusedRef.current = true;
+    if (status === 'idle') setStatus('hover');
+  };
+
+  const handleBlur = () => {
+    isFocusedRef.current = false;
+    if (status === 'hover' && !shouldShowHover()) setStatus('idle');
   };
 
   const displayText: Record<CopyableLabelStatus, string> = {
@@ -773,30 +820,35 @@ function CopyableLabel({ value, icon, className }: CopyableLabelProps) {
     <button
       type="button"
       onClick={handleCopy}
-      onMouseEnter={() => status === 'idle' && setStatus('hover')}
-      onMouseLeave={() => status === 'hover' && setStatus('idle')}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       title={`Copy: ${value}`}
       className={[
         'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         status === 'copied'
-          ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+          ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
           : status === 'failed'
-            ? 'border-red-300 bg-red-50 text-red-700'
+            ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
             : status === 'hover'
-              ? 'border-slate-300 bg-slate-50 text-slate-700 active:bg-slate-200'
-              : 'border-slate-200 bg-white text-slate-600 active:bg-slate-200',
+              ? 'border-[color:var(--copy-hover-border)] bg-[var(--copy-hover-bg)] text-[var(--copy-hover-text)] active:bg-[var(--copy-hover-bg)]'
+              : 'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)] active:bg-[var(--copy-hover-bg)]',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      {icon && <span className="shrink-0 text-slate-400">{icon}</span>}
+      {icon && <span className="shrink-0 text-[var(--copy-idle-text)]">{icon}</span>}
       <span className="relative inline-grid min-w-0">
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {reserveLabel}
         </span>
         <span className="col-start-1 row-start-1 truncate">{displayText[status]}</span>
+      </span>
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {status === 'copied' ? 'Copied to clipboard' : status === 'failed' ? 'Copy failed' : ''}
       </span>
     </button>
   );
@@ -807,12 +859,12 @@ function CopyableLabel({ value, icon, className }: CopyableLabelProps) {
 // ============================================
 function CodeBlock({ children, language }: CodeBlockProps) {
   return (
-    <div className="relative border border-slate-200 bg-slate-50">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 bg-slate-100">
-        <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">{language}</span>
-        <CopyButton text={children} className="border-0 bg-transparent hover:bg-slate-200 px-1.5" />
+    <div className="relative border border-[var(--border)] bg-[var(--surface-muted)]">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border)] bg-[var(--surface-strong)]">
+        <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">{language}</span>
+        <CopyButton text={children} className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5" />
       </div>
-      <pre className="p-3 text-sm text-slate-800 overflow-x-auto">
+      <pre className="p-3 text-sm text-[var(--text)] overflow-x-auto">
         <code>{children}</code>
       </pre>
     </div>
@@ -865,7 +917,7 @@ function Modal({ open, onClose, title, children }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Overlay scrim (allowed exception) */}
-      <div className="absolute inset-0 bg-slate-900/50" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-[color:var(--overlay)]" onClick={onClose} aria-hidden="true" />
 
       {/* Modal surface */}
       <div
@@ -873,14 +925,14 @@ function Modal({ open, onClose, title, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative z-10 w-full max-w-md border border-slate-300 bg-white shadow-none"
+        className="relative z-10 w-full max-w-md border border-[var(--border-strong)] bg-[var(--surface)] shadow-none"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
-          <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-muted)]">
+          <h3 className="text-sm font-semibold text-[var(--text)]">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-slate-500 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
+            className="p-1 text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
           >
             <XIcon className="w-4 h-4" />
           </button>
@@ -945,7 +997,7 @@ function Popover({ trigger, children, open, onToggle }: PopoverProps) {
     <div ref={popoverRef} className="relative inline-block">
       {triggerNode}
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-10 min-w-[200px] border border-slate-200 bg-white">
+        <div className="absolute top-full left-0 mt-1 z-10 min-w-[200px] border border-[var(--border)] bg-[var(--surface)]">
           {children}
         </div>
       )}
@@ -957,8 +1009,10 @@ function Popover({ trigger, children, open, onToggle }: PopoverProps) {
 // PRIMITIVES: TOKEN COUNTER
 // ============================================
 function TokenCounter({ used, limit, label = 'Context Window' }: TokenCounterProps) {
-  const percentage = Math.round((used / limit) * 100);
-  const filledBlocks = Math.round(percentage / 5); // 20 blocks total
+  const safeLimit = Number.isFinite(limit) && limit > 0 ? limit : 1;
+  const rawPercentage = Math.round((used / safeLimit) * 100);
+  const percentage = Math.min(100, Math.max(0, rawPercentage));
+  const filledBlocks = Math.round((percentage / 100) * 20);
   const emptyBlocks = 20 - filledBlocks;
 
   const formatTokens = (n: number) => {
@@ -967,32 +1021,38 @@ function TokenCounter({ used, limit, label = 'Context Window' }: TokenCounterPro
   };
 
   return (
-    <div className="border border-slate-300 bg-slate-50 font-mono text-xs">
-      <div className="px-3 py-1.5 border-b border-slate-300 bg-slate-100 flex items-center justify-between">
-        <span className="font-semibold text-slate-600 uppercase tracking-wide text-[10px]">Tokens & Limits</span>
+    <div className="border border-[var(--border-strong)] bg-[var(--surface-muted)] font-mono text-xs">
+      <div className="px-3 py-1.5 border-b border-[var(--border-strong)] bg-[var(--surface-strong)] flex items-center justify-between">
+        <span className="font-semibold text-[var(--text-muted)] uppercase tracking-wide text-[10px]">
+          Tokens & Limits
+        </span>
         <CopyButton
           text={`${label}: ${used} / ${limit} tokens (${percentage}%)`}
-          className="border-0 bg-transparent hover:bg-slate-200 px-1.5"
+          className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5"
         />
       </div>
       <div className="px-3 py-2 space-y-1">
-        <div className="text-slate-500 text-[10px] uppercase tracking-wide">{label}</div>
+        <div className="text-[var(--text-subtle)] text-[10px] uppercase tracking-wide">{label}</div>
         <div className="flex items-center gap-3">
           <div className="flex items-center">
-            <span className="text-slate-400">[</span>
-            <span className="text-emerald-600">{'█'.repeat(filledBlocks)}</span>
-            <span className="text-slate-300">{'░'.repeat(emptyBlocks)}</span>
-            <span className="text-slate-400">]</span>
+            <span className="text-[var(--text-subtle)]">[</span>
+            <span className="text-[var(--success)]">{'█'.repeat(filledBlocks)}</span>
+            <span className="text-[var(--text-subtle)]">{'░'.repeat(emptyBlocks)}</span>
+            <span className="text-[var(--text-subtle)]">]</span>
           </div>
           <span
             className={[
               'tabular-nums',
-              percentage > 90 ? 'text-red-600' : percentage > 75 ? 'text-amber-600' : 'text-slate-600',
+              percentage > 90
+                ? 'text-[var(--danger)]'
+                : percentage > 75
+                  ? 'text-[var(--warning)]'
+                  : 'text-[var(--text-muted)]',
             ].join(' ')}
           >
             {percentage}% Used
           </span>
-          <span className="text-slate-400 tabular-nums">
+          <span className="text-[var(--text-subtle)] tabular-nums">
             ({formatTokens(used)} / {formatTokens(limit)} tokens)
           </span>
         </div>
@@ -1008,56 +1068,64 @@ function ToolCall({ tool, input, output, timestamp, status = 'success' }: ToolCa
   const [expanded, setExpanded] = useState(true);
 
   const statusConfig: Record<ToolCallStatus, { label: string; color: string }> = {
-    success: { label: 'Success', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    error: { label: 'Error', color: 'text-red-600 bg-red-50 border-red-200' },
-    pending: { label: 'Running', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+    success: {
+      label: 'Success',
+      color: 'text-[var(--success)] bg-[var(--success-weak)] border-[color:var(--success)]',
+    },
+    error: { label: 'Error', color: 'text-[var(--danger)] bg-[var(--danger-weak)] border-[color:var(--danger)]' },
+    pending: {
+      label: 'Running',
+      color: 'text-[var(--warning)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
+    },
   };
 
   const config = statusConfig[status] || statusConfig.success;
 
   return (
-    <div className="border border-slate-200 border-l-2 border-l-violet-500 bg-white">
+    <div className="border border-[var(--border)] border-l-2 border-l-[var(--category-violet)] bg-[var(--surface)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 bg-slate-50">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[color:var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="text-slate-400 hover:text-slate-600 active:text-slate-800 cursor-pointer p-0.5"
+            className="text-[var(--text-subtle)] hover:text-[var(--text-muted)] active:text-[var(--text)] cursor-pointer p-0.5"
           >
             <ChevronIcon
               className={`w-3.5 h-3.5 transition-transform motion-reduce:transition-none ${expanded ? 'rotate-90' : ''}`}
             />
           </button>
-          <span className="text-xs font-semibold text-slate-700">Tool Call</span>
+          <span className="text-xs font-semibold text-[var(--text)]">Tool Call</span>
           <Tag variant="muted" className="font-mono">
             {tool}
           </Tag>
-          {timestamp && <span className="text-[10px] text-slate-400 tabular-nums">{timestamp}</span>}
+          {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
         </div>
         <div className="flex items-center gap-2">
           <span className={`text-[10px] font-medium px-1.5 py-0.5 border ${config.color}`}>{config.label}</span>
           <CopyButton
             text={`Tool: ${tool}\nInput: ${input}\nOutput: ${output}`}
-            className="border-0 bg-transparent hover:bg-slate-100 px-1.5"
+            className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5"
           />
         </div>
       </div>
 
       {expanded && (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-[color:var(--border)]">
           {/* Input */}
           <div className="px-3 py-2">
-            <div className="text-[10px] font-medium uppercase tracking-wide text-violet-500 mb-1">Input</div>
-            <pre className="font-mono text-sm text-slate-700 whitespace-pre-wrap break-words bg-slate-50 border border-slate-200 px-2 py-1.5">
+            <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--category-violet)] mb-1">
+              Input
+            </div>
+            <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5">
               {input}
             </pre>
           </div>
 
           {/* Output */}
           <div className="px-3 py-2">
-            <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500 mb-1">Output</div>
-            <pre className="font-mono text-sm text-slate-700 whitespace-pre-wrap break-words bg-slate-50 border border-slate-200 px-2 py-1.5 max-h-48 overflow-y-auto">
+            <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)] mb-1">Output</div>
+            <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5 max-h-48 overflow-y-auto">
               {output}
             </pre>
           </div>
@@ -1072,18 +1140,24 @@ function ToolCall({ tool, input, output, timestamp, status = 'success' }: ToolCa
 // ============================================
 function MessageTypeToggle({ label, count, checked, onChange, color }: MessageTypeToggleProps) {
   return (
-    <label className="flex items-center gap-2 cursor-pointer select-none py-1 px-2 hover:bg-slate-50 active:bg-slate-100 transition-colors motion-reduce:transition-none">
+    <label className="relative flex items-center gap-2 cursor-pointer select-none py-1 px-2 hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] transition-colors motion-reduce:transition-none">
+      <input type="checkbox" checked={checked} onChange={onChange} className="peer sr-only" />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring)] ring-offset-1 ring-offset-[color:var(--surface)] opacity-0 peer-focus-visible:opacity-100"
+      />
       <span
         className={[
           'w-3.5 h-3.5 shrink-0 border flex items-center justify-center transition-colors motion-reduce:transition-none',
-          checked ? `${color} border-current` : 'bg-white border-slate-300',
+          checked ? `${color} border-current` : 'bg-[var(--surface)] border-[var(--border-strong)]',
         ].join(' ')}
       >
-        {checked && <CheckIcon className="w-2.5 h-2.5 text-white" />}
-        <input type="checkbox" checked={checked} onChange={onChange} className="sr-only" />
+        {checked && <CheckIcon className="w-2.5 h-2.5 text-[var(--surface)]" />}
       </span>
-      <span className="text-xs text-slate-600">{label}</span>
-      <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 tabular-nums">{count}</span>
+      <span className="text-xs text-[var(--text-muted)]">{label}</span>
+      <span className="text-[10px] font-medium text-[var(--text-subtle)] bg-[var(--surface-strong)] px-1.5 py-0.5 tabular-nums">
+        {count}
+      </span>
     </label>
   );
 }
@@ -1120,7 +1194,7 @@ function renderInlineMarkdown(text: string, keyBase: string): ReactNode[] {
       nodes.push(
         <code
           key={`${keyBase}-c-${start}`}
-          className="px-1 py-0.5 bg-slate-100 border border-slate-200 text-slate-800 text-[13px]"
+          className="px-1 py-0.5 bg-[var(--surface-strong)] border border-[var(--border)] text-[var(--text)] text-[13px]"
         >
           {token.slice(1, -1)}
         </code>,
@@ -1158,26 +1232,26 @@ function MessageCard({ role, content, timestamp, renderMode = 'default', onToggl
   > = {
     user: {
       label: 'User',
-      borderColor: 'border-l-blue-500',
-      bgColor: 'bg-white',
+      borderColor: 'border-l-[var(--category-blue)]',
+      bgColor: 'bg-[var(--surface)]',
       defaultRender: 'literal', // user = literal by default
     },
     assistant: {
       label: 'Assistant',
-      borderColor: 'border-l-emerald-500',
-      bgColor: 'bg-white',
+      borderColor: 'border-l-[var(--category-green)]',
+      bgColor: 'bg-[var(--surface)]',
       defaultRender: 'rendered', // assistant = rendered by default
     },
     thinking: {
       label: 'Thinking',
-      borderColor: 'border-l-amber-400',
-      bgColor: 'bg-amber-50',
+      borderColor: 'border-l-[var(--category-amber)]',
+      bgColor: 'bg-[var(--category-amber-weak)]',
       defaultRender: 'rendered',
     },
     tool: {
       label: 'Tool Output',
-      borderColor: 'border-l-slate-400',
-      bgColor: 'bg-slate-50',
+      borderColor: 'border-l-[var(--category-violet)]',
+      bgColor: 'bg-[var(--category-violet-weak)]',
       defaultRender: 'literal', // tool = always literal
       alwaysLiteral: true,
     },
@@ -1190,12 +1264,12 @@ function MessageCard({ role, content, timestamp, renderMode = 'default', onToggl
     (renderMode === 'default' && config.defaultRender === 'literal');
 
   return (
-    <div className={['border border-slate-200 border-l-2', config.borderColor, config.bgColor].join(' ')}>
+    <div className={['border border-[var(--border)] border-l-2', config.borderColor, config.bgColor].join(' ')}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 bg-slate-50">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[color:var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-700">{config.label}</span>
-          {timestamp && <span className="text-[10px] text-slate-400 tabular-nums">{timestamp}</span>}
+          <span className="text-xs font-semibold text-[var(--text)]">{config.label}</span>
+          {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
         </div>
         <div className="flex items-center gap-1">
           {/* Render mode toggle (not for tool/meta) */}
@@ -1203,12 +1277,12 @@ function MessageCard({ role, content, timestamp, renderMode = 'default', onToggl
             <button
               type="button"
               onClick={onToggleRender}
-              className="px-1.5 py-0.5 text-[10px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 cursor-pointer transition-colors motion-reduce:transition-none"
+              className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
             >
               {isLiteral ? 'Raw' : 'Rendered'}
             </button>
           )}
-          <CopyButton text={content} className="border-0 bg-transparent hover:bg-slate-100 px-1.5" />
+          <CopyButton text={content} className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5" />
         </div>
       </div>
 
@@ -1216,19 +1290,19 @@ function MessageCard({ role, content, timestamp, renderMode = 'default', onToggl
       <div className="p-3">
         {isLiteral ? (
           // Literal rendering (pre-wrap, monospace, exact text)
-          <pre className="font-mono text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+          <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words leading-relaxed">
             {content}
           </pre>
         ) : (
           // "Rendered" markdown — wrapped in error boundary; falls back to literal on failure
           <RenderErrorBoundary
             fallback={
-              <pre className="font-mono text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+              <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words leading-relaxed">
                 {content}
               </pre>
             }
           >
-            <div className="font-mono text-sm text-slate-800 space-y-2 leading-relaxed">
+            <div className="font-mono text-sm text-[var(--text)] space-y-2 leading-relaxed">
               {(() => {
                 // First, extract code blocks to protect them from paragraph splitting
                 const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
@@ -1272,10 +1346,10 @@ function MessageCard({ role, content, timestamp, renderMode = 'default', onToggl
 
                   if (part.type === 'code') {
                     return (
-                      <div key={partKey} className="border border-slate-200 bg-slate-50">
+                      <div key={partKey} className="border border-[var(--border)] bg-[var(--surface-muted)]">
                         {part.lang && (
-                          <div className="px-2 py-1 border-b border-slate-200 bg-slate-100">
-                            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                          <div className="px-2 py-1 border-b border-[var(--border)] bg-[var(--surface-strong)]">
+                            <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">
                               {part.lang}
                             </span>
                           </div>
@@ -1297,14 +1371,17 @@ function MessageCard({ role, content, timestamp, renderMode = 'default', onToggl
 
                     if (paragraph.startsWith('# ')) {
                       return (
-                        <div key={paragraphKey} className="font-semibold text-slate-900 border-b border-slate-200 pb-1">
+                        <div
+                          key={paragraphKey}
+                          className="font-semibold text-[var(--text)] border-b border-[var(--border)] pb-1"
+                        >
                           {renderInlineMarkdown(paragraph.slice(2), `${paragraphKey}-h1`)}
                         </div>
                       );
                     }
                     if (paragraph.startsWith('## ')) {
                       return (
-                        <div key={paragraphKey} className="font-semibold text-slate-800">
+                        <div key={paragraphKey} className="font-semibold text-[var(--text)]">
                           {renderInlineMarkdown(paragraph.slice(3), `${paragraphKey}-h2`)}
                         </div>
                       );
@@ -1324,7 +1401,7 @@ function MessageCard({ role, content, timestamp, renderMode = 'default', onToggl
 
                             return (
                               <div key={lineKey} className="flex gap-2">
-                                <span className="text-slate-400">•</span>
+                                <span className="text-[var(--text-subtle)]">•</span>
                                 <span>{renderInlineMarkdown(lineText, `${lineKey}-inline`)}</span>
                               </div>
                             );
@@ -1369,12 +1446,12 @@ function ConversationTurn({
   if (filteredItems.length === 0) return null;
 
   return (
-    <div className="border border-slate-200 bg-white">
+    <div className="border border-[var(--border)] bg-[var(--surface)]">
       {/* Turn header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200 bg-slate-50">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-700">Turn {turnNumber}</span>
-          {timestamp && <span className="text-[10px] text-slate-400 tabular-nums">{timestamp}</span>}
+          <span className="text-xs font-semibold text-[var(--text)]">Turn {turnNumber}</span>
+          {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
         </div>
         <div className="flex items-center gap-2">
           {duration && (
@@ -1718,12 +1795,12 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
   );
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
+    <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-strong)] p-8 text-[var(--text)]">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <div className="border-b border-slate-300 pb-6">
-          <h1 className="text-2xl font-semibold text-slate-800">Sharp UI System</h1>
-          <p className="text-sm text-slate-500 mt-1">
+        <div className="border-b border-[var(--border-strong)] pb-6">
+          <h1 className="text-2xl font-semibold text-[var(--text)]">Sharp UI System</h1>
+          <p className="text-sm text-[var(--text-subtle)] mt-1">
             Design primitives for Codex Conversation Manager — scan-first, dense, accessible
           </p>
         </div>
@@ -1733,26 +1810,32 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
           <div className="space-y-4">
             <SubSection label="Text hierarchy">
               <div className="space-y-2">
-                <p className="text-slate-900 text-base">text-0 — Primary content (slate-900)</p>
-                <p className="text-slate-600 text-base">text-1 — Secondary content (slate-600)</p>
-                <p className="text-slate-400 text-base">text-2 — Muted content (slate-400)</p>
+                <p className="text-[var(--text)] text-base">text-0 — Primary content (var(--text))</p>
+                <p className="text-[var(--text-muted)] text-base">text-1 — Secondary content (var(--text-muted))</p>
+                <p className="text-[var(--text-subtle)] text-base">text-2 — Muted content (var(--text-subtle))</p>
               </div>
             </SubSection>
             <SubSection label="Label styles">
               <div className="flex flex-wrap gap-4 items-baseline">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Section header</span>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Sub-label</span>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">Tag label</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                  Section header
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">
+                  Sub-label
+                </span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--text-subtle)]">
+                  Tag label
+                </span>
               </div>
             </SubSection>
             <SubSection label="Inline code">
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-[var(--text)]">
                 Use{' '}
-                <code className="px-1 py-0.5 border border-slate-200 bg-slate-50 text-slate-800 text-xs">
+                <code className="px-1 py-0.5 border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text)] text-xs">
                   inline code
                 </code>{' '}
                 for technical references like{' '}
-                <code className="px-1 py-0.5 border border-slate-200 bg-slate-50 text-slate-800 text-xs">
+                <code className="px-1 py-0.5 border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text)] text-xs">
                   className
                 </code>{' '}
                 props.
@@ -1766,17 +1849,17 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SubSection label="Panel (default)">
               <Panel className="p-4">
-                <p className="text-sm text-slate-600">Bordered, opaque, sharp edges</p>
+                <p className="text-sm text-[var(--text-muted)]">Bordered, opaque, sharp edges</p>
               </Panel>
             </SubSection>
             <SubSection label="Panel (muted)">
               <Panel variant="muted" className="p-4">
-                <p className="text-sm text-slate-600">Subtle background for grouping</p>
+                <p className="text-sm text-[var(--text-muted)]">Subtle background for grouping</p>
               </Panel>
             </SubSection>
             <SubSection label="Panel (dashed)">
               <Panel variant="dashed" className="p-4">
-                <p className="text-sm text-slate-500">Empty/placeholder states</p>
+                <p className="text-sm text-[var(--text-subtle)]">Empty/placeholder states</p>
               </Panel>
             </SubSection>
           </div>
@@ -1816,14 +1899,17 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                 {/* add 1px to ring-outset and the horizontal calc to keep alignment tight. */}
                 <div className="relative inline-flex" style={{ '--ring-outset': '1px' } as React.CSSProperties}>
                   <span className="pointer-events-none absolute left-0 top-0 -translate-y-[calc(100%+var(--ring-outset))] -translate-x-[calc(var(--ring-outset)+2px)]">
-                    <Tag variant="muted" className="!bg-amber-100 !text-amber-600 ring-2 ring-inset ring-amber-600">
+                    <Tag
+                      variant="muted"
+                      className="!bg-[var(--category-amber-weak)] !text-[var(--category-amber)] ring-2 ring-inset ring-[var(--category-amber)]"
+                    >
                       Click me
                     </Tag>
                   </span>
                   <button
                     type="button"
                     onClick={() => setSearchingActive((prev) => !prev)}
-                    className="inline-flex cursor-pointer border-0 bg-transparent p-0 ring-2 ring-amber-600 ring-offset-1 ring-offset-white focus:outline-none"
+                    className="inline-flex cursor-pointer border-0 bg-transparent p-0 ring-2 ring-[var(--category-amber)] ring-offset-1 ring-offset-[color:var(--surface)] focus:outline-none"
                   >
                     <StatusTag
                       label={searchingActive ? 'Searching' : 'Done'}
@@ -1905,7 +1991,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
               </div>
             </SubSection>
             <SubSection label="Behavior">
-              <div className="p-3 border border-slate-200 bg-slate-50 text-xs text-slate-600 space-y-1">
+              <div className="p-3 border border-[var(--border)] bg-[var(--surface-muted)] text-xs text-[var(--text-muted)] space-y-1">
                 <div>
                   <strong>Idle:</strong> Shows [icon] + [value]
                 </div>
@@ -1918,7 +2004,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                 <div>
                   <strong>Failed:</strong> Shows [icon] + "Failed ✗" (red state)
                 </div>
-                <div className="pt-2 text-slate-500">
+                <div className="pt-2 text-[var(--text-subtle)]">
                   Uses reserve label pattern for stable width. Tooltip shows full value.
                 </div>
               </div>
@@ -1930,11 +2016,11 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
               </div>
             </SubSection>
             <SubSection label="In context (simulated turn header)">
-              <div className="border border-slate-200 bg-white">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200 bg-slate-50">
+              <div className="border border-[var(--border)] bg-[var(--surface)]">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-muted)]">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-slate-700">Turn 1</span>
-                    <span className="text-[10px] text-slate-400 tabular-nums">10:42:15</span>
+                    <span className="text-xs font-semibold text-[var(--text)]">Turn 1</span>
+                    <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">10:42:15</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CopyableLabel value="~/projects/app" icon={<FolderIcon className="w-3 h-3" />} />
@@ -1944,7 +2030,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                     </Tag>
                   </div>
                 </div>
-                <div className="p-3 text-sm text-slate-500">Message content would appear here...</div>
+                <div className="p-3 text-sm text-[var(--text-subtle)]">Message content would appear here...</div>
               </div>
             </SubSection>
           </div>
@@ -1970,11 +2056,12 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                 />
               </div>
             </SubSection>
-            <div className="p-3 border border-slate-200 bg-slate-50 text-xs text-slate-500">
+            <div className="p-3 border border-[var(--border)] bg-[var(--surface-muted)] text-xs text-[var(--text-subtle)]">
               <strong>Float behavior:</strong> The dropdown is absolutely positioned with{' '}
-              <code className="px-1 bg-white border border-slate-200">position: absolute</code> and
-              <code className="px-1 bg-white border border-slate-200">z-50</code>. It floats over content below without
-              affecting document flow. The content below this box stays in place when results appear.
+              <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">position: absolute</code> and
+              <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">z-50</code>. It floats over
+              content below without affecting document flow. The content below this box stays in place when results
+              appear.
             </div>
           </div>
         </Section>
@@ -2041,7 +2128,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         <Section title="Lists & Rows">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <SubSection label="Interactive list with selection" className="min-w-0">
-              <Panel className="divide-y divide-slate-100">
+              <Panel className="divide-y divide-[color:var(--border)]">
                 {[
                   { id: 0, title: 'Project Setup', meta: '12 messages', time: '2m ago' },
                   { id: 1, title: 'API Integration', meta: '8 messages', time: '1h ago' },
@@ -2049,27 +2136,27 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                   { id: 3, title: 'Code Review', meta: '6 messages', time: 'Yesterday' },
                 ].map((item) => (
                   <Row key={item.id} selected={selectedRow === item.id} onClick={() => setSelectedRow(item.id)}>
-                    <MessageIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                    <MessageIcon className="w-4 h-4 text-[var(--text-subtle)] shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-800 truncate">{item.title}</div>
-                      <div className="text-xs text-slate-500">{item.meta}</div>
+                      <div className="text-sm font-medium text-[var(--text)] truncate">{item.title}</div>
+                      <div className="text-xs text-[var(--text-subtle)]">{item.meta}</div>
                     </div>
-                    <div className="text-xs text-slate-400 tabular-nums">{item.time}</div>
-                    <ChevronIcon className="w-4 h-4 text-slate-300" />
+                    <div className="text-xs text-[var(--text-subtle)] tabular-nums">{item.time}</div>
+                    <ChevronIcon className="w-4 h-4 text-[var(--text-subtle)]" />
                   </Row>
                 ))}
               </Panel>
             </SubSection>
             <SubSection label="Static list (workspaces)" className="min-w-0">
-              <Panel className="divide-y divide-slate-100">
+              <Panel className="divide-y divide-[color:var(--border)]">
                 {[
                   { name: 'frontend', count: 42 },
                   { name: 'backend-api', count: 18 },
                   { name: 'documentation', count: 7 },
                 ].map((ws) => (
                   <div key={ws.name} className="px-3 py-2.5 flex items-center gap-3">
-                    <FolderIcon className="w-4 h-4 text-slate-400" />
-                    <span className="flex-1 text-sm text-slate-700">{ws.name}</span>
+                    <FolderIcon className="w-4 h-4 text-[var(--text-subtle)]" />
+                    <span className="flex-1 text-sm text-[var(--text)]">{ws.name}</span>
                     <Tag variant="muted" className="tabular-nums">
                       {ws.count}
                     </Tag>
@@ -2085,72 +2172,72 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
           <div className="space-y-6">
             {/* Message type filter toggles */}
             <SubSection label="Message type filters">
-              <div className="flex flex-wrap gap-1 border border-slate-200 bg-white p-2">
+              <div className="flex flex-wrap gap-1 border border-[var(--border)] bg-[var(--surface)] p-2">
                 <MessageTypeToggle
                   label="User"
                   count={itemCounts.user}
                   checked={visibleTypes.user ?? false}
                   onChange={(e) => setVisibleTypes((v) => ({ ...v, user: e.target.checked }))}
-                  color="bg-blue-500"
+                  color="bg-[var(--category-blue)] text-[var(--category-blue)]"
                 />
                 <MessageTypeToggle
                   label="Assistant"
                   count={itemCounts.assistant}
                   checked={visibleTypes.assistant ?? false}
                   onChange={(e) => setVisibleTypes((v) => ({ ...v, assistant: e.target.checked }))}
-                  color="bg-emerald-500"
+                  color="bg-[var(--category-green)] text-[var(--category-green)]"
                 />
                 <MessageTypeToggle
                   label="Thinking"
                   count={itemCounts.thinking}
                   checked={visibleTypes.thinking ?? false}
                   onChange={(e) => setVisibleTypes((v) => ({ ...v, thinking: e.target.checked }))}
-                  color="bg-amber-400"
+                  color="bg-[var(--category-amber)] text-[var(--category-amber)]"
                 />
                 <MessageTypeToggle
                   label="Tool Calls"
                   count={itemCounts.toolCalls}
                   checked={visibleTypes.toolCalls ?? false}
                   onChange={(e) => setVisibleTypes((v) => ({ ...v, toolCalls: e.target.checked }))}
-                  color="bg-violet-500"
+                  color="bg-[var(--category-violet)] text-[var(--category-violet)]"
                 />
                 <MessageTypeToggle
                   label="Token Counters"
                   count={itemCounts.tokenCounters}
                   checked={visibleTypes.tokenCounters ?? false}
                   onChange={(e) => setVisibleTypes((v) => ({ ...v, tokenCounters: e.target.checked }))}
-                  color="bg-slate-500"
+                  color="bg-[var(--text-subtle)] text-[var(--text-subtle)]"
                 />
               </div>
             </SubSection>
 
-            <div className="p-3 border border-slate-200 bg-slate-50 text-xs text-slate-600 space-y-2">
+            <div className="p-3 border border-[var(--border)] bg-[var(--surface-muted)] text-xs text-[var(--text-muted)] space-y-2">
               <p>
                 <strong>Rendering rules (terminal-adjacent):</strong>
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-500">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[var(--text-subtle)]">
                 <div>
-                  <span className="inline-block w-2 h-2 bg-blue-500 mr-2" />
+                  <span className="inline-block w-2 h-2 bg-[var(--category-blue)] mr-2" />
                   User: literal by default (preserves exact input)
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-emerald-500 mr-2" />
+                  <span className="inline-block w-2 h-2 bg-[var(--category-green)] mr-2" />
                   Assistant: rendered markdown by default
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-amber-400 mr-2" />
+                  <span className="inline-block w-2 h-2 bg-[var(--category-amber)] mr-2" />
                   Thinking: rendered markdown by default
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-violet-500 mr-2" />
+                  <span className="inline-block w-2 h-2 bg-[var(--category-violet)] mr-2" />
                   Tool Call: input + output (collapsible)
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-slate-500 mr-2" />
+                  <span className="inline-block w-2 h-2 bg-[var(--text-subtle)] mr-2" />
                   Token Counter: context window meter
                 </div>
               </div>
-              <p className="text-slate-400">
+              <p className="text-[var(--text-subtle)]">
                 Toggle message types above. Thinking, Tool Calls, and Token Counters are hidden by default.
               </p>
             </div>
@@ -2173,7 +2260,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
             </div>
 
             <SubSection label="Typography contract">
-              <div className="p-3 border border-slate-200 bg-white text-xs text-slate-600 font-mono space-y-1">
+              <div className="p-3 border border-[var(--border)] bg-[var(--surface)] text-xs text-[var(--text-muted)] font-mono space-y-1">
                 <div>• All message content uses monospace font (font-mono)</div>
                 <div>• Markdown headings use weight, not font-family change</div>
                 <div>• Code blocks: sharp containers, no radius, solid bg</div>
@@ -2206,7 +2293,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
             <SubSection label="Modal">
               <Button onClick={() => setModalOpen(true)}>Open Modal</Button>
               <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Confirm Action">
-                <p className="text-sm text-slate-600 mb-4">
+                <p className="text-sm text-[var(--text-muted)] mb-4">
                   Are you sure you want to proceed? This action cannot be undone.
                 </p>
                 <div className="flex justify-end gap-2">
@@ -2228,19 +2315,19 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                 <div className="p-2 space-y-1">
                   <button
                     type="button"
-                    className="w-full text-left px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50 active:bg-slate-200 cursor-pointer"
+                    className="w-full text-left px-2 py-1.5 text-sm text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
-                    className="w-full text-left px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50 active:bg-slate-200 cursor-pointer"
+                    className="w-full text-left px-2 py-1.5 text-sm text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer"
                   >
                     Duplicate
                   </button>
                   <button
                     type="button"
-                    className="w-full text-left px-2 py-1.5 text-sm text-red-600 hover:bg-red-50 active:bg-red-100 cursor-pointer"
+                    className="w-full text-left px-2 py-1.5 text-sm text-[var(--danger)] hover:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)] cursor-pointer"
                   >
                     Delete
                   </button>
@@ -2256,44 +2343,50 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
             <SubSection label="Two-column layout">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Panel className="p-4">
-                  <div className="text-sm text-slate-600">Left panel</div>
+                  <div className="text-sm text-[var(--text-muted)]">Left panel</div>
                 </Panel>
                 <Panel className="p-4">
-                  <div className="text-sm text-slate-600">Right panel</div>
+                  <div className="text-sm text-[var(--text-muted)]">Right panel</div>
                 </Panel>
               </div>
             </SubSection>
             <SubSection label="Sidebar + content">
               <div className="grid grid-cols-[200px_1fr] gap-4">
                 <Panel className="p-4">
-                  <div className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Navigation</div>
+                  <div className="text-xs font-medium uppercase tracking-wide text-[var(--text-subtle)] mb-3">
+                    Navigation
+                  </div>
                   <div className="space-y-1">
-                    <div className="px-2 py-1.5 text-sm text-slate-800 bg-slate-100 cursor-pointer">Sessions</div>
-                    <div className="px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50 active:bg-slate-200 cursor-pointer">
+                    <div className="px-2 py-1.5 text-sm text-[var(--text)] bg-[var(--surface-strong)] cursor-pointer">
+                      Sessions
+                    </div>
+                    <div className="px-2 py-1.5 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer">
                       Workspaces
                     </div>
-                    <div className="px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50 active:bg-slate-200 cursor-pointer">
+                    <div className="px-2 py-1.5 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer">
                       Settings
                     </div>
                   </div>
                 </Panel>
                 <Panel className="p-4">
-                  <div className="text-sm text-slate-600">Main content area with min-w-0 for safe truncation</div>
+                  <div className="text-sm text-[var(--text-muted)]">
+                    Main content area with min-w-0 for safe truncation
+                  </div>
                 </Panel>
               </div>
             </SubSection>
             <SubSection label="Stacked panels (interactive rows)">
               <div className="space-y-2">
-                <Panel className="p-3 flex items-center justify-between hover:bg-slate-50 active:bg-slate-200 cursor-pointer transition-colors motion-reduce:transition-none">
-                  <span className="text-sm text-slate-700">First item</span>
+                <Panel className="p-3 flex items-center justify-between hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none">
+                  <span className="text-sm text-[var(--text)]">First item</span>
                   <Tag variant="muted">Active</Tag>
                 </Panel>
-                <Panel className="p-3 flex items-center justify-between hover:bg-slate-50 active:bg-slate-200 cursor-pointer transition-colors motion-reduce:transition-none">
-                  <span className="text-sm text-slate-700">Second item</span>
+                <Panel className="p-3 flex items-center justify-between hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none">
+                  <span className="text-sm text-[var(--text)]">Second item</span>
                   <Tag variant="base">Pending</Tag>
                 </Panel>
-                <Panel className="p-3 flex items-center justify-between hover:bg-slate-50 active:bg-slate-200 cursor-pointer transition-colors motion-reduce:transition-none">
-                  <span className="text-sm text-slate-700">Third item</span>
+                <Panel className="p-3 flex items-center justify-between hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none">
+                  <span className="text-sm text-[var(--text)]">Third item</span>
                   <Tag variant="muted">Archived</Tag>
                 </Panel>
               </div>
@@ -2311,12 +2404,12 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                 <Checkbox label="Checkbox" checked={demoCheckbox} onChange={(e) => setDemoCheckbox(e.target.checked)} />
               </div>
             </SubSection>
-            <div className="p-3 border border-slate-200 bg-slate-50 text-xs text-slate-500 space-y-2">
+            <div className="p-3 border border-[var(--border)] bg-[var(--surface-muted)] text-xs text-[var(--text-subtle)] space-y-2">
               <div>
                 <strong>Focus contract:</strong> Focus-visible rings are allowed and preferred for keyboard clarity.
                 Focus must never be clipped and should use a small offset so the ring does not touch the control edge.
                 Use{' '}
-                <code className="px-1 bg-white border border-slate-200">
+                <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">
                   focus-visible:ring-2 focus-visible:ring-offset-1
                 </code>{' '}
                 and a high-contrast ring color.
@@ -2325,8 +2418,8 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                 <strong>Clickability indicators:</strong> All clickable elements must have:
                 <div className="mt-1 ml-3 space-y-0.5">
                   <div>
-                    • <code className="px-1 bg-white border border-slate-200">cursor-pointer</code> — pointer cursor on
-                    hover
+                    • <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">cursor-pointer</code> —
+                    pointer cursor on hover
                   </div>
                   <div>• Visible hover state (background shift, border change, or text change)</div>
                   <div>• Active/pressed state for feedback</div>
@@ -2341,35 +2434,35 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             <div className="space-y-3">
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-emerald-500 shrink-0" />
-                <span className="text-slate-700">No rounded corners (radius = 0)</span>
+                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="text-[var(--text)]">No rounded corners (radius = 0)</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-emerald-500 shrink-0" />
-                <span className="text-slate-700">No translucency / glass / blur</span>
+                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="text-[var(--text)]">No translucency / glass / blur</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-emerald-500 shrink-0" />
-                <span className="text-slate-700">No shadows for hierarchy</span>
+                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="text-[var(--text)]">No shadows for hierarchy</span>
               </div>
             </div>
             <div className="space-y-3">
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-emerald-500 shrink-0" />
-                <span className="text-slate-700">Border-driven hierarchy</span>
+                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="text-[var(--text)]">Border-driven hierarchy</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-emerald-500 shrink-0" />
-                <span className="text-slate-700">Preserve keyboard focus visibility</span>
+                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="text-[var(--text)]">Preserve keyboard focus visibility</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-emerald-500 shrink-0" />
-                <span className="text-slate-700">Color is never the only cue</span>
+                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="text-[var(--text)]">Color is never the only cue</span>
               </div>
             </div>
           </div>
         </Section>
       </div>
-    </div>
+    </ArtifactThemeRoot>
   );
 }

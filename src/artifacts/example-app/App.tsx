@@ -61,6 +61,51 @@ const themeSwatches = [
 
 type ThemeSwatchId = (typeof themeSwatches)[number]['id'];
 
+const categorySwatches = [
+  {
+    id: 'user',
+    label: 'User',
+    weakBg: 'bg-[var(--category-blue-weak)]',
+    strongBg: 'bg-[var(--category-blue)]',
+    text: 'text-[var(--category-blue)]',
+    border: 'border-[color:var(--category-blue)]',
+  },
+  {
+    id: 'assistant',
+    label: 'Assistant',
+    weakBg: 'bg-[var(--category-green-weak)]',
+    strongBg: 'bg-[var(--category-green)]',
+    text: 'text-[var(--category-green)]',
+    border: 'border-[color:var(--category-green)]',
+  },
+  {
+    id: 'thinking',
+    label: 'Thinking',
+    weakBg: 'bg-[var(--category-amber-weak)]',
+    strongBg: 'bg-[var(--category-amber)]',
+    text: 'text-[var(--category-amber)]',
+    border: 'border-[color:var(--category-amber)]',
+  },
+  {
+    id: 'tool',
+    label: 'Tool',
+    weakBg: 'bg-[var(--category-violet-weak)]',
+    strongBg: 'bg-[var(--category-violet)]',
+    text: 'text-[var(--category-violet)]',
+    border: 'border-[color:var(--category-violet)]',
+  },
+  {
+    id: 'critical',
+    label: 'Critical',
+    weakBg: 'bg-[var(--category-red-weak)]',
+    strongBg: 'bg-[var(--category-red)]',
+    text: 'text-[var(--category-red)]',
+    border: 'border-[color:var(--category-red)]',
+  },
+] as const;
+
+type CategorySwatchId = (typeof categorySwatches)[number]['id'];
+
 export default function ExampleApp() {
   const [activeRow, setActiveRow] = useState<string>('session-01');
   const [view, setView] = useState<'all' | 'active'>('all');
@@ -70,6 +115,13 @@ export default function ExampleApp() {
     warning: false,
     danger: false,
     info: false,
+  });
+  const [activeCategorySwatches, setActiveCategorySwatches] = useState<Record<CategorySwatchId, boolean>>({
+    user: true,
+    assistant: true,
+    thinking: false,
+    tool: true,
+    critical: false,
   });
   const [capsLockActive, setCapsLockActive] = useState(false);
   const [capsLockSeen, setCapsLockSeen] = useState(false);
@@ -320,6 +372,60 @@ export default function ExampleApp() {
               >
                 <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
                 {swatch.label} state
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel className="p-4 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                Message Colors
+              </div>
+              <div className="text-sm font-medium text-[var(--text)]">Categorical palette preview</div>
+            </div>
+            <Tag variant="muted" className="font-mono">
+              Light / Dark
+            </Tag>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {categorySwatches.map((swatch) => (
+              <button
+                key={swatch.id}
+                type="button"
+                aria-pressed={activeCategorySwatches[swatch.id]}
+                onClick={() =>
+                  setActiveCategorySwatches((prev) => ({
+                    ...prev,
+                    [swatch.id]: !prev[swatch.id],
+                  }))
+                }
+                className={[
+                  'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+                  activeCategorySwatches[swatch.id]
+                    ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
+                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden />
+                {swatch.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {categorySwatches.map((swatch) => (
+              <div
+                key={`${swatch.id}-chip`}
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} ${swatch.text} px-2 py-1 text-xs font-medium`}
+              >
+                <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
+                {swatch.label} type
               </div>
             ))}
           </div>

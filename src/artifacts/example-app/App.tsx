@@ -5,7 +5,6 @@ import StatusTag from '../../components/StatusTag';
 import { AppHeader } from './components/AppHeader';
 import { Button, Panel, Tag } from './components/Primitives';
 import { StatCard } from './components/StatCard';
-import './theme.css';
 
 type SessionStatus = 'active' | 'paused' | 'archived';
 
@@ -148,7 +147,7 @@ export default function ExampleApp() {
   };
 
   return (
-    <div className="example-app-theme min-h-screen border border-[var(--border)] bg-[var(--surface)] text-[var(--text)]">
+    <div className="artifact-theme min-h-screen border border-[var(--border)] bg-[var(--surface)] text-[var(--text)]">
       <AppHeader
         title="Example App Artifact"
         subtitle="A multi-file artifact (App.tsx + components/) rendered by the shell"

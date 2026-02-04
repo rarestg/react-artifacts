@@ -89,12 +89,12 @@ export function CopyableLabel({
 
   const tone =
     status === 'copied'
-      ? 'border-[color:var(--copy-success-border,#6ee7b7)] bg-[var(--copy-success-bg,#ecfdf5)] text-[var(--copy-success-text,#047857)]'
+      ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
       : status === 'failed'
-        ? 'border-[color:var(--copy-fail-border,#fca5a5)] bg-[var(--copy-fail-bg,#fef2f2)] text-[var(--copy-fail-text,#b91c1c)]'
+        ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
         : status === 'hover'
-          ? 'border-[color:var(--copy-hover-border,#cbd5e1)] bg-[var(--copy-hover-bg,#f8fafc)] text-[var(--copy-hover-text,#334155)]'
-          : 'border-[color:var(--copy-idle-border,#e2e8f0)] bg-[var(--copy-idle-bg,#ffffff)] text-[var(--copy-idle-text,#475569)]';
+          ? 'border-[color:var(--copy-hover-border)] bg-[var(--copy-hover-bg)] text-[var(--copy-hover-text)]'
+          : 'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]';
 
   return (
     <button
@@ -107,15 +107,15 @@ export function CopyableLabel({
       title={`Copy: ${value}`}
       className={[
         'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
-        'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring,#94a3b8)]',
-        'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface,#ffffff)]',
+        'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+        'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         tone,
         className,
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      {icon && <span className="shrink-0 text-[var(--copy-icon,#94a3b8)]">{icon}</span>}
+      {icon && <span className="shrink-0 text-[var(--copy-idle-text)]">{icon}</span>}
       <span className="relative inline-grid min-w-0">
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {resolvedReserveLabel}

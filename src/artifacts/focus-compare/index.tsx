@@ -16,18 +16,16 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
 
   const focusClasses =
     variant === 'current'
-      ? 'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1'
-      : 'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-600 focus-visible:outline-offset-2';
-
-  const focusClassesDark =
-    variant === 'current'
-      ? 'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1'
-      : 'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-200 focus-visible:outline-offset-2';
+      ? [
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1',
+          'focus-visible:ring-offset-[color:var(--surface)]',
+        ].join(' ')
+      : 'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ring)] focus-visible:outline-offset-2';
 
   const inputClasses =
     variant === 'current'
-      ? 'w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-slate-400 focus-visible:ring-2 focus-visible:ring-slate-400'
-      : 'w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-500 focus-visible:outline-offset-2';
+      ? 'w-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus-visible:border-[var(--border-strong)]'
+      : 'w-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus-visible:border-[var(--border-strong)]';
 
   const chosenRingClasses = variant === 'current' ? 'decision-ring' : '';
 
@@ -40,15 +38,18 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
         </span>
       )}
       <div
-        className={['flex w-full flex-col gap-3 border border-slate-200 bg-white p-4', chosenRingClasses]
+        className={[
+          'flex w-full flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-4',
+          chosenRingClasses,
+        ]
           .filter(Boolean)
           .join(' ')}
       >
-        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
           {variant === 'current' ? 'Current (ring)' : 'Proposed (outline)'}
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-medium text-slate-600" htmlFor={`${variant}-input`}>
+          <label className="text-xs font-medium text-[var(--text-muted)]" htmlFor={`${variant}-input`}>
             Name
           </label>
           <input
@@ -62,8 +63,9 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
         <button
           type="button"
           className={[
-            'inline-flex items-center justify-center border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 active:bg-slate-200',
-            variant === 'proposed' ? 'focus-visible:bg-slate-50' : '',
+            'inline-flex items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)]',
+            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
+            variant === 'proposed' ? 'focus-visible:bg-[var(--surface-muted)]' : '',
             focusClasses,
           ]
             .filter(Boolean)
@@ -74,8 +76,9 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
         <button
           type="button"
           className={[
-            'inline-flex items-center justify-center border border-slate-800 bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 active:bg-slate-950',
-            focusClassesDark,
+            'inline-flex items-center justify-center border border-[var(--primary)] bg-[var(--primary)] px-3 py-2 text-sm font-medium text-[var(--primary-contrast)]',
+            'hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]',
+            focusClasses,
           ]
             .filter(Boolean)
             .join(' ')}
@@ -91,7 +94,9 @@ function SearchResultsDemo({ variant }: { variant: 'current' | 'proposed' }) {
   const [selectedIndex, setSelectedIndex] = useState(1);
   const roving = useRovingFocus({ count: sampleResults.length });
   const focusClasses =
-    variant === 'current' ? 'focus:outline-none focus:bg-slate-50' : 'focus:outline-none focus-visible:bg-slate-200';
+    variant === 'current'
+      ? 'focus:outline-none focus:bg-[var(--surface-muted)]'
+      : 'focus:outline-none focus-visible:bg-[var(--surface-strong)]';
 
   const chosenRingClasses = variant === 'proposed' ? 'decision-ring' : '';
 
@@ -104,22 +109,25 @@ function SearchResultsDemo({ variant }: { variant: 'current' | 'proposed' }) {
         </span>
       )}
       <div
-        className={['flex w-full flex-col gap-3 border border-slate-200 bg-white p-4', chosenRingClasses]
+        className={[
+          'flex w-full flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-4',
+          chosenRingClasses,
+        ]
           .filter(Boolean)
           .join(' ')}
       >
-        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
           {variant === 'current' ? 'Search rows (current)' : 'Search rows (focus-visible)'}
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[var(--text-muted)]">
           {variant === 'current'
             ? 'Uses focus: background appears for mouse and keyboard, so focus can look active even after clicking.'
             : 'Uses focus-visible: stronger background only for keyboard focus. Left bar reserved for selection.'}
         </p>
-        <div className="text-[11px] text-slate-500">
+        <div className="text-[11px] text-[var(--text-muted)]">
           Row 2 = selected (left bar). Use Tab/Shift+Tab or Arrow keys to move focus between rows.
         </div>
-        <div className="border border-slate-200">
+        <div className="border border-[var(--border)]">
           {sampleResults.map((result, index) => (
             <button
               key={result.title}
@@ -128,23 +136,23 @@ function SearchResultsDemo({ variant }: { variant: 'current' | 'proposed' }) {
               onClick={() => setSelectedIndex(index)}
               className={[
                 'w-full text-left px-3 py-2 flex items-center gap-3 cursor-pointer border-l-2',
-                index === selectedIndex ? 'border-l-slate-800 bg-slate-50' : 'border-l-transparent',
-                'hover:bg-slate-50 active:bg-slate-100',
-                index < sampleResults.length - 1 && 'border-b border-slate-100',
+                index === selectedIndex ? 'border-l-[var(--accent)] bg-[var(--surface-muted)]' : 'border-l-transparent',
+                'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
+                index < sampleResults.length - 1 && 'border-b border-[color:var(--border)]',
                 focusClasses,
               ]
                 .filter(Boolean)
                 .join(' ')}
             >
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-800 truncate">{result.title}</div>
-                <div className="text-xs text-slate-500 truncate">{result.subtitle}</div>
+                <div className="text-sm text-[var(--text)] truncate">{result.title}</div>
+                <div className="text-xs text-[var(--text-muted)] truncate">{result.subtitle}</div>
               </div>
-              <div className="text-xs font-mono text-slate-400 tabular-nums">{result.meta}</div>
+              <div className="text-xs font-mono text-[var(--text-muted)] tabular-nums">{result.meta}</div>
             </button>
           ))}
         </div>
-        <div className="text-xs text-slate-500">Use Tab/Shift+Tab to compare keyboard focus.</div>
+        <div className="text-xs text-[var(--text-muted)]">Use Tab/Shift+Tab to compare keyboard focus.</div>
       </div>
     </div>
   );
@@ -168,15 +176,19 @@ function CompareCard({
   children: ReactNode;
 }) {
   const label = badge ?? (variant === 'current' ? 'Current' : 'Compliant');
-  const labelTone = badgeTone ?? (variant === 'current' ? 'text-slate-500' : 'text-emerald-600');
+  const labelTone = badgeTone ?? (variant === 'current' ? 'text-[var(--text-muted)]' : 'text-[var(--success)]');
 
   return (
-    <div className={['border border-slate-200 bg-white p-4 space-y-3', className].filter(Boolean).join(' ')}>
+    <div
+      className={['border border-[var(--border)] bg-[var(--surface)] p-4 space-y-3', className]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="flex items-baseline justify-between">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">{title}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">{title}</div>
         <div className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${labelTone}`}>{label}</div>
       </div>
-      {description && <p className="text-xs text-slate-500">{description}</p>}
+      {description && <p className="text-xs text-[var(--text-muted)]">{description}</p>}
       {children}
     </div>
   );
@@ -184,9 +196,9 @@ function CompareCard({
 
 function NotesCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="border border-slate-200 bg-white p-4 space-y-3">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">{title}</div>
-      <div className="text-xs text-slate-600 space-y-2">{children}</div>
+    <div className="border border-[var(--border)] bg-[var(--surface)] p-4 space-y-3">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">{title}</div>
+      <div className="text-xs text-[var(--text-muted)] space-y-2">{children}</div>
     </div>
   );
 }
@@ -195,10 +207,12 @@ function SearchOptionFocusCompare({ variant }: { variant: 'current' | 'compliant
   const [selectedIndex, setSelectedIndex] = useState(1);
   const roving = useRovingFocus({ count: sampleResults.length });
   const focusClasses =
-    variant === 'current' ? 'focus:outline-none focus:bg-slate-50' : 'focus:outline-none focus-visible:bg-slate-200';
+    variant === 'current'
+      ? 'focus:outline-none focus:bg-[var(--surface-muted)]'
+      : 'focus:outline-none focus-visible:bg-[var(--surface-strong)]';
 
   return (
-    <div className="border border-slate-200">
+    <div className="border border-[var(--border)]">
       {sampleResults.map((result, index) => (
         <button
           key={result.title}
@@ -207,19 +221,19 @@ function SearchOptionFocusCompare({ variant }: { variant: 'current' | 'compliant
           onClick={() => setSelectedIndex(index)}
           className={[
             'w-full text-left px-3 py-2 flex items-center gap-3 cursor-pointer border-l-2',
-            index === selectedIndex ? 'border-l-slate-800 bg-slate-50' : 'border-l-transparent',
-            'hover:bg-slate-50 active:bg-slate-100',
-            index < sampleResults.length - 1 && 'border-b border-slate-100',
+            index === selectedIndex ? 'border-l-[var(--accent)] bg-[var(--surface-muted)]' : 'border-l-transparent',
+            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
+            index < sampleResults.length - 1 && 'border-b border-[color:var(--border)]',
             focusClasses,
           ]
             .filter(Boolean)
             .join(' ')}
         >
           <div className="flex-1 min-w-0">
-            <div className="text-sm text-slate-800 truncate">{result.title}</div>
-            <div className="text-xs text-slate-500 truncate">{result.subtitle}</div>
+            <div className="text-sm text-[var(--text)] truncate">{result.title}</div>
+            <div className="text-xs text-[var(--text-muted)] truncate">{result.subtitle}</div>
           </div>
-          <div className="text-xs font-mono text-slate-400 tabular-nums">{result.meta}</div>
+          <div className="text-xs font-mono text-[var(--text-muted)] tabular-nums">{result.meta}</div>
         </button>
       ))}
     </div>
@@ -233,21 +247,21 @@ function PopoverItemFocusCompare({ variant }: { variant: 'current' | 'compliant'
     const isDelete = label === 'Delete';
     if (variant === 'stacking') {
       return isDelete
-        ? 'text-red-600 hover:bg-red-100 focus-visible:bg-red-100 hover:focus-visible:bg-red-200 active:bg-red-200'
-        : 'text-slate-700 hover:bg-slate-100 focus-visible:bg-slate-100 hover:focus-visible:bg-slate-200 active:bg-slate-200';
+        ? 'text-[var(--danger)] hover:bg-[var(--danger-weak)] focus-visible:bg-[var(--danger-weak)] hover:focus-visible:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)]'
+        : 'text-[var(--text)] hover:bg-[var(--surface-muted)] focus-visible:bg-[var(--surface-muted)] hover:focus-visible:bg-[var(--surface-strong)] active:bg-[var(--surface-strong)]';
     }
     if (variant === 'compliant') {
       return isDelete
-        ? 'text-red-600 hover:bg-red-50 focus-visible:bg-red-200 active:bg-red-300'
-        : 'text-slate-700 hover:bg-slate-50 focus-visible:bg-slate-200 active:bg-slate-300';
+        ? 'text-[var(--danger)] hover:bg-[var(--danger-weak)] focus-visible:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)]'
+        : 'text-[var(--text)] hover:bg-[var(--surface-muted)] focus-visible:bg-[var(--surface-strong)] active:bg-[var(--surface-strong)]';
     }
     return isDelete
-      ? 'text-red-600 hover:bg-red-50 active:bg-red-100'
-      : 'text-slate-700 hover:bg-slate-50 active:bg-slate-200';
+      ? 'text-[var(--danger)] hover:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)]'
+      : 'text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]';
   };
 
   return (
-    <div className="border border-slate-200 bg-white">
+    <div className="border border-[var(--border)] bg-[var(--surface)]">
       {items.map((label, index) => (
         <button
           key={label}
@@ -256,7 +270,7 @@ function PopoverItemFocusCompare({ variant }: { variant: 'current' | 'compliant'
           className={[
             'w-full text-left px-3 py-2 text-sm cursor-pointer focus:outline-none',
             getItemStates(label),
-            index < 2 && 'border-b border-slate-100',
+            index < 2 && 'border-b border-[color:var(--border)]',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -272,21 +286,25 @@ function ToolCallToggleCompare({ variant }: { variant: 'current' | 'compliant' }
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : 'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white';
+      : [
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+          'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+        ].join(' ');
   const buttonSize = variant === 'current' ? 'w-6 h-6' : 'w-7 h-7';
 
   return (
-    <div className="border border-slate-200 bg-white">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50">
-        <div className="flex items-center gap-2 text-xs text-slate-600">
-          <span className="text-[10px] uppercase tracking-wide text-slate-500">Tool Call</span>
-          <span className="font-mono text-[11px] text-slate-500">bash</span>
+    <div className="border border-[var(--border)] bg-[var(--surface)]">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[color:var(--border)] bg-[var(--surface-muted)]">
+        <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+          <span className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Tool Call</span>
+          <span className="font-mono text-[11px] text-[var(--text-muted)]">bash</span>
         </div>
         <button
           type="button"
           aria-label="Toggle tool call details"
           className={[
-            'inline-flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200',
+            'inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)]',
+            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
             buttonSize,
             buttonFocus,
           ]
@@ -296,7 +314,7 @@ function ToolCallToggleCompare({ variant }: { variant: 'current' | 'compliant' }
           <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
-      <div className="px-3 py-2 text-xs text-slate-500">Details panel…</div>
+      <div className="px-3 py-2 text-xs text-[var(--text-muted)]">Details panel…</div>
     </div>
   );
 }
@@ -305,16 +323,21 @@ function RenderToggleCompare({ variant }: { variant: 'current' | 'compliant' }) 
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : 'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white';
+      : [
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+          'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+        ].join(' ');
 
   return (
-    <div className="border border-slate-200 bg-white">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50">
-        <div className="text-xs font-semibold text-slate-700">Assistant</div>
+    <div className="border border-[var(--border)] bg-[var(--surface)]">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[color:var(--border)] bg-[var(--surface-muted)]">
+        <div className="text-xs font-semibold text-[var(--text)]">Assistant</div>
         <button
           type="button"
           className={[
-            'px-1.5 py-0.5 text-[10px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 cursor-pointer transition-colors',
+            'px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]',
+            'hover:text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
+            'cursor-pointer transition-colors',
             buttonFocus,
           ]
             .filter(Boolean)
@@ -323,7 +346,7 @@ function RenderToggleCompare({ variant }: { variant: 'current' | 'compliant' }) 
           Rendered
         </button>
       </div>
-      <div className="px-3 py-2 text-xs text-slate-500">Message content…</div>
+      <div className="px-3 py-2 text-xs text-[var(--text-muted)]">Message content…</div>
     </div>
   );
 }
@@ -340,8 +363,8 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
       <div className="flex flex-col gap-2">
         <button
           className={[
-            'flex h-8 items-center gap-2 cursor-pointer select-none px-2 py-1 border border-slate-200 bg-white transition-colors rounded-none focus:outline-none',
-            'hover:bg-slate-50 active:bg-slate-100',
+            'flex h-8 items-center gap-2 cursor-pointer select-none px-2 py-1 border border-[var(--border)] bg-[var(--surface)] transition-colors rounded-none focus:outline-none',
+            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -353,11 +376,15 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
             aria-hidden="true"
             className={[
               'w-3.5 h-3.5 shrink-0 border transition-colors',
-              currentEnabled ? 'border-slate-800 bg-slate-800' : 'border-slate-300 bg-white',
+              currentEnabled
+                ? 'border-[var(--primary)] bg-[var(--primary)]'
+                : 'border-[var(--border-strong)] bg-[var(--surface)]',
             ].join(' ')}
           />
-          <span className="text-xs text-slate-600">Tool Calls</span>
-          <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 tabular-nums">4</span>
+          <span className="text-xs text-[var(--text-muted)]">Tool Calls</span>
+          <span className="text-[10px] font-medium text-[var(--text-muted)] bg-[var(--surface-strong)] px-1.5 py-0.5 tabular-nums">
+            4
+          </span>
         </button>
       </div>
     );
@@ -372,12 +399,12 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         onCheckedChange={setToolCallsContained}
         focusTarget="container"
         className={[
-          'w-full h-8 gap-2 border border-slate-200 bg-white rounded-none px-2 py-1',
-          'hover:bg-slate-50 active:bg-slate-100',
+          'w-full h-8 gap-2 border border-[var(--border)] bg-[var(--surface)] rounded-none px-2 py-1',
+          'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
         ].join(' ')}
-        labelClassName="text-xs text-slate-600"
+        labelClassName="text-xs text-[var(--text-muted)]"
         suffix={
-          <span className="ml-auto text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 tabular-nums">
+          <span className="ml-auto text-[10px] font-medium text-[var(--text-muted)] bg-[var(--surface-strong)] px-1.5 py-0.5 tabular-nums">
             4
           </span>
         }
@@ -387,7 +414,7 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         reserveLabel="Tool Calls"
         checked={toolCallsBare}
         onCheckedChange={setToolCallsBare}
-        labelClassName="text-xs text-slate-600"
+        labelClassName="text-xs text-[var(--text-muted)]"
       />
       <Toggle
         label="Streaming"
@@ -396,10 +423,10 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         onCheckedChange={setStreamingContained}
         focusTarget="container"
         className={[
-          'gap-2 border border-slate-200 bg-white px-2 py-1 rounded-none h-8',
-          'hover:bg-slate-50 active:bg-slate-100',
+          'gap-2 border border-[var(--border)] bg-[var(--surface)] px-2 py-1 rounded-none h-8',
+          'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
         ].join(' ')}
-        labelClassName="text-xs text-slate-600"
+        labelClassName="text-xs text-[var(--text-muted)]"
       />
       <Toggle
         label="Streaming"
@@ -407,7 +434,7 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         checked={streamingBare}
         onCheckedChange={setStreamingBare}
         className="gap-2"
-        labelClassName="text-xs text-slate-600"
+        labelClassName="text-xs text-[var(--text-muted)]"
       />
     </div>
   );
@@ -425,7 +452,10 @@ function IconOnlyButtonCompare({ variant }: { variant: 'current' | 'compliant' }
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : 'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white';
+      : [
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+          'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+        ].join(' ');
 
   return (
     <div className="space-y-2">
@@ -433,13 +463,16 @@ function IconOnlyButtonCompare({ variant }: { variant: 'current' | 'compliant' }
         type="button"
         aria-label={variant === 'compliant' ? 'Copy to clipboard' : undefined}
         className={[
-          'inline-flex items-center justify-center w-8 h-8 border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 active:bg-slate-200 cursor-pointer',
+          'inline-flex items-center justify-center w-8 h-8 border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)]',
+          'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] cursor-pointer',
           buttonFocus,
         ].join(' ')}
       >
         [ ]{variant === 'compliant' && <span className="sr-only">Copy to clipboard</span>}
       </button>
-      <div className="text-[10px] text-slate-400">SR label: {variant === 'compliant' ? 'provided' : 'missing'}</div>
+      <div className="text-[10px] text-[var(--text-muted)]">
+        SR label: {variant === 'compliant' ? 'provided' : 'missing'}
+      </div>
     </div>
   );
 }
@@ -447,38 +480,40 @@ function IconOnlyButtonCompare({ variant }: { variant: 'current' | 'compliant' }
 function RingColorCompare({ variant }: { variant: 'current' | 'compliant' }) {
   const ringClasses =
     variant === 'current'
-      ? 'ring-2 ring-amber-600 ring-offset-1 ring-offset-white'
-      : 'ring-2 ring-[color:var(--ring,#94a3b8)] ring-offset-1 ring-offset-white';
+      ? 'ring-2 ring-[color:var(--warning)] ring-offset-1 ring-offset-[color:var(--surface)]'
+      : 'ring-2 ring-[color:var(--ring)] ring-offset-1 ring-offset-[color:var(--surface)]';
 
   return (
     <div className="inline-flex items-center gap-3">
       <button
         type="button"
         className={[
-          'inline-flex items-center gap-2 border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-700',
+          'inline-flex items-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--text)]',
           'rounded-none focus:outline-none',
           ringClasses,
         ].join(' ')}
       >
-        <span className="w-2 h-2 border border-slate-500 bg-white" aria-hidden="true" />
+        <span className="w-2 h-2 border border-[var(--border-strong)] bg-[var(--surface)]" aria-hidden="true" />
         Selected
       </button>
-      <span className="text-xs text-slate-500">Ring color</span>
+      <span className="text-xs text-[var(--text-muted)]">Ring color</span>
     </div>
   );
 }
 
 function ScrimTokenCompare({ variant }: { variant: 'current' | 'compliant' }) {
-  const label = variant === 'current' ? 'bg-slate-900/50' : 'bg-overlay (token)';
-  const overlayClass = variant === 'current' ? 'bg-slate-900/50' : 'bg-[color:var(--overlay,rgba(15,23,42,0.5))]';
+  const label = variant === 'current' ? 'bg-overlay-legacy' : 'bg-overlay (token)';
+  const overlayClass = variant === 'current' ? 'bg-[color:var(--overlay-legacy)]' : 'bg-[color:var(--overlay)]';
   return (
-    <div className="border border-slate-200 bg-white p-3 space-y-2">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Modal scrim</div>
-      <div className="relative h-20 border border-slate-200 bg-slate-50">
+    <div className="border border-[var(--border)] bg-[var(--surface)] p-3 space-y-2">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Modal scrim</div>
+      <div className="relative h-20 border border-[var(--border)] bg-[var(--surface-muted)]">
         <div className={['absolute inset-0', overlayClass].join(' ')} />
-        <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-100">Overlay</div>
+        <div className="absolute inset-0 flex items-center justify-center text-xs text-[var(--surface)] dark:text-[var(--text)]">
+          Overlay
+        </div>
       </div>
-      <div className="text-[10px] text-slate-500">{label}</div>
+      <div className="text-[10px] text-[var(--text-muted)]">{label}</div>
     </div>
   );
 }
@@ -496,10 +531,10 @@ function ListStructureCompare({ variant }: { variant: 'current' | 'compliant' })
         {items.map((item) => (
           <div
             key={item.title}
-            className="border border-slate-200 bg-white px-3 py-2 flex items-center justify-between"
+            className="border border-[var(--border)] bg-[var(--surface)] px-3 py-2 flex items-center justify-between"
           >
-            <span className="text-sm text-slate-700">{item.title}</span>
-            <span className="text-xs text-slate-400">{item.meta}</span>
+            <span className="text-sm text-[var(--text)]">{item.title}</span>
+            <span className="text-xs text-[var(--text-muted)]">{item.meta}</span>
           </div>
         ))}
       </div>
@@ -507,11 +542,11 @@ function ListStructureCompare({ variant }: { variant: 'current' | 'compliant' })
   }
 
   return (
-    <div className="border border-slate-200 bg-white divide-y divide-slate-100">
+    <div className="border border-[var(--border)] bg-[var(--surface)] divide-y divide-[color:var(--border)]">
       {items.map((item) => (
         <div key={item.title} className="px-3 py-2 flex items-center justify-between">
-          <span className="text-sm text-slate-700">{item.title}</span>
-          <span className="text-xs text-slate-400">{item.meta}</span>
+          <span className="text-sm text-[var(--text)]">{item.title}</span>
+          <span className="text-xs text-[var(--text-muted)]">{item.meta}</span>
         </div>
       ))}
     </div>
@@ -521,40 +556,42 @@ function ListStructureCompare({ variant }: { variant: 'current' | 'compliant' })
 function SpacingMixCompare({ variant }: { variant: 'current' | 'compliant' }) {
   if (variant === 'current') {
     return (
-      <div className="space-y-2 border border-slate-200 bg-white p-3">
-        <div className="text-xs text-slate-600">Header</div>
-        <div className="text-xs text-slate-500 mt-3">Meta block (extra mt)</div>
-        <div className="text-xs text-slate-500">Footer</div>
+      <div className="space-y-2 border border-[var(--border)] bg-[var(--surface)] p-3">
+        <div className="text-xs text-[var(--text-muted)]">Header</div>
+        <div className="text-xs text-[var(--text-muted)] mt-3">Meta block (extra mt)</div>
+        <div className="text-xs text-[var(--text-muted)]">Footer</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2 border border-slate-200 bg-white p-3">
-      <div className="text-xs text-slate-600">Header</div>
-      <div className="text-xs text-slate-500">Meta block (gap controls spacing)</div>
-      <div className="text-xs text-slate-500">Footer</div>
+    <div className="space-y-2 border border-[var(--border)] bg-[var(--surface)] p-3">
+      <div className="text-xs text-[var(--text-muted)]">Header</div>
+      <div className="text-xs text-[var(--text-muted)]">Meta block (gap controls spacing)</div>
+      <div className="text-xs text-[var(--text-muted)]">Footer</div>
     </div>
   );
 }
 
 export default function FocusCompare() {
   return (
-    <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
+    <div className="artifact-theme focus-compare-theme min-h-screen bg-[var(--surface-muted)] p-8 text-[var(--text)]">
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        <div className="border border-slate-200 bg-white p-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <div className="border border-[var(--border)] bg-[var(--surface)] p-6">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
             Focus Comparison Demo
           </div>
-          <h1 className="mt-2 text-2xl font-semibold text-slate-900">Ring vs Outline Focus</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <h1 className="mt-2 text-2xl font-semibold text-[var(--text)]">Ring vs Outline Focus</h1>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
             Left is the current ring-based focus styling. Right shows the proposed outline-based focus with no shadows.
           </p>
         </div>
 
-        <div className="border border-slate-200 bg-white p-5">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">State Legend</div>
-          <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-600 md:grid-cols-2">
+        <div className="border border-[var(--border)] bg-[var(--surface)] p-5">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+            State Legend
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-[var(--text-muted)] md:grid-cols-2">
             <div>
               <strong>Hover:</strong> pointer-only highlight; quietest state.
             </div>
@@ -601,12 +638,12 @@ export default function FocusCompare() {
           </NotesCard>
         </div>
 
-        <div className="border border-slate-200 bg-white p-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <div className="border border-[var(--border)] bg-[var(--surface)] p-6">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
             Style-Guide Audit Visuals
           </div>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">Current vs Compliant</h2>
-          <p className="mt-2 text-sm text-slate-600">
+          <h2 className="mt-2 text-xl font-semibold text-[var(--text)]">Current vs Compliant</h2>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
             Each row mirrors a specific audit item. Left shows the current behavior; right shows a compliant version.
           </p>
         </div>
@@ -659,7 +696,7 @@ export default function FocusCompare() {
               <CompareCard
                 variant="compliant"
                 badge="Alt"
-                badgeTone="text-amber-600"
+                badgeTone="text-[var(--warning)]"
                 title="Popover menu items Alt — Stacking"
                 description="Hover + focus share 100; combined hover+focus and active use 200."
               >

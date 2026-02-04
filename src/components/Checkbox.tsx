@@ -40,15 +40,15 @@ export function Checkbox({
   };
 
   const boxTone = checked
-    ? 'bg-[var(--checkbox-on-bg,#1e293b)] border-[color:var(--checkbox-on-border,#1e293b)]'
-    : 'bg-[var(--checkbox-off-bg,#ffffff)] border-[color:var(--checkbox-off-border,#cbd5e1)]';
+    ? 'bg-[var(--checkbox-on-bg)] border-[color:var(--checkbox-on-border)]'
+    : 'bg-[var(--checkbox-off-bg)] border-[color:var(--checkbox-off-border)]';
   const boxSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
   const checkSize = size === 'sm' ? 'h-2.5 w-2.5' : 'h-3 w-3';
   const boxFocus =
     focusTarget === 'box'
       ? [
-          'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring,#94a3b8)]',
-          'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface,#ffffff)]',
+          'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)]',
+          'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]',
         ].join(' ')
       : '';
 
@@ -74,7 +74,7 @@ export function Checkbox({
       {focusTarget === 'container' && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring,#94a3b8)] ring-offset-1 ring-offset-[color:var(--surface,#ffffff)] opacity-0 peer-focus-visible:opacity-100"
+          className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring)] ring-offset-1 ring-offset-[color:var(--surface)] opacity-0 peer-focus-visible:opacity-100"
         />
       )}
       <span
@@ -82,17 +82,21 @@ export function Checkbox({
           'flex shrink-0 items-center justify-center border rounded-none transition-colors motion-reduce:transition-none',
           boxSize,
           boxFocus,
-          checked ? 'active:bg-[var(--checkbox-on-bg,#1e293b)]' : 'hover:border-slate-400 active:bg-slate-100',
+          checked
+            ? 'active:bg-[var(--checkbox-on-bg)]'
+            : 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-strong)]',
           boxTone,
           boxClassName,
         ]
           .filter(Boolean)
           .join(' ')}
       >
-        {checked && <Check className={['text-white', checkSize, checkClassName].filter(Boolean).join(' ')} />}
+        {checked && (
+          <Check className={['text-[var(--primary-contrast)]', checkSize, checkClassName].filter(Boolean).join(' ')} />
+        )}
       </span>
       <span
-        className={['relative inline-grid min-w-0 text-sm text-[var(--text,#334155)]', labelClassName]
+        className={['relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName]
           .filter(Boolean)
           .join(' ')}
       >

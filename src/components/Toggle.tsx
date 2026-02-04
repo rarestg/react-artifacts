@@ -37,14 +37,14 @@ export function Toggle({
   };
 
   const trackTone = checked
-    ? 'border-[color:var(--toggle-track-on-border,#1e293b)] bg-[var(--toggle-track-on-bg,#1e293b)]'
-    : 'border-[color:var(--toggle-track-off-border,#cbd5e1)] bg-[var(--toggle-track-off-bg,#e2e8f0)]';
-  const knobTone = checked ? 'bg-[var(--toggle-knob-on-bg,#ffffff)]' : 'bg-[var(--toggle-knob-off-bg,#ffffff)]';
+    ? 'border-[color:var(--toggle-track-on-border)] bg-[var(--toggle-track-on-bg)]'
+    : 'border-[color:var(--toggle-track-off-border)] bg-[var(--toggle-track-off-bg)]';
+  const knobTone = checked ? 'bg-[var(--toggle-knob-on-bg)]' : 'bg-[var(--toggle-knob-off-bg)]';
   const trackFocus =
     focusTarget === 'track'
       ? [
-          'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring,#94a3b8)]',
-          'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface,#ffffff)]',
+          'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)]',
+          'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]',
         ].join(' ')
       : '';
 
@@ -70,7 +70,7 @@ export function Toggle({
       {focusTarget === 'container' && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring,#94a3b8)] ring-offset-1 ring-offset-[color:var(--surface,#ffffff)] opacity-0 peer-focus-visible:opacity-100"
+          className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring)] ring-offset-1 ring-offset-[color:var(--surface)] opacity-0 peer-focus-visible:opacity-100"
         />
       )}
       <span
@@ -87,7 +87,7 @@ export function Toggle({
         <span className={['sharp-toggle__knob', knobTone, knobClassName].filter(Boolean).join(' ')} />
       </span>
       <span
-        className={['relative inline-grid min-w-0 text-sm text-[var(--text,#334155)]', labelClassName]
+        className={['relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName]
           .filter(Boolean)
           .join(' ')}
       >

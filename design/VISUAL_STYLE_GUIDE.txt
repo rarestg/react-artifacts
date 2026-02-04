@@ -49,14 +49,41 @@ Tokens (conceptual)
 Token contract (Base)
 - Base theme must define light + dark tokens.
 - Components must use tokens (var(--...)), not raw colors.
-- Required tokens:
-  - --surface, --surface-muted, --surface-strong
-  - --text, --text-muted
-  - --border, --border-strong
-  - --ring
-  - --accent, --accent-weak
-  - --highlight
-  - Any semantic tokens used by the UI (success/warning/danger/info)
+- Every theme defines the full token set; no missing-token fallbacks in steady state.
+- Required tokens (full contract):
+  Core
+  - --surface
+  - --surface-muted
+  - --surface-strong (derived)
+  - --text
+  - --text-muted
+  - --border
+  - --border-strong (derived)
+  - --accent
+  - --accent-weak (derived)
+  - --ring (derived)
+  - --highlight (derived)
+  - --overlay (scrim)
+  Primary (Option A = text/ink)
+  - --primary
+  - --primary-hover
+  - --primary-active
+  - --primary-contrast
+  Semantic
+  - --success / --success-weak
+  - --warning / --warning-weak
+  - --danger / --danger-weak
+  - --info / --info-weak
+  Component tokens (define for completeness)
+  - --toggle-track-on-bg / --toggle-track-on-border
+  - --toggle-track-off-bg / --toggle-track-off-border
+  - --toggle-knob-on-bg / --toggle-knob-off-bg
+  - --checkbox-on-bg / --checkbox-on-border
+  - --checkbox-off-bg / --checkbox-off-border
+  - --copy-idle-border / --copy-idle-bg / --copy-idle-text
+  - --copy-hover-border / --copy-hover-bg / --copy-hover-text
+  - --copy-success-border / --copy-success-bg / --copy-success-text
+  - --copy-fail-border / --copy-fail-bg / --copy-fail-text
 
 Theme overrides (if any)
 - If --accent changes, also change --accent-weak and --ring.

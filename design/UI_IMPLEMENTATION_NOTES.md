@@ -9,11 +9,12 @@
 
 | ID | Title | When to read | Keywords | Lines |
 | --- | --- | --- | --- | --- |
-| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 27-54 |
-| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 55-70 |
-| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 71-83 |
-| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 84-120 |
-| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary | 121-143 |
+| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 28-55 |
+| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 56-71 |
+| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 72-84 |
+| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 85-121 |
+| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary | 122-147 |
+| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 148-189 |
 
 ## Format for new entries
 - Title
@@ -141,3 +142,48 @@ Guidelines
 
 ### Exceptions
 - The shell UI stays outside the boundary unless explicitly wrapped.
+
+---
+
+## 006 — Semantic Control Choice and Action-State Clarity
+
+### When it applies
+- A binary control toggles a reversible UI action (not a persisted setting), such as “apply transform” vs “undo transform.”
+- The control can become a no-op based on current content/state (e.g., nothing eligible to act on).
+
+### Recommended pattern
+- Choose the control primitive by semantics:
+  - Use **StatusTag-style clickable indicators** for action/status toggles.
+  - Use **switch/toggle controls** for persisted settings/preferences.
+- Keep control geometry stable across states:
+  - Reserve label width (`reserveLabel`) and avoid label swapping that causes layout shift.
+  - Prefer state signaling through indicator/tone first; keep wording stable when possible.
+  - If icons change by state, keep icon slot size and placement fixed.
+- Tooltips should describe the **next action in the current state** (for example: “Undo X” vs “Apply X”), not just the current state label.
+- Disable controls when they cannot have an effect, and explain why in tooltip copy.
+  - Example classes of reasons: missing input, no eligible targets.
+- Drive count/highlight/enable/action from the **same eligibility predicate** so all UI signals stay consistent.
+
+```tsx
+const actionEnabled = eligibleCount > 0;
+const actionTooltip = !hasInput
+  ? 'Enter text to enable action'
+  : !actionEnabled
+    ? 'No eligible targets found'
+    : isActive
+      ? 'Undo action'
+      : 'Apply action';
+```
+
+### Why it matters
+- Prevents visual jitter and accidental mis-clicks in dense toolbars.
+- Keeps reversible actions predictable and self-explanatory.
+- Reduces confusion when controls are visible but currently inapplicable.
+
+### Notes and pitfalls
+- Avoid using switch-like controls for one-off reversible actions; this can imply a persisted preference.
+- Avoid changing label, icon, and container size all at once between states.
+- Avoid mismatched logic where counts/highlights indicate “0,” but action controls still appear enabled.
+
+### Exceptions
+- If the control truly represents a persisted preference, a switch/toggle is appropriate.

@@ -235,12 +235,7 @@ function unescapeText(text: string): string {
 
 /** Escape text for embedding in a JSON-style string. */
 function escapeText(text: string): string {
-  return text
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/\t/g, '\\t');
+  return JSON.stringify(text).slice(1, -1);
 }
 
 function getStats(text: string) {

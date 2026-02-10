@@ -11,6 +11,7 @@ export type CopyButtonHandle = {
 type CopyButtonProps = {
   text: string;
   idleLabel?: string;
+  ariaLabel?: string;
   showIcon?: boolean;
   className?: string;
   disabled?: boolean;
@@ -20,11 +21,12 @@ const COPIED_LABEL = 'Copied \u2713';
 const FAILED_LABEL = 'Failed \u2717';
 
 export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function CopyButton(
-  { text, idleLabel = 'Copy', showIcon = true, className, disabled },
+  { text, idleLabel = 'Copy', ariaLabel, showIcon = true, className, disabled },
   ref,
 ) {
   const [status, setStatus] = useState<CopyButtonStatus>('idle');
   const rootRef = useRef<HTMLButtonElement>(null);
+  const resolvedAriaLabel = ariaLabel?.trim() || idleLabel.trim() || 'Copy';
 
   useArtifactThemeGuard('CopyButton', rootRef);
 
@@ -74,6 +76,7 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
       type="button"
       onClick={handleCopy}
       disabled={disabled}
+      aria-label={resolvedAriaLabel}
       className={[
         'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
         'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',

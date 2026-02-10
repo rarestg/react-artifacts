@@ -1,5 +1,5 @@
 import { RedoDot, UndoDot } from 'lucide-react';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useId, useMemo, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
 import StatusTag from '../../components/StatusTag';
@@ -266,6 +266,7 @@ const headerActionClass = [
   'border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
   'hover:bg-[var(--surface-strong)]',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+  'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:bg-[var(--surface)]',
 ].join(' ');
 
 const segmentBase = [
@@ -282,6 +283,7 @@ const segmentInactive = 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[
 // ---------------------------------------------------------------------------
 
 export default function MessageUnescaper() {
+  const inputLabelId = useId();
   const [input, setInput] = useState('');
   const [direction, setDirection] = useState<Direction>('unescape');
   const [wrapOutput, setWrapOutput] = useState(true);
@@ -424,7 +426,12 @@ export default function MessageUnescaper() {
             <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
               <div className={panelHeaderRowClass}>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Input</div>
+                  <div
+                    id={inputLabelId}
+                    className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]"
+                  >
+                    Input
+                  </div>
                   <div className={panelHeaderSubtitleClass}>
                     <span>{formatStatsLine(inputStats.chars, inputStats.lines)}</span>
                   </div>
@@ -435,6 +442,7 @@ export default function MessageUnescaper() {
               </div>
               <div className="px-4 py-4">
                 <textarea
+                  aria-labelledby={inputLabelId}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   placeholder={direction === 'unescape' ? 'Paste escaped text here...' : 'Paste text to escape here...'}

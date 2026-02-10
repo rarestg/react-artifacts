@@ -698,6 +698,7 @@ function Panel({ children, variant = 'default', className }: PanelProps) {
 
 // ============================================
 // PRIMITIVES: COPY BUTTON
+// TODO: Replace with shared src/components/CopyButton once consolidated.
 // ============================================
 function CopyButton({ text, idleLabel = 'Copy', showIcon = true, className }: CopyButtonProps) {
   const [status, setStatus] = useState<CopyButtonStatus>('idle');

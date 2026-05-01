@@ -144,8 +144,28 @@ Suggested values:
   --category-lime-weak: #ecfccb;
 }
 
-// Note: blue/green/amber/violet/red currently alias the semantic palette.
-// Cyan/pink/lime are extra categorical slots for non-status classification.
+.dark .artifact-theme {
+  --category-blue: #60a5fa;
+  --category-green: #34d399;
+  --category-amber: #fbbf24;
+  --category-violet: #c084fc;
+  --category-red: #fb7185;
+  --category-cyan: #22d3ee;
+  --category-pink: #f472b6;
+  --category-lime: #a3e635;
+
+  --category-blue-weak: #1e3a8a;
+  --category-green-weak: #064e3b;
+  --category-amber-weak: #78350f;
+  --category-violet-weak: #4c1d95;
+  --category-red-weak: #881337;
+  --category-cyan-weak: #164e63;
+  --category-pink-weak: #831843;
+  --category-lime-weak: #365314;
+}
+
+/* Note: light mode keeps blue/green/amber/violet/red aligned with semantic tokens. */
+/* Dark mode uses explicit category values to keep selected category surfaces stable. */
 ```
 
 Usage guidelines:

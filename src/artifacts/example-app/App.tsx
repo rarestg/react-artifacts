@@ -22,7 +22,6 @@ const themeSwatches = [
     label: 'Accent',
     weakBg: 'bg-[var(--accent-weak)]',
     strongBg: 'bg-[var(--accent)]',
-    text: 'text-[var(--accent)]',
     border: 'border-[color:var(--accent)]',
   },
   {
@@ -30,7 +29,6 @@ const themeSwatches = [
     label: 'Success',
     weakBg: 'bg-[var(--success-weak)]',
     strongBg: 'bg-[var(--success)]',
-    text: 'text-[var(--success)]',
     border: 'border-[color:var(--success)]',
   },
   {
@@ -38,7 +36,6 @@ const themeSwatches = [
     label: 'Warning',
     weakBg: 'bg-[var(--warning-weak)]',
     strongBg: 'bg-[var(--warning)]',
-    text: 'text-[var(--warning)]',
     border: 'border-[color:var(--warning)]',
   },
   {
@@ -46,7 +43,6 @@ const themeSwatches = [
     label: 'Danger',
     weakBg: 'bg-[var(--danger-weak)]',
     strongBg: 'bg-[var(--danger)]',
-    text: 'text-[var(--danger)]',
     border: 'border-[color:var(--danger)]',
   },
   {
@@ -54,7 +50,6 @@ const themeSwatches = [
     label: 'Info',
     weakBg: 'bg-[var(--info-weak)]',
     strongBg: 'bg-[var(--info)]',
-    text: 'text-[var(--info)]',
     border: 'border-[color:var(--info)]',
   },
 ] as const;
@@ -67,7 +62,6 @@ const categorySwatches = [
     label: 'User',
     weakBg: 'bg-[var(--category-blue-weak)]',
     strongBg: 'bg-[var(--category-blue)]',
-    text: 'text-[var(--category-blue)]',
     border: 'border-[color:var(--category-blue)]',
   },
   {
@@ -75,7 +69,6 @@ const categorySwatches = [
     label: 'Assistant',
     weakBg: 'bg-[var(--category-green-weak)]',
     strongBg: 'bg-[var(--category-green)]',
-    text: 'text-[var(--category-green)]',
     border: 'border-[color:var(--category-green)]',
   },
   {
@@ -83,7 +76,6 @@ const categorySwatches = [
     label: 'Thinking',
     weakBg: 'bg-[var(--category-amber-weak)]',
     strongBg: 'bg-[var(--category-amber)]',
-    text: 'text-[var(--category-amber)]',
     border: 'border-[color:var(--category-amber)]',
   },
   {
@@ -91,7 +83,6 @@ const categorySwatches = [
     label: 'Tool',
     weakBg: 'bg-[var(--category-violet-weak)]',
     strongBg: 'bg-[var(--category-violet)]',
-    text: 'text-[var(--category-violet)]',
     border: 'border-[color:var(--category-violet)]',
   },
   {
@@ -99,7 +90,6 @@ const categorySwatches = [
     label: 'Critical',
     weakBg: 'bg-[var(--category-red-weak)]',
     strongBg: 'bg-[var(--category-red)]',
-    text: 'text-[var(--category-red)]',
     border: 'border-[color:var(--category-red)]',
   },
   {
@@ -107,7 +97,6 @@ const categorySwatches = [
     label: 'System',
     weakBg: 'bg-[var(--category-cyan-weak)]',
     strongBg: 'bg-[var(--category-cyan)]',
-    text: 'text-[var(--category-cyan)]',
     border: 'border-[color:var(--category-cyan)]',
   },
   {
@@ -115,7 +104,6 @@ const categorySwatches = [
     label: 'Note',
     weakBg: 'bg-[var(--category-pink-weak)]',
     strongBg: 'bg-[var(--category-pink)]',
-    text: 'text-[var(--category-pink)]',
     border: 'border-[color:var(--category-pink)]',
   },
   {
@@ -123,7 +111,6 @@ const categorySwatches = [
     label: 'Marker',
     weakBg: 'bg-[var(--category-lime-weak)]',
     strongBg: 'bg-[var(--category-lime)]',
-    text: 'text-[var(--category-lime)]',
     border: 'border-[color:var(--category-lime)]',
   },
 ] as const;

@@ -27,6 +27,18 @@ Planned files:
 - `search.ts`: Fuse options, search result helpers, snippet/highlight helpers.
 - `PROMPT_REFINEMENT.md`: maintainer guidance for refining prompts before adding them.
 
+`meta.ts` exports:
+
+```ts
+const meta = {
+  name: 'Prompt Library',
+  subtitle: 'Curated agentic development prompts',
+  kind: 'app',
+} as const;
+
+export default meta;
+```
+
 This structure keeps prompt content separate from UI logic and keeps the search layer replaceable.
 
 ## Data Model
@@ -42,27 +54,66 @@ Prompt entries are static TypeScript data. Each entry includes:
 
 Tags are a small curated set defined once in code. Workflow stage is represented as a tag rather than a separate category field. This keeps the taxonomy flat and prevents parallel grouping systems.
 
-Initial curated tags:
+Initial curated tags, in display order:
 
-- `review`
-- `subagents`
-- `risk`
-- `architecture`
-- `implementation`
+| ID | Label | Description |
+| --- | --- | --- |
+| `review` | Review | Prompts used while assessing completed work, code feedback, risks, or proposed changes. |
+| `implementation` | Implementation | Prompts used while planning, executing, or changing implementation work. |
+| `subagents` | Subagents | Prompts that dispatch or coordinate a fresh subagent. |
+| `risk` | Risk | Prompts that examine residual risk, assumptions, constraints, and mitigation paths. |
+| `architecture` | Architecture | Prompts that evaluate design cleanliness, maintainability, and larger structural alternatives. |
+
+Every prompt must have at least one high-level workflow tag such as `review` or `implementation`. Topical tags such as `subagents`, `risk`, and `architecture` are optional. This is a validation convention, not a separate category field.
+
+Tag filters use AND semantics. Selecting `Review` and `Subagents` shows prompts that have both tags. Tag chips display label, selected state, and result count for the currently visible corpus.
 
 The tag list can be updated through repo changes as the library grows.
 
 ## Initial Prompt Content
 
-Seed the library with two prompts from the design discussion:
+Seed the library with these two prompt entries:
 
-1. **Risk-Challenging Discovery**
-   - Use after an implementation/review signoff identifies residual risks.
-   - The copied prompt asks the current agent to dispatch a fresh subagent for a first-principles review of the residual risks, with enough context to challenge assumptions and recommend the best path forward.
+```ts
+export const prompts = [
+  {
+    id: 'risk-challenging-discovery',
+    title: 'Risk-Challenging Discovery',
+    summary: 'Dispatch a fresh subagent to challenge residual-risk assumptions.',
+    tags: ['review', 'subagents', 'risk'],
+    context:
+      'Use after an implementation or review signoff identifies residual risks and you want a fresh reviewer to test whether those risks can be reduced without unnecessary churn.',
+    prompt: `Please dispatch a fresh subagent to do a first-principles review of the residual risks you identified.
 
-2. **Proposal Review Subagent**
-   - Use after an agent has assessed feedback and proposed a solution, especially when the design tradeoffs may be subtle.
-   - The copied prompt is refined from the provided draft. It asks the current agent to dispatch a fresh subagent, give them context on the issue and proposed solution, have them independently assess soundness, and invite a simpler or more maintainable alternative if the evidence supports one.
+Give them enough context to understand each risk deeply: where it lives, why it arose, what assumptions or constraints shaped the current implementation, and what fixes you currently think are plausible.
+Make clear that those fixes are context, not conclusions.
+
+Ask them to challenge the assumptions behind the risks and look for whether there is a cleaner way to eliminate or reduce them. They should distinguish real constraints from accidental ones, and consider both small targeted changes and larger design shifts.
+
+They should not manufacture work. "No changes necessary," "the current architecture is already the right fit," or "a couple of small de-risking changes are enough" are all valid answers if the evidence supports them. The point is to weigh the opportunity honestly against complexity, churn, and risk.
+
+After they report back, compare their findings with your own view and recommend the best path forward.`,
+  },
+  {
+    id: 'proposal-review-subagent',
+    title: 'Proposal Review Subagent',
+    summary: 'Ask a fresh subagent to validate or improve a proposed solution.',
+    tags: ['review', 'subagents', 'architecture'],
+    context:
+      'Use after an agent has assessed feedback and proposed a solution, especially when the design tradeoffs are subtle or a cleaner architecture may exist.',
+    prompt: `Please dispatch a fresh subagent to review this issue and the solution you proposed.
+
+Give them enough context to understand the original feedback or concern, the relevant code or architecture area, why the issue matters, the solution you currently recommend, and the tradeoffs, constraints, or assumptions behind that recommendation.
+Make clear that your proposed solution is context, not a conclusion.
+
+Ask them to investigate from first principles whether the proposal is sound. They should look for failure modes, hidden coupling, simpler targeted fixes, and any cleaner long-term design shift that would improve correctness, maintainability, or architecture.
+
+They should not manufacture work. "The proposed solution is the right fit," "a smaller change is enough," and "no change is needed" are valid answers if the evidence supports them.
+
+After they report back, compare their findings with your own view and recommend the best path forward.`,
+  },
+] as const;
+```
 
 The long conversation example used to motivate the second prompt does not appear in the UI. It informs the prompt wording and context only.
 
@@ -77,7 +128,7 @@ Default screen:
 - Tag filter row using stable checkbox-like chips.
 - Prompt board as a responsive grid of prompt notes.
 - Notes show title, summary, context preview, tags, and a stable copy action.
-- Notes can be grouped under tag headings when useful, but filtering remains the primary organization mechanism.
+- V1 does not group notes under tag headings because prompts can have multiple tags and grouping would duplicate cards. Filtering remains the primary organization mechanism.
 - Empty state explains that no prompts match the active filters.
 
 Prompt detail:
@@ -85,11 +136,14 @@ Prompt detail:
 - Opening/selecting a note reveals the full prompt text without navigating away from the artifact.
 - The full prompt view is an opaque bordered detail dialog. It includes title, summary, usage context, tags, literal prompt text, and a primary copy action.
 - Selecting a command-palette result closes the palette and opens the same detail dialog.
+- Both the command palette and detail dialog must mount inside the `ArtifactThemeRoot` boundary so portals inherit artifact tokens.
+- The detail dialog traps focus while open, closes with Escape and an explicit close button, sets initial focus to the dialog heading or copy button, returns focus to the invoking note/result on close, and contains prompt-body scrolling inside the dialog surface.
 
 Copy behavior:
 
 - Copy buttons copy only the prompt body.
 - Copy feedback must be stable and avoid layout shift.
+- Copy success and failure states are announced with `aria-live`. On failure, the feedback says the copy failed and leaves the prompt text selectable so the user can copy manually.
 - Prefer existing shared copy patterns where they fit.
 
 ## Search And Command Palette
@@ -118,7 +172,8 @@ Search behavior:
 - Fuse searches the tag-filtered prompt list.
 - Empty query in the palette shows all tag-filtered prompts in source order.
 - Non-empty query shows ranked Fuse results.
-- Results show highlighted title/summary and a highlighted snippet from `context` or `prompt`.
+- Results show highlighted title/summary and a highlighted snippet from the highest-priority matched field in this order: `summary`, `context`, `prompt`.
+- If a result matches only tags, the result shows the matching tag chip as highlighted and uses the context preview as the snippet.
 - Detail view highlights matches in title, summary, context, and prompt body when opened from an active search result.
 
 Initial Fuse options:
@@ -141,7 +196,7 @@ Initial Fuse options:
 }
 ```
 
-Use Fuse's inclusive `[start, end]` match indices when rendering highlights.
+Use Fuse's inclusive `[start, end]` match indices when rendering highlights. Highlight rendering must preserve prompt whitespace with literal text nodes and `<mark>` wrappers only. Copy actions always use the raw `prompt` string, never rendered DOM text.
 
 ## Prompt Refinement Guide
 

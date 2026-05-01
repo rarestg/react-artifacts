@@ -93,7 +93,6 @@ export type PromptTag = {
   id: PromptTagId;
   label: string;
   description: string;
-  kind: 'workflow' | 'topic';
 };
 
 export type PromptEntry = {
@@ -110,37 +109,30 @@ export const promptTags = [
     id: 'review',
     label: 'Review',
     description: 'Prompts used while assessing completed work, code feedback, risks, or proposed changes.',
-    kind: 'workflow',
   },
   {
     id: 'implementation',
     label: 'Implementation',
     description: 'Prompts used while planning, executing, or changing implementation work.',
-    kind: 'workflow',
   },
   {
     id: 'subagents',
     label: 'Subagents',
     description: 'Prompts that dispatch or coordinate a fresh subagent.',
-    kind: 'topic',
   },
   {
     id: 'risk',
     label: 'Risk',
     description: 'Prompts that examine residual risk, assumptions, constraints, and mitigation paths.',
-    kind: 'topic',
   },
   {
     id: 'architecture',
     label: 'Architecture',
     description: 'Prompts that evaluate design cleanliness, maintainability, and larger structural alternatives.',
-    kind: 'topic',
   },
 ] as const satisfies readonly PromptTag[];
 
-const workflowTagIds = new Set<PromptTagId>(
-  promptTags.filter((tag) => tag.kind === 'workflow').map((tag) => tag.id),
-);
+const workflowTagIds = new Set<PromptTagId>(['review', 'implementation']);
 
 export const prompts = [
   {
@@ -320,6 +312,19 @@ test('searchPrompts searches title, tags, context, and prompt body with highligh
   assert.ok(results[0]?.matches.some((match) => match.key === 'summary' || match.key === 'context' || match.key === 'prompt'));
 });
 
+test('searchPrompts supports title-only matches', () => {
+  const results = searchPrompts(prompts, 'proposal review');
+
+  assert.equal(results[0]?.prompt.id, 'proposal-review-subagent');
+  assert.ok(results[0]?.matches.some((match) => match.key === 'title'));
+});
+
+test('searchPrompts returns an empty list when nothing matches', () => {
+  const results = searchPrompts(prompts, 'zzzzzz-no-prompt');
+
+  assert.deepEqual(results, []);
+});
+
 test('searchPrompts returns source order for an empty query', () => {
   const results = searchPrompts(prompts, '   ');
 
@@ -359,6 +364,16 @@ test('pickResultSnippet prefers summary, then context, then prompt', () => {
   const snippet = pickResultSnippet(result);
   assert.equal(snippet.field, 'summary');
   assert.match(snippet.text, /validate/i);
+});
+
+test('tag filtering composes with search input', () => {
+  const filtered = filterPromptsByTags(prompts, ['architecture']);
+  const results = searchPrompts(filtered, 'subagent');
+
+  assert.deepEqual(
+    results.map((result) => result.prompt.id),
+    ['proposal-review-subagent'],
+  );
 });
 ```
 
@@ -567,7 +582,7 @@ node --import tsx --test tests/prompt-library/search.test.ts
 Expected:
 
 ```text
-# pass 6
+# pass 9
 # fail 0
 ```
 
@@ -609,7 +624,7 @@ import { CopyButton } from '../../components/CopyButton';
 import { getPromptTag, prompts, promptTags, type PromptEntry, type PromptTagId } from './prompts';
 import { filterPromptsByTags } from './search';
 
-const rootClass = 'min-h-screen bg-[var(--surface-muted)] text-[var(--text)]';
+const rootClass = 'relative min-h-screen overflow-hidden bg-[var(--surface-muted)] text-[var(--text)]';
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
 const focusClass =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
@@ -617,8 +632,14 @@ const focusClass =
 export default function PromptLibrary() {
   const [selectedTags, setSelectedTags] = useState<PromptTagId[]>([]);
   const [activePrompt, setActivePrompt] = useState<PromptEntry | null>(null);
+  const detailReturnFocusRef = useRef<HTMLElement | null>(null);
 
   const visiblePrompts = useMemo(() => filterPromptsByTags(prompts, selectedTags), [selectedTags]);
+
+  const openPromptDetail = (prompt: PromptEntry, opener: HTMLElement | null) => {
+    detailReturnFocusRef.current = opener;
+    setActivePrompt(prompt);
+  };
 
   const toggleTag = (tag: PromptTagId, checked: boolean) => {
     setSelectedTags((current) =>
@@ -690,7 +711,7 @@ export default function PromptLibrary() {
           {visiblePrompts.length ? (
             <section className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] gap-3">
               {visiblePrompts.map((prompt) => (
-                <PromptCard key={prompt.id} prompt={prompt} onOpen={() => setActivePrompt(prompt)} />
+                <PromptCard key={prompt.id} prompt={prompt} onOpen={(opener) => openPromptDetail(prompt, opener)} />
               ))}
             </section>
           ) : (
@@ -701,18 +722,24 @@ export default function PromptLibrary() {
         </main>
       </div>
 
-      {activePrompt && <PromptDetailDialog prompt={activePrompt} onClose={() => setActivePrompt(null)} />}
+      {activePrompt && (
+        <PromptDetailDialog
+          prompt={activePrompt}
+          returnFocusTo={detailReturnFocusRef.current}
+          onClose={() => setActivePrompt(null)}
+        />
+      )}
     </ArtifactThemeRoot>
   );
 }
 
-function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: () => void }) {
+function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: HTMLElement) => void }) {
   return (
     <article className={['flex min-h-56 flex-col gap-4 p-4', panelClass].join(' ')}>
       <div className="flex items-start justify-between gap-3">
         <button
           type="button"
-          onClick={onOpen}
+          onClick={(event) => onOpen(event.currentTarget)}
           className={['min-w-0 text-left text-sm font-semibold text-[var(--text)] hover:underline', focusClass].join(
             ' ',
           )}
@@ -760,17 +787,34 @@ function PromptTags({
   );
 }
 
-function PromptDetailDialog({ prompt, onClose }: { prompt: PromptEntry; onClose: () => void }) {
+function PromptDetailDialog({
+  prompt,
+  returnFocusTo,
+  fallbackFocusTo = null,
+  onClose,
+}: {
+  prompt: PromptEntry;
+  returnFocusTo: HTMLElement | null;
+  fallbackFocusTo?: HTMLElement | null;
+  onClose: () => void;
+}) {
   const headingId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeButtonRef.current?.focus();
-    return () => previousFocusRef.current?.focus();
-  }, []);
+    headingRef.current?.focus();
+    return () => {
+      if (returnFocusTo?.isConnected) {
+        returnFocusTo.focus();
+        return;
+      }
+
+      if (fallbackFocusTo?.isConnected) {
+        fallbackFocusTo.focus();
+      }
+    };
+  }, [fallbackFocusTo, returnFocusTo]);
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
@@ -805,24 +849,23 @@ function PromptDetailDialog({ prompt, onClose }: { prompt: PromptEntry; onClose:
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center bg-[var(--overlay)] p-4">
+    <div className="absolute inset-0 z-40 flex items-start justify-center overflow-y-auto bg-[var(--overlay)] p-4">
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}
         onKeyDown={handleKeyDown}
-        className="flex max-h-[calc(100vh-2rem)] w-[min(46rem,100%)] flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
+        className="flex max-h-full w-full max-w-[46rem] flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
       >
         <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
           <div className="min-w-0">
-            <h2 id={headingId} className="text-base font-semibold">
+            <h2 ref={headingRef} id={headingId} tabIndex={-1} className={['text-base font-semibold', focusClass].join(' ')}>
               {prompt.title}
             </h2>
             <p className="mt-1 text-sm text-[var(--text-muted)]">{prompt.summary}</p>
           </div>
           <button
-            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label="Close prompt details"
@@ -940,7 +983,7 @@ node --import tsx --test tests/prompt-library/search.test.ts
 Expected:
 
 ```text
-# pass 7
+# pass 10
 # fail 0
 ```
 
@@ -969,6 +1012,7 @@ const [searchOpen, setSearchOpen] = useState(false);
 const [searchQuery, setSearchQuery] = useState('');
 const [activeSearchResult, setActiveSearchResult] = useState<PromptSearchResult | null>(null);
 const themePortalRef = useRef<HTMLDivElement>(null);
+const searchButtonRef = useRef<HTMLButtonElement>(null);
 const searchResults = useMemo(() => searchPrompts(visiblePrompts, searchQuery), [visiblePrompts, searchQuery]);
 ```
 
@@ -992,6 +1036,7 @@ Replace the disabled search button with:
 
 ```tsx
 <button
+  ref={searchButtonRef}
   type="button"
   onClick={() => setSearchOpen(true)}
   className={[
@@ -1015,6 +1060,8 @@ Render the palette and portal container before the closing `</ArtifactThemeRoot>
   <PromptDetailDialog
     prompt={activePrompt}
     searchResult={activeSearchResult}
+    returnFocusTo={detailReturnFocusRef.current}
+    fallbackFocusTo={searchButtonRef.current}
     onClose={() => {
       setActivePrompt(null);
       setActiveSearchResult(null);
@@ -1028,13 +1075,14 @@ Render the palette and portal container before the closing `</ArtifactThemeRoot>
   results={searchResults}
   onOpenChange={setSearchOpen}
   onQueryChange={setSearchQuery}
-  onSelectPrompt={(prompt, result) => {
+  onSelectPrompt={(prompt, result, opener) => {
+    detailReturnFocusRef.current = opener;
     setActivePrompt(prompt);
     setActiveSearchResult(result);
     setSearchOpen(false);
   }}
 />
-<div ref={themePortalRef} />
+<div ref={themePortalRef} className="pointer-events-none absolute inset-0" />
 ```
 
 Update the board card `onOpen` handler so direct card opens clear stale search highlights:
@@ -1043,7 +1091,8 @@ Update the board card `onOpen` handler so direct card opens clear stale search h
 <PromptCard
   key={prompt.id}
   prompt={prompt}
-  onOpen={() => {
+  onOpen={(opener) => {
+    detailReturnFocusRef.current = opener;
     setActivePrompt(prompt);
     setActiveSearchResult(null);
   }}
@@ -1072,7 +1121,7 @@ function PromptCommandPalette({
   results: readonly PromptSearchResult[];
   onOpenChange: (open: boolean) => void;
   onQueryChange: (query: string) => void;
-  onSelectPrompt: (prompt: PromptEntry, result: PromptSearchResult) => void;
+  onSelectPrompt: (prompt: PromptEntry, result: PromptSearchResult, opener: HTMLElement | null) => void;
 }) {
   return (
     <Command.Dialog
@@ -1081,7 +1130,8 @@ function PromptCommandPalette({
       onOpenChange={onOpenChange}
       shouldFilter={false}
       label="Search prompts"
-      className="fixed left-1/2 top-8 z-50 flex max-h-[min(34rem,calc(100vh-4rem))] w-[min(42rem,calc(100vw-2rem))] -translate-x-1/2 flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
+      overlayClassName="pointer-events-auto absolute inset-0 z-40 bg-[var(--overlay)]"
+      contentClassName="pointer-events-auto absolute left-1/2 top-4 z-50 flex max-h-[calc(100%-2rem)] w-[calc(100%-2rem)] max-w-[42rem] -translate-x-1/2 flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
     >
       <div className="border-b border-[var(--border)] px-3 py-3">
         <Command.Input
@@ -1097,12 +1147,18 @@ function PromptCommandPalette({
           <Command.Item
             key={result.prompt.id}
             value={result.prompt.id}
-            onSelect={() => onSelectPrompt(result.prompt, result)}
+            onSelect={() => {
+              const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+              onSelectPrompt(result.prompt, result, opener);
+            }}
             className="cursor-pointer border border-transparent px-3 py-2 text-left data-[selected=true]:border-[var(--accent)] data-[selected=true]:bg-[var(--accent-weak)]"
           >
             <div className="flex min-w-0 flex-col gap-1">
               <div className="font-medium">
                 <HighlightedText text={result.prompt.title} indices={getMatchForKey(result, 'title')?.indices ?? []} />
+              </div>
+              <div className="text-xs text-[var(--text)]">
+                <HighlightedText text={result.prompt.summary} indices={getMatchForKey(result, 'summary')?.indices ?? []} />
               </div>
               <div className="text-xs text-[var(--text-muted)]">
                 <ResultSnippet result={result} />
@@ -1149,15 +1205,19 @@ Update `PromptDetailDialog` to accept `searchResult`:
 function PromptDetailDialog({
   prompt,
   searchResult,
+  returnFocusTo,
+  fallbackFocusTo = null,
   onClose,
 }: {
   prompt: PromptEntry;
   searchResult?: PromptSearchResult | null;
+  returnFocusTo: HTMLElement | null;
+  fallbackFocusTo?: HTMLElement | null;
   onClose: () => void;
 }) {
 ```
 
-Add these constants after `previousFocusRef`:
+Add these constants after `headingRef`:
 
 ```tsx
   const titleMatch = searchResult ? getMatchForKey(searchResult, 'title') : undefined;
@@ -1169,7 +1229,7 @@ Add these constants after `previousFocusRef`:
 Replace the plain title, summary, context, and prompt-body render sites with:
 
 ```tsx
-<h2 id={headingId} className="text-base font-semibold">
+<h2 ref={headingRef} id={headingId} tabIndex={-1} className={['text-base font-semibold', focusClass].join(' ')}>
   <HighlightedText text={prompt.title} indices={titleMatch?.indices ?? []} />
 </h2>
 <p className="mt-1 text-sm text-[var(--text-muted)]">
@@ -1281,6 +1341,7 @@ Open the app and select the `Prompt Library` artifact. Validate:
 - `Ctrl+K` or `Cmd+K` opens the command palette.
 - Searching `residual risks` highlights a result and opens `Risk-Challenging Discovery`.
 - Searching `subagents` shows highlighted tag chips and context snippets.
+- Searching `zzzzzz-no-prompt` shows the command palette empty state without changing selected tags.
 - Light and dark shell themes keep board, dialog, and palette readable.
 - iPhone/iPad preview sizes do not break board layout or command palette.
 

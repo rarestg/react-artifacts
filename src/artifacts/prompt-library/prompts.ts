@@ -1,9 +1,12 @@
 export type PromptTagId = 'review' | 'implementation' | 'subagents' | 'risk' | 'architecture';
 
+export type PromptTagColorId = 'blue' | 'green' | 'amber' | 'violet' | 'red' | 'cyan' | 'pink' | 'lime';
+
 export type PromptTag = {
   id: PromptTagId;
   label: string;
   description: string;
+  color: PromptTagColorId;
 };
 
 export type PromptEntry = {
@@ -20,28 +23,44 @@ export const promptTags = [
     id: 'review',
     label: 'Review',
     description: 'Prompts used while assessing completed work, code feedback, risks, or proposed changes.',
+    color: 'blue',
   },
   {
     id: 'implementation',
     label: 'Implementation',
     description: 'Prompts used while planning, executing, or changing implementation work.',
+    color: 'green',
   },
   {
     id: 'subagents',
     label: 'Subagents',
     description: 'Prompts that dispatch or coordinate a fresh subagent.',
+    color: 'violet',
   },
   {
     id: 'risk',
     label: 'Risk',
     description: 'Prompts that examine residual risk, assumptions, constraints, and mitigation paths.',
+    color: 'red',
   },
   {
     id: 'architecture',
     label: 'Architecture',
     description: 'Prompts that evaluate design cleanliness, maintainability, and larger structural alternatives.',
+    color: 'cyan',
   },
 ] as const satisfies readonly PromptTag[];
+
+const promptTagColorIds = new Set<PromptTagColorId>([
+  'blue',
+  'green',
+  'amber',
+  'violet',
+  'red',
+  'cyan',
+  'pink',
+  'lime',
+]);
 
 const workflowTagIds = new Set<PromptTagId>(['review', 'implementation']);
 
@@ -128,9 +147,23 @@ export function hasWorkflowTag(prompt: PromptEntry): boolean {
   return prompt.tags.some((tag) => workflowTagIds.has(tag));
 }
 
-export function validatePrompts(entries: readonly PromptEntry[] = prompts): void {
+export function validatePrompts(
+  entries: readonly PromptEntry[] = prompts,
+  tags: readonly PromptTag[] = promptTags,
+): void {
   const ids = new Set<string>();
-  const tagIds = new Set<PromptTagId>(promptTags.map((tag) => tag.id));
+  const tagIds = new Set<PromptTagId>();
+
+  for (const tag of tags) {
+    if (tagIds.has(tag.id)) {
+      throw new Error(`Duplicate prompt tag id: ${tag.id}`);
+    }
+    tagIds.add(tag.id);
+
+    if (!promptTagColorIds.has(tag.color)) {
+      throw new Error(`Prompt tag "${tag.id}" uses unknown tag color: ${tag.color}`);
+    }
+  }
 
   for (const entry of entries) {
     if (ids.has(entry.id)) {

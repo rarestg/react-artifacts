@@ -108,7 +108,7 @@ export default function PromptLibrary() {
               <Search className="h-4 w-4" aria-hidden="true" />
               Search
               <span className="border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
-                Ctrl K
+                Cmd/Ctrl+K
               </span>
             </button>
           </div>
@@ -352,7 +352,7 @@ function HighlightedText({ text, indices = [] }: { text: string; indices?: Highl
     <>
       {keyedSegments.map((segment) =>
         segment.highlighted ? (
-          <mark key={segment.key} className="bg-[var(--highlight)] px-0.5 text-[var(--text)] decoration-transparent">
+          <mark key={segment.key} className="bg-[var(--highlight)] text-[var(--text)] decoration-transparent">
             {segment.text}
           </mark>
         ) : (

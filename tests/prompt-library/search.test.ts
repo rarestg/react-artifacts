@@ -145,13 +145,25 @@ test('searchPrompts returns source order for an empty query', () => {
   assert.deepEqual(results[0]?.matches, []);
 });
 
+test('searchPrompts clamps negative limits to an empty result set', () => {
+  assert.deepEqual(searchPrompts(prompts, '   ', -1), []);
+  assert.deepEqual(searchPrompts(prompts, 'residual risks', -1), []);
+});
+
 test('makeSnippet adjusts inclusive match ranges', () => {
   const snippet = makeSnippet('0123456789abcdefghij', [[10, 12]], 4);
 
-  assert.equal(snippet.text, '6789abcd');
+  assert.equal(snippet.text, '6789abcdefg');
   assert.equal(snippet.leadingEllipsis, true);
   assert.equal(snippet.trailingEllipsis, true);
   assert.deepEqual(snippet.indices, [[4, 6]]);
+});
+
+test('makeSnippet keeps the first matched range visible when the match is longer than the radius', () => {
+  const snippet = makeSnippet('0123456789ABCDEFGHIJklmnop', [[10, 19]], 2);
+
+  assert.equal(snippet.text, '89ABCDEFGHIJkl');
+  assert.deepEqual(snippet.indices, [[2, 11]]);
 });
 
 test('getHighlightedSegments merges overlapping inclusive ranges', () => {

@@ -9,6 +9,34 @@ A local viewer for developing and refining React artifacts. Drop a folder into `
 - **Biome** for linting, formatting, and import organization
 - **lucide-react** for icons
 
+## Repo Map
+
+- `src/App.tsx` — viewer shell, sidebar controls, artifact selection, and device preview.
+- `src/artifacts.ts` — artifact discovery through `import.meta.glob`.
+- `src/artifacts/` — self-contained artifact folders.
+- `src/components/` — shared UI primitives.
+- `src/theme/` — shared artifact theme tokens.
+- `design/` — design philosophy, artifact design guidance, and UI implementation notes.
+- `worker/` — Cloudflare Worker API entry.
+- `tests/` — Node test runner tests.
+
+## Sources of Truth
+
+- Design philosophy: `design/SHARP_MINIMAL_DESIGN.md`
+- Practical artifact UI guidance: `design/ARTIFACT_DESIGN_GUIDE.md`
+- UI/layout decisions and recurring gotchas: `design/UI_IMPLEMENTATION_NOTES.md`
+- Scripts and local validation commands: `package.json`
+- CI behavior: `.github/workflows/ci.yml`
+- Deployment and Worker runtime config: `wrangler.jsonc`, `worker/index.ts`
+
+## Invariants
+
+- Artifacts export a React component from `index.tsx`; they do not mount to the DOM.
+- Artifact UI that uses shared tokenized components should be wrapped in `ArtifactThemeRoot`.
+- Device preview renders inside a fixed-size container; it is not a real browser viewport.
+- Worker binding or `wrangler.jsonc` changes require `npm run generate-types`.
+- Let Biome handle formatting and import organization instead of hand-formatting large edits.
+
 ## Getting Started
 
 ```bash
@@ -88,8 +116,8 @@ const meta = {
   name: 'My Artifact',
   subtitle: 'Short description',
   kind: 'single', // or 'app'
-  model: 'claude',
-  version: 'opus 4.5', // optional
+  model: 'model-name', // optional
+  version: 'model-version', // optional
 } as const;
 
 export default meta;
@@ -116,10 +144,12 @@ track the actual browser viewport (or when using DevTools device emulation).
 
 ## UI Implementation Notes (Living Guide)
 
-Before making UI/layout changes, skim the index in `design/UI_IMPLEMENTATION_NOTES.md` and read any relevant entries.
-Each index row includes a line range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
-If a UI decision takes back-and-forth to settle (layout, responsiveness, Tailwind patterns, etc.), add a new entry so we
-don’t re-litigate it later.
+Before making UI/layout changes, read `design/SHARP_MINIMAL_DESIGN.md` and `design/ARTIFACT_DESIGN_GUIDE.md`.
+Then skim the index in `design/UI_IMPLEMENTATION_NOTES.md` and read any relevant entries. Each index row includes a line
+range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
+
+Add a new implementation note only when a recurring decision or gotcha emerges, such as layout behavior,
+responsiveness, Tailwind patterns, or shared component usage that took back-and-forth to settle.
 
 To add a new entry:
 1) Draft the entry body as raw markdown in a temporary `.md` file (no top-level `##` heading).
@@ -182,7 +212,13 @@ TypeScript for the Worker uses Wrangler-generated types:
 
 ## Pre-PR Checks
 
-Before opening a PR, run:
+Before opening a PR, run the combined check:
+
+```bash
+npm run check
+```
+
+Equivalent individual commands:
 
 ```bash
 npm run lint
@@ -231,7 +267,7 @@ const meta = {
   name: 'My Artifact',
   subtitle: 'Short description',
   kind: 'single',
-  symbol: 'S',
+  model: 'model-name',
 } as const;
 
 export default meta;
@@ -249,6 +285,19 @@ Configured in `biome.json`:
 - **CSS**: Tailwind directives enabled
 - **Imports**: auto-organized on fix
 
-## Note to Self (Claude)
+## Formatting Workflow
 
-When making code changes — especially wrapping large sections of code or adjusting structure that affects indentation — just insert the syntactically correct pieces and let Biome handle formatting. Do not manually reformat surrounding code. Run `npx biome check --write <file>` after the edit instead (this also organizes imports).
+When making code changes — especially wrapping large sections or adjusting structure that affects indentation — insert the
+syntactically correct pieces and let Biome handle formatting. Do not manually reformat unrelated surrounding code.
+
+For targeted files:
+
+```bash
+npx biome check --write <file>
+```
+
+For broader cleanup:
+
+```bash
+npm run lint:fix
+```

@@ -1,3 +1,4 @@
+import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
 import { Search, X } from 'lucide-react';
 import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useId, useMemo, useRef, useState } from 'react';
@@ -234,6 +235,10 @@ function PromptCommandPalette({
       contentClassName="pointer-events-auto absolute left-1/2 top-4 z-50 flex max-h-[calc(100%-2rem)] w-[calc(100%-2rem)] max-w-[42rem] -translate-x-1/2 flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
       className="flex min-h-0 flex-col overflow-hidden"
     >
+      <DialogTitle className="sr-only">Search prompts</DialogTitle>
+      <DialogDescription className="sr-only">
+        Search the curated prompt library and open a prompt to copy or review.
+      </DialogDescription>
       <div className="flex items-center gap-2 border-b border-[var(--border)] px-3">
         <Search className="h-4 w-4 shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
         <Command.Input

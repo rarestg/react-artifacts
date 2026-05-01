@@ -49,10 +49,13 @@ export function filterPromptsByTags(
 }
 
 export function searchPrompts(entries: readonly PromptEntry[], query: string, limit = 50): PromptSearchResult[] {
+  const safeLimit = Number.isFinite(limit) ? Math.max(0, Math.trunc(limit)) : 50;
   const trimmedQuery = query.trim();
 
+  if (safeLimit === 0) return [];
+
   if (!trimmedQuery) {
-    return entries.slice(0, limit).map((prompt, refIndex) => ({
+    return entries.slice(0, safeLimit).map((prompt, refIndex) => ({
       prompt,
       matches: [],
       refIndex,
@@ -60,7 +63,7 @@ export function searchPrompts(entries: readonly PromptEntry[], query: string, li
   }
 
   const fuse = new Fuse(entries, promptFuseOptions);
-  return fuse.search(trimmedQuery, { limit }).map((result) => normalizeFuseResult(result));
+  return fuse.search(trimmedQuery, { limit: safeLimit }).map((result) => normalizeFuseResult(result));
 }
 
 export function getMatchForKey(result: PromptSearchResult, key: string): FuseResultMatch | undefined {
@@ -80,9 +83,9 @@ export function makeSnippet(text: string, indices: readonly MatchRange[], radius
   }
 
   const mergedIndices = mergeRanges(indices, text.length);
-  const [firstStart] = mergedIndices[0] ?? [0, 0];
+  const [firstStart, firstEnd] = mergedIndices[0] ?? [0, 0];
   const from = Math.max(0, firstStart - radius);
-  const to = Math.min(text.length, firstStart + radius);
+  const to = Math.min(text.length, firstEnd + radius + 1);
 
   return {
     field: 'prompt',

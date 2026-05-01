@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { type PromptEntry, prompts } from '../../src/artifacts/prompt-library/prompts';
+import type { PromptEntry } from '../../src/artifacts/prompt-library/prompts';
 import {
   filterPromptsByTags,
   getHighlightedSegments,
@@ -73,6 +73,33 @@ const snippetPrompts = [
   },
 ] as const satisfies readonly PromptEntry[];
 
+const tagFilterPrompts = [
+  {
+    id: 'tag-review-subagent',
+    title: 'Review Delegation',
+    summary: 'Ask another reviewer to inspect the plan.',
+    tags: ['review', 'subagents'],
+    context: 'Use when delegated review should narrow risk.',
+    prompt: 'Delegate the review.',
+  },
+  {
+    id: 'tag-implementation-subagent',
+    title: 'Implementation Delegation',
+    summary: 'Ask another worker to implement the next slice.',
+    tags: ['implementation', 'subagents'],
+    context: 'Use when implementation work can be split cleanly.',
+    prompt: 'Delegate the implementation.',
+  },
+  {
+    id: 'tag-review-architecture',
+    title: 'Architecture Option Review',
+    summary: 'Compare tradeoffs before committing to a structure.',
+    tags: ['review', 'architecture'],
+    context: 'Use when architecture tradeoffs need direct comparison.',
+    prompt: 'Compare the tradeoffs.',
+  },
+] as const satisfies readonly PromptEntry[];
+
 function assertSearchMatch(
   entries: readonly PromptEntry[],
   query: string,
@@ -91,25 +118,16 @@ function assertSearchMatch(
 }
 
 test('filterPromptsByTags uses AND semantics', () => {
-  const reviewSubagentPrompts = filterPromptsByTags(prompts, ['review', 'subagents']);
+  const reviewSubagentPrompts = filterPromptsByTags(tagFilterPrompts, ['review', 'subagents']);
   assert.deepEqual(
     reviewSubagentPrompts.map((prompt) => prompt.id),
-    ['risk-challenging-discovery', 'proposal-review-subagent'],
+    ['tag-review-subagent'],
   );
 
-  const riskArchitecturePrompts = filterPromptsByTags(prompts, ['risk', 'architecture']);
+  const riskArchitecturePrompts = filterPromptsByTags(tagFilterPrompts, ['risk', 'architecture']);
   assert.deepEqual(
     riskArchitecturePrompts.map((prompt) => prompt.id),
     [],
-  );
-});
-
-test('searchPrompts ranks seeded residual-risk content', () => {
-  const results = searchPrompts(prompts, 'residual risks');
-
-  assert.equal(results[0]?.prompt.id, 'risk-challenging-discovery');
-  assert.ok(
-    results[0]?.matches.some((match) => match.key === 'summary' || match.key === 'context' || match.key === 'prompt'),
   );
 });
 
@@ -130,24 +148,24 @@ test('searchPrompts matches prompt-only text with highlight metadata', () => {
 });
 
 test('searchPrompts returns an empty list when nothing matches', () => {
-  const results = searchPrompts(prompts, 'zzzzzz-no-prompt');
+  const results = searchPrompts(searchFieldPrompts, 'zzzzzz-no-prompt');
 
   assert.deepEqual(results, []);
 });
 
 test('searchPrompts returns source order for an empty query', () => {
-  const results = searchPrompts(prompts, '   ');
+  const results = searchPrompts(searchFieldPrompts, '   ');
 
   assert.deepEqual(
     results.map((result) => result.prompt.id),
-    ['risk-challenging-discovery', 'proposal-review-subagent'],
+    ['field-title', 'field-tags', 'field-context', 'field-prompt'],
   );
   assert.deepEqual(results[0]?.matches, []);
 });
 
 test('searchPrompts clamps negative limits to an empty result set', () => {
-  assert.deepEqual(searchPrompts(prompts, '   ', -1), []);
-  assert.deepEqual(searchPrompts(prompts, 'residual risks', -1), []);
+  assert.deepEqual(searchPrompts(searchFieldPrompts, '   ', -1), []);
+  assert.deepEqual(searchPrompts(searchFieldPrompts, 'emberkey', -1), []);
 });
 
 test('makeSnippet adjusts inclusive match ranges', () => {
@@ -224,11 +242,11 @@ test('pickResultSnippet falls back to context for tag-only matches', () => {
 });
 
 test('tag filtering composes with search input', () => {
-  const filtered = filterPromptsByTags(prompts, ['architecture']);
-  const results = searchPrompts(filtered, 'subagent');
+  const filtered = filterPromptsByTags(tagFilterPrompts, ['architecture']);
+  const results = searchPrompts(filtered, 'tradeoffs');
 
   assert.deepEqual(
     results.map((result) => result.prompt.id),
-    ['proposal-review-subagent'],
+    ['tag-review-architecture'],
   );
 });

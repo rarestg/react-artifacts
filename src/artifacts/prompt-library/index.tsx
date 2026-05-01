@@ -6,6 +6,7 @@ import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useId, useMemo, us
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Checkbox } from '../../components/Checkbox';
 import { CopyButton } from '../../components/CopyButton';
+import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { getPromptTag, type PromptEntry, type PromptTagId, prompts, promptTags } from './prompts';
 import {
   filterPromptsByTags,
@@ -20,6 +21,10 @@ const rootClass = 'relative min-h-screen overflow-hidden bg-[var(--surface-muted
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
 const focusClass =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+const shortcutKeyClass =
+  'inline-flex h-5 min-w-5 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-1.5 font-mono text-[10px] font-semibold leading-none text-[var(--text-muted)]';
+// The command glyph has more internal whitespace than Latin letters; size it optically so it balances with "K".
+const commandGlyphClass = 'text-[13px]';
 
 const focusableSelector = [
   'button:not([disabled])',
@@ -42,6 +47,7 @@ export default function PromptLibrary() {
   const themePortalRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
 
+  const searchShortcutHint = getPlatformShortcutHint('K');
   const visiblePrompts = useMemo(() => filterPromptsByTags(prompts, selectedTags), [selectedTags]);
   const searchResults = useMemo(() => searchPrompts(visiblePrompts, searchQuery), [searchQuery, visiblePrompts]);
 
@@ -98,6 +104,8 @@ export default function PromptLibrary() {
             <button
               ref={searchButtonRef}
               type="button"
+              aria-label={`Search (${searchShortcutHint.label})`}
+              aria-keyshortcuts="Meta+K Control+K"
               onClick={openSearchPalette}
               className={[
                 'inline-flex h-9 items-center gap-2 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)]',
@@ -107,8 +115,22 @@ export default function PromptLibrary() {
             >
               <Search className="h-4 w-4" aria-hidden="true" />
               Search
-              <span className="border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
-                Cmd/Ctrl+K
+              <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-muted)]" aria-hidden="true">
+                {searchShortcutHint.modifier === 'command' ? (
+                  <>
+                    <kbd className={shortcutKeyClass}>
+                      <span className={commandGlyphClass}>⌘</span>
+                    </kbd>
+                    <span>+</span>
+                    <kbd className={shortcutKeyClass}>{searchShortcutHint.key}</kbd>
+                  </>
+                ) : (
+                  <>
+                    <kbd className={shortcutKeyClass}>Ctrl</kbd>
+                    <span>+</span>
+                    <kbd className={shortcutKeyClass}>{searchShortcutHint.key}</kbd>
+                  </>
+                )}
               </span>
             </button>
           </div>

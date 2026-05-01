@@ -282,13 +282,23 @@ Change weak semantic values to:
   --info-weak: #4c1d95;
 ```
 
-Then add the new dark category overrides after the weak semantic values:
+Then add explicit dark category overrides after the weak semantic values. This prevents the later `@supports color-mix` block from indirectly changing approved category weak colors through semantic aliases such as `--accent-weak`.
 
 ```css
+  --category-blue: #60a5fa;
+  --category-green: #34d399;
+  --category-amber: #fbbf24;
+  --category-violet: #c084fc;
+  --category-red: #fb7185;
   --category-cyan: #22d3ee;
   --category-pink: #f472b6;
   --category-lime: #a3e635;
 
+  --category-blue-weak: #1e3a8a;
+  --category-green-weak: #064e3b;
+  --category-amber-weak: #78350f;
+  --category-violet-weak: #4c1d95;
+  --category-red-weak: #881337;
   --category-cyan-weak: #164e63;
   --category-pink-weak: #831843;
   --category-lime-weak: #365314;
@@ -384,7 +394,67 @@ In `src/artifacts/example-app/App.tsx`, replace the `activeCategorySwatches` ini
   });
 ```
 
-- [ ] **Step 5: Update sharp2 categorical token docs**
+- [ ] **Step 5: Make Example App active swatch labels contrast-safe**
+
+In `src/artifacts/example-app/App.tsx`, update both active swatch button renderers so selected text uses normal text color on weak colored backgrounds. Keep color visible through border and dot fill.
+
+In the Theme Colors button class list, replace:
+
+```tsx
+                  activeSwatches[swatch.id]
+                    ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
+                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+```
+
+with:
+
+```tsx
+                  activeSwatches[swatch.id]
+                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
+                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+```
+
+In the Theme Colors state chip, replace:
+
+```tsx
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} ${swatch.text} px-2 py-1 text-xs font-medium`}
+```
+
+with:
+
+```tsx
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
+```
+
+In the Message Colors button class list, replace:
+
+```tsx
+                  activeCategorySwatches[swatch.id]
+                    ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
+                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+```
+
+with:
+
+```tsx
+                  activeCategorySwatches[swatch.id]
+                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
+                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+```
+
+In the Message Colors type chip, replace:
+
+```tsx
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} ${swatch.text} px-2 py-1 text-xs font-medium`}
+```
+
+with:
+
+```tsx
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
+```
+
+- [ ] **Step 6: Update sharp2 categorical token docs**
 
 In `src/artifacts/sharp2/sharp2-migration-guide.md`, update the token list so it includes:
 
@@ -430,7 +500,7 @@ Change the note under the block to:
 // Cyan/pink/lime are extra categorical slots for non-status classification.
 ```
 
-- [ ] **Step 6: Run focused static checks**
+- [ ] **Step 7: Run focused static checks**
 
 Run:
 
@@ -448,7 +518,7 @@ npm run lint
 
 Expected: exit `0`.
 
-- [ ] **Step 7: Commit Task 2**
+- [ ] **Step 8: Commit Task 2**
 
 Run:
 
@@ -594,7 +664,16 @@ Pass the style and color-aware classes to `Checkbox`:
                   checked={checked}
                   onCheckedChange={(nextChecked) => toggleTag(tag.id, nextChecked)}
                   label={tag.label}
-                  suffix={<span className="font-mono text-[10px] text-[var(--text-muted)] tabular-nums">{count}</span>}
+                  suffix={
+                    <span
+                      className={[
+                        'font-mono text-[10px] tabular-nums',
+                        checked ? 'text-[var(--text)]' : 'text-[var(--text-muted)]',
+                      ].join(' ')}
+                    >
+                      {count}
+                    </span>
+                  }
                   style={tagColorStyle}
                   className={[
                     'border px-2 text-xs',
@@ -621,11 +700,11 @@ In `PromptTags`, add a color style for each tag and replace the chip markup with
             className={[
               'inline-flex items-center gap-1.5 border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em]',
               highlighted
-                ? 'border-[color:var(--prompt-tag-color)] bg-[var(--prompt-tag-color-weak)] text-[var(--text)]'
+                ? 'border-[color:var(--prompt-tag-color)] bg-[var(--surface-muted)] text-[var(--text)]'
                 : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
             ].join(' ')}
           >
-            <span className="h-1.5 w-1.5 shrink-0 bg-[var(--prompt-tag-color)]" aria-hidden="true" />
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--prompt-tag-color)]" aria-hidden="true" />
             {tag.label}
           </span>
         );
@@ -676,24 +755,37 @@ npm run check
 
 Expected: lint, typecheck, knip, and tests all exit `0`.
 
-- [ ] **Step 2: Start Vite for visual verification**
+- [ ] **Step 2: Identify shared danger/info token consumers**
 
-In this exe.dev VM, use the documented proxy pattern with host `vscode-623-lima.exe.xyz`:
+Run:
 
 ```bash
-__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=vscode-623-lima.exe.xyz npm run dev -- --host 0.0.0.0 --port 5173
+rg -n "var\\(--(danger|danger-weak|info|info-weak)\\)" src
 ```
 
-Expected: Vite reports a local server on port `5173`. Open:
+Expected: output identifies visible surfaces that use the shared status tokens. Use this output to decide which routes need visual spot checks after the token change. At minimum, check any matching artifacts among `example-app`, `sharp2`, `focus-compare`, `jsonl-structure-viewer`, and `example`.
+
+- [ ] **Step 3: Start Vite for visual verification**
+
+In this exe.dev VM, use the documented proxy pattern. Start with port `5173` and a host derived from the VM hostname:
+
+```bash
+VM_HOST="$(hostname).exe.xyz"
+__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS="$VM_HOST" npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+```
+
+Expected: Vite reports a local server on port `5173`. If port `5173` is already in use, choose another port between `3000` and `9999`, rerun the command with that port, and use the same port in the URLs below.
+
+Open the shell URLs, not the standalone `/artifact/...` URLs, so the shell light/dark theme toggle is available:
 
 ```text
-https://vscode-623-lima.exe.xyz:5173/artifact/prompt-library
-https://vscode-623-lima.exe.xyz:5173/artifact/example-app
+https://$VM_HOST:5173/?artifact=prompt-library
+https://$VM_HOST:5173/?artifact=example-app
 ```
 
-- [ ] **Step 3: Verify Prompt Library in light mode**
+- [ ] **Step 4: Verify Prompt Library in light mode**
 
-In `/artifact/prompt-library`, with the shell set to light mode:
+In `/?artifact=prompt-library`, with the shell set to light mode:
 
 - Confirm card tags are neutral chips with colored dots.
 - Confirm top filters are neutral before selection, with colored checkbox outlines.
@@ -702,7 +794,7 @@ In `/artifact/prompt-library`, with the shell set to light mode:
 - Open a prompt detail dialog; confirm detail tags match card tag styling.
 - Tab through filters, cards, search, and detail dialog; confirm focus rings remain visible and unclipped.
 
-- [ ] **Step 4: Verify Prompt Library in dark mode**
+- [ ] **Step 5: Verify Prompt Library in dark mode**
 
 Switch the shell to dark mode and repeat the Prompt Library checks:
 
@@ -711,20 +803,33 @@ Switch the shell to dark mode and repeat the Prompt Library checks:
 - Confirm checkbox checkmarks are visible on selected filter boxes.
 - Confirm prompt cards remain calm, with neutral chips and colored dots.
 
-- [ ] **Step 5: Verify Example App palette previews**
+- [ ] **Step 6: Verify Example App palette previews**
 
-In `/artifact/example-app`:
+In `/?artifact=example-app`:
 
 - In light mode, confirm `Message Colors` shows `User`, `Assistant`, `Thinking`, `Tool`, `Critical`, `System`, `Note`, and `Marker`.
 - Confirm default selected category swatches are `User`, `Assistant`, `Tool`, and `System`.
 - In dark mode, confirm selected category swatches light up with visible weak colored backgrounds.
-- Confirm `Danger state` and `Info state` text are more vivid than before and remain readable.
+- Confirm `Danger state` and `Info state` remain visibly red/purple through their border and dot, and that their label text remains readable.
 
-- [ ] **Step 6: Stop the dev server**
+- [ ] **Step 7: Spot-check other shared status-token surfaces**
+
+For each artifact route identified by the grep in Step 2, open the shell URL and inspect both light and dark mode. Use these URLs when applicable:
+
+```text
+https://$VM_HOST:5173/?artifact=sharp2
+https://$VM_HOST:5173/?artifact=focus-compare
+https://$VM_HOST:5173/?artifact=jsonl-structure-viewer
+https://$VM_HOST:5173/?artifact=example
+```
+
+Expected: any visible danger/info/status elements remain readable, and the updated red/purple values do not create illegible text, borders, badges, or focus states.
+
+- [ ] **Step 8: Stop the dev server**
 
 Stop the Vite process with `Ctrl+C`. Do not leave a required dev-server session running at the end of the task.
 
-- [ ] **Step 7: Record verification**
+- [ ] **Step 9: Record verification**
 
 Run:
 

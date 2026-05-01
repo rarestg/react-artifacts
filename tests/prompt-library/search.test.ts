@@ -191,6 +191,26 @@ test('pickResultSnippet falls back to prompt when summary and context have no ma
   assert.match(snippet.text, /solsticegate/i);
 });
 
+test('pickResultSnippet falls back to context for tag-only matches', () => {
+  const [result] = searchPrompts(
+    [
+      {
+        id: 'tag-only',
+        title: 'Alpha',
+        summary: 'Beta',
+        tags: ['subagents'],
+        context: 'Use after a workflow calls for delegated investigation.',
+        prompt: 'Delegate the investigation.',
+      },
+    ],
+    'subagents',
+  );
+  const snippet = pickResultSnippet(result);
+
+  assert.equal(snippet.field, 'context');
+  assert.match(snippet.text, /Use after/i);
+});
+
 test('tag filtering composes with search input', () => {
   const filtered = filterPromptsByTags(prompts, ['architecture']);
   const results = searchPrompts(filtered, 'subagent');

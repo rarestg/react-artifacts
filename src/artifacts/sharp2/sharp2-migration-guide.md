@@ -118,6 +118,9 @@ Token set:
 - `--category-amber` / `--category-amber-weak`
 - `--category-violet` / `--category-violet-weak`
 - `--category-red` / `--category-red-weak`
+- `--category-cyan` / `--category-cyan-weak`
+- `--category-pink` / `--category-pink-weak`
+- `--category-lime` / `--category-lime-weak`
 
 Suggested values:
 ```css
@@ -127,15 +130,22 @@ Suggested values:
   --category-amber: var(--warning);
   --category-violet: var(--info);
   --category-red: var(--danger);
+  --category-cyan: #0891b2;
+  --category-pink: #db2777;
+  --category-lime: #65a30d;
 
   --category-blue-weak: var(--accent-weak);
   --category-green-weak: var(--success-weak);
   --category-amber-weak: var(--warning-weak);
   --category-violet-weak: var(--info-weak);
   --category-red-weak: var(--danger-weak);
+  --category-cyan-weak: #cffafe;
+  --category-pink-weak: #fce7f3;
+  --category-lime-weak: #ecfccb;
 }
 
-// Note: categorical tokens currently alias the semantic palette.
+// Note: blue/green/amber/violet/red currently alias the semantic palette.
+// Cyan/pink/lime are extra categorical slots for non-status classification.
 ```
 
 Usage guidelines:

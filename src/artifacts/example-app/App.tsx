@@ -102,6 +102,30 @@ const categorySwatches = [
     text: 'text-[var(--category-red)]',
     border: 'border-[color:var(--category-red)]',
   },
+  {
+    id: 'system',
+    label: 'System',
+    weakBg: 'bg-[var(--category-cyan-weak)]',
+    strongBg: 'bg-[var(--category-cyan)]',
+    text: 'text-[var(--category-cyan)]',
+    border: 'border-[color:var(--category-cyan)]',
+  },
+  {
+    id: 'note',
+    label: 'Note',
+    weakBg: 'bg-[var(--category-pink-weak)]',
+    strongBg: 'bg-[var(--category-pink)]',
+    text: 'text-[var(--category-pink)]',
+    border: 'border-[color:var(--category-pink)]',
+  },
+  {
+    id: 'marker',
+    label: 'Marker',
+    weakBg: 'bg-[var(--category-lime-weak)]',
+    strongBg: 'bg-[var(--category-lime)]',
+    text: 'text-[var(--category-lime)]',
+    border: 'border-[color:var(--category-lime)]',
+  },
 ] as const;
 
 type CategorySwatchId = (typeof categorySwatches)[number]['id'];
@@ -122,6 +146,9 @@ export default function ExampleApp() {
     thinking: false,
     tool: true,
     critical: false,
+    system: true,
+    note: false,
+    marker: false,
   });
   const [capsLockActive, setCapsLockActive] = useState(false);
   const [capsLockSeen, setCapsLockSeen] = useState(false);
@@ -352,7 +379,7 @@ export default function ExampleApp() {
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeSwatches[swatch.id]
-                    ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
+                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
                 ]
                   .filter(Boolean)
@@ -368,7 +395,7 @@ export default function ExampleApp() {
             {themeSwatches.map((swatch) => (
               <div
                 key={`${swatch.id}-chip`}
-                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} ${swatch.text} px-2 py-1 text-xs font-medium`}
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
               >
                 <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
                 {swatch.label} state
@@ -406,7 +433,7 @@ export default function ExampleApp() {
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeCategorySwatches[swatch.id]
-                    ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
+                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
                 ]
                   .filter(Boolean)
@@ -422,7 +449,7 @@ export default function ExampleApp() {
             {categorySwatches.map((swatch) => (
               <div
                 key={`${swatch.id}-chip`}
-                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} ${swatch.text} px-2 py-1 text-xs font-medium`}
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
               >
                 <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
                 {swatch.label} type

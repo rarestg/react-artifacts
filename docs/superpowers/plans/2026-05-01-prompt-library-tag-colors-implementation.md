@@ -271,8 +271,8 @@ In `src/theme/artifact-theme.css`, replace the category token block in `.artifac
 In `.dark .artifact-theme`, change:
 
 ```css
-  --danger: #fb7185;
-  --info: #c084fc;
+  --danger: #fda4af;
+  --info: #d8b4fe;
 ```
 
 Change weak semantic values to:
@@ -303,6 +303,8 @@ Then add explicit dark category overrides after the weak semantic values. This p
   --category-pink-weak: #831843;
   --category-lime-weak: #365314;
 ```
+
+Dark status tokens and dark category red/violet are intentionally decoupled: `--danger` and `--info` need AA contrast when used as text on their weak semantic backgrounds, while `--category-red` and `--category-violet` keep the vivid categorical swatches used for non-text indicators and selected category surfaces.
 
 - [ ] **Step 3: Replace Example App category swatches**
 

@@ -51,7 +51,7 @@ Implementation may adjust individual values during visual verification, but sele
 
 The dark semantic colors for `--danger` and `--info` should become more vivid because the current dark red and purple text can feel muted. This is shared-token work, not a Prompt Library-only override, so implementation must verify the Example App and other visible status surfaces that use `--danger`, `--danger-weak`, `--info`, or `--info-weak`.
 
-Use `#fb7185` for dark `--danger` and `#c084fc` for dark `--info` as the starting values. Let `--category-red` and `--category-violet` inherit from those updated semantic tokens unless implementation shows a concrete contrast or visual-balance reason to decouple categorical tokens from semantic tokens.
+Use `#fda4af` for dark `--danger` and `#d8b4fe` for dark `--info` so text using those semantic tokens passes AA contrast on the matching weak backgrounds. Keep `#fb7185` for dark `--category-red` and `#c084fc` for dark `--category-violet`; status tokens and categorical tokens are intentionally decoupled here so status text can meet contrast while category swatches retain the approved visual balance.
 
 ## Prompt Tag Mapping
 

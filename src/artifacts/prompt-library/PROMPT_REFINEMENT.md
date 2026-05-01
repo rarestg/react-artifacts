@@ -4,17 +4,19 @@ Use this checklist before adding a prompt to the curated library.
 
 ## Ready To Add
 
-- The prompt states the desired action clearly enough for a fresh agent.
-- The prompt gives enough context expectations without assuming a specific codebase.
-- The prompt describes success criteria, tradeoffs, and valid no-change outcomes when relevant.
-- The prompt avoids forcing a response format unless the format is part of the workflow.
-- The prompt is general enough to reuse, but specific enough to avoid vague delegation.
-- The prompt does not smuggle in conclusions that the agent should independently evaluate.
+- The prompt is clear about who should do what.
+- The prompt is generalizable beyond one conversation.
+- The usage context explains when to use the prompt and why it exists.
+- The prompt gives enough context guidance without embedding stale specifics.
+- The prompt distinguishes context from conclusions.
+- The prompt makes room for "no change needed" when evidence supports that.
+- The prompt avoids forcing an output format that may not fit the task.
+- The prompt avoids unnecessary process ceremony.
+- The prompt optimizes for honest assessment rather than manufactured work.
 
 ## Before Committing
 
-- The title is short and recognizable.
-- The summary explains what the prompt does in one sentence.
-- The usage context explains when to use it and why it exists.
-- Tags are selected from the curated tag set; add a new tag only if several prompts will use it.
-- The copied prompt text is exactly what should land on the clipboard.
+- Add at least one workflow tag, such as `review` or `implementation`.
+- Reuse existing curated tags before adding a new tag.
+- Keep the copied `prompt` body literal and free of UI-only notes.
+- Search for similar prompts and merge instead of duplicating when the workflow is the same.

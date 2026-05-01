@@ -34,7 +34,24 @@ Token shape:
 
 Light mode keeps weak colors pale and readable on white surfaces. Dark mode weak colors must read as visibly colored selected surfaces, matching the Example App Theme Colors behavior rather than disappearing into the dark background.
 
-The dark semantic colors for `--danger` and `--info` should become more vivid because the current dark red and purple text can feel muted. Use brighter red/rose and purple values, then let `--category-red` and `--category-violet` inherit from those updated semantic tokens unless implementation shows a better reason to decouple them.
+Initial token values:
+
+| Color | Light strong | Light weak | Dark strong | Dark weak |
+| --- | --- | --- | --- | --- |
+| blue | `#2563eb` | `#dbeafe` | `#60a5fa` | `#1e3a8a` |
+| green | `#059669` | `#d1fae5` | `#34d399` | `#064e3b` |
+| amber | `#d97706` | `#fef3c7` | `#fbbf24` | `#78350f` |
+| violet | `#7c3aed` | `#ede9fe` | `#c084fc` | `#4c1d95` |
+| red | `#dc2626` | `#fee2e2` | `#fb7185` | `#881337` |
+| cyan | `#0891b2` | `#cffafe` | `#22d3ee` | `#164e63` |
+| pink | `#db2777` | `#fce7f3` | `#f472b6` | `#831843` |
+| lime | `#65a30d` | `#ecfccb` | `#a3e635` | `#365314` |
+
+Implementation may adjust individual values during visual verification, but selected filter labels, counts, borders, focus rings, and checkmarks must remain readable in both light and dark mode. Treat WCAG AA contrast for text-sized content as the target when foreground and background are text-bearing surfaces.
+
+The dark semantic colors for `--danger` and `--info` should become more vivid because the current dark red and purple text can feel muted. This is shared-token work, not a Prompt Library-only override, so implementation must verify the Example App and other visible status surfaces that use `--danger`, `--danger-weak`, `--info`, or `--info-weak`.
+
+Use `#fb7185` for dark `--danger` and `#c084fc` for dark `--info` as the starting values. Let `--category-red` and `--category-violet` inherit from those updated semantic tokens unless implementation shows a concrete contrast or visual-balance reason to decouple categorical tokens from semantic tokens.
 
 ## Prompt Tag Mapping
 
@@ -61,6 +78,7 @@ Top tag filters use the vivid selected state:
 - Unselected filters stay mostly neutral so the full filter row does not become noisy before a user filters.
 - Unselected checkbox boxes may use the tag color for the outline so the available palette remains discoverable.
 - The label and count remain readable with normal text tokens; selected state is communicated by checkbox state, border/fill, and `aria` state, not color alone.
+- The checkmark color must be chosen for contrast against the colored checkbox fill. Do not assume the shared `Checkbox` default `--primary-contrast` works for every category color; override `checkClassName` or use a per-color helper value when needed.
 
 Prompt tags on cards, search results, and detail views use the Retool-style indicator treatment:
 
@@ -75,7 +93,20 @@ This split keeps filters expressive while preserving card scanability.
 
 Update the Example App palette previews so the expanded color wheel is visible in both light and dark mode.
 
-The semantic Theme Colors panel should show the updated dark `Danger` and `Info` values. The categorical Message Colors panel should include cyan, pink, and lime in addition to the existing blue, green, amber, violet, and red.
+The semantic Theme Colors panel should show the updated dark `Danger` and `Info` values. The categorical Message Colors panel should include all category colors in this order:
+
+| ID | Label | Token |
+| --- | --- | --- |
+| `user` | User | blue |
+| `assistant` | Assistant | green |
+| `thinking` | Thinking | amber |
+| `tool` | Tool | violet |
+| `critical` | Critical | red |
+| `system` | System | cyan |
+| `note` | Note | pink |
+| `marker` | Marker | lime |
+
+Default active states should keep the panel lively without selecting every color: `user`, `assistant`, `tool`, and `system` selected by default; the remaining category swatches unselected.
 
 ## Components And Data Flow
 
@@ -85,7 +116,16 @@ The semantic Theme Colors panel should show the updated dark `Danger` and `Info`
 
 `src/artifacts/prompt-library/prompts.ts` owns the curated tag-to-color mapping.
 
-`src/artifacts/prompt-library/index.tsx` resolves a prompt tag to CSS variable-backed classes or inline CSS variables. The rendering code should avoid duplicating color names across card tags, detail tags, search result tags, and filter checkboxes. A small helper that returns tag color CSS variables or class fragments is enough; do not add a large abstraction.
+`src/artifacts/prompt-library/index.tsx` resolves a prompt tag to reusable color styling. The rendering code should avoid duplicating color names across card tags, detail tags, search result tags, and filter checkboxes. A small helper is enough; do not add a large abstraction.
+
+The helper must be compatible with Tailwind's static class extraction. Use one of these shapes:
+
+- a static literal class map keyed by `PromptTagColorId`, or
+- inline CSS custom properties such as `--prompt-tag-color` and `--prompt-tag-color-weak`, consumed by static classes like `border-[color:var(--prompt-tag-color)]`.
+
+Do not build dynamic arbitrary utility strings such as `bg-[var(--category-${color}-weak)]`.
+
+Update the existing categorical token documentation in `src/artifacts/sharp2/sharp2-migration-guide.md` so it lists the expanded category token set. Keep this as a small documentation update; do not redesign sharp2 itself.
 
 ## Accessibility
 
@@ -102,7 +142,7 @@ Do not add tests that pin the real curated tag titles or prompt content.
 Focused tests are useful only for structural behavior, such as:
 
 - `promptTags` entries include a valid color id.
-- unknown color ids are rejected by a validation helper if one is added.
+- unknown color ids are rejected by `validatePrompts` or a nearby validation helper.
 - search/filter tests continue using fixtures rather than the real curated prompt corpus.
 
 Visual verification is required because the main risk is contrast and state readability. Verify the Prompt Library and Example App in light and dark mode after implementation.

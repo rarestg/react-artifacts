@@ -42,3 +42,15 @@ test('validatePrompts rejects prompt tag metadata with unknown color ids', () =>
 
   assert.throws(() => validatePrompts([validEntry], invalidTags), /unknown tag color/i);
 });
+
+test('validatePrompts rejects prompt tag metadata with duplicate tag ids', () => {
+  const duplicateTags = [
+    validTags[0],
+    {
+      ...validTags[1],
+      id: validTags[0].id,
+    },
+  ] as const satisfies readonly PromptTag[];
+
+  assert.throws(() => validatePrompts([validEntry], duplicateTags), /Duplicate prompt tag id/);
+});

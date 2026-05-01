@@ -1,6 +1,8 @@
 export type PromptTagId = 'review' | 'implementation' | 'subagents' | 'risk' | 'architecture';
 
-export type PromptTagColorId = 'blue' | 'green' | 'amber' | 'violet' | 'red' | 'cyan' | 'pink' | 'lime';
+const promptTagColorIdValues = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime'] as const;
+
+export type PromptTagColorId = (typeof promptTagColorIdValues)[number];
 
 export type PromptTag = {
   id: PromptTagId;
@@ -51,16 +53,7 @@ export const promptTags = [
   },
 ] as const satisfies readonly PromptTag[];
 
-const promptTagColorIds = new Set<PromptTagColorId>([
-  'blue',
-  'green',
-  'amber',
-  'violet',
-  'red',
-  'cyan',
-  'pink',
-  'lime',
-]);
+const promptTagColorIds = new Set<PromptTagColorId>(promptTagColorIdValues);
 
 const workflowTagIds = new Set<PromptTagId>(['review', 'implementation']);
 

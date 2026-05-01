@@ -1,0 +1,28 @@
+# Dependencies and generated install artifacts are not useful for semantic repo search.
+node_modules/
+package-lock.json
+
+# Build output, test output, caches, and logs.
+dist/
+coverage/
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+*.log
+
+# Local environment and editor state.
+.env
+.env.*
+.dev.vars*
+.DS_Store
+.idea/
+.vscode/
+.claude/
+
+# Cloudflare local/generated artifacts.
+.wrangler/
+worker-configuration.d.ts
+
+# Completed planning notes are historical and tend to over-rank current source.
+todos/done/

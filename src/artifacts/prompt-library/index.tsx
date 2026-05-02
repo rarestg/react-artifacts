@@ -254,7 +254,7 @@ export default function PromptLibrary() {
 function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: HTMLElement) => void }) {
   return (
     <article className={['flex min-h-56 flex-col gap-4 p-4', panelClass].join(' ')}>
-      <div className="flex items-start justify-between gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <button
           type="button"
           onClick={(event) => onOpen(event.currentTarget)}

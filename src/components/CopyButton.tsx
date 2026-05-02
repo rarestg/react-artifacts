@@ -78,7 +78,7 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
       disabled={disabled}
       aria-label={resolvedAriaLabel}
       className={[
-        'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
+        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
         'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
         'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         'disabled:opacity-40 disabled:pointer-events-none',

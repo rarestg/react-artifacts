@@ -83,7 +83,7 @@ Top tag filters use the vivid selected state:
 Prompt tags on cards, search results, and detail views use the Retool-style indicator treatment:
 
 - Neutral chip background and border.
-- Small solid dot in the tag color.
+- Small solid square indicator in the tag color.
 - Neutral label text.
 - Highlighted search-matched tags may add a subtle colored border or tint, but should not become fully filled chips.
 
@@ -132,7 +132,7 @@ Update the existing categorical token documentation in `src/artifacts/sharp2/sha
 - Filter checkboxes remain real checkbox controls.
 - Selected state must be represented through checkbox state and visual structure, not color alone.
 - Focus rings continue to use `--ring` and must remain visible over colored selected filters.
-- Colored dots are decorative and should be `aria-hidden`.
+- Colored square indicators are decorative and should be `aria-hidden`.
 - Text contrast needs to be checked in light and dark mode, especially dark red, dark purple, and dark cyan selected states.
 
 ## Testing

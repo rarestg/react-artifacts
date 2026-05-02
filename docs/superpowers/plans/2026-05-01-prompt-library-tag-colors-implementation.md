@@ -688,7 +688,7 @@ Pass the style and color-aware classes to `Checkbox`:
                 />
 ```
 
-- [ ] **Step 4: Style prompt tag chips as neutral chips with colored dots**
+- [ ] **Step 4: Style prompt tag chips as neutral chips with colored square indicators**
 
 In `PromptTags`, add a color style for each tag and replace the chip markup with:
 
@@ -706,7 +706,7 @@ In `PromptTags`, add a color style for each tag and replace the chip markup with
                 : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
             ].join(' ')}
           >
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--prompt-tag-color)]" aria-hidden="true" />
+            <span className="h-1.5 w-1.5 shrink-0 rounded-none bg-[var(--prompt-tag-color)]" aria-hidden="true" />
             {tag.label}
           </span>
         );
@@ -789,10 +789,10 @@ https://$VM_HOST:5173/?artifact=example-app
 
 In `/?artifact=prompt-library`, with the shell set to light mode:
 
-- Confirm card tags are neutral chips with colored dots.
+- Confirm card tags are neutral chips with colored square indicators.
 - Confirm top filters are neutral before selection, with colored checkbox outlines.
 - Select `Review`, `Subagents`, and `Architecture`; confirm selected filters use colored borders and weak colored backgrounds.
-- Open search with `Cmd+K` or `Ctrl+K`; search `subagents`; confirm result tags keep colored dots and matched tags get the subtle colored highlight.
+- Open search with `Cmd+K` or `Ctrl+K`; search `subagents`; confirm result tags keep colored square indicators and matched tags get the subtle colored highlight.
 - Open a prompt detail dialog; confirm detail tags match card tag styling.
 - Tab through filters, cards, search, and detail dialog; confirm focus rings remain visible and unclipped.
 
@@ -803,7 +803,7 @@ Switch the shell to dark mode and repeat the Prompt Library checks:
 - Confirm selected filters visibly light up as colored rectangles.
 - Confirm red, violet, and cyan states are readable.
 - Confirm checkbox checkmarks are visible on selected filter boxes.
-- Confirm prompt cards remain calm, with neutral chips and colored dots.
+- Confirm prompt cards remain calm, with neutral chips and colored square indicators.
 
 - [ ] **Step 6: Verify Example App palette previews**
 

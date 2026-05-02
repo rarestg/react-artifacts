@@ -384,7 +384,7 @@ function PromptTags({
                 : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
             ].join(' ')}
           >
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--prompt-tag-color)]" aria-hidden="true" />
+            <span className="h-1.5 w-1.5 shrink-0 rounded-none bg-[var(--prompt-tag-color)]" aria-hidden="true" />
             {tag.label}
           </span>
         );

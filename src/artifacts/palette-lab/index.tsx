@@ -336,7 +336,7 @@ export default function PaletteLab() {
             >
               {colors.map((color) => {
                 const selected = selectedIndexes.includes(color.index);
-                const label = getDisplayLabel({ index: color.index, hue: color.hue, mode: labelMode });
+                const label = getDisplayLabel({ index: color.index, hue: color.hue, count, mode: labelMode });
                 const style = {
                   '--palette-color': color.strongColor,
                   '--palette-color-weak': color.weakColor,

@@ -45,6 +45,8 @@ Palette Lab supports two label modes:
 
 `Index` is the default because it is honest about the generated nature of the palette. `Hue name` is available when the user wants semantic color names, but it is derived from the actual hue rather than from item position.
 
+Hue names are density-aware. Compact palettes use broader names such as `Red`, `Yellow`, `Green`, `Blue`, and `Purple`. Medium palettes use moderately specific names such as `Sky`, `Indigo`, and `Violet`. Dense palettes can use narrower names such as `Rose`, `Amber`, `Olive`, and `Mint`, because adjacent generated hues need more distinction.
+
 ## UI
 
 The artifact follows the existing Sharp UI style:

@@ -140,8 +140,14 @@ export default function PaletteLab() {
   );
   const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
+  const contrastMeasurementKey = useMemo(() => {
+    const colorKey = colors.map((color) => `${color.strongColor}:${color.weakColor}`).join('|');
+    const selectedKey = [...selectedIndexes].sort((a, b) => a - b).join(',');
+    return `${theme}:${selectedKey}:${colorKey}`;
+  }, [colors, selectedIndexes, theme]);
 
   useEffect(() => {
+    void contrastMeasurementKey;
     let frame = 0;
     const timeouts: number[] = [];
     const measureContrast = () => {
@@ -178,7 +184,7 @@ export default function PaletteLab() {
         window.clearTimeout(timeout);
       }
     };
-  });
+  }, [contrastMeasurementKey]);
 
   const toggleIndex = (index: number) => {
     setSelectedIndexes((current) =>

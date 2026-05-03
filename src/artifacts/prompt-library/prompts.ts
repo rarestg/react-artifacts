@@ -79,37 +79,19 @@ After they report back, compare their findings with your own view and recommend 
   {
     id: 'proposal-review-subagent',
     title: 'Proposal Review Subagent',
-    summary: 'Ask a fresh subagent to validate or improve a proposed solution.',
-    tags: ['review', 'subagents', 'architecture'],
-    context:
-      'Use after an agent has assessed feedback and proposed a solution, especially when the design tradeoffs are subtle or a cleaner architecture may exist.',
-    prompt: `Please dispatch a fresh subagent to review this issue and the solution you proposed.
-
-Give them enough context to understand the original feedback or concern, the relevant code or architecture area, why the issue matters, the solution you currently recommend, and the tradeoffs, constraints, or assumptions behind that recommendation.
-Make clear that your proposed solution is context, not a conclusion.
-
-Ask them to investigate from first principles whether the proposal is sound. They should look for failure modes, hidden coupling, simpler targeted fixes, and any cleaner long-term design shift that would improve correctness, maintainability, or architecture.
-
-They should not manufacture work. "The proposed solution is the right fit," "a smaller change is enough," and "no change is needed" are valid answers if the evidence supports them.
-
-After they report back, compare their findings with your own view and recommend the best path forward.`,
-  },
-  {
-    id: 'pre-implementation-proposal-review',
-    title: 'Pre-Implementation Proposal Review',
-    summary: 'Get a fresh second opinion on a proposed change before implementation.',
+    summary: 'Ask a fresh subagent to validate or improve a proposed solution before acting on it.',
     tags: ['review', 'implementation', 'subagents', 'architecture'],
     context:
-      'Use after an agent has explored the codebase and proposed a change plan, but before implementation begins, when you want a fresh second opinion on whether the plan is the strongest path.',
-    prompt: `Please dispatch a fresh subagent to review the proposed change before implementation.
+      'Use after an agent has assessed feedback, explored the codebase, or proposed a solution or change plan, especially before implementation or when design tradeoffs are subtle.',
+    prompt: `Please dispatch a fresh subagent to review the proposed solution before acting on it.
 
-Give them enough context to understand the goal, the relevant code or architecture, the current proposal, and the constraints or assumptions behind it. Make clear that the proposal is context, not a conclusion.
+Give them enough context to understand the goal, the original feedback or concern if any, the relevant code or architecture area, why the issue matters, the current proposal, and the tradeoffs, constraints, or assumptions behind it. Make clear that the proposal is context, not a conclusion.
 
-Ask them to evaluate from first principles whether this is the best path. They should look for simpler options, hidden risks, unnecessary complexity, better long-term designs, or reasons no change is needed.
+Ask them to evaluate from first principles whether this is the best path. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons no change is needed.
 
-They should not manufacture objections. "The proposal is solid" is a valid answer if the evidence supports it.
+They should not manufacture objections. "The proposal is solid," "a smaller change is enough," and "no change is needed" are valid answers if the evidence supports them.
 
-After they report back, compare their view with yours. Feel free to synthesize, adapt, or combine ideas from their analysis with your own. The final recommendation should reflect the strongest overall path, not merely choose between the original proposal and the subagent's view.`,
+After they report back, compare their view with yours. Synthesize, adapt, or combine ideas from their analysis with your own. The final recommendation should reflect the strongest overall path, not merely choose between the original proposal and the subagent's view.`,
   },
   {
     id: 'fresh-session-handoff',

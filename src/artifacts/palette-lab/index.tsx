@@ -1,4 +1,13 @@
-import { type CSSProperties, useEffect, useMemo, useState } from 'react';
+import { Info, X } from 'lucide-react';
+import {
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import {
@@ -29,6 +38,43 @@ const focusClass =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 const modeButtonBase =
   'inline-flex h-8 items-center justify-center border px-2 text-xs font-medium transition-colors motion-reduce:transition-none';
+const focusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+const helpItems = [
+  {
+    term: 'H',
+    detail: 'Hue angle in degrees on the OKLCH color wheel. Moving it rotates the generated palette around the wheel.',
+  },
+  {
+    term: 'L',
+    detail: 'Lightness for the strong color. Higher values make the generated swatch brighter.',
+  },
+  {
+    term: 'Mix',
+    detail: 'How much of the strong color is blended into the surface color to make the weak card background.',
+  },
+  {
+    term: 'Contrast',
+    detail:
+      'Text contrast ratio measured from the rendered card text color against the rendered card background. Higher ratios are easier to read.',
+  },
+  {
+    term: 'Dark lift',
+    detail: 'Extra lightness added in dark mode so vivid colors stay visible against dark surfaces.',
+  },
+  {
+    term: 'Auto tune',
+    detail:
+      'Small count-based adjustments that reduce chroma, lower weak mix, and raise dark lift as the palette gets denser.',
+  },
+] as const;
 
 function parseColor(value: string): [number, number, number] | null {
   const trimmed = value.trim();
@@ -119,6 +165,8 @@ export default function PaletteLab() {
   const [labelMode, setLabelMode] = useState<PaletteLabelMode>('index');
   const [selectedIndexes, setSelectedIndexes] = useState(() => Array.from({ length: 16 }, (_, index) => index));
   const [contrastRatios, setContrastRatios] = useState<Record<number, number>>({});
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpButtonRef = useRef<HTMLButtonElement>(null);
 
   const tuned = useMemo(
     () => getTunedPaletteSettings({ count, chroma, darkLift, weakMix, autoTune }),
@@ -321,16 +369,30 @@ export default function PaletteLab() {
                   {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'hue labels'}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={toggleAll}
-                className={[
-                  'h-9 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
-                  focusClass,
-                ].join(' ')}
-              >
-                {allVisibleSelected ? 'Clear' : 'Select all'}
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleAll}
+                  className={[
+                    'h-9 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
+                    focusClass,
+                  ].join(' ')}
+                >
+                  {allVisibleSelected ? 'Clear' : 'Select all'}
+                </button>
+                <button
+                  ref={helpButtonRef}
+                  type="button"
+                  aria-label="Open palette lab help"
+                  onClick={() => setHelpOpen(true)}
+                  className={[
+                    'inline-flex h-9 w-9 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
+                    focusClass,
+                  ].join(' ')}
+                >
+                  <Info className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
             </section>
 
             <section
@@ -388,7 +450,7 @@ export default function PaletteLab() {
                       </span>
                       <span>mix {color.weakMix.toFixed(1)}%</span>
                       <span className="font-semibold text-[var(--text)]">
-                        text {ratio === undefined ? '...' : `${ratio.toFixed(2)}:1`}
+                        contrast {ratio === undefined ? '...' : `${ratio.toFixed(2)}:1`}
                       </span>
                     </div>
                   </button>
@@ -397,7 +459,123 @@ export default function PaletteLab() {
             </section>
           </main>
         </div>
+        {helpOpen ? (
+          <PaletteHelpDialog returnFocusTo={helpButtonRef.current} onClose={() => setHelpOpen(false)} />
+        ) : null}
       </ArtifactThemeRoot>
+    </div>
+  );
+}
+
+function PaletteHelpDialog({
+  returnFocusTo,
+  onClose,
+}: {
+  returnFocusTo: HTMLButtonElement | null;
+  onClose: () => void;
+}) {
+  const headingId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+
+    return () => {
+      if (returnFocusTo?.isConnected) {
+        returnFocusTo.focus();
+      }
+    };
+  }, [returnFocusTo]);
+
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? []);
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const activeElement = document.activeElement;
+
+    if (!dialogRef.current?.contains(activeElement)) {
+      event.preventDefault();
+      first.focus();
+      return;
+    }
+
+    if (!focusable.includes(activeElement as HTMLElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+
+    if (event.shiftKey && activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return;
+    }
+
+    if (!event.shiftKey && activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[color:var(--overlay)] p-4">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        aria-describedby={descriptionId}
+        onKeyDown={handleKeyDown}
+        className="mt-12 flex max-h-[calc(100vh-6rem)] w-full max-w-[34rem] flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)] max-sm:mt-0 max-sm:max-h-full"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
+          <div className="min-w-0">
+            <h2
+              ref={headingRef}
+              id={headingId}
+              tabIndex={-1}
+              className={['text-base font-semibold', focusClass].join(' ')}
+            >
+              Reading the cards
+            </h2>
+            <p id={descriptionId} className="mt-1 text-sm text-[var(--text-muted)]">
+              The card metrics show how each generated OKLCH color is built and how readable it is.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close palette lab help"
+            className={['p-1 text-[var(--text-muted)] hover:text-[var(--text)]', focusClass].join(' ')}
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="min-h-0 overflow-y-auto p-4">
+          <dl className="grid gap-3 text-sm">
+            {helpItems.map((item) => (
+              <div key={item.term} className="grid gap-1 border border-[var(--border)] bg-[var(--surface-muted)] p-3">
+                <dt className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text)]">
+                  {item.term}
+                </dt>
+                <dd className="text-[var(--text-muted)]">{item.detail}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
     </div>
   );
 }

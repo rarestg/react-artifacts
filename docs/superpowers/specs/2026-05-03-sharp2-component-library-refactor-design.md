@@ -52,7 +52,9 @@ This avoids two bad outcomes:
 Before or during replacement, improve shared components where the review found clear gaps:
 
 - `Checkbox` and `Toggle`: remove disabled `pointer-events-none` if it prevents disabled cursor or tooltip behavior. Disabled controls should keep `cursor-not-allowed` and should not look clickable.
+- `Checkbox`: preserve active-state parity with the local implementation for unchecked active surface feedback.
 - `Toggle`: add visual parity with the local implementation for unchecked hover border, unchecked active surface, and checked active state.
+- `CopyButton`: apply the same disabled cursor/tooltip review as `Checkbox` and `Toggle`; disabled styling should not block useful cursor or tooltip affordances.
 - `CopyableLabel`: add an `ariaLabel` prop or default stable accessible name such as `Copy: ${value}` so the accessible name does not change to only `Copy`, `Copied`, or `Failed`.
 - `CopyableLabel`: preserve active-state background parity with local `sharp2`.
 - `StatusTag`: add a named export while preserving the default export, for consistency with the other shared primitives.
@@ -96,6 +98,7 @@ Requirements:
 - Preserve visible hover and active states.
 - Disabled state must not look clickable and should keep useful cursor/tooltip behavior.
 - Icon-only button usage must provide an accessible name at the call site.
+- Migrate current `sharp2` `size="default"` usages to omitted size or `size="md"`; do not keep `default` as a public size alias unless implementation feedback shows the migration causes real churn.
 
 ### Input
 
@@ -204,6 +207,7 @@ src/artifacts/sharp2/
     SubSection.tsx
   conversation/
     ConversationTurn.tsx
+    keys.ts
     MessageCard.tsx
     MessageTypeToggle.tsx
     TokenCounter.tsx
@@ -234,13 +238,27 @@ They should use tokenized surfaces, simple borders, compact headings, and no nes
 
 Keep local. It is a demo combobox/typeahead, not a mature shared primitive.
 
-Before promoting it later, harden keyboard behavior and ARIA semantics. In this pass, fix obvious focus styling so options do not rely on hover-only or `focus:` states where `focus-visible`/active state would better match the design guide.
+Before promoting it later, harden keyboard behavior and ARIA semantics.
+
+In this pass:
+
+- Preserve combobox wiring with `aria-expanded`, `aria-controls`, and `aria-activedescendant`.
+- Preserve ArrowUp, ArrowDown, Enter, and Escape behavior.
+- Keep the active option visually distinct through `aria-selected` and a non-color-only selected/active treatment where possible.
+- Replace generic `focus:` styling on focusable options with `focus-visible:` styling, or move focus management fully to the input/listbox pattern so option focus classes are unnecessary.
+- Add static coverage for the ARIA attributes and class contracts that are chosen.
 
 ### Popover
 
 Keep local. It demonstrates overlay behavior but is not yet a general menu/listbox abstraction.
 
-Fix hover-only menu items by adding visible focus states and expected keyboard behavior where practical for the current demo.
+In this pass:
+
+- Preserve trigger `aria-haspopup` and `aria-expanded`.
+- Give menu items visible focus states, not hover-only states.
+- Make Escape close the popover.
+- Support keyboard activation for focusable menu items through native button behavior.
+- Add static coverage for trigger ARIA and menu-item focus classes.
 
 ### CodeBlock
 
@@ -261,6 +279,12 @@ Keep all conversation rendering local to `sharp2` in this pass:
 - Conversation types
 
 These components are promising, but they encode domain-specific assumptions about user/assistant/thinking/tool roles, render-mode defaults, token counters, and tool-call structure. They should not become repo-wide APIs until another artifact needs them or a clearer conversation package boundary emerges.
+
+Test seams should be explicit:
+
+- `conversation/markdown.tsx` should export a pure segmentation helper, such as `splitMessageContent`, that can be tested without relying on rendered React keys.
+- `conversation/keys.ts` should export `getTurnKey` and `getTurnItemKey` if stable key behavior remains worth testing.
+- If key helpers are not exported, remove stable-key assertions from the implementation plan because React keys are not observable in rendered markup.
 
 ## Documentation
 
@@ -297,9 +321,12 @@ Add regression tests for existing shared components:
 
 Add static/boundary tests for:
 
-- `sharp2/index.tsx` imports replaced primitives from `src/components`.
-- Local duplicate primitive definitions no longer exist for `Checkbox`, `Toggle`, `CopyButton`, `CopyableLabel`, `StatusTag`, `Button`, `Input`, `Tag`, or `Panel`.
+- Replaced primitive definitions no longer exist anywhere under `src/artifacts/sharp2/**` for `Checkbox`, `Toggle`, `CopyButton`, `CopyableLabel`, `StatusTag`, `Button`, `Input`, `Tag`, or `Panel`.
+- Shared primitives are imported from `src/components` at their actual usage sites under `src/artifacts/sharp2/**`; after the split, those usage sites may be local modules rather than `index.tsx`.
 - `Row` remains local and is not exported from `src/components`.
+- Icon-only shared `Button` usages in `sharp2` have an accessible name through `aria-label`, `aria-labelledby`, or visible text.
+- `SearchInput` preserves combobox ARIA attributes and does not rely on generic `focus:` option styling.
+- `Popover` trigger ARIA is present and menu items have visible focus styling.
 - `sharp2.txt` mentions `ArtifactThemeRoot`.
 - `sharp2.txt` no longer recommends blind copy-paste of token-dependent components.
 
@@ -307,8 +334,21 @@ Add local behavior tests for:
 
 - Conversation visibility filtering in `ConversationTurn`.
 - Render-mode defaults by role in `MessageCard`.
-- Markdown/code-block segmentation so code blocks remain literal and inline markdown does not corrupt raw text.
-- Stable keys for supplied conversation ids where helpers are exported for testing.
+- Exported markdown/code-block segmentation helpers so code blocks remain literal and inline markdown does not corrupt raw text.
+- Exported key helpers for supplied conversation ids, if those helpers remain part of the local module boundary.
+
+## Acceptance Criteria
+
+- `src/artifacts/sharp2/index.tsx` is reduced to a shell for `ArtifactThemeRoot`, top-level demo state, section composition, dialog portal wiring, and fixture/component composition.
+- No duplicated shared primitive definitions remain under `src/artifacts/sharp2/**` for promoted or replaced primitives.
+- `Button`, `Input`, `Tag`, and `Panel` are exported from `src/components` with the APIs described above.
+- Existing shared primitives keep or improve their current behavior while addressing disabled cursor/tooltip and accessible-name gaps.
+- `Row`, `SearchInput`, `Popover`, `CodeBlock`, and all conversation components remain local to `src/artifacts/sharp2`.
+- All icon-only shared `Button` usages in `sharp2` have accessible names.
+- `SearchInput` and `Popover` have explicit visible focus behavior and static ARIA/class coverage.
+- `sharp2.txt` documents `ArtifactThemeRoot` and import-and-compose usage for shared token-dependent components.
+- `sharp2-migration-guide.md` reflects completed shared primitive adoption and remaining local-only decisions.
+- Final verification includes `npm run check`.
 
 ## Review And Implementation Workflow
 
@@ -327,6 +367,7 @@ Before completion, run:
 ```bash
 npm run lint
 npm run typecheck
+npm run knip
 npm run test
 ```
 

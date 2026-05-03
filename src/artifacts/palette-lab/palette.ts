@@ -77,73 +77,177 @@ export function makeGeneratedPalette(settings: PaletteSettings): GeneratedColor[
   });
 }
 
-type HueBand = {
-  start: number;
+type HueAnchor = {
+  hue: number;
   label: string;
+  minCount?: number;
 };
 
-const compactHueBands = [
-  { start: 0, label: 'Red' },
-  { start: 35, label: 'Yellow' },
-  { start: 95, label: 'Green' },
-  { start: 165, label: 'Cyan' },
-  { start: 205, label: 'Blue' },
-  { start: 285, label: 'Purple' },
-  { start: 335, label: 'Red' },
-] as const satisfies readonly HueBand[];
+const hueAnchors = [
+  { hue: 0, label: 'Red' },
+  { hue: 18, label: 'Vermilion', minCount: 13 },
+  { hue: 35, label: 'Orange' },
+  { hue: 45, label: 'Amber', minCount: 9 },
+  { hue: 60, label: 'Yellow' },
+  { hue: 90, label: 'Olive', minCount: 9 },
+  { hue: 120, label: 'Green' },
+  { hue: 132, label: 'Lime', minCount: 13 },
+  { hue: 150, label: 'Mint', minCount: 9 },
+  { hue: 165, label: 'Teal', minCount: 9 },
+  { hue: 180, label: 'Cyan' },
+  { hue: 220, label: 'Sky' },
+  { hue: 245, label: 'Blue' },
+  { hue: 275, label: 'Indigo' },
+  { hue: 300, label: 'Purple' },
+  { hue: 315, label: 'Violet', minCount: 9 },
+  { hue: 322, label: 'Magenta', minCount: 13 },
+  { hue: 335, label: 'Rose', minCount: 9 },
+] as const satisfies readonly HueAnchor[];
 
-const standardHueBands = [
-  { start: 0, label: 'Red' },
-  { start: 20, label: 'Orange' },
-  { start: 50, label: 'Amber' },
-  { start: 85, label: 'Olive' },
-  { start: 115, label: 'Green' },
-  { start: 145, label: 'Teal' },
-  { start: 175, label: 'Cyan' },
-  { start: 205, label: 'Sky' },
-  { start: 235, label: 'Blue' },
-  { start: 265, label: 'Indigo' },
-  { start: 295, label: 'Violet' },
-  { start: 325, label: 'Rose' },
-  { start: 350, label: 'Red' },
-] as const satisfies readonly HueBand[];
+const HUE_ASSIGNMENT_EPSILON = 1e-9;
 
-const denseHueBands = [
-  { start: 0, label: 'Red' },
-  { start: 18, label: 'Vermilion' },
-  { start: 38, label: 'Orange' },
-  { start: 58, label: 'Amber' },
-  { start: 82, label: 'Olive' },
-  { start: 112, label: 'Green' },
-  { start: 142, label: 'Mint' },
-  { start: 162, label: 'Teal' },
-  { start: 185, label: 'Cyan' },
-  { start: 210, label: 'Sky' },
-  { start: 238, label: 'Blue' },
-  { start: 265, label: 'Indigo' },
-  { start: 292, label: 'Violet' },
-  { start: 320, label: 'Magenta' },
-  { start: 335, label: 'Rose' },
-  { start: 350, label: 'Red' },
-] as const satisfies readonly HueBand[];
+function normalizeHue(hue: number) {
+  const normalized = ((hue % 360) + 360) % 360;
+  return Number.isFinite(normalized) ? normalized : 0;
+}
 
-function getHueBands(count: number): readonly HueBand[] {
-  if (count <= 8) return compactHueBands;
-  if (count >= 13) return denseHueBands;
-  return standardHueBands;
+function circularDistance(a: number, b: number) {
+  const distance = Math.abs(normalizeHue(a) - normalizeHue(b));
+  return Math.min(distance, 360 - distance);
+}
+
+function getAllowedHueAnchors(count: number): HueAnchor[] {
+  const densityCount = Math.round(clamp(count, 1, 16));
+  return hueAnchors.filter((anchor) => densityCount >= ('minCount' in anchor ? anchor.minCount : 1));
+}
+
+function getNearestHueAnchor(hue: number, anchors: readonly HueAnchor[]) {
+  let nearest = anchors[0];
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  for (const anchor of anchors) {
+    const distance = circularDistance(hue, anchor.hue);
+
+    if (distance < nearestDistance) {
+      nearest = anchor;
+      nearestDistance = distance;
+    }
+  }
+
+  return nearest;
+}
+
+function getUniqueHueLabelAssignment(
+  colors: ReadonlyArray<Pick<GeneratedColor, 'hue'>>,
+  anchors: readonly HueAnchor[],
+) {
+  if (colors.length === 0) return [];
+
+  // Hungarian assignment keeps palette-level hue labels unique while minimizing total hue distance.
+  const potentialsByColor = Array.from({ length: colors.length + 1 }, () => 0);
+  const potentialsByAnchor = Array.from({ length: anchors.length + 1 }, () => 0);
+  const matchedColorByAnchor = Array.from({ length: anchors.length + 1 }, () => 0);
+  const previousAnchor = Array.from({ length: anchors.length + 1 }, () => 0);
+
+  for (let color = 1; color <= colors.length; color += 1) {
+    matchedColorByAnchor[0] = color;
+    let currentAnchor = 0;
+    const minimumReducedCosts = Array.from({ length: anchors.length + 1 }, () => Number.POSITIVE_INFINITY);
+    const usedAnchors = Array.from({ length: anchors.length + 1 }, () => false);
+
+    do {
+      usedAnchors[currentAnchor] = true;
+
+      const currentColor = matchedColorByAnchor[currentAnchor];
+      let delta = Number.POSITIVE_INFINITY;
+      let nextAnchor = 0;
+
+      for (let anchor = 1; anchor <= anchors.length; anchor += 1) {
+        if (usedAnchors[anchor]) continue;
+
+        const reducedCost =
+          circularDistance(colors[currentColor - 1].hue, anchors[anchor - 1].hue) -
+          potentialsByColor[currentColor] -
+          potentialsByAnchor[anchor];
+
+        if (reducedCost + HUE_ASSIGNMENT_EPSILON < minimumReducedCosts[anchor]) {
+          minimumReducedCosts[anchor] = reducedCost;
+          previousAnchor[anchor] = currentAnchor;
+        }
+
+        if (minimumReducedCosts[anchor] + HUE_ASSIGNMENT_EPSILON < delta) {
+          delta = minimumReducedCosts[anchor];
+          nextAnchor = anchor;
+        }
+      }
+
+      for (let anchor = 0; anchor <= anchors.length; anchor += 1) {
+        if (usedAnchors[anchor]) {
+          potentialsByColor[matchedColorByAnchor[anchor]] += delta;
+          potentialsByAnchor[anchor] -= delta;
+        } else {
+          minimumReducedCosts[anchor] -= delta;
+        }
+      }
+
+      currentAnchor = nextAnchor;
+    } while (matchedColorByAnchor[currentAnchor] !== 0);
+
+    do {
+      const nextAnchor = previousAnchor[currentAnchor];
+
+      matchedColorByAnchor[currentAnchor] = matchedColorByAnchor[nextAnchor];
+      currentAnchor = nextAnchor;
+    } while (currentAnchor !== 0);
+  }
+
+  const labels = Array.from({ length: colors.length }, () => '');
+
+  for (let anchor = 1; anchor <= anchors.length; anchor += 1) {
+    const color = matchedColorByAnchor[anchor];
+
+    if (color > 0) {
+      labels[color - 1] = anchors[anchor - 1].label;
+    }
+  }
+
+  return labels;
+}
+
+function getFallbackHueLabelAssignment(
+  colors: ReadonlyArray<Pick<GeneratedColor, 'hue'>>,
+  anchors: readonly HueAnchor[],
+) {
+  const usedLabels = new Set<string>();
+
+  return colors.map((color) => {
+    const candidates = [...anchors].sort(
+      (left, right) => circularDistance(color.hue, left.hue) - circularDistance(color.hue, right.hue),
+    );
+    const chosen = candidates.find((candidate) => !usedLabels.has(candidate.label)) ?? candidates[0];
+
+    usedLabels.add(chosen.label);
+    return chosen.label;
+  });
 }
 
 export function getHueName(hue: number, count = 12): string {
-  const normalized = ((hue % 360) + 360) % 360;
-  const bands = getHueBands(count);
-  let label = bands[0].label;
+  return getNearestHueAnchor(hue, getAllowedHueAnchors(count)).label;
+}
 
-  for (const band of bands) {
-    if (normalized < band.start) break;
-    label = band.label;
+export function getHueLabelsForPalette(
+  colors: ReadonlyArray<Pick<GeneratedColor, 'hue'>>,
+  count = colors.length,
+): string[] {
+  const anchors = getAllowedHueAnchors(count);
+
+  if (anchors.length === 0) return [];
+
+  if (anchors.length >= colors.length) {
+    return getUniqueHueLabelAssignment(colors, anchors);
   }
 
-  return label;
+  return getFallbackHueLabelAssignment(colors, anchors);
 }
 
 export function getDisplayLabel({

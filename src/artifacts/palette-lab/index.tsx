@@ -12,6 +12,7 @@ import {
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import {
   getDisplayLabel,
+  getHueLabelsForPalette,
   getTunedPaletteSettings,
   makeGeneratedPalette,
   type PaletteLabelMode,
@@ -188,6 +189,7 @@ export default function PaletteLab() {
       }),
     [autoTune, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
   );
+  const hueLabels = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
   const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
   const contrastMeasurementKey = useMemo(() => {
@@ -397,7 +399,10 @@ export default function PaletteLab() {
             >
               {colors.map((color) => {
                 const selected = selectedIndexes.includes(color.index);
-                const label = getDisplayLabel({ index: color.index, hue: color.hue, count, mode: labelMode });
+                const label =
+                  labelMode === 'hue'
+                    ? hueLabels[color.index]
+                    : getDisplayLabel({ index: color.index, hue: color.hue, count, mode: 'index' });
                 const style = {
                   '--palette-color': color.strongColor,
                   '--palette-color-weak': color.weakColor,

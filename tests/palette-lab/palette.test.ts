@@ -71,6 +71,8 @@ test('getHueName uses medium-specific color words for 9 to 12 colors', () => {
   assert.equal(getHueName(310, 12), 'Violet');
   assert.equal(getHueName(40, 12), 'Orange');
   assert.equal(getHueName(130, 12), 'Green');
+  assert.equal(getHueName(347, 12), 'Rose');
+  assert.equal(getHueName(348, 12), 'Red');
   assert.equal(getHueName(355, 12), 'Red');
 });
 
@@ -83,6 +85,8 @@ test('getHueName uses more specific color words for dense palettes', () => {
   assert.equal(getHueName(70, 16), 'Yellow');
   assert.equal(getHueName(100, 16), 'Olive');
   assert.equal(getHueName(340, 16), 'Rose');
+  assert.equal(getHueName(347, 16), 'Rose');
+  assert.equal(getHueName(348, 16), 'Red');
   assert.equal(getHueName(355, 16), 'Red');
   assert.equal(getHueName(220, 16), 'Sky');
 });

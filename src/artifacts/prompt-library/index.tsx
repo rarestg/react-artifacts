@@ -25,6 +25,8 @@ import {
 } from './prompts';
 import {
   filterPromptsByTags,
+  getDisplayMatchesForFields,
+  getDisplayMatchIndices,
   getHighlightedSegments,
   getMatchForKey,
   type PromptSearchResult,
@@ -78,6 +80,7 @@ export default function PromptLibrary() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activePrompt, setActivePrompt] = useState<PromptEntry | null>(null);
   const [activeSearchResult, setActiveSearchResult] = useState<PromptSearchResult | null>(null);
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const detailReturnFocusRef = useRef<HTMLElement | null>(null);
   const themePortalRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
@@ -89,12 +92,14 @@ export default function PromptLibrary() {
   const openPromptDetail = (prompt: PromptEntry, opener: HTMLElement | null) => {
     detailReturnFocusRef.current = opener;
     setActiveSearchResult(null);
+    setActiveSearchQuery('');
     setActivePrompt(prompt);
   };
 
   const closePromptDetail = () => {
     setActivePrompt(null);
     setActiveSearchResult(null);
+    setActiveSearchQuery('');
   };
 
   const openSearchPalette = () => {
@@ -104,6 +109,7 @@ export default function PromptLibrary() {
   const selectSearchResult = (result: PromptSearchResult) => {
     detailReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setActiveSearchResult(result);
+    setActiveSearchQuery(searchQuery);
     setActivePrompt(result.prompt);
     setSearchOpen(false);
   };
@@ -231,6 +237,7 @@ export default function PromptLibrary() {
         <PromptDetailDialog
           prompt={activePrompt}
           searchResult={activeSearchResult}
+          searchQuery={activeSearchQuery}
           returnFocusTo={detailReturnFocusRef.current}
           fallbackFocusTo={searchButtonRef.current}
           onClose={closePromptDetail}
@@ -331,7 +338,7 @@ function PromptCommandPalette({
               'data-[selected=true]:border-[var(--border-strong)] data-[selected=true]:bg-[var(--surface-muted)]',
             ].join(' ')}
           >
-            <PromptSearchResultItem result={result} />
+            <PromptSearchResultItem result={result} query={query} />
           </Command.Item>
         ))}
       </Command.List>
@@ -339,21 +346,23 @@ function PromptCommandPalette({
   );
 }
 
-function PromptSearchResultItem({ result }: { result: PromptSearchResult }) {
+function PromptSearchResultItem({ result, query }: { result: PromptSearchResult; query: string }) {
   const titleMatch = getMatchForKey(result, 'title');
   const summaryMatch = getMatchForKey(result, 'summary');
+  const titleIndices = getDisplayMatchIndices(result.prompt.title, query, titleMatch?.indices);
+  const summaryIndices = getDisplayMatchIndices(result.prompt.summary, query, summaryMatch?.indices);
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div className="min-w-0">
         <h3 className="text-sm font-semibold text-[var(--text)]">
-          <HighlightedText text={result.prompt.title} indices={titleMatch?.indices} />
+          <HighlightedText text={result.prompt.title} indices={titleIndices} />
         </h3>
         <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
-          <HighlightedText text={result.prompt.summary} indices={summaryMatch?.indices} />
+          <HighlightedText text={result.prompt.summary} indices={summaryIndices} />
         </p>
       </div>
-      <ResultSnippet result={result} />
+      <ResultSnippet result={result} query={query} />
       <PromptTags prompt={result.prompt} highlightedTagIds={getMatchedTagIds(result)} />
     </div>
   );
@@ -393,8 +402,8 @@ function PromptTags({
   );
 }
 
-function ResultSnippet({ result }: { result: PromptSearchResult }) {
-  const snippet = pickResultSnippet(result, 64);
+function ResultSnippet({ result, query }: { result: PromptSearchResult; query: string }) {
+  const snippet = pickResultSnippet(result, 64, query);
 
   return (
     <p className="text-xs leading-5 text-[var(--text-muted)]">
@@ -457,12 +466,14 @@ function getMatchedTagIds(result: PromptSearchResult): PromptTagId[] {
 function PromptDetailDialog({
   prompt,
   searchResult,
+  searchQuery,
   returnFocusTo,
   fallbackFocusTo = null,
   onClose,
 }: {
   prompt: PromptEntry;
   searchResult?: PromptSearchResult | null;
+  searchQuery: string;
   returnFocusTo: HTMLElement | null;
   fallbackFocusTo?: HTMLElement | null;
   onClose: () => void;
@@ -475,6 +486,22 @@ function PromptDetailDialog({
   const summaryMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'summary') : undefined;
   const contextMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'context') : undefined;
   const promptMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'prompt') : undefined;
+  const [titleDisplayMatch, summaryDisplayMatch, contextDisplayMatch, promptDisplayMatch] = matchingSearchResult
+    ? getDisplayMatchesForFields(
+        [
+          { field: 'title', text: prompt.title, fuseIndices: titleMatch?.indices },
+          { field: 'summary', text: prompt.summary, fuseIndices: summaryMatch?.indices },
+          { field: 'context', text: prompt.context, fuseIndices: contextMatch?.indices },
+          { field: 'prompt', text: prompt.prompt, fuseIndices: promptMatch?.indices },
+          { field: 'tags', text: prompt.tags.join(' ') },
+        ],
+        searchQuery,
+      )
+    : [];
+  const titleIndices = titleDisplayMatch?.indices;
+  const summaryIndices = summaryDisplayMatch?.indices;
+  const contextIndices = contextDisplayMatch?.indices;
+  const promptIndices = promptDisplayMatch?.indices;
   const highlightedTagIds = matchingSearchResult ? getMatchedTagIds(matchingSearchResult) : [];
 
   useEffect(() => {
@@ -551,10 +578,10 @@ function PromptDetailDialog({
               tabIndex={-1}
               className={['text-base font-semibold', focusClass].join(' ')}
             >
-              <HighlightedText text={prompt.title} indices={titleMatch?.indices} />
+              <HighlightedText text={prompt.title} indices={titleIndices} />
             </h2>
             <p className="mt-1 text-sm text-[var(--text-muted)]">
-              <HighlightedText text={prompt.summary} indices={summaryMatch?.indices} />
+              <HighlightedText text={prompt.summary} indices={summaryIndices} />
             </p>
           </div>
           <button
@@ -573,7 +600,7 @@ function PromptDetailDialog({
               Usage Context
             </h3>
             <p>
-              <HighlightedText text={prompt.context} indices={contextMatch?.indices} />
+              <HighlightedText text={prompt.context} indices={contextIndices} />
             </p>
           </section>
           <section className="min-h-0">
@@ -581,7 +608,7 @@ function PromptDetailDialog({
               Prompt
             </h3>
             <pre className="max-h-80 overflow-auto whitespace-pre-wrap border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5 text-[var(--text)]">
-              <HighlightedText text={prompt.prompt} indices={promptMatch?.indices} />
+              <HighlightedText text={prompt.prompt} indices={promptIndices} />
             </pre>
           </section>
         </div>

@@ -1,4 +1,4 @@
-import Fuse, { type FuseResult, type FuseResultMatch, type IFuseOptions } from 'fuse.js';
+import Fuse, { type Expression, type FuseResult, type FuseResultMatch, type IFuseOptions } from 'fuse.js';
 
 import type { PromptEntry, PromptTagId } from './prompts';
 
@@ -20,6 +20,11 @@ export type DisplayMatchField<Field extends string = string> = {
   field: Field;
   text: string;
   fuseIndices?: readonly MatchRange[];
+};
+
+export type PromptHeaderDisplayMatches = {
+  titleIndices: MatchRange[];
+  summaryIndices: MatchRange[];
 };
 
 export type PromptSearchResult = {
@@ -53,6 +58,13 @@ export const promptFuseOptions = {
   minMatchCharLength: 2,
 } satisfies IFuseOptions<PromptEntry>;
 
+const promptLiteralSearchFields = ['title', 'tags', 'summary', 'context', 'prompt'] as const;
+
+const promptLiteralSearchFuseOptions = {
+  ...promptFuseOptions,
+  useExtendedSearch: true,
+} satisfies IFuseOptions<PromptEntry>;
+
 export function filterPromptsByTags(
   entries: readonly PromptEntry[],
   selectedTags: readonly PromptTagId[],
@@ -73,6 +85,17 @@ export function searchPrompts(entries: readonly PromptEntry[], query: string, li
       matches: [],
       refIndex,
     }));
+  }
+
+  const literalQuery = getMultiTokenLiteralSearchQuery(trimmedQuery);
+
+  if (literalQuery) {
+    const literalFuse = new Fuse(entries, promptLiteralSearchFuseOptions);
+    const literalResults = literalFuse.search(literalQuery, { limit: safeLimit });
+
+    if (literalResults.length) {
+      return literalResults.map((result) => normalizeFuseResult(result));
+    }
   }
 
   const fuse = new Fuse(entries, promptFuseOptions);
@@ -106,6 +129,17 @@ export function getDisplayMatchesForFields<const Field extends string>(
   if (!hasLiteralEvidence) return matches;
 
   return matches.map((match) => (match.source === 'fuse' ? { ...match, indices: [], source: 'none' as const } : match));
+}
+
+export function getPromptHeaderDisplayMatches(result: PromptSearchResult, query: string): PromptHeaderDisplayMatches {
+  const displayMatches = getPromptDisplayMatches(result, query);
+  const titleDisplayMatch = displayMatches.find((match) => match.field === 'title');
+  const summaryDisplayMatch = displayMatches.find((match) => match.field === 'summary');
+
+  return {
+    titleIndices: titleDisplayMatch?.indices ?? [],
+    summaryIndices: summaryDisplayMatch?.indices ?? [],
+  };
 }
 
 export function makeSnippet(text: string, indices: readonly MatchRange[], radius = 80): PromptSnippet {
@@ -142,13 +176,11 @@ export function pickResultSnippet(result: PromptSearchResult | undefined, radius
   }
 
   const snippetFields = ['summary', 'context', 'prompt'] as const;
-  const candidates = snippetFields.map((field) => {
-    const match = getMatchForKey(result, field);
-    return {
-      field,
-      candidate: getDisplayMatchCandidate(result.prompt[field], query, match?.indices ?? []),
-    };
-  });
+  const displayMatches = getPromptDisplayMatches(result, query);
+  const candidates = snippetFields.map((field) => ({
+    field,
+    candidate: displayMatches.find((match) => match.field === field) ?? { indices: [], source: 'none' as const },
+  }));
 
   for (const source of ['phrase', 'token', 'fuse'] as const) {
     const displayMatch = candidates.find(({ candidate }) => candidate.source === source && candidate.indices.length);
@@ -200,6 +232,40 @@ function normalizeFuseResult(result: FuseResult<PromptEntry>): PromptSearchResul
   };
 }
 
+function getPromptDisplayMatches(result: PromptSearchResult, query: string) {
+  const titleMatch = getMatchForKey(result, 'title');
+  const summaryMatch = getMatchForKey(result, 'summary');
+  const contextMatch = getMatchForKey(result, 'context');
+  const promptMatch = getMatchForKey(result, 'prompt');
+
+  return getDisplayMatchesForFields(
+    [
+      { field: 'title', text: result.prompt.title, fuseIndices: titleMatch?.indices },
+      { field: 'summary', text: result.prompt.summary, fuseIndices: summaryMatch?.indices },
+      { field: 'context', text: result.prompt.context, fuseIndices: contextMatch?.indices },
+      { field: 'prompt', text: result.prompt.prompt, fuseIndices: promptMatch?.indices },
+      { field: 'tags', text: result.prompt.tags.join(' ') },
+    ],
+    query,
+  );
+}
+
+function getMultiTokenLiteralSearchQuery(query: string): Expression | undefined {
+  const tokens = getDisplayTokens(query);
+
+  if (tokens.length < 2) return undefined;
+
+  return {
+    $and: tokens.map((token) => ({
+      $or: promptLiteralSearchFields.map((field) => ({ [field]: getFuseIncludePattern(token) })),
+    })),
+  };
+}
+
+function getFuseIncludePattern(token: string): string {
+  return `'${token.replace(/\|/g, '\\|')}`;
+}
+
 function getDisplayMatchCandidate(
   text: string,
   query: string,
@@ -240,7 +306,7 @@ function findLiteralRanges(text: string, literal: string): MatchRange[] {
     if (start === -1) break;
 
     ranges.push([start, start + literal.length - 1]);
-    cursor = start + Math.max(1, normalizedLiteral.length);
+    cursor = start + 1;
   }
 
   return ranges;

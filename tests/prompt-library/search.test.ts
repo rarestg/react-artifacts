@@ -8,6 +8,7 @@ import {
   getDisplayMatchesForFields,
   getDisplayMatchIndices,
   getHighlightedSegments,
+  getPromptHeaderDisplayMatches,
   makeSnippet,
   type PromptSearchResult,
   pickResultSnippet,
@@ -156,6 +157,81 @@ test('searchPrompts returns an empty list when nothing matches', () => {
   assert.deepEqual(results, []);
 });
 
+test('searchPrompts keeps the proposal result first while completing a multi-token query', () => {
+  for (const query of [
+    'subagent validate propos',
+    'subagent validate propose',
+    'subagent validate proposed',
+    'subagent validate proposed solution',
+  ]) {
+    const [result] = searchPrompts(prompts, query);
+
+    assert.equal(result?.prompt.id, 'proposal-review-subagent', `Expected ${query} to keep proposal first`);
+  }
+});
+
+test('searchPrompts applies AND semantics across multi-token literal matches', () => {
+  const results = searchPrompts(
+    [
+      {
+        id: 'only-subagent',
+        title: 'Subagent Dispatch',
+        summary: 'Send the work to another reviewer.',
+        tags: ['subagents'],
+        context: 'Use when the task can be delegated.',
+        prompt: 'Dispatch the task.',
+      },
+      {
+        id: 'subagent-validate',
+        title: 'Subagent Validation',
+        summary: 'Ask a reviewer to validate the proposal.',
+        tags: ['review'],
+        context: 'Use when a delegated review should check correctness.',
+        prompt: 'Validate the proposal.',
+      },
+    ],
+    'subagent validate',
+  );
+
+  assert.deepEqual(
+    results.map((result) => result.prompt.id),
+    ['subagent-validate'],
+  );
+});
+
+test('searchPrompts lets multi-token queries match tags and text fields together', () => {
+  const results = searchPrompts(
+    [
+      {
+        id: 'tag-and-summary',
+        title: 'Delegation Check',
+        summary: 'Validate the proposed change.',
+        tags: ['subagents'],
+        context: 'Use when delegated review is useful.',
+        prompt: 'Check the proposed change.',
+      },
+      {
+        id: 'summary-only',
+        title: 'Proposal Check',
+        summary: 'Validate the proposed change.',
+        tags: ['review'],
+        context: 'Use when review is useful.',
+        prompt: 'Check the proposed change.',
+      },
+    ],
+    'subagents validate',
+  );
+
+  assert.deepEqual(
+    results.map((result) => result.prompt.id),
+    ['tag-and-summary'],
+  );
+});
+
+test('searchPrompts preserves single-token fuzzy search behavior', () => {
+  assertSearchMatch(snippetPrompts, 'solsticegote', 'snippet-prompt', 'prompt');
+});
+
 test('searchPrompts returns source order for an empty query', () => {
   const results = searchPrompts(searchFieldPrompts, '   ');
 
@@ -200,6 +276,13 @@ test('getDisplayMatchIndices prefers exact phrase matches over earlier fuzzy fra
 
 test('getDisplayMatchIndices matches exact phrases case-insensitively', () => {
   assert.deepEqual(getDisplayMatchIndices('They should not Manufacture work.', 'manufacture', []), [[16, 26]]);
+});
+
+test('getDisplayMatchIndices includes overlapping exact phrase matches', () => {
+  assert.deepEqual(getDisplayMatchIndices('banana', 'ana', []), [
+    [1, 3],
+    [3, 5],
+  ]);
 });
 
 test('getDisplayMatchIndices treats regex-sensitive query characters literally', () => {
@@ -297,6 +380,20 @@ test('getDisplayMatchesForFields keeps fuzzy ranges when no field has exact evid
   assert.equal(byField.prompt?.source, 'fuse');
 });
 
+test('getPromptHeaderDisplayMatches suppresses fuzzy title and summary ranges when tags have exact evidence', () => {
+  const [result] = searchPrompts(prompts, 'subagents');
+
+  assert.equal(result?.prompt.id, 'proposal-review-subagent');
+  assert.ok(result.matches.some((match) => match.key === 'title' && match.indices.length > 0));
+  assert.ok(result.matches.some((match) => match.key === 'summary' && match.indices.length > 0));
+  assert.ok(result.matches.some((match) => match.key === 'tags' && match.value === 'subagents'));
+
+  const matches = getPromptHeaderDisplayMatches(result, 'subagents');
+
+  assert.deepEqual(matches.titleIndices, []);
+  assert.deepEqual(matches.summaryIndices, []);
+});
+
 test('getHighlightedSegments merges overlapping inclusive ranges', () => {
   const segments = getHighlightedSegments('abcdefghi', [
     [1, 3],
@@ -307,6 +404,15 @@ test('getHighlightedSegments merges overlapping inclusive ranges', () => {
     { text: 'a', highlighted: false },
     { text: 'bcdef', highlighted: true },
     { text: 'ghi', highlighted: false },
+  ]);
+});
+
+test('getHighlightedSegments merges overlapping exact phrase matches found from a query', () => {
+  const segments = getHighlightedSegments('banana', getDisplayMatchIndices('banana', 'ana', []));
+
+  assert.deepEqual(segments, [
+    { text: 'b', highlighted: false },
+    { text: 'anana', highlighted: true },
   ]);
 });
 
@@ -344,6 +450,19 @@ test('pickResultSnippet anchors manufacture search on the exact prompt-body word
   assert.deepEqual(
     snippet.indices.map(([start, end]) => snippet.text.slice(start, end + 1)),
     ['manufacture'],
+  );
+});
+
+test('pickResultSnippet highlights multi-token literal search evidence', () => {
+  const query = 'subagent validate propose';
+  const [result] = searchPrompts(prompts, query);
+  const snippet = pickResultSnippet(result, 80, query);
+
+  assert.equal(result?.prompt.id, 'proposal-review-subagent');
+  assert.equal(snippet.field, 'summary');
+  assert.deepEqual(
+    snippet.indices.map(([start, end]) => snippet.text.slice(start, end + 1).toLowerCase()),
+    ['subagent', 'validate', 'propose'],
   );
 });
 
@@ -402,24 +521,13 @@ test('pickResultSnippet keeps exact evidence in the earliest preferred field', (
   assert.match(snippet.text, /manufacture/i);
 });
 
-test('pickResultSnippet falls back to context for tag-only matches', () => {
-  const [result] = searchPrompts(
-    [
-      {
-        id: 'tag-only',
-        title: 'Alpha',
-        summary: 'Beta',
-        tags: ['subagents'],
-        context: 'Use after a workflow calls for delegated investigation.',
-        prompt: 'Delegate the investigation.',
-      },
-    ],
-    'subagents',
-  );
-  const snippet = pickResultSnippet(result);
+test('pickResultSnippet falls back to context when exact evidence is tag-only', () => {
+  const [result] = searchPrompts(prompts, 'subagents');
+  const snippet = pickResultSnippet(result, 80, 'subagents');
 
+  assert.equal(result?.prompt.id, 'proposal-review-subagent');
   assert.equal(snippet.field, 'context');
-  assert.match(snippet.text, /Use after/i);
+  assert.deepEqual(snippet.indices, []);
 });
 
 test('tag filtering composes with search input', () => {

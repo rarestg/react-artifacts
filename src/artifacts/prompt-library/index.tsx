@@ -26,9 +26,9 @@ import {
 import {
   filterPromptsByTags,
   getDisplayMatchesForFields,
-  getDisplayMatchIndices,
   getHighlightedSegments,
   getMatchForKey,
+  getPromptHeaderDisplayMatches,
   type PromptSearchResult,
   pickResultSnippet,
   searchPrompts,
@@ -347,10 +347,7 @@ function PromptCommandPalette({
 }
 
 function PromptSearchResultItem({ result, query }: { result: PromptSearchResult; query: string }) {
-  const titleMatch = getMatchForKey(result, 'title');
-  const summaryMatch = getMatchForKey(result, 'summary');
-  const titleIndices = getDisplayMatchIndices(result.prompt.title, query, titleMatch?.indices);
-  const summaryIndices = getDisplayMatchIndices(result.prompt.summary, query, summaryMatch?.indices);
+  const { titleIndices, summaryIndices } = getPromptHeaderDisplayMatches(result, query);
 
   return (
     <div className="flex min-w-0 flex-col gap-2">

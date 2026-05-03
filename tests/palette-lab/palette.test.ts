@@ -12,7 +12,6 @@ test('makeGeneratedPalette spaces hues evenly from the configured offset', () =>
   const colors = makeGeneratedPalette({
     count: 4,
     hueOffset: 220,
-    chroma: 0.155,
     lightStrongL: 60,
     darkLift: 18,
     weakMix: 22,
@@ -24,14 +23,13 @@ test('makeGeneratedPalette spaces hues evenly from the configured offset', () =>
     colors.map((color) => color.hue),
     [220, 310, 40, 130],
   );
-  assert.equal(colors[0].strongColor, 'oklch(60% 0.155 220)');
+  assert.equal(colors[0].strongColor, 'oklch(60% 0.22 220)');
 });
 
 test('makeGeneratedPalette lifts lightness in dark mode', () => {
   const colors = makeGeneratedPalette({
     count: 1,
     hueOffset: 220,
-    chroma: 0.155,
     lightStrongL: 60,
     darkLift: 18,
     weakMix: 22,
@@ -40,7 +38,22 @@ test('makeGeneratedPalette lifts lightness in dark mode', () => {
   });
 
   assert.equal(colors[0].strongLightness, 78);
-  assert.equal(colors[0].strongColor, 'oklch(78% 0.155 220)');
+  assert.equal(colors[0].strongColor, 'oklch(78% 0.22 220)');
+});
+
+test('makeGeneratedPalette uses the count-aware maximum chroma even when auto tune is off', () => {
+  const colors = makeGeneratedPalette({
+    count: 16,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: false,
+    theme: 'light',
+  });
+
+  assert.equal(colors[0].chroma, 0.189);
+  assert.equal(colors[0].strongColor, 'oklch(60% 0.189 220)');
 });
 
 test('getHueName uses broad color words for compact palettes', () => {
@@ -52,16 +65,20 @@ test('getHueName uses broad color words for compact palettes', () => {
 });
 
 test('getHueName uses medium-specific color words for 9 to 12 colors', () => {
+  assert.equal(getHueName(150, 9), 'Teal');
   assert.equal(getHueName(220, 12), 'Sky');
   assert.equal(getHueName(310, 12), 'Violet');
   assert.equal(getHueName(40, 12), 'Orange');
   assert.equal(getHueName(130, 12), 'Green');
+  assert.equal(getHueName(355, 12), 'Red');
 });
 
 test('getHueName uses more specific color words for dense palettes', () => {
+  assert.equal(getHueName(150, 13), 'Mint');
   assert.equal(getHueName(70, 16), 'Amber');
   assert.equal(getHueName(100, 16), 'Olive');
   assert.equal(getHueName(340, 16), 'Rose');
+  assert.equal(getHueName(355, 16), 'Red');
   assert.equal(getHueName(220, 16), 'Sky');
 });
 
@@ -74,23 +91,38 @@ test('getDisplayLabel can use stable index labels instead of color words', () =>
 test('getTunedPaletteSettings adjusts generation as color count rises', () => {
   const low = getTunedPaletteSettings({
     count: 4,
-    chroma: 0.155,
     darkLift: 18,
     weakMix: 22,
     autoTune: true,
   });
   const high = getTunedPaletteSettings({
     count: 16,
-    chroma: 0.155,
     darkLift: 18,
     weakMix: 22,
     autoTune: true,
   });
 
-  assert.equal(low.chroma, 0.155);
+  assert.equal(low.chroma, 0.22);
   assert.equal(low.darkLift, 18);
   assert.equal(low.weakMix, 22);
   assert.ok(high.chroma < low.chroma);
   assert.ok(high.darkLift > low.darkLift);
   assert.ok(high.weakMix < low.weakMix);
+});
+
+test('getTunedPaletteSettings caps auto-tuning pressure at the generated color count', () => {
+  const capped = getTunedPaletteSettings({
+    count: 16,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+  });
+  const oversized = getTunedPaletteSettings({
+    count: 99,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+  });
+
+  assert.deepEqual(oversized, capped);
 });

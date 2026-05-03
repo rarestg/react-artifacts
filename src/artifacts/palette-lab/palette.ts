@@ -4,7 +4,6 @@ export type PaletteLabelMode = 'index' | 'hue';
 export type PaletteSettings = {
   count: number;
   hueOffset: number;
-  chroma: number;
   lightStrongL: number;
   darkLift: number;
   weakMix: number;
@@ -26,27 +25,28 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 
 const round = (value: number, precision = 3) => Number(value.toFixed(precision));
 
-const formatNumber = (value: number) => String(value);
+export const MAX_BASE_CHROMA = 0.22;
 
 export function getTunedPaletteSettings({
   count,
-  chroma,
   darkLift,
   weakMix,
   autoTune,
-}: Pick<PaletteSettings, 'count' | 'chroma' | 'darkLift' | 'weakMix' | 'autoTune'>) {
+}: Pick<PaletteSettings, 'count' | 'darkLift' | 'weakMix' | 'autoTune'>) {
+  const generatedCount = Math.round(clamp(count, 1, 16));
+  const spreadPressure = Math.max(0, generatedCount - 8) / 8;
+  const chroma = round(clamp(MAX_BASE_CHROMA * (1 - spreadPressure * 0.14), 0.07, MAX_BASE_CHROMA));
+
   if (!autoTune) {
     return {
-      chroma: round(clamp(chroma, 0.07, 0.24)),
+      chroma,
       darkLift: round(clamp(darkLift, 6, 32), 1),
       weakMix: round(clamp(weakMix, 8, 36), 1),
     };
   }
 
-  const spreadPressure = Math.max(0, count - 8) / 8;
-
   return {
-    chroma: round(clamp(chroma * (1 - spreadPressure * 0.14), 0.07, 0.24)),
+    chroma,
     darkLift: round(clamp(darkLift + spreadPressure * 2, 6, 32), 1),
     weakMix: round(clamp(weakMix - spreadPressure * 3, 8, 36), 1),
   };
@@ -63,7 +63,7 @@ export function makeGeneratedPalette(settings: PaletteSettings): GeneratedColor[
       settings.theme === 'dark'
         ? round(clamp(settings.lightStrongL + tuned.darkLift, 55, 88), 1)
         : round(clamp(settings.lightStrongL, 40, 78), 1);
-    const strongColor = `oklch(${formatNumber(strongLightness)}% ${formatNumber(tuned.chroma)} ${formatNumber(hue)})`;
+    const strongColor = `oklch(${strongLightness}% ${tuned.chroma} ${hue})`;
 
     return {
       index,
@@ -72,7 +72,7 @@ export function makeGeneratedPalette(settings: PaletteSettings): GeneratedColor[
       strongLightness,
       weakMix: tuned.weakMix,
       strongColor,
-      weakColor: `color-mix(in oklch, ${strongColor} ${formatNumber(tuned.weakMix)}%, var(--surface))`,
+      weakColor: `color-mix(in oklch, ${strongColor} ${tuned.weakMix}%, var(--surface))`,
     };
   });
 }
@@ -105,6 +105,7 @@ const standardHueBands = [
   { start: 265, label: 'Indigo' },
   { start: 295, label: 'Violet' },
   { start: 325, label: 'Rose' },
+  { start: 350, label: 'Red' },
 ] as const satisfies readonly HueBand[];
 
 const denseHueBands = [
@@ -123,6 +124,7 @@ const denseHueBands = [
   { start: 292, label: 'Violet' },
   { start: 320, label: 'Magenta' },
   { start: 335, label: 'Rose' },
+  { start: 350, label: 'Red' },
 ] as const satisfies readonly HueBand[];
 
 function getHueBands(count: number): readonly HueBand[] {

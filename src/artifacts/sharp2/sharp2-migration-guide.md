@@ -118,6 +118,9 @@ Token set:
 - `--category-amber` / `--category-amber-weak`
 - `--category-violet` / `--category-violet-weak`
 - `--category-red` / `--category-red-weak`
+- `--category-cyan` / `--category-cyan-weak`
+- `--category-pink` / `--category-pink-weak`
+- `--category-lime` / `--category-lime-weak`
 
 Suggested values:
 ```css
@@ -127,15 +130,42 @@ Suggested values:
   --category-amber: var(--warning);
   --category-violet: var(--info);
   --category-red: var(--danger);
+  --category-cyan: #0891b2;
+  --category-pink: #db2777;
+  --category-lime: #65a30d;
 
   --category-blue-weak: var(--accent-weak);
   --category-green-weak: var(--success-weak);
   --category-amber-weak: var(--warning-weak);
   --category-violet-weak: var(--info-weak);
   --category-red-weak: var(--danger-weak);
+  --category-cyan-weak: #cffafe;
+  --category-pink-weak: #fce7f3;
+  --category-lime-weak: #ecfccb;
 }
 
-// Note: categorical tokens currently alias the semantic palette.
+.dark .artifact-theme {
+  --category-blue: #60a5fa;
+  --category-green: #34d399;
+  --category-amber: #fbbf24;
+  --category-violet: #c084fc;
+  --category-red: #fb7185;
+  --category-cyan: #22d3ee;
+  --category-pink: #f472b6;
+  --category-lime: #a3e635;
+
+  --category-blue-weak: #1e3a8a;
+  --category-green-weak: #064e3b;
+  --category-amber-weak: #78350f;
+  --category-violet-weak: #4c1d95;
+  --category-red-weak: #881337;
+  --category-cyan-weak: #164e63;
+  --category-pink-weak: #831843;
+  --category-lime-weak: #365314;
+}
+
+/* Note: light mode keeps blue/green/amber/violet/red aligned with semantic tokens. */
+/* Dark mode uses explicit category values to keep selected category surfaces stable. */
 ```
 
 Usage guidelines:

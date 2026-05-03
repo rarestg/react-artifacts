@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { type KeyboardEvent, type ReactNode, useRef } from 'react';
+import { type CSSProperties, type KeyboardEvent, type ReactNode, useRef } from 'react';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type CheckboxProps = {
@@ -14,6 +14,7 @@ type CheckboxProps = {
   labelClassName?: string;
   boxClassName?: string;
   checkClassName?: string;
+  style?: CSSProperties;
   suffix?: ReactNode;
 };
 
@@ -29,6 +30,7 @@ export function Checkbox({
   labelClassName,
   boxClassName,
   checkClassName,
+  style,
   suffix,
 }: CheckboxProps) {
   const rootRef = useRef<HTMLLabelElement>(null);
@@ -59,6 +61,7 @@ export function Checkbox({
   return (
     <label
       ref={rootRef}
+      style={style}
       className={[
         'inline-flex items-center gap-2 cursor-pointer select-none py-1',
         focusTarget === 'container' ? 'relative' : '',
@@ -97,7 +100,9 @@ export function Checkbox({
           .join(' ')}
       >
         {checked && (
-          <Check className={['text-[var(--primary-contrast)]', checkSize, checkClassName].filter(Boolean).join(' ')} />
+          <Check
+            className={[checkClassName ?? 'text-[var(--primary-contrast)]', checkSize].filter(Boolean).join(' ')}
+          />
         )}
       </span>
       <span

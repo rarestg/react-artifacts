@@ -223,6 +223,9 @@ These are categorical (not status) colors for classifying message types and tags
 | `--category-amber` / `--category-amber-weak` | Thinking | Left bars, dots, filter chips |
 | `--category-violet` / `--category-violet-weak` | Tool | Left bars, dots, filter chips |
 | `--category-red` / `--category-red-weak` | Critical | Special highlights if needed |
+| `--category-cyan` / `--category-cyan-weak` | System | Left bars, dots, filter chips |
+| `--category-pink` / `--category-pink-weak` | Note | Left bars, dots, filter chips |
+| `--category-lime` / `--category-lime-weak` | Marker | Left bars, dots, filter chips |
 
 Guidelines:
 - Use `--category-*-weak` for selected row backgrounds or filter chips.

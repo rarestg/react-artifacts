@@ -1,13 +1,28 @@
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
 import { Search, X } from 'lucide-react';
-import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Checkbox } from '../../components/Checkbox';
 import { CopyButton } from '../../components/CopyButton';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
-import { getPromptTag, type PromptEntry, type PromptTagId, prompts, promptTags } from './prompts';
+import {
+  getPromptTag,
+  type PromptEntry,
+  type PromptTagColorId,
+  type PromptTagId,
+  prompts,
+  promptTags,
+} from './prompts';
 import {
   filterPromptsByTags,
   getHighlightedSegments,
@@ -36,6 +51,26 @@ const focusableSelector = [
 ].join(', ');
 
 type HighlightIndices = readonly (readonly [number, number])[];
+
+type PromptTagColorStyle = CSSProperties & {
+  '--prompt-tag-color': string;
+  '--prompt-tag-color-weak': string;
+  '--checkbox-on-bg': string;
+  '--checkbox-on-border': string;
+  '--checkbox-off-border': string;
+};
+
+function getPromptTagColorStyle(color: PromptTagColorId): PromptTagColorStyle {
+  const colorToken = `var(--category-${color})`;
+
+  return {
+    '--prompt-tag-color': colorToken,
+    '--prompt-tag-color-weak': `var(--category-${color}-weak)`,
+    '--checkbox-on-bg': colorToken,
+    '--checkbox-on-border': colorToken,
+    '--checkbox-off-border': colorToken,
+  };
+}
 
 export default function PromptLibrary() {
   const [selectedTags, setSelectedTags] = useState<PromptTagId[]>([]);
@@ -140,6 +175,7 @@ export default function PromptLibrary() {
           <section className={['flex flex-wrap items-center gap-2 p-3', panelClass].join(' ')} aria-label="Prompt tags">
             {promptTags.map((tag) => {
               const checked = selectedTags.includes(tag.id);
+              const tagColorStyle = getPromptTagColorStyle(tag.color);
               const count = filterPromptsByTags(prompts, [
                 ...selectedTags.filter((selected) => selected !== tag.id),
                 tag.id,
@@ -153,14 +189,25 @@ export default function PromptLibrary() {
                   checked={checked}
                   onCheckedChange={(nextChecked) => toggleTag(tag.id, nextChecked)}
                   label={tag.label}
-                  suffix={<span className="font-mono text-[10px] text-[var(--text-muted)] tabular-nums">{count}</span>}
+                  suffix={
+                    <span
+                      className={[
+                        'font-mono text-[10px] tabular-nums',
+                        checked ? 'text-[var(--text)]' : 'text-[var(--text-muted)]',
+                      ].join(' ')}
+                    >
+                      {count}
+                    </span>
+                  }
+                  style={tagColorStyle}
                   className={[
                     'border px-2 text-xs',
                     checked
-                      ? 'border-[var(--accent)] bg-[var(--accent-weak)]'
+                      ? 'border-[color:var(--prompt-tag-color)] bg-[var(--prompt-tag-color-weak)]'
                       : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-muted)]',
                   ].join(' ')}
                   labelClassName="text-xs"
+                  checkClassName="text-[var(--surface)]"
                 />
               );
             })}
@@ -207,7 +254,7 @@ export default function PromptLibrary() {
 function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: HTMLElement) => void }) {
   return (
     <article className={['flex min-h-56 flex-col gap-4 p-4', panelClass].join(' ')}>
-      <div className="flex items-start justify-between gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <button
           type="button"
           onClick={(event) => onOpen(event.currentTarget)}
@@ -324,17 +371,20 @@ function PromptTags({
       {prompt.tags.map((tagId) => {
         const tag = getPromptTag(tagId);
         const highlighted = highlightedTagIds.includes(tagId);
+        const tagColorStyle = getPromptTagColorStyle(tag.color);
 
         return (
           <span
             key={tag.id}
+            style={tagColorStyle}
             className={[
-              'border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em]',
+              'inline-flex items-center gap-1.5 border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em]',
               highlighted
-                ? 'border-[var(--accent)] bg-[var(--accent-weak)] text-[var(--text)]'
+                ? 'border-[color:var(--prompt-tag-color)] bg-[var(--surface-muted)] text-[var(--text)]'
                 : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
             ].join(' ')}
           >
+            <span className="h-1.5 w-1.5 shrink-0 rounded-none bg-[var(--prompt-tag-color)]" aria-hidden="true" />
             {tag.label}
           </span>
         );

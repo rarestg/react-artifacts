@@ -22,7 +22,6 @@ const themeSwatches = [
     label: 'Accent',
     weakBg: 'bg-[var(--accent-weak)]',
     strongBg: 'bg-[var(--accent)]',
-    text: 'text-[var(--accent)]',
     border: 'border-[color:var(--accent)]',
   },
   {
@@ -30,7 +29,6 @@ const themeSwatches = [
     label: 'Success',
     weakBg: 'bg-[var(--success-weak)]',
     strongBg: 'bg-[var(--success)]',
-    text: 'text-[var(--success)]',
     border: 'border-[color:var(--success)]',
   },
   {
@@ -38,7 +36,6 @@ const themeSwatches = [
     label: 'Warning',
     weakBg: 'bg-[var(--warning-weak)]',
     strongBg: 'bg-[var(--warning)]',
-    text: 'text-[var(--warning)]',
     border: 'border-[color:var(--warning)]',
   },
   {
@@ -46,7 +43,6 @@ const themeSwatches = [
     label: 'Danger',
     weakBg: 'bg-[var(--danger-weak)]',
     strongBg: 'bg-[var(--danger)]',
-    text: 'text-[var(--danger)]',
     border: 'border-[color:var(--danger)]',
   },
   {
@@ -54,7 +50,6 @@ const themeSwatches = [
     label: 'Info',
     weakBg: 'bg-[var(--info-weak)]',
     strongBg: 'bg-[var(--info)]',
-    text: 'text-[var(--info)]',
     border: 'border-[color:var(--info)]',
   },
 ] as const;
@@ -67,7 +62,6 @@ const categorySwatches = [
     label: 'User',
     weakBg: 'bg-[var(--category-blue-weak)]',
     strongBg: 'bg-[var(--category-blue)]',
-    text: 'text-[var(--category-blue)]',
     border: 'border-[color:var(--category-blue)]',
   },
   {
@@ -75,7 +69,6 @@ const categorySwatches = [
     label: 'Assistant',
     weakBg: 'bg-[var(--category-green-weak)]',
     strongBg: 'bg-[var(--category-green)]',
-    text: 'text-[var(--category-green)]',
     border: 'border-[color:var(--category-green)]',
   },
   {
@@ -83,7 +76,6 @@ const categorySwatches = [
     label: 'Thinking',
     weakBg: 'bg-[var(--category-amber-weak)]',
     strongBg: 'bg-[var(--category-amber)]',
-    text: 'text-[var(--category-amber)]',
     border: 'border-[color:var(--category-amber)]',
   },
   {
@@ -91,7 +83,6 @@ const categorySwatches = [
     label: 'Tool',
     weakBg: 'bg-[var(--category-violet-weak)]',
     strongBg: 'bg-[var(--category-violet)]',
-    text: 'text-[var(--category-violet)]',
     border: 'border-[color:var(--category-violet)]',
   },
   {
@@ -99,8 +90,28 @@ const categorySwatches = [
     label: 'Critical',
     weakBg: 'bg-[var(--category-red-weak)]',
     strongBg: 'bg-[var(--category-red)]',
-    text: 'text-[var(--category-red)]',
     border: 'border-[color:var(--category-red)]',
+  },
+  {
+    id: 'system',
+    label: 'System',
+    weakBg: 'bg-[var(--category-cyan-weak)]',
+    strongBg: 'bg-[var(--category-cyan)]',
+    border: 'border-[color:var(--category-cyan)]',
+  },
+  {
+    id: 'note',
+    label: 'Note',
+    weakBg: 'bg-[var(--category-pink-weak)]',
+    strongBg: 'bg-[var(--category-pink)]',
+    border: 'border-[color:var(--category-pink)]',
+  },
+  {
+    id: 'marker',
+    label: 'Marker',
+    weakBg: 'bg-[var(--category-lime-weak)]',
+    strongBg: 'bg-[var(--category-lime)]',
+    border: 'border-[color:var(--category-lime)]',
   },
 ] as const;
 
@@ -122,6 +133,9 @@ export default function ExampleApp() {
     thinking: false,
     tool: true,
     critical: false,
+    system: true,
+    note: false,
+    marker: false,
   });
   const [capsLockActive, setCapsLockActive] = useState(false);
   const [capsLockSeen, setCapsLockSeen] = useState(false);
@@ -352,7 +366,7 @@ export default function ExampleApp() {
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeSwatches[swatch.id]
-                    ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
+                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
                 ]
                   .filter(Boolean)
@@ -368,7 +382,7 @@ export default function ExampleApp() {
             {themeSwatches.map((swatch) => (
               <div
                 key={`${swatch.id}-chip`}
-                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} ${swatch.text} px-2 py-1 text-xs font-medium`}
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
               >
                 <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
                 {swatch.label} state
@@ -406,7 +420,7 @@ export default function ExampleApp() {
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeCategorySwatches[swatch.id]
-                    ? `${swatch.border} ${swatch.weakBg} ${swatch.text}`
+                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
                 ]
                   .filter(Boolean)
@@ -422,7 +436,7 @@ export default function ExampleApp() {
             {categorySwatches.map((swatch) => (
               <div
                 key={`${swatch.id}-chip`}
-                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} ${swatch.text} px-2 py-1 text-xs font-medium`}
+                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
               >
                 <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
                 {swatch.label} type

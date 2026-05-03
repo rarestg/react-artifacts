@@ -132,20 +132,9 @@ export function getDisplayMatchesForFields<const Field extends string>(
 }
 
 export function getPromptHeaderDisplayMatches(result: PromptSearchResult, query: string): PromptHeaderDisplayMatches {
-  const titleMatch = getMatchForKey(result, 'title');
-  const summaryMatch = getMatchForKey(result, 'summary');
-  const contextMatch = getMatchForKey(result, 'context');
-  const promptMatch = getMatchForKey(result, 'prompt');
-  const [titleDisplayMatch, summaryDisplayMatch] = getDisplayMatchesForFields(
-    [
-      { field: 'title', text: result.prompt.title, fuseIndices: titleMatch?.indices },
-      { field: 'summary', text: result.prompt.summary, fuseIndices: summaryMatch?.indices },
-      { field: 'context', text: result.prompt.context, fuseIndices: contextMatch?.indices },
-      { field: 'prompt', text: result.prompt.prompt, fuseIndices: promptMatch?.indices },
-      { field: 'tags', text: result.prompt.tags.join(' ') },
-    ],
-    query,
-  );
+  const displayMatches = getPromptDisplayMatches(result, query);
+  const titleDisplayMatch = displayMatches.find((match) => match.field === 'title');
+  const summaryDisplayMatch = displayMatches.find((match) => match.field === 'summary');
 
   return {
     titleIndices: titleDisplayMatch?.indices ?? [],
@@ -187,13 +176,11 @@ export function pickResultSnippet(result: PromptSearchResult | undefined, radius
   }
 
   const snippetFields = ['summary', 'context', 'prompt'] as const;
-  const candidates = snippetFields.map((field) => {
-    const match = getMatchForKey(result, field);
-    return {
-      field,
-      candidate: getDisplayMatchCandidate(result.prompt[field], query, match?.indices ?? []),
-    };
-  });
+  const displayMatches = getPromptDisplayMatches(result, query);
+  const candidates = snippetFields.map((field) => ({
+    field,
+    candidate: displayMatches.find((match) => match.field === field) ?? { indices: [], source: 'none' as const },
+  }));
 
   for (const source of ['phrase', 'token', 'fuse'] as const) {
     const displayMatch = candidates.find(({ candidate }) => candidate.source === source && candidate.indices.length);
@@ -243,6 +230,24 @@ function normalizeFuseResult(result: FuseResult<PromptEntry>): PromptSearchResul
     score: result.score,
     refIndex: result.refIndex,
   };
+}
+
+function getPromptDisplayMatches(result: PromptSearchResult, query: string) {
+  const titleMatch = getMatchForKey(result, 'title');
+  const summaryMatch = getMatchForKey(result, 'summary');
+  const contextMatch = getMatchForKey(result, 'context');
+  const promptMatch = getMatchForKey(result, 'prompt');
+
+  return getDisplayMatchesForFields(
+    [
+      { field: 'title', text: result.prompt.title, fuseIndices: titleMatch?.indices },
+      { field: 'summary', text: result.prompt.summary, fuseIndices: summaryMatch?.indices },
+      { field: 'context', text: result.prompt.context, fuseIndices: contextMatch?.indices },
+      { field: 'prompt', text: result.prompt.prompt, fuseIndices: promptMatch?.indices },
+      { field: 'tags', text: result.prompt.tags.join(' ') },
+    ],
+    query,
+  );
 }
 
 function getMultiTokenLiteralSearchQuery(query: string): Expression | undefined {

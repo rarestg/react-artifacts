@@ -521,24 +521,13 @@ test('pickResultSnippet keeps exact evidence in the earliest preferred field', (
   assert.match(snippet.text, /manufacture/i);
 });
 
-test('pickResultSnippet falls back to context for tag-only matches', () => {
-  const [result] = searchPrompts(
-    [
-      {
-        id: 'tag-only',
-        title: 'Alpha',
-        summary: 'Beta',
-        tags: ['subagents'],
-        context: 'Use after a workflow calls for delegated investigation.',
-        prompt: 'Delegate the investigation.',
-      },
-    ],
-    'subagents',
-  );
-  const snippet = pickResultSnippet(result);
+test('pickResultSnippet falls back to context when exact evidence is tag-only', () => {
+  const [result] = searchPrompts(prompts, 'subagents');
+  const snippet = pickResultSnippet(result, 80, 'subagents');
 
+  assert.equal(result?.prompt.id, 'proposal-review-subagent');
   assert.equal(snippet.field, 'context');
-  assert.match(snippet.text, /Use after/i);
+  assert.deepEqual(snippet.indices, []);
 });
 
 test('tag filtering composes with search input', () => {

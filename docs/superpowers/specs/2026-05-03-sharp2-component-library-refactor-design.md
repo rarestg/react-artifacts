@@ -359,6 +359,8 @@ Implementation should use fresh subagent review at meaningful boundaries:
 3. Review the final `sharp2` split for design regressions, stale duplicate code, and unnecessary promotion.
 
 Subagents should be given disjoint scopes and should not edit the same files concurrently unless explicitly assigned non-overlapping write ownership.
+If using codex, use fork_context false and gpt-5.5 with xhigh thinking effort.
+When waiting on subagents, use the maximum 60min or 3600000ms timeout. No point in interrupting them.
 
 ## Verification
 

@@ -4,7 +4,6 @@ export type PaletteLabelMode = 'index' | 'hue';
 export type PaletteSettings = {
   count: number;
   hueOffset: number;
-  chroma: number;
   lightStrongL: number;
   darkLift: number;
   weakMix: number;
@@ -26,26 +25,28 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 
 const round = (value: number, precision = 3) => Number(value.toFixed(precision));
 
+export const MAX_BASE_CHROMA = 0.22;
+
 export function getTunedPaletteSettings({
   count,
-  chroma,
   darkLift,
   weakMix,
   autoTune,
-}: Pick<PaletteSettings, 'count' | 'chroma' | 'darkLift' | 'weakMix' | 'autoTune'>) {
+}: Pick<PaletteSettings, 'count' | 'darkLift' | 'weakMix' | 'autoTune'>) {
+  const generatedCount = Math.round(clamp(count, 1, 16));
+  const spreadPressure = Math.max(0, generatedCount - 8) / 8;
+  const chroma = round(clamp(MAX_BASE_CHROMA * (1 - spreadPressure * 0.14), 0.07, MAX_BASE_CHROMA));
+
   if (!autoTune) {
     return {
-      chroma: round(clamp(chroma, 0.07, 0.24)),
+      chroma,
       darkLift: round(clamp(darkLift, 6, 32), 1),
       weakMix: round(clamp(weakMix, 8, 36), 1),
     };
   }
 
-  const generatedCount = Math.round(clamp(count, 1, 16));
-  const spreadPressure = Math.max(0, generatedCount - 8) / 8;
-
   return {
-    chroma: round(clamp(chroma * (1 - spreadPressure * 0.14), 0.07, 0.24)),
+    chroma,
     darkLift: round(clamp(darkLift + spreadPressure * 2, 6, 32), 1),
     weakMix: round(clamp(weakMix - spreadPressure * 3, 8, 36), 1),
   };

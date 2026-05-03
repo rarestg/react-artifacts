@@ -57,6 +57,11 @@ const helpItems = [
     detail: 'Lightness for the strong color. Higher values make the generated swatch brighter.',
   },
   {
+    term: 'Chroma',
+    detail:
+      'Color intensity in OKLCH. Palette Lab uses the highest base chroma, then softens it as color count gets denser.',
+  },
+  {
     term: 'Mix',
     detail: 'How much of the strong color is blended into the surface color to make the weak card background.',
   },
@@ -71,8 +76,7 @@ const helpItems = [
   },
   {
     term: 'Auto tune',
-    detail:
-      'Small count-based adjustments that reduce chroma, lower weak mix, and raise dark lift as the palette gets denser.',
+    detail: 'Small count-based adjustments that lower weak mix and raise dark lift as the palette gets denser.',
   },
 ] as const;
 
@@ -157,7 +161,6 @@ export default function PaletteLab() {
   const [theme, setTheme] = useState<PaletteTheme>('light');
   const [count, setCount] = useState(12);
   const [hueOffset, setHueOffset] = useState(220);
-  const [chroma, setChroma] = useState(0.155);
   const [lightStrongL, setLightStrongL] = useState(60);
   const [darkLift, setDarkLift] = useState(18);
   const [weakMix, setWeakMix] = useState(22);
@@ -169,22 +172,21 @@ export default function PaletteLab() {
   const helpButtonRef = useRef<HTMLButtonElement>(null);
 
   const tuned = useMemo(
-    () => getTunedPaletteSettings({ count, chroma, darkLift, weakMix, autoTune }),
-    [autoTune, chroma, count, darkLift, weakMix],
+    () => getTunedPaletteSettings({ count, darkLift, weakMix, autoTune }),
+    [autoTune, count, darkLift, weakMix],
   );
   const colors = useMemo(
     () =>
       makeGeneratedPalette({
         count,
         hueOffset,
-        chroma,
         lightStrongL,
         darkLift,
         weakMix,
         autoTune,
         theme,
       }),
-    [autoTune, chroma, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
+    [autoTune, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
   );
   const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
@@ -290,15 +292,6 @@ export default function PaletteLab() {
                 step={1}
                 displayValue={`${hueOffset}deg`}
                 onChange={setHueOffset}
-              />
-              <RangeControl
-                label="Base chroma"
-                value={chroma}
-                min={0.08}
-                max={0.22}
-                step={0.005}
-                displayValue={tuned.chroma.toFixed(3)}
-                onChange={setChroma}
               />
               <RangeControl
                 label="Light strong L"

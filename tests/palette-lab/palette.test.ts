@@ -12,7 +12,6 @@ test('makeGeneratedPalette spaces hues evenly from the configured offset', () =>
   const colors = makeGeneratedPalette({
     count: 4,
     hueOffset: 220,
-    chroma: 0.155,
     lightStrongL: 60,
     darkLift: 18,
     weakMix: 22,
@@ -24,14 +23,13 @@ test('makeGeneratedPalette spaces hues evenly from the configured offset', () =>
     colors.map((color) => color.hue),
     [220, 310, 40, 130],
   );
-  assert.equal(colors[0].strongColor, 'oklch(60% 0.155 220)');
+  assert.equal(colors[0].strongColor, 'oklch(60% 0.22 220)');
 });
 
 test('makeGeneratedPalette lifts lightness in dark mode', () => {
   const colors = makeGeneratedPalette({
     count: 1,
     hueOffset: 220,
-    chroma: 0.155,
     lightStrongL: 60,
     darkLift: 18,
     weakMix: 22,
@@ -40,7 +38,22 @@ test('makeGeneratedPalette lifts lightness in dark mode', () => {
   });
 
   assert.equal(colors[0].strongLightness, 78);
-  assert.equal(colors[0].strongColor, 'oklch(78% 0.155 220)');
+  assert.equal(colors[0].strongColor, 'oklch(78% 0.22 220)');
+});
+
+test('makeGeneratedPalette uses the count-aware maximum chroma even when auto tune is off', () => {
+  const colors = makeGeneratedPalette({
+    count: 16,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: false,
+    theme: 'light',
+  });
+
+  assert.equal(colors[0].chroma, 0.189);
+  assert.equal(colors[0].strongColor, 'oklch(60% 0.189 220)');
 });
 
 test('getHueName uses broad color words for compact palettes', () => {
@@ -78,20 +91,18 @@ test('getDisplayLabel can use stable index labels instead of color words', () =>
 test('getTunedPaletteSettings adjusts generation as color count rises', () => {
   const low = getTunedPaletteSettings({
     count: 4,
-    chroma: 0.155,
     darkLift: 18,
     weakMix: 22,
     autoTune: true,
   });
   const high = getTunedPaletteSettings({
     count: 16,
-    chroma: 0.155,
     darkLift: 18,
     weakMix: 22,
     autoTune: true,
   });
 
-  assert.equal(low.chroma, 0.155);
+  assert.equal(low.chroma, 0.22);
   assert.equal(low.darkLift, 18);
   assert.equal(low.weakMix, 22);
   assert.ok(high.chroma < low.chroma);
@@ -102,14 +113,12 @@ test('getTunedPaletteSettings adjusts generation as color count rises', () => {
 test('getTunedPaletteSettings caps auto-tuning pressure at the generated color count', () => {
   const capped = getTunedPaletteSettings({
     count: 16,
-    chroma: 0.155,
     darkLift: 18,
     weakMix: 22,
     autoTune: true,
   });
   const oversized = getTunedPaletteSettings({
     count: 99,
-    chroma: 0.155,
     darkLift: 18,
     weakMix: 22,
     autoTune: true,

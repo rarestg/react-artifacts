@@ -41,10 +41,10 @@ When using Codex subagents for this plan:
 ## File Structure
 
 Create shared components:
-- `src/components/Button.tsx`: shared Sharp button primitive.
-- `src/components/Input.tsx`: shared Sharp text input primitive.
-- `src/components/Tag.tsx`: shared non-interactive metadata tag.
-- `src/components/Panel.tsx`: shared structural surface.
+- `src/components/Button.tsx`: shared Sharp button primitive using `mergeClassNames` for caller overrides.
+- `src/components/Input.tsx`: shared Sharp text input primitive using `mergeClassNames`; requires either a visible `label`, `aria-label`, or `aria-labelledby`.
+- `src/components/Tag.tsx`: shared non-interactive metadata tag using `mergeClassNames`.
+- `src/components/Panel.tsx`: shared structural surface using `mergeClassNames`; no interactive affordances unless rendered through a native control outside `Panel`.
 
 Modify shared components:
 - `src/components/Checkbox.tsx`: disabled cursor behavior and unchecked active parity.
@@ -122,10 +122,16 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Checkbox } from '../../src/components/Checkbox';
 import { CopyButton } from '../../src/components/CopyButton';
 import { CopyableLabel } from '../../src/components/CopyableLabel';
-import StatusTag, { StatusTag as NamedStatusTag } from '../../src/components/StatusTag';
+import StatusTag from '../../src/components/StatusTag';
 import { Toggle } from '../../src/components/Toggle';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
+
+function firstElementClass(markup: string) {
+  const className = markup.match(/^<[^>]+class="([^"]+)"/)?.[1];
+  assert.ok(className, `Expected first element to have class markup: ${markup}`);
+  return className;
+}
 
 test('disabled shared checkbox and toggle preserve disabled cursor without pointer-events-none', () => {
   const checkbox = renderToStaticMarkup(
@@ -145,10 +151,13 @@ test('disabled shared checkbox and toggle preserve disabled cursor without point
     }),
   );
 
-  assert.match(checkbox, /cursor-not-allowed/);
-  assert.doesNotMatch(checkbox, /pointer-events-none/);
-  assert.match(toggle, /cursor-not-allowed/);
-  assert.doesNotMatch(toggle, /pointer-events-none/);
+  const checkboxRootClass = firstElementClass(checkbox);
+  const toggleRootClass = firstElementClass(toggle);
+
+  assert.match(checkboxRootClass, /cursor-not-allowed/);
+  assert.doesNotMatch(checkboxRootClass, /pointer-events-none/);
+  assert.match(toggleRootClass, /cursor-not-allowed/);
+  assert.doesNotMatch(toggleRootClass, /pointer-events-none/);
 });
 
 test('shared toggle and checkbox include active-state parity classes', () => {
@@ -182,9 +191,10 @@ test('shared toggle and checkbox include active-state parity classes', () => {
 
 test('disabled shared copy button preserves disabled cursor without pointer-events-none', () => {
   const markup = renderToStaticMarkup(createElement(CopyButton, { text: 'value', disabled: true }));
+  const rootClass = firstElementClass(markup);
 
-  assert.match(markup, /cursor-not-allowed/);
-  assert.doesNotMatch(markup, /pointer-events-none/);
+  assert.match(rootClass, /cursor-not-allowed/);
+  assert.doesNotMatch(rootClass, /pointer-events-none/);
 });
 
 test('copyable label keeps a stable accessible name for the copied value', () => {
@@ -194,10 +204,12 @@ test('copyable label keeps a stable accessible name for the copied value', () =>
   assert.match(markup, /active:bg-\[var\(--copy-hover-bg\)\]/);
 });
 
-test('StatusTag supports default and named imports', () => {
-  assert.equal(NamedStatusTag, StatusTag);
+test('StatusTag supports default and named imports', async () => {
+  const module = await import('../../src/components/StatusTag');
 
-  const markup = renderToStaticMarkup(createElement(NamedStatusTag, { label: 'Connected', active: true }));
+  assert.equal(module.StatusTag, StatusTag);
+
+  const markup = renderToStaticMarkup(createElement(module.StatusTag, { label: 'Connected', active: true }));
   assert.match(markup, /Connected/);
 });
 ```
@@ -223,6 +235,7 @@ Make these targeted class changes:
 - In `src/components/Toggle.tsx`, add checked `active:bg-[var(--primary-active)]`.
 - In `src/components/CopyButton.tsx`, change disabled class from `disabled:opacity-40 disabled:pointer-events-none` to `disabled:opacity-40 disabled:cursor-not-allowed`.
 - In `src/components/CopyableLabel.tsx`, include `active:bg-[var(--copy-hover-bg)]` in both idle and hover tones.
+- Export the public prop types for shared primitive API consumers by changing `type CheckboxProps`, `type ToggleProps`, `type CopyButtonProps`, `type CopyableLabelProps`, and `type StatusTagProps` to `export type ...`.
 
 The changed class snippets should look like:
 
@@ -439,6 +452,18 @@ test('Input preserves custom id and helper text description', () => {
   assert.match(markup, /Use a short readable name\./);
 });
 
+test('Input supports compact accessible names without relying on placeholder text', () => {
+  const markup = renderToStaticMarkup(
+    createElement(Input, {
+      'aria-label': 'Filter projects',
+      placeholder: 'Search',
+    }),
+  );
+
+  assert.match(markup, /aria-label="Filter projects"/);
+  assert.doesNotMatch(markup, /<label/);
+});
+
 test('Tag renders non-interactive metadata span variants', () => {
   const base = renderToStaticMarkup(createElement(Tag, { variant: 'base', title: 'Branch' }, 'main'));
   const muted = renderToStaticMarkup(createElement(Tag, { variant: 'muted' }, 'v2.4.1'));
@@ -458,7 +483,7 @@ test('Panel renders structural surfaces without padding radius or shadow', () =>
   assert.match(markup, /^<div/);
   assert.match(markup, /data-testid="panel"/);
   assert.match(markup, /border-dashed/);
-  assert.doesNotMatch(markup, /rounded|shadow|p-[0-9]/);
+  assert.doesNotMatch(markup, /rounded|shadow|p-[0-9]|cursor-pointer|hover:bg|active:bg/);
 });
 ```
 
@@ -486,6 +511,7 @@ import {
   useCallback,
   useRef,
 } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger';
@@ -543,16 +569,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={setRef}
       type={type}
       disabled={disabled}
-      className={[
+      className={mergeClassNames(
         'inline-flex items-center justify-center gap-2 font-medium transition-colors motion-reduce:transition-none cursor-pointer rounded-none',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variants[variant],
         sizes[size],
         className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      )}
       {...props}
     >
       {children}
@@ -577,16 +601,21 @@ import {
   useMemo,
   useRef,
 } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
-export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & {
-  label?: ReactNode;
+type InputAccessibleName =
+  | { label: ReactNode; 'aria-label'?: string; 'aria-labelledby'?: string }
+  | { label?: undefined; 'aria-label': string; 'aria-labelledby'?: string }
+  | { label?: undefined; 'aria-label'?: string; 'aria-labelledby': string };
+
+export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'aria-label' | 'aria-labelledby'> & {
   helperText?: ReactNode;
   error?: ReactNode;
   className?: string;
   inputClassName?: string;
   labelClassName?: string;
-};
+} & InputAccessibleName;
 
 function assignRef<T>(ref: ForwardedRef<T>, value: T | null) {
   if (typeof ref === 'function') {
@@ -599,7 +628,19 @@ function assignRef<T>(ref: ForwardedRef<T>, value: T | null) {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { id, label, helperText, error, className, inputClassName, labelClassName, 'aria-describedby': ariaDescribedBy, ...props },
+  {
+    id,
+    label,
+    helperText,
+    error,
+    className,
+    inputClassName,
+    labelClassName,
+    'aria-describedby': ariaDescribedBy,
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    ...props
+  },
   ref,
 ) {
   const generatedId = useId();
@@ -625,26 +666,26 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   );
 
   return (
-    <div ref={rootRef} className={['space-y-1', className].filter(Boolean).join(' ')}>
+    <div ref={rootRef} className={mergeClassNames('space-y-1', className)}>
       {label && (
-        <label htmlFor={inputId} className={['block text-xs font-medium text-[var(--text-muted)]', labelClassName].filter(Boolean).join(' ')}>
+        <label htmlFor={inputId} className={mergeClassNames('block text-xs font-medium text-[var(--text-muted)]', labelClassName)}>
           {label}
         </label>
       )}
       <input
         ref={setInputRef}
         id={inputId}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={[
+        className={mergeClassNames(
           'h-9 w-full border bg-[var(--surface)] px-3 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)]',
           'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
           error ? 'border-[color:var(--danger)]' : 'border-[var(--border)]',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           inputClassName,
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        )}
         {...props}
       />
       {helperText && (
@@ -668,6 +709,7 @@ Create `src/components/Tag.tsx`:
 
 ```tsx
 import { type HTMLAttributes, useRef } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type TagVariant = 'base' | 'muted' | 'solid';
@@ -689,9 +731,7 @@ export function Tag({ children, variant = 'base', className, ...props }: TagProp
   return (
     <span
       ref={rootRef}
-      className={['inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-none', variants[variant], className]
-        .filter(Boolean)
-        .join(' ')}
+      className={mergeClassNames('inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-none', variants[variant], className)}
       {...props}
     >
       {children}
@@ -706,6 +746,7 @@ Create `src/components/Panel.tsx`:
 
 ```tsx
 import { type ForwardedRef, forwardRef, type HTMLAttributes, type MutableRefObject, useCallback, useRef } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type PanelVariant = 'default' | 'muted' | 'dashed';
@@ -746,7 +787,7 @@ export const Panel = forwardRef<HTMLDivElement, PanelProps>(function Panel(
   };
 
   return (
-    <div ref={setRef} className={[variants[variant], className].filter(Boolean).join(' ')} {...props}>
+    <div ref={setRef} className={mergeClassNames(variants[variant], className)} {...props}>
       {children}
     </div>
   );
@@ -783,7 +824,17 @@ npx biome check --write src/components/Button.tsx src/components/Input.tsx src/c
 
 Expected: command exits `0` and only the listed files are formatted.
 
-- [ ] **Step 10: Commit promoted primitives**
+- [ ] **Step 10: Run typecheck for exported component APIs**
+
+Run:
+
+```bash
+npm run typecheck
+```
+
+Expected: PASS.
+
+- [ ] **Step 11: Commit promoted primitives**
 
 Run:
 
@@ -855,6 +906,12 @@ test('Row remains sharp2-local and is not exported from src/components', async (
   assert.match(joined, /function Row\b|export function Row\b/);
 
   await assert.rejects(readFile('src/components/Row.tsx', 'utf8'), /ENOENT/);
+});
+
+test('sharp2 keeps Panel structural instead of adding interactive affordances to it', async () => {
+  const source = await readFile('src/artifacts/sharp2/index.tsx', 'utf8');
+
+  assert.doesNotMatch(source, /<Panel\b[^>]*className="[^"]*(?:cursor-pointer|hover:bg|active:bg)/s);
 });
 ```
 
@@ -1008,7 +1065,7 @@ Replace the modal demo block with direct `ArtifactDialog` usage:
 </ArtifactDialog>
 ```
 
-- [ ] **Step 7: Fix Button size and icon-only button call sites**
+- [ ] **Step 7: Fix Button, Input, and structural Panel call sites**
 
 Change `size="default"` to omitted `size` or `size="md"`.
 
@@ -1019,6 +1076,43 @@ For the icon-only ghost button in the Buttons section, add an accessible name:
   <CopyIcon className="h-3.5 w-3.5" aria-hidden="true" />
 </Button>
 ```
+
+For compact inputs without a visible label, add an accessible name instead of relying on placeholder text:
+
+```tsx
+<Input aria-label="Example text input" placeholder="Enter text..." />
+```
+
+```tsx
+<Input aria-label="Keyboard focus example input" placeholder="Input" className="w-40" />
+```
+
+Do not pass interactive classes to shared `Panel`. In the sidebar example, use native buttons for navigation rows:
+
+```tsx
+<div className="space-y-1">
+  <button type="button" className="w-full cursor-pointer px-2 py-1.5 text-left text-sm text-[var(--text)] bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]">
+    Sessions
+  </button>
+  <button type="button" className="w-full cursor-pointer px-2 py-1.5 text-left text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]">
+    Workspaces
+  </button>
+  <button type="button" className="w-full cursor-pointer px-2 py-1.5 text-left text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]">
+    Settings
+  </button>
+</div>
+```
+
+In the "Stacked panels (interactive rows)" example, replace interactive `Panel` elements with the sharp2-local `Row`:
+
+```tsx
+<Row className="justify-between border-l-transparent">
+  <span className="text-sm text-[var(--text)]">First item</span>
+  <Tag variant="muted">Active</Tag>
+</Row>
+```
+
+Repeat the same `Row` shape for "Second item" and "Third item".
 
 - [ ] **Step 8: Run focused tests and typecheck**
 
@@ -1051,6 +1145,20 @@ git commit -m "Use shared primitives in sharp2"
 - Create: `src/artifacts/sharp2/components/CodeBlock.tsx`
 - Modify: `src/artifacts/sharp2/index.tsx`
 - Modify: `tests/sharp2/boundary.test.ts`
+
+**Current source map at plan commit `19a1e45`:**
+- `Section`: `SectionCols` at `src/artifacts/sharp2/index.tsx:24`, `SectionProps` at `:87-91`, `colsClass` and `Section` at `:287-302`.
+- `SubSection`: `SubSectionProps` at `src/artifacts/sharp2/index.tsx:93-97`, `SubSection` at `:304-310`.
+- `Row`: `RowProps` at `src/artifacts/sharp2/index.tsx:152-157`, `Row` at `:666-693`.
+- `SearchInput`: `SearchResult` at `src/artifacts/sharp2/index.tsx:35-40`, `SearchInputProps` at `:99-109`, `getSearchResultKey` at `:266-269`, `SearchInput` at `:466-664`.
+- `CodeBlock`: `CodeBlockProps` at `src/artifacts/sharp2/index.tsx:178-181`, `CodeBlock` at `:862-876`.
+- `Popover`: `PopoverTriggerProps` and `PopoverProps` at `src/artifacts/sharp2/index.tsx:191-204`, `Popover` at `:902-960`.
+
+Task 3 changes will shift line numbers; before editing, re-run this source-map query if a range no longer lines up. Move the named declarations only and leave unrelated showcase JSX in `index.tsx`.
+
+```bash
+rg -n "^type Section|^const colsClass|^function Section|^type SubSection|^function SubSection|^type RowProps|^function Row|^type SearchResult|^const getSearchResultKey|^function SearchInput|^type Popover|^function Popover|^type CodeBlockProps|^function CodeBlock" src/artifacts/sharp2/index.tsx
+```
 
 - [ ] **Step 1: Move `Section` to its own file**
 
@@ -1148,7 +1256,7 @@ export function Row({ children, selected, onClick, className }: RowProps) {
 }
 ```
 
-- [ ] **Step 4: Move `SearchInput` to its own file and tighten focus classes**
+- [ ] **Step 4: Move `SearchInput` to its own file and tighten combobox semantics**
 
 Create `src/artifacts/sharp2/components/SearchInput.tsx` by moving `SearchResult`, `SearchInputProps`, `getSearchResultKey`, and `SearchInput`.
 
@@ -1159,21 +1267,60 @@ import { Search as SearchIcon } from 'lucide-react';
 import { type ChangeEventHandler, type FocusEventHandler, type KeyboardEventHandler, type ReactNode, useEffect, useId, useState } from 'react';
 ```
 
-In the result option class list, replace the generic focus class:
+Keep the input as the only keyboard focus target for the combobox. The input should retain `role="combobox"`, `aria-expanded`, `aria-controls`, and `aria-activedescendant`; result options should be non-focusable elements with `role="option"` and `aria-selected`, not focusable `<button role="option">` controls.
+
+Use this option shape inside the listbox:
+
+```tsx
+<div
+  key={getSearchResultKey(result)}
+  id={`${listboxId}-option-${index}`}
+  role="option"
+  aria-selected={activeIndex === index}
+  onMouseDown={(event) => {
+    event.preventDefault();
+    onSelect?.(result);
+  }}
+  className={[
+    'flex w-full cursor-pointer items-center gap-3 border-b border-[color:var(--border)] px-3 py-2 text-left last:border-b-0',
+    'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]',
+    activeIndex === index ? 'bg-[var(--surface-muted)]' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')}
+>
+  {/* keep the existing title/subtitle/meta/icon contents */}
+</div>
+```
+
+Remove the old focus-target option class:
 
 ```ts
 'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:bg-[var(--surface-muted)] focus:outline-none'
 ```
 
-with:
+Do not replace it with `focus-visible:*` on the options; the input owns keyboard focus and `activeIndex` owns the highlighted option state.
 
-```ts
-'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:bg-[var(--surface-muted)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]'
-```
-
-- [ ] **Step 5: Move `Popover` to its own file and add item focus contract**
+- [ ] **Step 5: Move `Popover` to its own file and add menu semantics**
 
 Create `src/artifacts/sharp2/components/Popover.tsx` by moving `PopoverTriggerProps`, `PopoverProps`, and `Popover`.
+
+Keep the trigger's `aria-haspopup="menu"` and add `aria-controls` that points at the popup id when open. Render the popup wrapper with `role="menu"` and `aria-orientation="vertical"`:
+
+```tsx
+{open && (
+  <div
+    id={menuId}
+    role="menu"
+    aria-orientation="vertical"
+    className="absolute top-full left-0 z-10 mt-1 min-w-[200px] border border-[var(--border)] bg-[var(--surface)]"
+  >
+    {children}
+  </div>
+)}
+```
+
+When `open` becomes true, focus the first descendant with `[role="menuitem"]`. When Escape closes the popover, return focus to the trigger if the trigger is still mounted.
 
 Add this local helper export for menu item classes:
 
@@ -1182,7 +1329,7 @@ export const popoverMenuItemClass =
   'w-full cursor-pointer px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:bg-[var(--surface-muted)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]';
 ```
 
-Use `popoverMenuItemClass` for the three menu item buttons in `index.tsx`, appending `text-[var(--text)]` or `text-[var(--danger)]`.
+Use `popoverMenuItemClass` for the three menu item buttons in `index.tsx`, append `text-[var(--text)]` or `text-[var(--danger)]`, and add `role="menuitem"` to each button.
 
 - [ ] **Step 6: Move `CodeBlock` to its own file**
 
@@ -1212,25 +1359,32 @@ Remove the moved local definitions from `index.tsx`.
 In `tests/sharp2/boundary.test.ts`, add:
 
 ```ts
-test('sharp2 SearchInput preserves combobox aria and avoids generic focus option styling', async () => {
+test('sharp2 SearchInput uses managed combobox focus instead of focusable option buttons', async () => {
   const source = await readFile('src/artifacts/sharp2/components/SearchInput.tsx', 'utf8');
 
   assert.match(source, /role="combobox"/);
   assert.match(source, /aria-expanded=/);
   assert.match(source, /aria-controls=/);
   assert.match(source, /aria-activedescendant=/);
-  assert.match(source, /focus-visible:bg-\[var\(--surface-muted\)\]/);
+  assert.match(source, /role="option"/);
+  assert.match(source, /aria-selected=/);
+  assert.doesNotMatch(source, /<button[^>]*role="option"/s);
   assert.doesNotMatch(source, /focus:bg-\[var\(--surface-muted\)\]/);
 });
 
-test('sharp2 Popover preserves trigger aria and visible item focus styling', async () => {
+test('sharp2 Popover uses menu semantics and visible item focus styling', async () => {
   const source = await readFile('src/artifacts/sharp2/components/Popover.tsx', 'utf8');
+  const indexSource = await readFile('src/artifacts/sharp2/index.tsx', 'utf8');
 
-  assert.match(source, /aria-haspopup/);
+  assert.match(source, /aria-haspopup="menu"/);
   assert.match(source, /aria-expanded/);
+  assert.match(source, /aria-controls/);
+  assert.match(source, /role="menu"/);
+  assert.match(source, /aria-orientation="vertical"/);
   assert.match(source, /Escape/);
   assert.match(source, /focus-visible:bg-\[var\(--surface-muted\)\]/);
   assert.match(source, /focus-visible:ring-2/);
+  assert.match(indexSource, /role="menuitem"/);
 });
 ```
 
@@ -1268,6 +1422,20 @@ git commit -m "Extract sharp2 showcase components"
 - Create: `src/artifacts/sharp2/conversation/ConversationTurn.tsx`
 - Create: `tests/sharp2/conversation.test.ts`
 - Modify: `src/artifacts/sharp2/index.tsx`
+
+**Current source map at plan commit `19a1e45`:**
+- Conversation types: `src/artifacts/sharp2/index.tsx:29-76`.
+- Key helpers: `getTurnKey` and `getTurnItemKey` at `src/artifacts/sharp2/index.tsx:271-282`.
+- Markdown helpers: `RenderErrorBoundary` at `src/artifacts/sharp2/index.tsx:1121-1132`, `renderInlineMarkdown` at `:1134-1177`, and fenced-code segmentation currently inside `MessageCard` at `:1261-1296`.
+- Conversation components: `TokenCounter` at `src/artifacts/sharp2/index.tsx:964-1018`, `ToolCall` at `:1020-1092`, `MessageTypeToggle` at `:1094-1178`, `MessageCard` at `:1180-1378`, and `ConversationTurn` at `:1380-1455`.
+- Fixtures: `allSearchResults` at `src/artifacts/sharp2/index.tsx:1479-1515` and `sampleConversation` at `:1546-1729`.
+- Derived counts stay in `index.tsx`: `itemCounts` at `src/artifacts/sharp2/index.tsx:1737-1750` depends on component-local state and imported fixtures.
+
+Task 3 and Task 4 changes will shift line numbers; before editing, re-run this source-map query if a range no longer lines up. Move the named declarations only and keep the main `DesignSystem` composition in `index.tsx`.
+
+```bash
+rg -n "allSearchResults|sampleConversation|getTurn(Key|ItemKey)|getDefaultRenderMode|renderInlineMarkdown|codeBlockRegex|RenderErrorBoundary|^type ToolCallStatus|^type MessageRole|^function TokenCounter|^function ToolCall|^function MessageTypeToggle|^function MessageCard|^function ConversationTurn" src/artifacts/sharp2/index.tsx
+```
 
 - [ ] **Step 1: Write failing conversation helper tests**
 
@@ -1635,7 +1803,7 @@ Expected: FAIL because `sharp2.txt` still recommends direct copy-paste and does 
 
 - [ ] **Step 3: Update `sharp2.txt` component usage guidance**
 
-In `src/artifacts/sharp2/sharp2.txt`, replace the "Workflow 1: Copy Components Directly" section with import-based guidance:
+In `src/artifacts/sharp2/sharp2.txt`, remove every recommendation to "copy any component directly", including the intro paragraph near the top of the file, and replace it with import-and-compose language. Then replace the "Workflow 1: Copy Components Directly" section with import-based guidance:
 
 ```markdown
 ### Workflow 1: Import Shared Primitives
@@ -1766,6 +1934,12 @@ npm run dev -- --host 0.0.0.0 --port 5174
 
 Expected: Vite starts and prints a local URL. If port `5174` is busy, use the next free port.
 
+If opening through the exe.dev HTTPS proxy, follow `AGENTS.md` and set the documented runtime allow-host environment variable instead of committing VM-specific hosts:
+
+```bash
+__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=<vm-host>.exe.xyz npm run dev -- --host 0.0.0.0 --port 5174
+```
+
 - [ ] **Step 7: Review sharp2 visually**
 
 Open:
@@ -1777,6 +1951,8 @@ http://localhost:5174/?artifact=sharp2
 Verify:
 - Light mode renders the showcase with tokenized surfaces.
 - Dark mode preserves the same geometry and hierarchy.
+- The shell's device controls still show usable tablet/mobile previews; mobile landscape should approximate desktop enough to scan the full showcase without text collisions.
+- The fixed-size artifact preview constraint described in `README.md` does not hide clipped focus rings, popovers, or dialogs at the tested preview sizes.
 - Keyboard tabbing shows visible unclipped focus rings.
 - Disabled controls do not look clickable.
 - Copy controls keep stable width and announce status.

@@ -103,6 +103,8 @@ export default function Artifact() {
   - Segmented controls switch modes among a small fixed set.
   - Menus and listboxes handle larger option sets.
 - Keep control heights consistent within a toolbar or form.
+- Enabled controls and other click targets should use the pointer cursor. Disabled controls should use a disabled
+  cursor such as `cursor-not-allowed` and should not show pointer affordance.
 - Use icon buttons for common tool actions when the icon is familiar.
 - Give unfamiliar icon buttons a tooltip or accessible label.
 - Passive icons should stay neutral.

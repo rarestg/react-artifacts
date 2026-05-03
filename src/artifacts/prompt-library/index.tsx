@@ -250,9 +250,10 @@ function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: 
         <button
           type="button"
           onClick={(event) => onOpen(event.currentTarget)}
-          className={['min-w-0 text-left text-sm font-semibold text-[var(--text)] hover:underline', focusClass].join(
-            ' ',
-          )}
+          className={[
+            'min-w-0 cursor-pointer text-left text-sm font-semibold text-[var(--text)] underline-offset-2 transition-colors hover:underline active:text-[var(--text-muted)] motion-reduce:transition-none',
+            focusClass,
+          ].join(' ')}
         >
           {prompt.title}
         </button>

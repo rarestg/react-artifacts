@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { type ReactNode, type RefObject, useRef } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type ArtifactDialogPlacement = 'viewport' | 'contained';
@@ -68,9 +69,11 @@ export function ArtifactDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal container={container ?? undefined}>
         <Dialog.Overlay
-          className={[positionClass, 'pointer-events-auto z-40 bg-[color:var(--overlay)]', overlayClassName]
-            .filter(Boolean)
-            .join(' ')}
+          className={mergeClassNames(
+            positionClass,
+            'pointer-events-auto z-40 bg-[color:var(--overlay)]',
+            overlayClassName,
+          )}
         />
         <div
           className={[
@@ -87,6 +90,8 @@ export function ArtifactDialog({
               (initialFocusRef?.current ?? titleRef.current)?.focus();
             }}
             onCloseAutoFocus={(event) => {
+              // Radix FocusScope fires close autofocus on content unmount, so conditionally rendered dialogs still
+              // restore focus even when callers remove the dialog instead of rendering an explicit closed state.
               if (returnFocusTo?.isConnected) {
                 event.preventDefault();
                 returnFocusTo.focus();
@@ -98,21 +103,17 @@ export function ArtifactDialog({
                 fallbackFocusTo.focus();
               }
             }}
-            className={[
+            className={mergeClassNames(
               'pointer-events-auto flex max-h-[calc(100%-2rem)] w-full max-w-[42rem] flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
               contentClassName,
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            )}
           >
             <header
-              className={[
+              className={mergeClassNames(
                 'flex items-start justify-between gap-3 border-b border-[var(--border)] px-4 py-3',
                 headerClassName,
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              )}
             >
               <div className="min-w-0 space-y-1">
                 <Dialog.Title ref={titleRef} tabIndex={-1} className="text-base font-semibold text-[var(--text)]">
@@ -138,13 +139,9 @@ export function ArtifactDialog({
                 </button>
               </Dialog.Close>
             </header>
-            <div className={['min-h-0 flex-1 overflow-y-auto px-4 py-4', bodyClassName].filter(Boolean).join(' ')}>
-              {children}
-            </div>
+            <div className={mergeClassNames('min-h-0 flex-1 overflow-y-auto px-4 py-4', bodyClassName)}>{children}</div>
             {footer && (
-              <footer
-                className={['border-t border-[var(--border)] px-4 py-3', footerClassName].filter(Boolean).join(' ')}
-              >
+              <footer className={mergeClassNames('border-t border-[var(--border)] px-4 py-3', footerClassName)}>
                 {footer}
               </footer>
             )}

@@ -148,6 +148,23 @@ test('getHueLabelsForPalette keeps dense-only hue words out of compact palettes'
   assert.ok(!labels.includes('Lime'));
 });
 
+test('getHueLabelsForPalette returns labels in input order', () => {
+  const colors = makeGeneratedPalette({
+    count: 16,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+    theme: 'light',
+  });
+
+  const labels = getHueLabelsForPalette(colors);
+  const reversedLabels = getHueLabelsForPalette([...colors].reverse());
+
+  assert.deepEqual(reversedLabels, [...labels].reverse());
+});
+
 test('getHueLabelsForPalette falls back to palette length for non-finite counts', () => {
   const colors = makeGeneratedPalette({
     count: 16,

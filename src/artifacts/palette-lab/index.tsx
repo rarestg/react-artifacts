@@ -189,7 +189,7 @@ export default function PaletteLab() {
       }),
     [autoTune, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
   );
-  const hueLabels = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
+  const hueLabelsByPosition = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
   const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
   const contrastMeasurementKey = useMemo(() => {
@@ -397,11 +397,11 @@ export default function PaletteLab() {
               ].join(' ')}
               aria-label="Generated color toggles"
             >
-              {colors.map((color) => {
+              {colors.map((color, position) => {
                 const selected = selectedIndexes.includes(color.index);
                 const label =
                   labelMode === 'hue'
-                    ? hueLabels[color.index]
+                    ? hueLabelsByPosition[position]
                     : getDisplayLabel({ index: color.index, hue: color.hue, count, mode: 'index' });
                 const style = {
                   '--palette-color': color.strongColor,

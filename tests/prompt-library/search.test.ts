@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import type { PromptEntry } from '../../src/artifacts/prompt-library/prompts';
+import { prompts } from '../../src/artifacts/prompt-library/prompts';
 import {
   filterPromptsByTags,
+  getDisplayMatchesForFields,
+  getDisplayMatchIndices,
   getHighlightedSegments,
   makeSnippet,
   type PromptSearchResult,
@@ -184,6 +187,116 @@ test('makeSnippet keeps the first matched range visible when the match is longer
   assert.deepEqual(snippet.indices, [[2, 11]]);
 });
 
+test('getDisplayMatchIndices prefers exact phrase matches over earlier fuzzy fragments', () => {
+  const text = 'Please dispatch a fresh subagent. They should not manufacture work.';
+  const indices = getDisplayMatchIndices(text, 'manufacture', [
+    [2, 3],
+    [12, 14],
+    [54, 64],
+  ]);
+
+  assert.deepEqual(indices, [[50, 60]]);
+});
+
+test('getDisplayMatchIndices matches exact phrases case-insensitively', () => {
+  assert.deepEqual(getDisplayMatchIndices('They should not Manufacture work.', 'manufacture', []), [[16, 26]]);
+});
+
+test('getDisplayMatchIndices treats regex-sensitive query characters literally', () => {
+  assert.deepEqual(getDisplayMatchIndices('Review use of a+b? before merging.', 'a+b?', []), [[14, 17]]);
+});
+
+test('getDisplayMatchIndices prefers a multi-word exact phrase over token fragments', () => {
+  const text = 'change before implementation, then review before implementation';
+  const indices = getDisplayMatchIndices(text, 'before implementation', [
+    [7, 12],
+    [50, 63],
+  ]);
+
+  assert.deepEqual(indices, [
+    [7, 27],
+    [42, 62],
+  ]);
+});
+
+test('getDisplayMatchesForFields suppresses fuzzy-only fields when another field has exact evidence', () => {
+  const matches = getDisplayMatchesForFields(
+    [
+      {
+        field: 'summary',
+        text: 'Please dispatch a reviewer.',
+        fuseIndices: [[2, 3]],
+      },
+      {
+        field: 'prompt',
+        text: 'They should not manufacture work.',
+        fuseIndices: [[16, 26]],
+      },
+    ],
+    'manufacture',
+  );
+  const byField = Object.fromEntries(matches.map((match) => [match.field, match]));
+
+  assert.deepEqual(byField.summary?.indices, []);
+  assert.deepEqual(byField.prompt?.indices, [[16, 26]]);
+  assert.equal(byField.prompt?.source, 'phrase');
+});
+
+test('getDisplayMatchesForFields suppresses fuzzy-only text fields when tag evidence is exact', () => {
+  const matches = getDisplayMatchesForFields(
+    [
+      {
+        field: 'title',
+        text: 'Subagent Delegation',
+        fuseIndices: [[0, 7]],
+      },
+      {
+        field: 'summary',
+        text: 'Please dispatch another reviewer.',
+        fuseIndices: [[7, 14]],
+      },
+      {
+        field: 'tags',
+        text: 'subagents',
+        fuseIndices: [[0, 7]],
+      },
+    ],
+    'subagents',
+  );
+  const byField = Object.fromEntries(matches.map((match) => [match.field, match]));
+
+  assert.deepEqual(byField.title?.indices, []);
+  assert.equal(byField.title?.source, 'none');
+  assert.deepEqual(byField.summary?.indices, []);
+  assert.equal(byField.summary?.source, 'none');
+  assert.deepEqual(byField.tags?.indices, [[0, 8]]);
+  assert.equal(byField.tags?.source, 'phrase');
+});
+
+test('getDisplayMatchesForFields keeps fuzzy ranges when no field has exact evidence', () => {
+  const matches = getDisplayMatchesForFields(
+    [
+      {
+        field: 'summary',
+        text: 'Please dispatch a reviewer.',
+        fuseIndices: [[2, 3]],
+      },
+      {
+        field: 'prompt',
+        text: 'Delegate the investigation.',
+        fuseIndices: [[4, 7]],
+      },
+    ],
+    'manufacture',
+  );
+  const byField = Object.fromEntries(matches.map((match) => [match.field, match]));
+
+  assert.deepEqual(byField.summary?.indices, [[2, 3]]);
+  assert.equal(byField.summary?.source, 'fuse');
+  assert.deepEqual(byField.prompt?.indices, [[4, 7]]);
+  assert.equal(byField.prompt?.source, 'fuse');
+});
+
 test('getHighlightedSegments merges overlapping inclusive ranges', () => {
   const segments = getHighlightedSegments('abcdefghi', [
     [1, 3],
@@ -219,6 +332,74 @@ test('pickResultSnippet falls back to prompt when summary and context have no ma
 
   assert.equal(snippet.field, 'prompt');
   assert.match(snippet.text, /solsticegate/i);
+});
+
+test('pickResultSnippet anchors manufacture search on the exact prompt-body word', () => {
+  const [result] = searchPrompts(prompts, 'manufacture');
+  const snippet = pickResultSnippet(result, 32, 'manufacture');
+
+  assert.equal(snippet.field, 'prompt');
+  assert.match(snippet.text, /manufacture/i);
+  assert.doesNotMatch(snippet.text, /^Please dispatch/i);
+  assert.deepEqual(
+    snippet.indices.map(([start, end]) => snippet.text.slice(start, end + 1)),
+    ['manufacture'],
+  );
+});
+
+test('pickResultSnippet falls back to fuzzy ranges when no exact display evidence exists', () => {
+  const result = assertSearchMatch(snippetPrompts, 'solsticegote', 'snippet-prompt', 'prompt');
+  const snippet = pickResultSnippet(result, 32, 'solsticegote');
+
+  assert.equal(snippet.field, 'prompt');
+  assert.notEqual(snippet.text, '');
+  assert.notDeepEqual(snippet.indices, []);
+});
+
+test('pickResultSnippet prefers exact prompt evidence over earlier fuzzy-only fields', () => {
+  const result: PromptSearchResult = {
+    prompt: {
+      id: 'display-field-prompt',
+      title: 'Display Field Prompt',
+      summary: 'Please dispatch a reviewer.',
+      tags: ['review'],
+      context: 'Please inspect the proposal.',
+      prompt: 'They should not manufacture work.',
+    },
+    matches: [
+      { key: 'summary', indices: [[2, 3]], value: 'Please dispatch a reviewer.' },
+      { key: 'context', indices: [[2, 3]], value: 'Please inspect the proposal.' },
+      { key: 'prompt', indices: [[16, 26]], value: 'They should not manufacture work.' },
+    ],
+    refIndex: 0,
+  };
+  const snippet = pickResultSnippet(result, 32, 'manufacture');
+
+  assert.equal(snippet.field, 'prompt');
+  assert.match(snippet.text, /manufacture/i);
+});
+
+test('pickResultSnippet keeps exact evidence in the earliest preferred field', () => {
+  const result: PromptSearchResult = {
+    prompt: {
+      id: 'display-field-summary',
+      title: 'Display Field Summary',
+      summary: 'Summary says manufacture here.',
+      tags: ['review'],
+      context: 'Context says manufacture here.',
+      prompt: 'Prompt says manufacture here.',
+    },
+    matches: [
+      { key: 'summary', indices: [[13, 23]], value: 'Summary says manufacture here.' },
+      { key: 'context', indices: [[13, 23]], value: 'Context says manufacture here.' },
+      { key: 'prompt', indices: [[12, 22]], value: 'Prompt says manufacture here.' },
+    ],
+    refIndex: 0,
+  };
+  const snippet = pickResultSnippet(result, 32, 'manufacture');
+
+  assert.equal(snippet.field, 'summary');
+  assert.match(snippet.text, /manufacture/i);
 });
 
 test('pickResultSnippet falls back to context for tag-only matches', () => {

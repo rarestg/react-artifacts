@@ -3,10 +3,23 @@ import Fuse, { type FuseResult, type FuseResultMatch, type IFuseOptions } from '
 import type { PromptEntry, PromptTagId } from './prompts';
 
 type MatchRange = readonly [number, number];
+type DisplayMatchSource = 'phrase' | 'token' | 'fuse' | 'none';
 
 export type HighlightSegment = {
   text: string;
   highlighted: boolean;
+};
+
+export type DisplayMatch<Field extends string = string> = {
+  field: Field;
+  indices: MatchRange[];
+  source: DisplayMatchSource;
+};
+
+export type DisplayMatchField<Field extends string = string> = {
+  field: Field;
+  text: string;
+  fuseIndices?: readonly MatchRange[];
 };
 
 export type PromptSearchResult = {
@@ -70,6 +83,31 @@ export function getMatchForKey(result: PromptSearchResult, key: string): FuseRes
   return result.matches.find((match) => match.key === key);
 }
 
+export function getDisplayMatchIndices(
+  text: string,
+  query: string,
+  fuseIndices: readonly MatchRange[] = [],
+): MatchRange[] {
+  return getDisplayMatchCandidate(text, query, fuseIndices).indices;
+}
+
+export function getDisplayMatchesForFields<const Field extends string>(
+  fields: readonly DisplayMatchField<Field>[],
+  query: string,
+): DisplayMatch<Field>[] {
+  const matches = fields.map(({ field, text, fuseIndices = [] }) => ({
+    field,
+    ...getDisplayMatchCandidate(text, query, fuseIndices),
+  }));
+  const hasLiteralEvidence = matches.some(
+    (match) => (match.source === 'phrase' || match.source === 'token') && match.indices.length > 0,
+  );
+
+  if (!hasLiteralEvidence) return matches;
+
+  return matches.map((match) => (match.source === 'fuse' ? { ...match, indices: [], source: 'none' as const } : match));
+}
+
 export function makeSnippet(text: string, indices: readonly MatchRange[], radius = 80): PromptSnippet {
   if (!indices.length) {
     const to = Math.min(text.length, radius * 2);
@@ -98,17 +136,26 @@ export function makeSnippet(text: string, indices: readonly MatchRange[], radius
   };
 }
 
-export function pickResultSnippet(result: PromptSearchResult | undefined, radius = 80): PromptSnippet {
+export function pickResultSnippet(result: PromptSearchResult | undefined, radius = 80, query = ''): PromptSnippet {
   if (!result) {
     return { field: 'context', text: '', indices: [], leadingEllipsis: false, trailingEllipsis: false };
   }
 
-  for (const field of ['summary', 'context', 'prompt'] as const) {
+  const snippetFields = ['summary', 'context', 'prompt'] as const;
+  const candidates = snippetFields.map((field) => {
     const match = getMatchForKey(result, field);
-    if (!match?.indices.length) continue;
+    return {
+      field,
+      candidate: getDisplayMatchCandidate(result.prompt[field], query, match?.indices ?? []),
+    };
+  });
 
-    const snippet = makeSnippet(result.prompt[field], match.indices, radius);
-    return { ...snippet, field };
+  for (const source of ['phrase', 'token', 'fuse'] as const) {
+    const displayMatch = candidates.find(({ candidate }) => candidate.source === source && candidate.indices.length);
+    if (!displayMatch) continue;
+
+    const snippet = makeSnippet(result.prompt[displayMatch.field], displayMatch.candidate.indices, radius);
+    return { ...snippet, field: displayMatch.field };
   }
 
   const to = Math.min(result.prompt.context.length, radius * 2);
@@ -151,6 +198,69 @@ function normalizeFuseResult(result: FuseResult<PromptEntry>): PromptSearchResul
     score: result.score,
     refIndex: result.refIndex,
   };
+}
+
+function getDisplayMatchCandidate(
+  text: string,
+  query: string,
+  fuseIndices: readonly MatchRange[],
+): { indices: MatchRange[]; source: DisplayMatchSource } {
+  const trimmedQuery = query.trim();
+  const phraseIndices = findLiteralRanges(text, trimmedQuery);
+
+  if (phraseIndices.length) {
+    return { indices: phraseIndices, source: 'phrase' };
+  }
+
+  const tokenIndices = getDisplayTokens(trimmedQuery).flatMap((token) => findLiteralRanges(text, token));
+
+  if (tokenIndices.length) {
+    return { indices: mergeRanges(tokenIndices, text.length), source: 'token' };
+  }
+
+  const fallbackIndices = mergeRanges(fuseIndices, text.length);
+
+  if (fallbackIndices.length) {
+    return { indices: fallbackIndices, source: 'fuse' };
+  }
+
+  return { indices: [], source: 'none' };
+}
+
+function findLiteralRanges(text: string, literal: string): MatchRange[] {
+  if (!literal) return [];
+
+  const normalizedText = text.toLowerCase();
+  const normalizedLiteral = literal.toLowerCase();
+  const ranges: MatchRange[] = [];
+  let cursor = 0;
+
+  while (cursor < normalizedText.length) {
+    const start = normalizedText.indexOf(normalizedLiteral, cursor);
+    if (start === -1) break;
+
+    ranges.push([start, start + literal.length - 1]);
+    cursor = start + Math.max(1, normalizedLiteral.length);
+  }
+
+  return ranges;
+}
+
+function getDisplayTokens(query: string): string[] {
+  const seen = new Set<string>();
+  const tokens: string[] = [];
+
+  for (const token of query.split(/\s+/)) {
+    if (token.length < 2) continue;
+
+    const normalizedToken = token.toLowerCase();
+    if (seen.has(normalizedToken)) continue;
+
+    seen.add(normalizedToken);
+    tokens.push(token);
+  }
+
+  return tokens;
 }
 
 function mergeRanges(indices: readonly MatchRange[], textLength: number): MatchRange[] {

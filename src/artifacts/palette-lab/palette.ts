@@ -116,8 +116,9 @@ function circularDistance(a: number, b: number) {
   return Math.min(distance, 360 - distance);
 }
 
-function getAllowedHueAnchors(count: number): HueAnchor[] {
-  const densityCount = Math.round(clamp(count, 1, 16));
+function getAllowedHueAnchors(count: number, fallback: number): HueAnchor[] {
+  const normalizedCount = Number.isFinite(count) ? count : fallback;
+  const densityCount = Math.round(clamp(normalizedCount, 1, 16));
   return hueAnchors.filter((anchor) => densityCount >= ('minCount' in anchor ? anchor.minCount : 1));
 }
 
@@ -232,14 +233,14 @@ function getFallbackHueLabelAssignment(
 }
 
 export function getHueName(hue: number, count = 12): string {
-  return getNearestHueAnchor(hue, getAllowedHueAnchors(count)).label;
+  return getNearestHueAnchor(hue, getAllowedHueAnchors(count, 12))?.label ?? 'Unknown';
 }
 
 export function getHueLabelsForPalette(
   colors: ReadonlyArray<Pick<GeneratedColor, 'hue'>>,
   count = colors.length,
 ): string[] {
-  const anchors = getAllowedHueAnchors(count);
+  const anchors = getAllowedHueAnchors(count, colors.length);
 
   if (anchors.length === 0) return [];
 

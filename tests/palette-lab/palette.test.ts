@@ -74,6 +74,10 @@ test('getHueName uses medium-specific color words for 9 to 12 colors', () => {
   assert.equal(getHueName(355, 12), 'Red');
 });
 
+test('getHueName falls back to its default density for non-finite counts', () => {
+  assert.equal(getHueName(310, Number.NaN), getHueName(310));
+});
+
 test('getHueName uses more specific color words for dense palettes', () => {
   assert.equal(getHueName(150, 13), 'Mint');
   assert.equal(getHueName(70, 16), 'Yellow');
@@ -138,6 +142,20 @@ test('getHueLabelsForPalette keeps dense-only hue words out of compact palettes'
   assert.ok(!labels.includes('Vermilion'));
   assert.ok(!labels.includes('Magenta'));
   assert.ok(!labels.includes('Lime'));
+});
+
+test('getHueLabelsForPalette falls back to palette length for non-finite counts', () => {
+  const colors = makeGeneratedPalette({
+    count: 16,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+    theme: 'light',
+  });
+
+  assert.deepEqual(getHueLabelsForPalette(colors, Number.NaN), getHueLabelsForPalette(colors));
 });
 
 test('getDisplayLabel can use stable index labels instead of color words', () => {

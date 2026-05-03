@@ -12,6 +12,7 @@ import {
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import {
   getDisplayLabel,
+  getHueLabelsForPalette,
   getTunedPaletteSettings,
   makeGeneratedPalette,
   type PaletteLabelMode,
@@ -31,6 +32,14 @@ type RangeControlProps = {
   step: number;
   displayValue: string;
   onChange: (value: number) => void;
+};
+
+type PaletteCardLabelInput = {
+  labelMode: PaletteLabelMode;
+  hueLabel?: string;
+  index: number;
+  hue: number;
+  count: number;
 };
 
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
@@ -157,6 +166,11 @@ function getContrast(foreground: string, background: string) {
   return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
 }
 
+export function getPaletteCardLabel({ labelMode, hueLabel, index, hue, count }: PaletteCardLabelInput) {
+  const indexLabel = getDisplayLabel({ index, hue, count, mode: 'index' });
+  return labelMode === 'hue' ? hueLabel || indexLabel : indexLabel;
+}
+
 export default function PaletteLab() {
   const [theme, setTheme] = useState<PaletteTheme>('light');
   const [count, setCount] = useState(12);
@@ -188,6 +202,7 @@ export default function PaletteLab() {
       }),
     [autoTune, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
   );
+  const hueLabelsByPosition = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
   const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
   const contrastMeasurementKey = useMemo(() => {
@@ -395,9 +410,15 @@ export default function PaletteLab() {
               ].join(' ')}
               aria-label="Generated color toggles"
             >
-              {colors.map((color) => {
+              {colors.map((color, position) => {
                 const selected = selectedIndexes.includes(color.index);
-                const label = getDisplayLabel({ index: color.index, hue: color.hue, count, mode: labelMode });
+                const label = getPaletteCardLabel({
+                  labelMode,
+                  hueLabel: hueLabelsByPosition[position],
+                  index: color.index,
+                  hue: color.hue,
+                  count,
+                });
                 const style = {
                   '--palette-color': color.strongColor,
                   '--palette-color-weak': color.weakColor,

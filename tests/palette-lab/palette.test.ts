@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   getDisplayLabel,
+  getHueLabelsForPalette,
   getHueName,
   getTunedPaletteSettings,
   makeGeneratedPalette,
@@ -60,26 +61,122 @@ test('getHueName uses broad color words for compact palettes', () => {
   assert.equal(getHueName(10, 8), 'Red');
   assert.equal(getHueName(340, 8), 'Red');
   assert.equal(getHueName(70, 8), 'Yellow');
-  assert.equal(getHueName(220, 8), 'Blue');
+  assert.equal(getHueName(220, 8), 'Sky');
   assert.equal(getHueName(310, 8), 'Purple');
 });
 
 test('getHueName uses medium-specific color words for 9 to 12 colors', () => {
-  assert.equal(getHueName(150, 9), 'Teal');
+  assert.equal(getHueName(150, 9), 'Mint');
   assert.equal(getHueName(220, 12), 'Sky');
   assert.equal(getHueName(310, 12), 'Violet');
   assert.equal(getHueName(40, 12), 'Orange');
   assert.equal(getHueName(130, 12), 'Green');
+  assert.equal(getHueName(347, 12), 'Rose');
+  assert.equal(getHueName(348, 12), 'Red');
   assert.equal(getHueName(355, 12), 'Red');
+});
+
+test('getHueName falls back to its default density for non-finite counts', () => {
+  assert.equal(getHueName(310, Number.NaN), getHueName(310));
 });
 
 test('getHueName uses more specific color words for dense palettes', () => {
   assert.equal(getHueName(150, 13), 'Mint');
-  assert.equal(getHueName(70, 16), 'Amber');
+  assert.equal(getHueName(70, 16), 'Yellow');
   assert.equal(getHueName(100, 16), 'Olive');
   assert.equal(getHueName(340, 16), 'Rose');
+  assert.equal(getHueName(347, 16), 'Rose');
+  assert.equal(getHueName(348, 16), 'Red');
   assert.equal(getHueName(355, 16), 'Red');
   assert.equal(getHueName(220, 16), 'Sky');
+});
+
+test('getHueLabelsForPalette uses unique hue labels for dense generated palettes', () => {
+  const colors = makeGeneratedPalette({
+    count: 16,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+    theme: 'light',
+  });
+
+  const labels = getHueLabelsForPalette(colors);
+
+  assert.equal(labels.length, colors.length);
+  assert.equal(new Set(labels).size, colors.length);
+  assert.deepEqual(labels, [
+    'Sky',
+    'Blue',
+    'Indigo',
+    'Purple',
+    'Violet',
+    'Rose',
+    'Red',
+    'Vermilion',
+    'Orange',
+    'Yellow',
+    'Olive',
+    'Green',
+    'Lime',
+    'Mint',
+    'Teal',
+    'Cyan',
+  ]);
+});
+
+test('getHueLabelsForPalette minimizes total hue distance instead of assigning greedily', () => {
+  assert.deepEqual(getHueLabelsForPalette([{ hue: 35.5 }, { hue: 35 }], 12), ['Amber', 'Orange']);
+});
+
+test('getHueLabelsForPalette keeps dense-only hue words out of compact palettes', () => {
+  const colors = makeGeneratedPalette({
+    count: 8,
+    hueOffset: 18,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+    theme: 'light',
+  });
+
+  const labels = getHueLabelsForPalette(colors);
+
+  assert.ok(!labels.includes('Vermilion'));
+  assert.ok(!labels.includes('Magenta'));
+  assert.ok(!labels.includes('Lime'));
+});
+
+test('getHueLabelsForPalette returns labels in input order', () => {
+  const colors = makeGeneratedPalette({
+    count: 16,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+    theme: 'light',
+  });
+
+  const labels = getHueLabelsForPalette(colors);
+  const reversedLabels = getHueLabelsForPalette([...colors].reverse());
+
+  assert.deepEqual(reversedLabels, [...labels].reverse());
+});
+
+test('getHueLabelsForPalette falls back to palette length for non-finite counts', () => {
+  const colors = makeGeneratedPalette({
+    count: 16,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+    theme: 'light',
+  });
+
+  assert.deepEqual(getHueLabelsForPalette(colors, Number.NaN), getHueLabelsForPalette(colors));
 });
 
 test('getDisplayLabel can use stable index labels instead of color words', () => {

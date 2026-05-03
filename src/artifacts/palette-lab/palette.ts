@@ -77,24 +77,84 @@ export function makeGeneratedPalette(settings: PaletteSettings): GeneratedColor[
   });
 }
 
-export function getHueName(hue: number): string {
-  const normalized = ((hue % 360) + 360) % 360;
+type HueBand = {
+  start: number;
+  label: string;
+};
 
-  if (normalized < 20 || normalized >= 350) return 'Red';
-  if (normalized < 50) return 'Orange';
-  if (normalized < 85) return 'Amber';
-  if (normalized < 115) return 'Olive';
-  if (normalized < 145) return 'Green';
-  if (normalized < 175) return 'Teal';
-  if (normalized < 205) return 'Cyan';
-  if (normalized < 235) return 'Sky';
-  if (normalized < 265) return 'Blue';
-  if (normalized < 295) return 'Indigo';
-  if (normalized < 325) return 'Violet';
-  return 'Rose';
+const compactHueBands = [
+  { start: 0, label: 'Red' },
+  { start: 35, label: 'Yellow' },
+  { start: 95, label: 'Green' },
+  { start: 165, label: 'Cyan' },
+  { start: 205, label: 'Blue' },
+  { start: 285, label: 'Purple' },
+  { start: 335, label: 'Red' },
+] as const satisfies readonly HueBand[];
+
+const standardHueBands = [
+  { start: 0, label: 'Red' },
+  { start: 20, label: 'Orange' },
+  { start: 50, label: 'Amber' },
+  { start: 85, label: 'Olive' },
+  { start: 115, label: 'Green' },
+  { start: 145, label: 'Teal' },
+  { start: 175, label: 'Cyan' },
+  { start: 205, label: 'Sky' },
+  { start: 235, label: 'Blue' },
+  { start: 265, label: 'Indigo' },
+  { start: 295, label: 'Violet' },
+  { start: 325, label: 'Rose' },
+] as const satisfies readonly HueBand[];
+
+const denseHueBands = [
+  { start: 0, label: 'Red' },
+  { start: 18, label: 'Vermilion' },
+  { start: 38, label: 'Orange' },
+  { start: 58, label: 'Amber' },
+  { start: 82, label: 'Olive' },
+  { start: 112, label: 'Green' },
+  { start: 142, label: 'Mint' },
+  { start: 162, label: 'Teal' },
+  { start: 185, label: 'Cyan' },
+  { start: 210, label: 'Sky' },
+  { start: 238, label: 'Blue' },
+  { start: 265, label: 'Indigo' },
+  { start: 292, label: 'Violet' },
+  { start: 320, label: 'Magenta' },
+  { start: 335, label: 'Rose' },
+] as const satisfies readonly HueBand[];
+
+function getHueBands(count: number): readonly HueBand[] {
+  if (count <= 8) return compactHueBands;
+  if (count >= 13) return denseHueBands;
+  return standardHueBands;
 }
 
-export function getDisplayLabel({ index, hue, mode }: { index: number; hue: number; mode: PaletteLabelMode }): string {
-  if (mode === 'hue') return getHueName(hue);
+export function getHueName(hue: number, count = 12): string {
+  const normalized = ((hue % 360) + 360) % 360;
+  const bands = getHueBands(count);
+  let label = bands[0].label;
+
+  for (const band of bands) {
+    if (normalized < band.start) break;
+    label = band.label;
+  }
+
+  return label;
+}
+
+export function getDisplayLabel({
+  index,
+  hue,
+  count = 12,
+  mode,
+}: {
+  index: number;
+  hue: number;
+  count?: number;
+  mode: PaletteLabelMode;
+}): string {
+  if (mode === 'hue') return getHueName(hue, count);
   return `Color ${String(index + 1).padStart(2, '0')}`;
 }

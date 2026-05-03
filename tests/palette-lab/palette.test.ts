@@ -43,16 +43,32 @@ test('makeGeneratedPalette lifts lightness in dark mode', () => {
   assert.equal(colors[0].strongColor, 'oklch(78% 0.155 220)');
 });
 
-test('getHueName derives color words from actual hue bins', () => {
-  assert.equal(getHueName(220), 'Sky');
-  assert.equal(getHueName(310), 'Violet');
-  assert.equal(getHueName(40), 'Orange');
-  assert.equal(getHueName(130), 'Green');
+test('getHueName uses broad color words for compact palettes', () => {
+  assert.equal(getHueName(10, 8), 'Red');
+  assert.equal(getHueName(340, 8), 'Red');
+  assert.equal(getHueName(70, 8), 'Yellow');
+  assert.equal(getHueName(220, 8), 'Blue');
+  assert.equal(getHueName(310, 8), 'Purple');
+});
+
+test('getHueName uses medium-specific color words for 9 to 12 colors', () => {
+  assert.equal(getHueName(220, 12), 'Sky');
+  assert.equal(getHueName(310, 12), 'Violet');
+  assert.equal(getHueName(40, 12), 'Orange');
+  assert.equal(getHueName(130, 12), 'Green');
+});
+
+test('getHueName uses more specific color words for dense palettes', () => {
+  assert.equal(getHueName(70, 16), 'Amber');
+  assert.equal(getHueName(100, 16), 'Olive');
+  assert.equal(getHueName(340, 16), 'Rose');
+  assert.equal(getHueName(220, 16), 'Sky');
 });
 
 test('getDisplayLabel can use stable index labels instead of color words', () => {
-  assert.equal(getDisplayLabel({ index: 0, hue: 310, mode: 'index' }), 'Color 01');
-  assert.equal(getDisplayLabel({ index: 0, hue: 310, mode: 'hue' }), 'Violet');
+  assert.equal(getDisplayLabel({ index: 0, hue: 310, count: 8, mode: 'index' }), 'Color 01');
+  assert.equal(getDisplayLabel({ index: 0, hue: 310, count: 8, mode: 'hue' }), 'Purple');
+  assert.equal(getDisplayLabel({ index: 0, hue: 310, count: 12, mode: 'hue' }), 'Violet');
 });
 
 test('getTunedPaletteSettings adjusts generation as color count rises', () => {

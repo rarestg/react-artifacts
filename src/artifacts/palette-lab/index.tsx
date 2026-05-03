@@ -34,6 +34,14 @@ type RangeControlProps = {
   onChange: (value: number) => void;
 };
 
+type PaletteCardLabelInput = {
+  labelMode: PaletteLabelMode;
+  hueLabel?: string;
+  index: number;
+  hue: number;
+  count: number;
+};
+
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
 const focusClass =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
@@ -156,6 +164,11 @@ function getContrast(foreground: string, background: string) {
   const bg = luminance(background);
   if (fg === undefined || bg === undefined) return undefined;
   return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+}
+
+export function getPaletteCardLabel({ labelMode, hueLabel, index, hue, count }: PaletteCardLabelInput) {
+  const indexLabel = getDisplayLabel({ index, hue, count, mode: 'index' });
+  return labelMode === 'hue' ? hueLabel || indexLabel : indexLabel;
 }
 
 export default function PaletteLab() {
@@ -399,10 +412,13 @@ export default function PaletteLab() {
             >
               {colors.map((color, position) => {
                 const selected = selectedIndexes.includes(color.index);
-                const label =
-                  labelMode === 'hue'
-                    ? hueLabelsByPosition[position]
-                    : getDisplayLabel({ index: color.index, hue: color.hue, count, mode: 'index' });
+                const label = getPaletteCardLabel({
+                  labelMode,
+                  hueLabel: hueLabelsByPosition[position],
+                  index: color.index,
+                  hue: color.hue,
+                  count,
+                });
                 const style = {
                   '--palette-color': color.strongColor,
                   '--palette-color-weak': color.weakColor,

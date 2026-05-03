@@ -31,3 +31,48 @@ test('Palette Lab uses generated max chroma instead of a chroma slider', async (
   assert.doesNotMatch(markup, /Base chroma/);
   assert.match(markup, /oklch\(L 0\.205 h\)/);
 });
+
+test('Palette Lab hue labels fall back to index labels when missing', async () => {
+  const { getPaletteCardLabel } = await import('../../src/artifacts/palette-lab');
+
+  assert.equal(
+    getPaletteCardLabel({
+      labelMode: 'hue',
+      hueLabel: undefined,
+      index: 0,
+      hue: 220,
+      count: 12,
+    }),
+    'Color 01',
+  );
+  assert.equal(
+    getPaletteCardLabel({
+      labelMode: 'hue',
+      hueLabel: '',
+      index: 1,
+      hue: 245,
+      count: 12,
+    }),
+    'Color 02',
+  );
+  assert.equal(
+    getPaletteCardLabel({
+      labelMode: 'hue',
+      hueLabel: 'Sky',
+      index: 0,
+      hue: 220,
+      count: 12,
+    }),
+    'Sky',
+  );
+  assert.equal(
+    getPaletteCardLabel({
+      labelMode: 'index',
+      hueLabel: 'Sky',
+      index: 0,
+      hue: 220,
+      count: 12,
+    }),
+    'Color 01',
+  );
+});

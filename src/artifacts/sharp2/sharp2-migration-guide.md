@@ -106,7 +106,7 @@ Update the design narrative to match tokenized usage.
 - [ ] Tab through controls and confirm focus-visible rings are visible and unclipped.
 - [ ] Verify no UA outlines, rounded corners, or shadows appear.
 - [ ] Check that copy/hover/active states are still readable.
-- [ ] Run `rg -n "slate-|emerald-|amber-|red-|blue-|violet-" src/artifacts/sharp2/index.tsx` to confirm no legacy colors remain.
+- [ ] Run `rg -n "\\b(?:bg|text|border|ring|divide|from|via|to|accent|caret|decoration|outline|placeholder)-(?:slate|emerald|amber|red|blue|violet)-" src/artifacts/sharp2 -g '*.{ts,tsx,css}'` to confirm no legacy Tailwind colors remain.
 
 ## Notes
 - If you add `sharp2.css`, keep it minimal and scoped to role tokens.

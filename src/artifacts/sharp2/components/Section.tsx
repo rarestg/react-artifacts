@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 
 type SectionCols = 1 | 2 | 3;
 
@@ -15,12 +15,16 @@ const colsClass: Record<SectionCols, string> = {
 };
 
 export function Section({ title, children, cols = 1 }: SectionProps) {
+  const titleId = useId();
+
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)]">
+    <section className="border border-[var(--border)] bg-[var(--surface)]" aria-labelledby={titleId}>
       <div className="border-b border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{title}</h2>
+        <h2 id={titleId} className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+          {title}
+        </h2>
       </div>
       <div className={`p-6 ${colsClass[cols] ?? ''}`}>{children}</div>
-    </div>
+    </section>
   );
 }

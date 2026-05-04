@@ -55,7 +55,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
         </div>
         <div className="flex items-center gap-1">
           {/* Render mode toggle (not for tool/meta) */}
-          {!config.alwaysLiteral && (
+          {!config.alwaysLiteral && onToggleRender && (
             <button
               type="button"
               onClick={onToggleRender}

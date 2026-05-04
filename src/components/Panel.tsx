@@ -1,5 +1,6 @@
-import { type ForwardedRef, forwardRef, type HTMLAttributes, type MutableRefObject, useCallback, useRef } from 'react';
+import { forwardRef, type HTMLAttributes, useCallback, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { assignRef } from '../lib/refs';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type PanelVariant = 'default' | 'muted' | 'dashed';
@@ -7,16 +8,6 @@ export type PanelVariant = 'default' | 'muted' | 'dashed';
 export type PanelProps = HTMLAttributes<HTMLDivElement> & {
   variant?: PanelVariant;
 };
-
-function assignRef<T>(ref: ForwardedRef<T>, value: T | null) {
-  if (typeof ref === 'function') {
-    ref(value);
-    return;
-  }
-  if (ref) {
-    (ref as MutableRefObject<T | null>).current = value;
-  }
-}
 
 export const Panel = forwardRef<HTMLDivElement, PanelProps>(function Panel(
   { children, variant = 'default', className, ...props },

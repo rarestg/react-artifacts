@@ -1875,7 +1875,7 @@ Expected: FAIL because `sharp2.txt` still recommends direct copy-paste and does 
 
 In `src/artifacts/sharp2/sharp2.txt`, remove every recommendation to "copy any component directly", including the intro paragraph near the top of the file, and replace it with import-and-compose language. Then replace the "Workflow 1: Copy Components Directly" section with import-based guidance:
 
-```markdown
+````markdown
 ### Workflow 1: Import Shared Primitives
 
 When you need a shared Sharp UI primitive in an artifact:
@@ -1898,7 +1898,7 @@ export default function Artifact() {
   );
 }
 ```
-```
+````
 
 Also update the component inventory so `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `Toggle`, `CopyButton`, `CopyableLabel`, and `StatusTag` are described as shared primitives, while `SearchInput`, `Popover`, `Row`, `CodeBlock`, and conversation components are described as sharp2-local showcase/domain examples.
 

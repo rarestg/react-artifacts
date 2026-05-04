@@ -8,7 +8,7 @@ import {
   Plug as PlugIcon,
   Search as SearchIcon,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { type CSSProperties, useRef, useState } from 'react';
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Button } from '../../components/Button';
@@ -29,7 +29,7 @@ import { SubSection } from './components/SubSection';
 import { ConversationTurn } from './conversation/ConversationTurn';
 import { getTurnKey } from './conversation/keys';
 import { MessageTypeToggle } from './conversation/MessageTypeToggle';
-import type { RenderMode, VisibleTypes } from './conversation/types';
+import { getTurnItemVisibleType, type RenderMode, type VisibleTypes } from './conversation/types';
 import { allSearchResults, sampleConversation } from './fixtures';
 
 // ============================================
@@ -105,11 +105,7 @@ export default function DesignSystem() {
   const itemCounts = sampleConversation.reduce(
     (acc, turn) => {
       turn.items.forEach((item) => {
-        if (item.type === 'token_counter') acc.tokenCounters++;
-        else if (item.type === 'tool_call') acc.toolCalls++;
-        else if (item.role === 'user') acc.user++;
-        else if (item.role === 'assistant') acc.assistant++;
-        else if (item.role === 'thinking') acc.thinking++;
+        acc[getTurnItemVisibleType(item)]++;
       });
       return acc;
     },
@@ -219,7 +215,7 @@ export default function DesignSystem() {
                 {/* Translate left by ring-outset (+2px) to align with the ring. */}
                 {/* Note: inset rings don't change the outer size. If using a normal (non-inset) ring on the label, */}
                 {/* add 1px to ring-outset and the horizontal calc to keep alignment tight. */}
-                <div className="relative inline-flex" style={{ '--ring-outset': '1px' } as React.CSSProperties}>
+                <div className="relative inline-flex" style={{ '--ring-outset': '1px' } as CSSProperties}>
                   <span className="pointer-events-none absolute left-0 top-0 -translate-y-[calc(100%+var(--ring-outset))] -translate-x-[calc(var(--ring-outset)+2px)]">
                     <Tag
                       variant="muted"

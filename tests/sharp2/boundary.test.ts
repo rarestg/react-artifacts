@@ -156,6 +156,15 @@ test('sharp2 Popover stays plain and avoids incomplete composite menu semantics'
   assert.match(source, /focus\(\)/);
   assert.match(source, /focus-visible:bg-\[var\(--surface-muted\)\]/);
   assert.match(source, /focus-visible:ring-2/);
+  assert.match(source, /event\.currentTarget instanceof HTMLButtonElement/);
   assert.doesNotMatch(source, /role="menu"/);
   assert.doesNotMatch(indexSource, /role="menuitem"/);
+});
+
+test('sharp2 Section exposes a labelled semantic section wrapper', async () => {
+  const source = await readFile('src/artifacts/sharp2/components/Section.tsx', 'utf8');
+
+  assert.match(source, /useId/);
+  assert.match(source, /<section\b[\s\S]*aria-labelledby=\{titleId\}/);
+  assert.match(source, /<h2\b[\s\S]*id=\{titleId\}/);
 });

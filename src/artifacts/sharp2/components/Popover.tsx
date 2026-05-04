@@ -33,6 +33,9 @@ export function Popover({ trigger, children, open, onToggle }: PopoverProps) {
   const triggerRef = useRef<HTMLElement | null>(null);
 
   const handleTriggerKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
+    if (event.currentTarget instanceof HTMLButtonElement) {
+      return;
+    }
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       onToggle?.();

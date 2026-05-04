@@ -1,13 +1,6 @@
-import {
-  type ButtonHTMLAttributes,
-  type ForwardedRef,
-  forwardRef,
-  type MutableRefObject,
-  type ReactNode,
-  useCallback,
-  useRef,
-} from 'react';
+import { type ButtonHTMLAttributes, forwardRef, type ReactNode, useCallback, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { assignRef } from '../lib/refs';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger';
@@ -18,16 +11,6 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: ButtonSize;
   children?: ReactNode;
 };
-
-function assignRef<T>(ref: ForwardedRef<T>, value: T | null) {
-  if (typeof ref === 'function') {
-    ref(value);
-    return;
-  }
-  if (ref) {
-    (ref as MutableRefObject<T | null>).current = value;
-  }
-}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { children, variant = 'default', size = 'md', disabled, type = 'button', className, ...props },

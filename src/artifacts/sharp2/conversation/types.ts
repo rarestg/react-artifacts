@@ -9,6 +9,7 @@ export type VisibleTypes = {
   toolCalls: boolean;
   tokenCounters: boolean;
 };
+export type VisibleType = keyof VisibleTypes;
 
 export type MessageItem = {
   id?: string;
@@ -37,6 +38,13 @@ export type ToolCallItem = {
 };
 
 export type TurnItem = MessageItem | TokenCounterItem | ToolCallItem;
+
+export function getTurnItemVisibleType(item: TurnItem): VisibleType {
+  if (item.type === 'token_counter') return 'tokenCounters';
+  if (item.type === 'tool_call') return 'toolCalls';
+  if (item.role === 'tool') return 'toolCalls';
+  return item.role;
+}
 
 export type ConversationTurnData = {
   id?: string;

@@ -70,7 +70,16 @@ export function SearchInput({
     activeIndex >= 0 && activeIndex < results.length ? `${listboxId}-option-${activeIndex}` : undefined;
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (event) => {
-    if (!showResults || results.length === 0) return;
+    if (!showResults) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setActiveIndex(-1);
+      event.currentTarget.blur();
+      return;
+    }
+
+    if (results.length === 0) return;
 
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -83,10 +92,6 @@ export function SearchInput({
         event.preventDefault();
         onSelect?.(activeResult);
       }
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      setActiveIndex(-1);
-      (event.currentTarget as HTMLInputElement).blur();
     }
   };
 

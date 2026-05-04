@@ -75,6 +75,16 @@ test('sharp2 documentation describes ArtifactThemeRoot and import-based shared c
   assert.doesNotMatch(guide, /\bpaste\b[^.\n]*\bcomponent\b/i);
 });
 
+test('sharp2 documentation matches shared primitive APIs', async () => {
+  const guide = await readFile('src/artifacts/sharp2/sharp2.txt', 'utf8');
+
+  assert.match(guide, /`Button`[^|]*\|[^|]*\|[^|\n]*`size`: `sm`, `md`, `lg`/);
+  assert.match(guide, /`Checkbox`[^|]*\|[^|]*\|[^|\n]*`onCheckedChange`/);
+  assert.match(guide, /`Toggle`[^|]*\|[^|]*\|[^|\n]*`onCheckedChange`/);
+  assert.doesNotMatch(guide, /`Button`[^|\n]*\|[^|\n]*\|[^|\n]*`size`: `sm`, `default`, `lg`/);
+  assert.doesNotMatch(guide, /`(?:Checkbox|Toggle)`[^|\n]*\|[^|\n]*\|[^|\n]*`onChange`/);
+});
+
 test('Row remains sharp2-local and is not exported from src/components', async () => {
   const files = await readSharp2SourceFiles();
   const joined = files.map(({ source }) => source).join('\n');
@@ -120,6 +130,15 @@ test('sharp2 SearchInput uses managed combobox focus instead of focusable option
   assert.match(source, /aria-selected=/);
   assert.match(source, /border-l-\[var\(--accent\)\]/);
   assert.match(source, /No results for/);
+  const handleKeyDownStart = source.indexOf('const handleKeyDown');
+  const escapeBranch = source.indexOf("event.key === 'Escape'", handleKeyDownStart);
+  const emptyResultsReturn = /if \([^)]*results\.length === 0[^)]*\) return;/.exec(source.slice(handleKeyDownStart));
+  assert.notEqual(handleKeyDownStart, -1);
+  assert.notEqual(escapeBranch, -1);
+  assert.ok(
+    emptyResultsReturn === null || escapeBranch < handleKeyDownStart + emptyResultsReturn.index,
+    'Escape should be handled before any empty-results early return',
+  );
   assert.doesNotMatch(source, /<button[^>]*role="option"/s);
   assert.doesNotMatch(source, /focus:bg-\[var\(--surface-muted\)\]/);
   assert.doesNotMatch(source, /role="option"[\s\S]{0,600}focus-visible:/);

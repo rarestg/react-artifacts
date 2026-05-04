@@ -57,12 +57,12 @@ theme-boundary guards resolve correctly.
 
 | Component | Purpose | Key Props |
 |-----------|---------|-----------|
-| `Button` | Shared action primitive | `variant`: `default`, `primary`, `ghost`, `danger`; `size`: `sm`, `default`, `lg` |
+| `Button` | Shared action primitive | `variant`: `default`, `primary`, `ghost`, `danger`; `size`: `sm`, `md`, `lg` |
 | `Input` | Shared text-entry primitive | `error` for validation state |
 | `Tag` | Shared inline label/badge primitive | `variant`: `base`, `muted`, `solid` |
 | `Panel` | Shared structural container primitive | `variant`: `default`, `muted`, `dashed` |
-| `Checkbox` | Shared boolean selection primitive | `checked`, `onChange`, `label`, `reserveLabel` |
-| `Toggle` | Shared on/off primitive | `checked`, `onChange`, `label`, `reserveLabel` |
+| `Checkbox` | Shared boolean selection primitive | `checked`, `onCheckedChange`, `label`, `reserveLabel` |
+| `Toggle` | Shared on/off primitive | `checked`, `onCheckedChange`, `label`, `reserveLabel` |
 | `CopyButton` | Shared copy-to-clipboard primitive | `text` |
 | `CopyableLabel` | Shared metadata-with-copy primitive | `value`, `icon` |
 | `StatusTag` | Shared stable-width status primitive | `label`, `active`, `reserveLabel`, `icon` |
@@ -77,7 +77,7 @@ not as shared APIs.
 | `SearchInput` | Sharp2-local managed combobox example | `value`, `onChange`, `results`, `onSelect` |
 | `Popover` | Sharp2-local dropdown example anchored to a trigger | `open`, `onToggle`, `trigger` |
 | `Row` | Sharp2-local clickable list item example | `selected`, `onClick` |
-| `CodeBlock` | Sharp2-local syntax-highlighted code example | `language`, `children` |
+| `CodeBlock` | Sharp2-local literal code block with copy support | `language`, `children` |
 | `Section` | Sharp2-local page section example | `title`, `cols` |
 | `SubSection` | Sharp2-local labeled group example | `label` |
 

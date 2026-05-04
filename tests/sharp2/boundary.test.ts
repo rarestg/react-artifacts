@@ -90,3 +90,39 @@ test('sharp2 avoids viewport breakpoints in preview-sensitive showcase layout', 
   assert.doesNotMatch(joined, /grid-cols-\[200px_1fr\]/);
   assert.match(joined, /auto-fit|minmax\(/);
 });
+
+test('sharp2 SearchInput uses managed combobox focus instead of focusable option buttons', async () => {
+  const source = await readFile('src/artifacts/sharp2/components/SearchInput.tsx', 'utf8');
+  const indexSource = await readFile('src/artifacts/sharp2/index.tsx', 'utf8');
+
+  assert.match(source, /role="combobox"/);
+  assert.match(source, /ariaLabel/);
+  assert.match(source, /aria-label=/);
+  assert.match(indexSource, /ariaLabel="Search conversations"/);
+  assert.match(source, /aria-expanded=/);
+  assert.match(source, /aria-controls=/);
+  assert.match(source, /aria-activedescendant=/);
+  assert.match(source, /role="option"/);
+  assert.match(source, /aria-selected=/);
+  assert.match(source, /border-l-\[var\(--accent\)\]/);
+  assert.match(source, /No results for/);
+  assert.doesNotMatch(source, /<button[^>]*role="option"/s);
+  assert.doesNotMatch(source, /focus:bg-\[var\(--surface-muted\)\]/);
+  assert.doesNotMatch(source, /role="option"[\s\S]{0,600}focus-visible:/);
+  assert.doesNotMatch(source, /role="option"[\s\S]{0,600}tabIndex=/);
+  assert.doesNotMatch(source, /tabIndex=[\s\S]{0,600}role="option"/);
+});
+
+test('sharp2 Popover stays plain and avoids incomplete composite menu semantics', async () => {
+  const source = await readFile('src/artifacts/sharp2/components/Popover.tsx', 'utf8');
+  const indexSource = await readFile('src/artifacts/sharp2/index.tsx', 'utf8');
+
+  assert.match(source, /aria-expanded/);
+  assert.match(source, /aria-controls/);
+  assert.match(source, /Escape/);
+  assert.match(source, /focus\(\)/);
+  assert.match(source, /focus-visible:bg-\[var\(--surface-muted\)\]/);
+  assert.match(source, /focus-visible:ring-2/);
+  assert.doesNotMatch(source, /role="menu"/);
+  assert.doesNotMatch(indexSource, /role="menuitem"/);
+});

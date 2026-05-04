@@ -1,20 +1,15 @@
 import {
-  type AriaAttributes,
-  type ChangeEventHandler,
-  Component,
-  cloneElement,
-  type FocusEventHandler,
-  Fragment,
-  isValidElement,
-  type KeyboardEventHandler,
-  type MouseEventHandler,
-  type ReactElement,
-  type ReactNode,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+  Check as CheckIcon,
+  ChevronRight as ChevronIcon,
+  Copy as CopyIcon,
+  Folder as FolderIcon,
+  GitBranch as GitBranchIcon,
+  Github as GitRepoIcon,
+  MessageSquare as MessageIcon,
+  Plug as PlugIcon,
+  Search as SearchIcon,
+} from 'lucide-react';
+import { type ChangeEventHandler, Component, Fragment, type ReactNode, useRef, useState } from 'react';
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Button } from '../../components/Button';
@@ -26,19 +21,16 @@ import { Panel } from '../../components/Panel';
 import { StatusTag } from '../../components/StatusTag';
 import { Tag } from '../../components/Tag';
 import { Toggle } from '../../components/Toggle';
+import { CodeBlock } from './components/CodeBlock';
+import { Popover, popoverActionClass } from './components/Popover';
+import { Row } from './components/Row';
+import { SearchInput, type SearchResult } from './components/SearchInput';
+import { Section } from './components/Section';
+import { SubSection } from './components/SubSection';
 
-type SectionCols = 1 | 2 | 3;
 type ToolCallStatus = 'success' | 'error' | 'pending';
 type MessageRole = 'user' | 'assistant' | 'thinking' | 'tool';
 type RenderMode = 'default' | 'literal' | 'rendered';
-
-type SearchResult = {
-  id?: string;
-  title: string;
-  subtitle?: string;
-  meta?: string;
-  icon?: ReactNode;
-};
 
 type VisibleTypes = {
   user: boolean;
@@ -82,54 +74,6 @@ type ConversationTurnData = {
   timestamp?: string;
   duration?: string;
   items: TurnItem[];
-};
-
-type SectionProps = {
-  title: string;
-  children: ReactNode;
-  cols?: SectionCols;
-};
-
-type SubSectionProps = {
-  label: string;
-  children: ReactNode;
-  className?: string;
-};
-
-type SearchInputProps = {
-  placeholder?: string;
-  results?: SearchResult[];
-  onSelect?: (result: SearchResult) => void;
-  onSearch?: (value: string) => void;
-  showResults?: boolean;
-  onFocus?: FocusEventHandler<HTMLInputElement>;
-  onBlur?: FocusEventHandler<HTMLInputElement>;
-  value?: string;
-  onChange?: ChangeEventHandler<HTMLInputElement>;
-};
-
-type RowProps = {
-  children: ReactNode;
-  selected?: boolean;
-  onClick?: MouseEventHandler<HTMLButtonElement>;
-  className?: string;
-};
-
-type CodeBlockProps = {
-  children: string;
-  language?: string;
-};
-
-type PopoverTriggerProps = {
-  onClick?: MouseEventHandler<HTMLElement>;
-  onKeyDown?: KeyboardEventHandler<HTMLElement>;
-} & AriaAttributes;
-
-type PopoverProps = {
-  trigger: ReactElement<PopoverTriggerProps>;
-  children: ReactNode;
-  open: boolean;
-  onToggle?: () => void;
 };
 
 type TokenCounterProps = {
@@ -195,11 +139,6 @@ const tokens = {
 };
 void tokens;
 
-const getSearchResultKey = (result: SearchResult) => {
-  if (result.id) return result.id;
-  return [result.title, result.subtitle, result.meta].filter(Boolean).join('::');
-};
-
 const getTurnKey = (turn: ConversationTurnData) => turn.id ?? `turn-${turn.turnNumber}-${turn.timestamp ?? ''}`;
 
 const getTurnItemKey = (item: TurnItem) => {
@@ -212,274 +151,6 @@ const getTurnItemKey = (item: TurnItem) => {
   }
   return `msg-${item.role}-${item.timestamp ?? ''}-${item.content.length}`;
 };
-
-// ============================================
-// SECTION WRAPPER
-// ============================================
-const colsClass: Record<SectionCols, string> = {
-  1: '',
-  2: 'grid grid-cols-[repeat(auto-fit,minmax(min(18rem,100%),1fr))] gap-6',
-  3: 'grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-6',
-};
-
-function Section({ title, children, cols = 1 }: SectionProps) {
-  return (
-    <div className="border border-[var(--border)] bg-[var(--surface)]">
-      <div className="border-b border-[var(--border)] px-4 py-2 bg-[var(--surface-muted)]">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{title}</h2>
-      </div>
-      <div className={`p-6 ${colsClass[cols] ?? ''}`}>{children}</div>
-    </div>
-  );
-}
-
-function SubSection({ label, children, className }: SubSectionProps) {
-  return (
-    <div className={['space-y-2', className].filter(Boolean).join(' ')}>
-      <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">{label}</div>
-      {children}
-    </div>
-  );
-}
-
-// ============================================
-// ICONS
-// ============================================
-// Icons from lucide-react
-import {
-  Check as CheckIcon,
-  ChevronRight as ChevronIcon,
-  Copy as CopyIcon,
-  Folder as FolderIcon,
-  GitBranch as GitBranchIcon,
-  Github as GitRepoIcon,
-  MessageSquare as MessageIcon,
-  Plug as PlugIcon,
-  Search as SearchIcon,
-} from 'lucide-react';
-
-// ============================================
-// PRIMITIVES: SEARCH INPUT (with floating dropdown)
-// ============================================
-function SearchInput({
-  placeholder = 'Search...',
-  results = [],
-  onSelect,
-  onSearch, // Intentionally unused — reserved for future wiring
-  showResults,
-  onFocus,
-  onBlur,
-  value,
-  onChange,
-}: SearchInputProps) {
-  void onSearch;
-  const listboxId = useId();
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
-
-  useEffect(() => {
-    if (!showResults) {
-      setActiveIndex(-1);
-      return;
-    }
-    if (results.length === 0) {
-      setActiveIndex(-1);
-      return;
-    }
-    setActiveIndex((prev) => (prev >= 0 && prev < results.length ? prev : 0));
-  }, [showResults, results.length]);
-
-  const activeResult = activeIndex >= 0 && activeIndex < results.length ? results[activeIndex] : null;
-  const activeOptionId =
-    activeIndex >= 0 && activeIndex < results.length ? `${listboxId}-option-${activeIndex}` : undefined;
-
-  const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (event) => {
-    if (!showResults || results.length === 0) return;
-
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      setActiveIndex((prev) => (prev + 1) % results.length);
-    } else if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      setActiveIndex((prev) => (prev - 1 + results.length) % results.length);
-    } else if (event.key === 'Enter') {
-      if (activeResult) {
-        event.preventDefault();
-        onSelect?.(activeResult);
-      }
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      setActiveIndex(-1);
-      (event.currentTarget as HTMLInputElement).blur();
-    }
-  };
-
-  return (
-    <div className="relative">
-      {/* Input container */}
-      <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)] pointer-events-none" />
-        <input
-          type="text"
-          value={value}
-          onChange={onChange}
-          onKeyDown={handleKeyDown}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          placeholder={placeholder}
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={showResults && results.length > 0}
-          aria-controls={listboxId}
-          aria-activedescendant={activeOptionId}
-          className={[
-            'w-full h-9 pl-9 pr-3 text-sm border bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-subtle)]',
-            'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-            'border-[var(--border)]',
-          ].join(' ')}
-        />
-      </div>
-
-      {/* Floating dropdown - absolutely positioned */}
-      {showResults && results.length > 0 && (
-        <div
-          id={listboxId}
-          role="listbox"
-          className="absolute top-full left-0 right-0 z-50 mt-1 border border-[var(--border)] bg-[var(--surface)] max-h-64 overflow-y-auto"
-        >
-          {results.map((result, index) => (
-            <button
-              key={getSearchResultKey(result)}
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault(); // Prevent input blur
-                onSelect?.(result);
-              }}
-              id={`${listboxId}-option-${index}`}
-              role="option"
-              aria-selected={index === activeIndex}
-              className={[
-                'w-full text-left px-3 py-2 flex items-center gap-3 cursor-pointer',
-                'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:bg-[var(--surface-muted)] focus:outline-none',
-                index === activeIndex && 'bg-[var(--surface-muted)]',
-                'border-b border-[color:var(--border)] last:border-b-0',
-              ].join(' ')}
-            >
-              {result.icon && <span className="shrink-0 text-[var(--text-subtle)]">{result.icon}</span>}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-[var(--text)] truncate">{result.title}</div>
-                {result.subtitle && <div className="text-xs text-[var(--text-subtle)] truncate">{result.subtitle}</div>}
-              </div>
-              {result.meta && <span className="shrink-0 text-xs text-[var(--text-subtle)]">{result.meta}</span>}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================
-// PRIMITIVES: ROW (for lists)
-// ============================================
-function Row({ children, selected, onClick, className }: RowProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'w-full text-left px-3 py-2.5 flex items-center gap-3 transition-[background-color] motion-reduce:transition-none cursor-pointer border-l-2',
-        'focus:outline-none focus-visible:bg-[var(--surface-muted)]',
-        'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]',
-        // Apply transparent left border only when not selected; prevents utility order from hiding selection.
-        selected ? 'bg-[var(--surface-muted)] border-l-[var(--accent)]' : 'border-l-transparent',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      {children}
-    </button>
-  );
-}
-
-// ============================================
-// PRIMITIVES: CODE BLOCK
-// ============================================
-function CodeBlock({ children, language }: CodeBlockProps) {
-  return (
-    <div className="relative border border-[var(--border)] bg-[var(--surface-muted)]">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border)] bg-[var(--surface-strong)]">
-        <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">{language}</span>
-        <CopyButton text={children} className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5" />
-      </div>
-      <pre className="p-3 text-sm text-[var(--text)] overflow-x-auto">
-        <code>{children}</code>
-      </pre>
-    </div>
-  );
-}
-
-// ============================================
-// PRIMITIVES: POPOVER
-// ============================================
-function Popover({ trigger, children, open, onToggle }: PopoverProps) {
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  const handleTriggerKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onToggle?.();
-    }
-  };
-
-  const triggerNode = isValidElement(trigger)
-    ? cloneElement(trigger, {
-        onClick: (event) => {
-          trigger.props.onClick?.(event);
-          if (!event.defaultPrevented) {
-            onToggle?.();
-          }
-        },
-        onKeyDown: (event) => {
-          trigger.props.onKeyDown?.(event);
-          if (!event.defaultPrevented) {
-            handleTriggerKeyDown(event);
-          }
-        },
-        'aria-haspopup': 'menu',
-        'aria-expanded': open,
-      })
-    : null;
-
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        onToggle?.();
-      }
-    };
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onToggle?.();
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [open, onToggle]);
-
-  return (
-    <div ref={popoverRef} className="relative inline-block">
-      {triggerNode}
-      {open && (
-        <div className="absolute top-full left-0 mt-1 z-10 min-w-[200px] border border-[var(--border)] bg-[var(--surface)]">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ============================================
 // PRIMITIVES: TOKEN COUNTER
@@ -1519,6 +1190,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
             <SubSection label="With floating typeahead results (click to focus)">
               <div className="max-w-md">
                 <SearchInput
+                  ariaLabel="Search conversations"
                   placeholder="Search conversations..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
@@ -1802,22 +1474,13 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                 trigger={<Button>Open Popover</Button>}
               >
                 <div className="p-2 space-y-1">
-                  <button
-                    type="button"
-                    className="w-full text-left px-2 py-1.5 text-sm text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer"
-                  >
+                  <button type="button" className={`${popoverActionClass} text-[var(--text)]`}>
                     Edit
                   </button>
-                  <button
-                    type="button"
-                    className="w-full text-left px-2 py-1.5 text-sm text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer"
-                  >
+                  <button type="button" className={`${popoverActionClass} text-[var(--text)]`}>
                     Duplicate
                   </button>
-                  <button
-                    type="button"
-                    className="w-full text-left px-2 py-1.5 text-sm text-[var(--danger)] hover:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)] cursor-pointer"
-                  >
+                  <button type="button" className={`${popoverActionClass} text-[var(--danger)]`}>
                     Delete
                   </button>
                 </div>

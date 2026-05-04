@@ -14,7 +14,7 @@ This guide tracks the migration of `sharp2` to the shared Sharp UI token system 
 
 ## Decisions to Lock Before Editing
 - [x] Role color strategy for conversation rendering. (Using categorical tokens aliased to semantic palette.)
-- [x] Shared primitives vs local primitives. (Local primitives retained for now; TODO to compare with shared components.)
+- [x] Shared primitives vs local primitives. (Shared primitives import from `src/components`; showcase and domain examples remain sharp2-local.)
 - [x] Whether to add local role tokens in a scoped CSS file. (Not needed; using category tokens.)
 - [x] Whether to introduce a local `--text-subtle` token for very muted copy. (Now part of the global token contract.)
 
@@ -33,12 +33,13 @@ Pick one strategy for `MessageCard` borders, tool call accents, and role badges.
 
 ### 3) Shared Primitive Adoption (Recommended)
 Prefer shared components to avoid drift.
-- [ ] Replace local `Checkbox` with `src/components/Checkbox.tsx`.
-- [ ] Replace local `Toggle` with `src/components/Toggle.tsx`.
-- [ ] Replace local `CopyableLabel` with `src/components/CopyableLabel.tsx`.
-- [ ] Replace local `StatusTag` with `src/components/StatusTag.tsx`.
-- [ ] Remove unused local implementations after replacement.
-  - Note: local primitives retained for now; a TODO in `sharp2` tracks consolidation.
+- [x] Replace local `Checkbox` with `src/components/Checkbox.tsx`.
+- [x] Replace local `Toggle` with `src/components/Toggle.tsx`.
+- [x] Replace local `CopyableLabel` with `src/components/CopyableLabel.tsx`.
+- [x] Replace local `StatusTag` with `src/components/StatusTag.tsx`.
+- [x] Remove unused local implementations after replacement.
+
+`Row`, `SearchInput`, `Popover`, `CodeBlock`, and conversation rendering remain sharp2-local because their semantics are not yet proven as shared APIs.
 
 ### 4) Tokenization (Base Palette)
 Replace hardcoded Tailwind colors with tokens throughout `index.tsx`.
@@ -71,14 +72,14 @@ Ensure focus-visible and a11y conventions match the style guide.
   - Note: add labels for tool-call expand button, modal close button, and icon-only ghost button.
 - [~] Replace `focus:` background styles with `focus-visible:` on row-like controls.
   - Note: search result rows still use `focus:` and need `focus-visible`.
-- [~] Ensure hover affordances also appear on focus-visible.
-  - Note: CopyableLabel now shows hover on focus; popover items still hover-only.
+- [x] Ensure hover affordances also appear on focus-visible.
+  - Note: CopyableLabel and Popover items now show visible focus affordances.
 - [x] Ensure `focus-within` rings on checkbox/toggle containers use tokenized ring and offset.
 
 ### 7) Overlay, Modal, and Popover
 - [x] Replace modal scrim `bg-slate-900/50` with `bg-[var(--overlay)]`.
 - [x] Ensure modal surface uses tokenized border and surface colors.
-- [ ] Ensure popover items have focus-visible states, not hover-only.
+- [x] Ensure popover items have focus-visible states, not hover-only.
 
 ### 8) Remove Legacy Token Block
 - [~] Delete the conceptual `tokens` object or replace it with a short comment pointing to shared tokens.
@@ -87,7 +88,7 @@ Ensure focus-visible and a11y conventions match the style guide.
 ### 9) Documentation Update
 Update the design narrative to match tokenized usage.
 - [x] Replace hardcoded Slate examples in `sharp2.txt` with token examples.
-- [ ] Mention `ArtifactThemeRoot` as the boundary requirement.
+- [x] Mention `ArtifactThemeRoot` as the boundary requirement.
 - [x] Update “forbidden” examples to show token-friendly equivalents.
 
 ### 10) Layout and Spacing Hygiene

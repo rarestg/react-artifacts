@@ -1,6 +1,8 @@
 ## What We Built: A Design System Showcase
 
-This artifact is a **living component library** — a single interactive document that contains every UI primitive you'll need to build your app, rendered in a way you can see, click, and test. It serves the same purpose as tools like Figma (design) or Storybook (development), but in a self-contained React file.
+This artifact is a **living component library** — a Sharp2 artifact folder in this repo that renders shared primitives
+and sharp2-local examples in a way you can see, click, and test. It serves the same purpose as tools like Figma
+(design) or Storybook (development), but with repo-backed React components and the shared artifact theme.
 
 ### What Figma and Storybook Do (and how this compares)
 
@@ -11,8 +13,8 @@ This artifact is a **living component library** — a single interactive documen
 **This artifact** combines both ideas:
 - It's visual like Figma — you can see exactly how things look
 - It's interactive like Storybook — you can click buttons, toggle states, type in inputs
-- It's just code — copy any component directly into your app
-- It's zero-config — runs in Claude's artifact viewer or any React environment
+- It's implementation-backed — import shared primitives from `src/components` and keep them inside `ArtifactThemeRoot`
+- It's repo-native — it runs in this artifact viewer and is portable to React apps that also bring the shared components and artifact theme
 
 ---
 
@@ -45,48 +47,52 @@ className="border border-[var(--border)] bg-[var(--surface)]"
 
 ## The Component Inventory
 
-Here's every component in the system and when to use it:
+Sharp2 now separates reusable shared primitives from local showcase and domain examples. Import shared primitives from
+`src/components`; keep sharp2-local examples in this artifact until their semantics are proven as shared APIs.
 
-### Layout & Containers
+### Shared Primitives (`src/components`)
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `Panel` | Basic container | `variant`: `default`, `muted`, `dashed` |
-| `Section` | Page section with header | `title`, `cols` |
-| `SubSection` | Labeled group within a section | `label` |
-| `Modal` | Overlay dialog (uses scrim — allowed exception) | `open`, `onClose`, `title` |
-| `Popover` | Dropdown menu anchored to trigger | `open`, `onToggle`, `trigger` |
-
-### Interactive Elements
+These primitives are shared application APIs. Render them under `ArtifactThemeRoot` so their tokens, focus rings, and
+theme-boundary guards resolve correctly.
 
 | Component | Purpose | Key Props |
 |-----------|---------|-----------|
-| `Button` | Actions | `variant`: `default`, `primary`, `ghost`, `danger`; `size`: `sm`, `default`, `lg` |
-| `Input` | Text entry | `error` for validation state |
-| `Checkbox` | Boolean selection | `checked`, `onChange`, `label`, `reserveLabel` |
-| `Toggle` | On/off switch | `checked`, `onChange`, `label`, `reserveLabel` |
-| `SearchInput` | Search with floating dropdown | `value`, `onChange`, `results`, `onSelect` |
-| `Row` | Clickable list item | `selected`, `onClick` |
+| `Button` | Shared action primitive | `variant`: `default`, `primary`, `ghost`, `danger`; `size`: `sm`, `default`, `lg` |
+| `Input` | Shared text-entry primitive | `error` for validation state |
+| `Tag` | Shared inline label/badge primitive | `variant`: `base`, `muted`, `solid` |
+| `Panel` | Shared structural container primitive | `variant`: `default`, `muted`, `dashed` |
+| `Checkbox` | Shared boolean selection primitive | `checked`, `onChange`, `label`, `reserveLabel` |
+| `Toggle` | Shared on/off primitive | `checked`, `onChange`, `label`, `reserveLabel` |
+| `CopyButton` | Shared copy-to-clipboard primitive | `text` |
+| `CopyableLabel` | Shared metadata-with-copy primitive | `value`, `icon` |
+| `StatusTag` | Shared stable-width status primitive | `label`, `active`, `reserveLabel`, `icon` |
 
-### Data Display
+### Sharp2-Local Showcase Examples
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `Tag` | Inline label/badge | `variant`: `base`, `muted`, `solid` |
-| `StatusTag` | Active/inactive indicator with stable width | `label`, `active`, `reserveLabel`, `icon` |
-| `CopyButton` | Copy text to clipboard | `text` |
-| `CopyableLabel` | Metadata with copy affordance | `value`, `icon` |
-| `CodeBlock` | Syntax-highlighted code | `language`, `children` |
-| `TokenCounter` | Context window usage meter | `used`, `limit`, `label` |
-
-### Conversation Rendering
+These examples live under `src/artifacts/sharp2/components`. Use them as reference implementations for this showcase,
+not as shared APIs.
 
 | Component | Purpose | Key Props |
 |-----------|---------|-----------|
-| `MessageCard` | Single message (user/assistant/thinking) | `role`, `content`, `renderMode`, `onToggleRender` |
-| `ToolCall` | Tool invocation with input/output | `tool`, `input`, `output`, `status` |
-| `ConversationTurn` | Groups messages into a turn | `turnNumber`, `items`, `visibleTypes` |
-| `MessageTypeToggle` | Filter toggle for message types | `label`, `count`, `checked`, `color` |
+| `SearchInput` | Sharp2-local managed combobox example | `value`, `onChange`, `results`, `onSelect` |
+| `Popover` | Sharp2-local dropdown example anchored to a trigger | `open`, `onToggle`, `trigger` |
+| `Row` | Sharp2-local clickable list item example | `selected`, `onClick` |
+| `CodeBlock` | Sharp2-local syntax-highlighted code example | `language`, `children` |
+| `Section` | Sharp2-local page section example | `title`, `cols` |
+| `SubSection` | Sharp2-local labeled group example | `label` |
+
+### Sharp2-Local Conversation Domain Examples
+
+These examples live under `src/artifacts/sharp2/conversation`. They may import shared primitives internally, but the
+conversation semantics remain local to sharp2.
+
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| `MessageCard` | Sharp2-local single message renderer | `role`, `content`, `renderMode`, `onToggleRender` |
+| `ToolCall` | Sharp2-local tool invocation renderer | `tool`, `input`, `output`, `status` |
+| `ConversationTurn` | Sharp2-local turn grouping renderer | `turnNumber`, `items`, `visibleTypes` |
+| `MessageTypeToggle` | Sharp2-local message type filter control | `label`, `count`, `checked`, `color` |
+| `TokenCounter` | Sharp2-local context window usage meter | `used`, `limit`, `label` |
 
 ---
 
@@ -152,15 +158,28 @@ The toggle button shows "Raw" when in literal mode, "Rendered" when in rendered 
 
 ## How to Use This as You Build
 
-### Workflow 1: Copy Components Directly
+### Workflow 1: Import Shared Primitives
 
-When you need a button in your app:
+When you need a shared Sharp UI primitive in an artifact:
 
-1. Open the artifact
-2. Find the `Button` component (around line 200)
-3. Copy the entire function into your codebase
-4. Import `useState` if needed
-5. Use it: `<Button variant="primary">Save</Button>`
+1. Wrap the artifact root with `ArtifactThemeRoot`.
+2. Import the primitive from `src/components`.
+3. Keep the primitive under the artifact theme boundary so tokens, focus rings, and shared component guards work.
+
+Example:
+
+```tsx
+import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { Button } from '../../components/Button';
+
+export default function Artifact() {
+  return (
+    <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]">
+      <Button variant="primary">Save</Button>
+    </ArtifactThemeRoot>
+  );
+}
+```
 
 ### Workflow 2: Reference for Styling Decisions
 

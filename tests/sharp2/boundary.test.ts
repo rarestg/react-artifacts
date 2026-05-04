@@ -61,6 +61,20 @@ test('sharp2 imports shared primitives from src/components at usage sites', asyn
   assert.match(joined, /import \{ StatusTag \} from ['"](?:\.\.\/)+components\/StatusTag['"]/);
 });
 
+test('sharp2 documentation describes ArtifactThemeRoot and import-based shared components', async () => {
+  const guide = await readFile('src/artifacts/sharp2/sharp2.txt', 'utf8');
+
+  assert.match(guide, /ArtifactThemeRoot/);
+  assert.match(guide, /import/i);
+  assert.doesNotMatch(guide, /self-contained React file/i);
+  assert.doesNotMatch(guide, /any React environment/i);
+  assert.doesNotMatch(guide, /copy any component directly/i);
+  assert.doesNotMatch(guide, /Copy Components Directly/i);
+  assert.doesNotMatch(guide, /\bcopy the entire function\b/i);
+  assert.doesNotMatch(guide, /\bcopy\b[^.\n]*\binto your (?:app|codebase)\b/i);
+  assert.doesNotMatch(guide, /\bpaste\b[^.\n]*\bcomponent\b/i);
+});
+
 test('Row remains sharp2-local and is not exported from src/components', async () => {
   const files = await readSharp2SourceFiles();
   const joined = files.map(({ source }) => source).join('\n');

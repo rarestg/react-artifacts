@@ -20,7 +20,7 @@ const withOriginalIndex = (key: string, originalIndex?: number) =>
   originalIndex === undefined ? key : `${key}-${originalIndex}`;
 
 export const getTurnItemKey = (item: TurnItem, originalIndex?: number) => {
-  if (item.id) return item.id;
+  if (item.id) return withOriginalIndex(item.id, originalIndex);
   if (item.type === 'token_counter') {
     return withOriginalIndex(
       `token-${hashFields(['token_counter', item.label ?? 'context', item.used, item.limit])}`,

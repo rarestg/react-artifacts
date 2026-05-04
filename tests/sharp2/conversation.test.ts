@@ -86,7 +86,8 @@ test('conversation key helpers prefer supplied ids', () => {
   const turn: ConversationTurnData = { id: 'turn-id', turnNumber: 1, items: [] };
 
   assert.equal(getTurnKey(turn), 'turn-id');
-  assert.equal(getTurnItemKey({ id: 'message-id', role: 'user', content: 'Hi' }, 12), 'message-id');
+  assert.equal(getTurnItemKey({ id: 'message-id', role: 'user', content: 'Hi' }), 'message-id');
+  assert.equal(getTurnItemKey({ id: 'message-id', role: 'user', content: 'Hi' }, 12), 'message-id-12');
 });
 
 test('TokenCounter shows invalid limits explicitly in visible and copied summaries', () => {
@@ -107,6 +108,33 @@ test('TokenCounter shows invalid limits explicitly in visible and copied summari
   assert.doesNotMatch(markup, /75 \/ 0 tokens/);
   assert.doesNotMatch(markup, /75 \/ 1 tokens/);
   assert.doesNotMatch(markup, /100% Used/);
+});
+
+test('TokenCounter marks invalid used values unavailable in visible and copied summaries', () => {
+  const invalidUsedValues = [Number.NaN, Number.POSITIVE_INFINITY, -1];
+
+  for (const used of invalidUsedValues) {
+    assert.deepEqual(getTokenUsageSummary({ used, limit: 200000, label: 'Budget' }), {
+      usageText: 'invalid usage / 200.0k tokens',
+      percentageText: 'percentage unavailable',
+      copyText: 'Budget: invalid usage / 200000 tokens (percentage unavailable)',
+      percentage: null,
+      filledBlocks: 0,
+      emptyBlocks: 20,
+    });
+  }
+
+  const markup = renderToStaticMarkup(
+    createElement(TokenCounter, {
+      used: Number.NaN,
+      limit: 200000,
+      label: 'Budget',
+    }),
+  );
+
+  assert.match(markup, /invalid usage \/ 200\.0k tokens/);
+  assert.match(markup, /percentage unavailable/);
+  assert.doesNotMatch(markup, /NaN/);
 });
 
 test('TokenCounter keeps copied valid token counts exact', () => {
@@ -146,6 +174,15 @@ test('conversation fallback keys use original indexes to distinguish identical s
 
   assert.notEqual(getTurnItemKey(message, 0), getTurnItemKey(message, 1));
   assert.notEqual(getTurnItemKey(toolCall, 2), getTurnItemKey(toolCall, 3));
+});
+
+test('conversation explicit item keys use original indexes to distinguish duplicate ids', () => {
+  const firstMessage = { id: 'shared-message', role: 'assistant', content: 'First message' } as const;
+  const secondMessage = { id: 'shared-message', role: 'assistant', content: 'Second message' } as const;
+
+  assert.equal(getTurnItemKey(firstMessage, 0), 'shared-message-0');
+  assert.equal(getTurnItemKey(secondMessage, 1), 'shared-message-1');
+  assert.notEqual(getTurnItemKey(firstMessage, 0), getTurnItemKey(secondMessage, 1));
 });
 
 test('ConversationTurn filters hidden item types', () => {

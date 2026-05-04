@@ -7,6 +7,7 @@ export type TokenCounterProps = {
 };
 
 const INVALID_LIMIT_TEXT = 'invalid limit';
+const INVALID_USED_TEXT = 'invalid usage';
 
 const formatTokens = (n: number) => {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
@@ -14,12 +15,15 @@ const formatTokens = (n: number) => {
 };
 
 export function getTokenUsageSummary({ used, limit, label = 'Context Window' }: TokenCounterProps) {
+  const hasValidUsed = Number.isFinite(used) && used >= 0;
   const hasValidLimit = Number.isFinite(limit) && limit > 0;
+  const numeratorText = hasValidUsed ? formatTokens(used) : INVALID_USED_TEXT;
+  const copyNumeratorText = hasValidUsed ? String(used) : INVALID_USED_TEXT;
   const denominatorText = hasValidLimit ? `${formatTokens(limit)} tokens` : INVALID_LIMIT_TEXT;
   const copyDenominatorText = hasValidLimit ? `${limit} tokens` : INVALID_LIMIT_TEXT;
-  const usageText = `${formatTokens(used)} / ${denominatorText}`;
-  const copyUsageText = `${used} / ${copyDenominatorText}`;
-  const rawPercentage = hasValidLimit ? Math.round((used / limit) * 100) : null;
+  const usageText = `${numeratorText} / ${denominatorText}`;
+  const copyUsageText = `${copyNumeratorText} / ${copyDenominatorText}`;
+  const rawPercentage = hasValidUsed && hasValidLimit ? Math.round((used / limit) * 100) : null;
   const percentage = rawPercentage === null ? null : Math.min(100, Math.max(0, rawPercentage));
   const filledBlocks = percentage === null ? 0 : Math.round((percentage / 100) * 20);
   const emptyBlocks = 20 - filledBlocks;

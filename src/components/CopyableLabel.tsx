@@ -4,7 +4,7 @@ import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type CopyableLabelStatus = 'idle' | 'hover' | 'copied' | 'failed';
 
-type CopyableLabelProps = {
+export type CopyableLabelProps = {
   value: string;
   icon?: ReactNode;
   className?: string;
@@ -13,6 +13,7 @@ type CopyableLabelProps = {
   failedLabel?: string;
   hoverLabel?: string;
   showHoverOnFocus?: boolean;
+  ariaLabel?: string;
 };
 
 export function CopyableLabel({
@@ -24,6 +25,7 @@ export function CopyableLabel({
   failedLabel = 'Failed ✗',
   hoverLabel = 'Copy',
   showHoverOnFocus = true,
+  ariaLabel,
 }: CopyableLabelProps) {
   const [status, setStatus] = useState<CopyableLabelStatus>('idle');
   const isHoveredRef = useRef(false);
@@ -31,6 +33,8 @@ export function CopyableLabel({
   const rootRef = useRef<HTMLButtonElement>(null);
 
   useArtifactThemeGuard('CopyableLabel', rootRef);
+
+  const resolvedAriaLabel = ariaLabel?.trim() || `Copy: ${value}`;
 
   const resolvedReserveLabel = useMemo(() => {
     if (reserveLabel) return reserveLabel;
@@ -97,13 +101,14 @@ export function CopyableLabel({
       : status === 'failed'
         ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
         : status === 'hover'
-          ? 'border-[color:var(--copy-hover-border)] bg-[var(--copy-hover-bg)] text-[var(--copy-hover-text)]'
-          : 'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]';
+          ? 'border-[color:var(--copy-hover-border)] bg-[var(--copy-hover-bg)] text-[var(--copy-hover-text)] active:bg-[var(--copy-hover-bg)]'
+          : 'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)] active:bg-[var(--copy-hover-bg)]';
 
   return (
     <button
       ref={rootRef}
       type="button"
+      aria-label={resolvedAriaLabel}
       onClick={handleCopy}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

@@ -1,7 +1,7 @@
 import { type ReactNode, useRef } from 'react';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
-type StatusTagProps = {
+export type StatusTagProps = {
   label: string;
   reserveLabel?: string;
   active?: boolean;
@@ -11,7 +11,7 @@ type StatusTagProps = {
   className?: string;
 };
 
-export default function StatusTag({
+export function StatusTag({
   label,
   reserveLabel,
   active = true,
@@ -58,3 +58,5 @@ export default function StatusTag({
     </span>
   );
 }
+
+export default StatusTag;

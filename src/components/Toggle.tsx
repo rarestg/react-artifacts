@@ -1,7 +1,7 @@
 import { type KeyboardEvent, type ReactNode, useRef } from 'react';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
-type ToggleProps = {
+export type ToggleProps = {
   label: string;
   reserveLabel?: string;
   checked: boolean;
@@ -56,9 +56,9 @@ export function Toggle({
     <label
       ref={rootRef}
       className={[
-        'inline-flex items-center gap-3 cursor-pointer select-none py-1',
+        'inline-flex items-center gap-3 select-none py-1',
         focusTarget === 'container' ? 'relative' : '',
-        disabled && 'opacity-50 pointer-events-none cursor-not-allowed',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         className,
       ]
         .filter(Boolean)
@@ -83,6 +83,9 @@ export function Toggle({
         className={[
           'sharp-toggle transition-colors motion-reduce:transition-none',
           trackFocus,
+          checked
+            ? !disabled && 'active:bg-[var(--primary-active)]'
+            : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]',
           trackTone,
           trackClassName,
         ]

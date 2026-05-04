@@ -267,7 +267,8 @@ test('ConversationTurn preserves original indexes for duplicate item references'
     }),
   );
 
-  assert.match(markup, /<strong/);
+  assert.equal(markup.match(/\*\*this\*\*/g)?.length ?? 0, 1);
+  assert.equal(markup.match(/<strong\b[^>]*>this<\/strong>/g)?.length ?? 0, 1);
 });
 
 test('ToolCall collapse button has an accessible name, expanded state, and visible focus', () => {

@@ -1,18 +1,15 @@
 import {
   type AriaAttributes,
-  type ButtonHTMLAttributes,
   type ChangeEventHandler,
   Component,
   cloneElement,
   type FocusEventHandler,
   Fragment,
-  type InputHTMLAttributes,
   isValidElement,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactElement,
   type ReactNode,
-  useCallback,
   useEffect,
   useId,
   useRef,
@@ -20,17 +17,20 @@ import {
 } from 'react';
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { Button } from '../../components/Button';
+import { Checkbox } from '../../components/Checkbox';
+import { CopyableLabel } from '../../components/CopyableLabel';
+import { CopyButton } from '../../components/CopyButton';
+import { Input } from '../../components/Input';
+import { Panel } from '../../components/Panel';
+import { StatusTag } from '../../components/StatusTag';
+import { Tag } from '../../components/Tag';
+import { Toggle } from '../../components/Toggle';
 
 type SectionCols = 1 | 2 | 3;
-type TagVariant = 'base' | 'muted' | 'solid';
-type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger';
-type ButtonSize = 'sm' | 'default' | 'lg';
-type PanelVariant = 'default' | 'muted' | 'dashed';
 type ToolCallStatus = 'success' | 'error' | 'pending';
 type MessageRole = 'user' | 'assistant' | 'thinking' | 'tool';
 type RenderMode = 'default' | 'literal' | 'rendered';
-type CopyButtonStatus = 'idle' | 'copied' | 'failed';
-type CopyableLabelStatus = 'idle' | 'hover' | 'copied' | 'failed';
 
 type SearchResult = {
   id?: string;
@@ -96,31 +96,6 @@ type SubSectionProps = {
   className?: string;
 };
 
-type StatusTagProps = {
-  label: string;
-  reserveLabel?: string;
-  active?: boolean;
-  icon?: ReactNode;
-  className?: string;
-};
-
-type TagProps = {
-  children: ReactNode;
-  variant?: TagVariant;
-  className?: string;
-};
-
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-};
-
-type InputProps = InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-  error?: string;
-  className?: string;
-};
-
 type SearchInputProps = {
   placeholder?: string;
   results?: SearchResult[];
@@ -133,22 +108,6 @@ type SearchInputProps = {
   onChange?: ChangeEventHandler<HTMLInputElement>;
 };
 
-type CheckboxProps = {
-  label: string;
-  reserveLabel?: string;
-  checked: boolean;
-  onChange: ChangeEventHandler<HTMLInputElement>;
-  disabled?: boolean;
-};
-
-type ToggleProps = {
-  label: string;
-  reserveLabel?: string;
-  checked: boolean;
-  onChange: ChangeEventHandler<HTMLInputElement>;
-  disabled?: boolean;
-};
-
 type RowProps = {
   children: ReactNode;
   selected?: boolean;
@@ -156,36 +115,9 @@ type RowProps = {
   className?: string;
 };
 
-type PanelProps = {
-  children: ReactNode;
-  variant?: PanelVariant;
-  className?: string;
-};
-
-type CopyButtonProps = {
-  text: string;
-  idleLabel?: string;
-  showIcon?: boolean;
-  className?: string;
-};
-
-type CopyableLabelProps = {
-  value: string;
-  icon?: ReactNode;
-  className?: string;
-};
-
 type CodeBlockProps = {
   children: string;
   language?: string;
-};
-
-type ModalProps = {
-  open: boolean;
-  onClose?: () => void;
-  title: string;
-  children: ReactNode;
-  container?: HTMLElement | null;
 };
 
 type PopoverTriggerProps = {
@@ -286,8 +218,8 @@ const getTurnItemKey = (item: TurnItem) => {
 // ============================================
 const colsClass: Record<SectionCols, string> = {
   1: '',
-  2: 'grid grid-cols-2 gap-6',
-  3: 'grid grid-cols-3 gap-6',
+  2: 'grid grid-cols-[repeat(auto-fit,minmax(min(18rem,100%),1fr))] gap-6',
+  3: 'grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-6',
 };
 
 function Section({ title, children, cols = 1 }: SectionProps) {
@@ -325,140 +257,6 @@ import {
   Plug as PlugIcon,
   Search as SearchIcon,
 } from 'lucide-react';
-
-// ============================================
-// PRIMITIVES: STATUS TAG
-// ============================================
-// TODO: Compare these local primitives with src/components equivalents and consolidate or promote canonical versions.
-function StatusTag({ label, reserveLabel, active = true, icon, className }: StatusTagProps) {
-  const resolvedReserveLabel = reserveLabel ?? label;
-
-  return (
-    <span
-      data-active={active ? 'true' : 'false'}
-      className={[
-        'inline-flex items-center gap-2 border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] leading-none',
-        'transition-colors duration-150 motion-reduce:transition-none',
-        active
-          ? 'border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]'
-          : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-subtle)]',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      {icon && <span className="shrink-0">{icon}</span>}
-      <span
-        className={[
-          'w-2 h-2 shrink-0 transition-colors duration-150 motion-reduce:transition-none',
-          active
-            ? 'bg-[var(--success)] border border-[color:var(--success)]'
-            : 'bg-transparent border border-[var(--border-strong)]',
-        ].join(' ')}
-        aria-hidden="true"
-      />
-      <span className="relative inline-grid min-w-0">
-        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-          {resolvedReserveLabel}
-        </span>
-        <span className="col-start-1 row-start-1 min-w-0 truncate">{label}</span>
-      </span>
-    </span>
-  );
-}
-
-// ============================================
-// PRIMITIVES: TAG (base, muted, solid)
-// ============================================
-function Tag({ children, variant = 'base', className }: TagProps) {
-  const variants: Record<TagVariant, string> = {
-    base: 'border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-    muted: 'border-transparent bg-[var(--surface-strong)] text-[var(--text-muted)]',
-    solid: 'border-transparent bg-[var(--primary)] text-[var(--primary-contrast)]',
-  };
-
-  return (
-    <span
-      className={['inline-flex items-center px-2 py-0.5 text-[11px] font-medium', variants[variant], className]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      {children}
-    </span>
-  );
-}
-
-// ============================================
-// PRIMITIVES: BUTTON
-// ============================================
-function Button({ children, variant = 'default', size = 'default', disabled, className, ...props }: ButtonProps) {
-  const variants: Record<ButtonVariant, string> = {
-    default:
-      'border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] active:border-[var(--border-strong)]',
-    primary:
-      'border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-contrast)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]',
-    ghost:
-      'border border-transparent bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)]',
-    danger:
-      'border border-[color:var(--danger)] bg-[var(--surface)] text-[var(--danger)] hover:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)]',
-  };
-
-  const sizes: Record<ButtonSize, string> = {
-    sm: 'h-8 px-2 text-xs',
-    default: 'h-9 px-3 text-sm',
-    lg: 'h-10 px-4 text-sm',
-  };
-
-  return (
-    <button
-      disabled={disabled}
-      className={[
-        'inline-flex items-center justify-center gap-2 font-medium transition-colors motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        'disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed',
-        variants[variant],
-        sizes[size],
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
-
-// ============================================
-// PRIMITIVES: INPUT
-// ============================================
-function Input({ label, error, className, ...props }: InputProps) {
-  const generatedId = useId();
-  const inputId = props.id ?? generatedId;
-
-  return (
-    <div className="space-y-1">
-      {label && (
-        <label htmlFor={inputId} className="block text-xs font-medium text-[var(--text-muted)]">
-          {label}
-        </label>
-      )}
-      <input
-        id={inputId}
-        className={[
-          'w-full h-9 px-3 text-sm border bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-subtle)]',
-          'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-          error ? 'border-[color:var(--danger)]' : 'border-[var(--border)]',
-          className,
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        {...props}
-      />
-      {error && <p className="text-xs text-[var(--danger)]">{error}</p>}
-    </div>
-  );
-}
 
 // ============================================
 // PRIMITIVES: SEARCH INPUT (with floating dropdown)
@@ -581,86 +379,6 @@ function SearchInput({
 }
 
 // ============================================
-// PRIMITIVES: CHECKBOX
-// ============================================
-function Checkbox({ label, reserveLabel, checked, onChange, disabled }: CheckboxProps) {
-  const resolvedReserveLabel = reserveLabel ?? label;
-
-  return (
-    <label
-      className={[
-        'flex items-center gap-2 cursor-pointer select-none py-1',
-        disabled && 'opacity-50 pointer-events-none cursor-not-allowed',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <span
-        className={[
-          'w-4 h-4 shrink-0 border flex items-center justify-center transition-colors motion-reduce:transition-none',
-          'focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-1 focus-within:ring-offset-[color:var(--surface)]',
-          checked
-            ? 'bg-[var(--checkbox-on-bg)] border-[var(--checkbox-on-border)]'
-            : 'bg-[var(--checkbox-off-bg)] border-[var(--checkbox-off-border)] hover:border-[var(--border-strong)] active:bg-[var(--surface-pressed)]',
-        ].join(' ')}
-      >
-        {checked && <CheckIcon className="w-3 h-3 text-[var(--primary-contrast)]" />}
-        <input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="sr-only" />
-      </span>
-      <span className="relative inline-grid min-w-0 text-sm text-[var(--text)]">
-        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-          {resolvedReserveLabel}
-        </span>
-        <span className="col-start-1 row-start-1 min-w-0 truncate">{label}</span>
-      </span>
-    </label>
-  );
-}
-
-// ============================================
-// PRIMITIVES: TOGGLE (checkbox-style for devtool feel)
-// ============================================
-function Toggle({ label, reserveLabel, checked, onChange, disabled }: ToggleProps) {
-  const resolvedReserveLabel = reserveLabel ?? label;
-
-  return (
-    <label
-      className={[
-        'flex items-center gap-3 cursor-pointer select-none py-1',
-        disabled && 'opacity-50 pointer-events-none cursor-not-allowed',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <span
-        className={[
-          'relative w-8 h-4 shrink-0 border transition-colors motion-reduce:transition-none',
-          'focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-1 focus-within:ring-offset-[color:var(--surface)]',
-          checked
-            ? 'bg-[var(--toggle-track-on-bg)] border-[var(--toggle-track-on-border)] active:bg-[var(--primary-active)]'
-            : 'bg-[var(--toggle-track-off-bg)] border-[var(--toggle-track-off-border)] hover:border-[var(--border-strong)] active:bg-[var(--surface-pressed)]',
-        ].join(' ')}
-      >
-        <span
-          className={[
-            'absolute top-0.5 left-0.5 w-2.5 h-2.5 transition-transform duration-150 motion-reduce:transition-none',
-            checked ? 'bg-[var(--toggle-knob-on-bg)]' : 'bg-[var(--toggle-knob-off-bg)]',
-            checked ? 'translate-x-4' : 'translate-x-0',
-          ].join(' ')}
-        />
-        <input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="sr-only" />
-      </span>
-      <span className="relative inline-grid min-w-0 text-sm text-[var(--text)]">
-        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-          {resolvedReserveLabel}
-        </span>
-        <span className="col-start-1 row-start-1 min-w-0 truncate">{label}</span>
-      </span>
-    </label>
-  );
-}
-
-// ============================================
 // PRIMITIVES: ROW (for lists)
 // ============================================
 function Row({ children, selected, onClick, className }: RowProps) {
@@ -685,178 +403,6 @@ function Row({ children, selected, onClick, className }: RowProps) {
 }
 
 // ============================================
-// PRIMITIVES: PANEL
-// ============================================
-function Panel({ children, variant = 'default', className }: PanelProps) {
-  const variants: Record<PanelVariant, string> = {
-    default: 'border border-[var(--border)] bg-[var(--surface)]',
-    muted: 'bg-[var(--surface-muted)]',
-    dashed: 'border border-dashed border-[var(--border-strong)] bg-[var(--surface)]',
-  };
-
-  return <div className={[variants[variant], className].filter(Boolean).join(' ')}>{children}</div>;
-}
-
-// ============================================
-// PRIMITIVES: COPY BUTTON
-// TODO: Replace with shared src/components/CopyButton once consolidated.
-// ============================================
-function CopyButton({ text, idleLabel = 'Copy', showIcon = true, className }: CopyButtonProps) {
-  const [status, setStatus] = useState<CopyButtonStatus>('idle');
-
-  const labels: Record<CopyButtonStatus, string> = {
-    idle: idleLabel,
-    copied: 'Copied ✓',
-    failed: 'Failed ✗',
-  };
-
-  // Reserve to longest label for stable width
-  const reserveLabel = idleLabel.length > 8 ? idleLabel : 'Copied ✓';
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setStatus('copied');
-      setTimeout(() => setStatus('idle'), 2000);
-    } catch {
-      setStatus('failed');
-      setTimeout(() => setStatus('idle'), 2000);
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className={[
-        'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        status === 'copied'
-          ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
-          : status === 'failed'
-            ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
-            : [
-                'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]',
-                'hover:border-[color:var(--copy-hover-border)] hover:bg-[var(--copy-hover-bg)] hover:text-[var(--copy-hover-text)]',
-                'active:bg-[var(--copy-hover-bg)]',
-              ].join(' '),
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      {showIcon && <CopyIcon className="w-3 h-3 shrink-0" />}
-      {idleLabel && (
-        <span className="relative inline-grid min-w-0">
-          <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-            {reserveLabel}
-          </span>
-          <span className="col-start-1 row-start-1">{labels[status]}</span>
-        </span>
-      )}
-      <span className="sr-only" aria-live="assertive">
-        {status === 'copied' ? 'Copied to clipboard' : status === 'failed' ? 'Copy failed' : ''}
-      </span>
-    </button>
-  );
-}
-
-// ============================================
-// PRIMITIVES: COPYABLE LABEL (for metadata display)
-// ============================================
-function CopyableLabel({ value, icon, className }: CopyableLabelProps) {
-  const [status, setStatus] = useState<CopyableLabelStatus>('idle'); // idle | hover | copied | failed
-  const isHoveredRef = useRef(false);
-  const isFocusedRef = useRef(false);
-
-  const shouldShowHover = useCallback(() => isHoveredRef.current || isFocusedRef.current, []);
-
-  useEffect(() => {
-    if (status !== 'copied' && status !== 'failed') return;
-    const timeout = window.setTimeout(() => {
-      setStatus(shouldShowHover() ? 'hover' : 'idle');
-    }, 2000);
-    return () => window.clearTimeout(timeout);
-  }, [status, shouldShowHover]);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setStatus('copied');
-    } catch {
-      setStatus('failed');
-    }
-  };
-
-  const handleMouseEnter = () => {
-    isHoveredRef.current = true;
-    if (status === 'idle') setStatus('hover');
-  };
-
-  const handleMouseLeave = () => {
-    isHoveredRef.current = false;
-    if (status === 'hover' && !shouldShowHover()) setStatus('idle');
-  };
-
-  const handleFocus = () => {
-    isFocusedRef.current = true;
-    if (status === 'idle') setStatus('hover');
-  };
-
-  const handleBlur = () => {
-    isFocusedRef.current = false;
-    if (status === 'hover' && !shouldShowHover()) setStatus('idle');
-  };
-
-  const displayText: Record<CopyableLabelStatus, string> = {
-    idle: value,
-    hover: 'Copy',
-    copied: 'Copied ✓',
-    failed: 'Failed ✗',
-  };
-
-  // Reserve width to the longest of value or "Copied ✓"
-  const reserveLabel = value.length > 8 ? value : 'Copied ✓';
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      title={`Copy: ${value}`}
-      className={[
-        'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        status === 'copied'
-          ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
-          : status === 'failed'
-            ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
-            : status === 'hover'
-              ? 'border-[color:var(--copy-hover-border)] bg-[var(--copy-hover-bg)] text-[var(--copy-hover-text)] active:bg-[var(--copy-hover-bg)]'
-              : 'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)] active:bg-[var(--copy-hover-bg)]',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      {icon && <span className="shrink-0 text-[var(--copy-idle-text)]">{icon}</span>}
-      <span className="relative inline-grid min-w-0">
-        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-          {reserveLabel}
-        </span>
-        <span className="col-start-1 row-start-1 truncate">{displayText[status]}</span>
-      </span>
-      <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {status === 'copied' ? 'Copied to clipboard' : status === 'failed' ? 'Copy failed' : ''}
-      </span>
-    </button>
-  );
-}
-
-// ============================================
 // PRIMITIVES: CODE BLOCK
 // ============================================
 function CodeBlock({ children, language }: CodeBlockProps) {
@@ -870,29 +416,6 @@ function CodeBlock({ children, language }: CodeBlockProps) {
         <code>{children}</code>
       </pre>
     </div>
-  );
-}
-
-// ============================================
-// PRIMITIVES: MODAL
-// ============================================
-function Modal({ open, onClose, title, children, container }: ModalProps) {
-  return (
-    <ArtifactDialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) onClose?.();
-      }}
-      title={title}
-      closeLabel="Close modal"
-      container={container}
-      placement="viewport"
-      align="center"
-      contentClassName="max-w-md shadow-none"
-      bodyClassName="p-4"
-    >
-      {children}
-    </ArtifactDialog>
   );
 }
 
@@ -1800,7 +1323,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
 
         {/* Surfaces */}
         <Section title="Surfaces & Containers">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(12rem,100%),1fr))] gap-4">
             <SubSection label="Panel (default)">
               <Panel className="p-4">
                 <p className="text-sm text-[var(--text-muted)]">Bordered, opaque, sharp edges</p>
@@ -1903,7 +1426,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
             <SubSection label="Sizes">
               <div className="flex flex-wrap items-center gap-3">
                 <Button size="sm">Small</Button>
-                <Button size="default">Default</Button>
+                <Button>Default</Button>
                 <Button size="lg">Large</Button>
               </div>
             </SubSection>
@@ -1917,8 +1440,8 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                   <MessageIcon className="w-4 h-4" />
                   New Chat
                 </Button>
-                <Button variant="ghost" size="sm">
-                  <CopyIcon className="w-3.5 h-3.5" />
+                <Button variant="ghost" size="sm" aria-label="Copy example">
+                  <CopyIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 </Button>
               </div>
             </SubSection>
@@ -2022,10 +1545,10 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
 
         {/* Inputs & Controls */}
         <Section title="Inputs & Controls">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6">
             <div className="min-w-0 space-y-4">
               <SubSection label="Text input">
-                <Input placeholder="Enter text..." />
+                <Input aria-label="Example text input" placeholder="Enter text..." />
               </SubSection>
               <SubSection label="With label">
                 <Input label="Workspace name" placeholder="my-project" />
@@ -2041,19 +1564,19 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                     label="Show hidden files"
                     reserveLabel="Show hidden files"
                     checked={checkboxes.a}
-                    onChange={(e) => setCheckboxes((s) => ({ ...s, a: e.target.checked }))}
+                    onCheckedChange={(checked) => setCheckboxes((s) => ({ ...s, a: checked }))}
                   />
                   <Checkbox
                     label="Enable auto-save"
                     reserveLabel="Enable auto-save"
                     checked={checkboxes.b}
-                    onChange={(e) => setCheckboxes((s) => ({ ...s, b: e.target.checked }))}
+                    onCheckedChange={(checked) => setCheckboxes((s) => ({ ...s, b: checked }))}
                   />
                   <Checkbox
                     label="Disabled option"
                     reserveLabel="Disabled option"
                     checked={checkboxes.c}
-                    onChange={(e) => setCheckboxes((s) => ({ ...s, c: e.target.checked }))}
+                    onCheckedChange={(checked) => setCheckboxes((s) => ({ ...s, c: checked }))}
                     disabled
                   />
                 </div>
@@ -2064,13 +1587,13 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                     label="Dark mode"
                     reserveLabel="Notifications"
                     checked={toggles.a}
-                    onChange={(e) => setToggles((s) => ({ ...s, a: e.target.checked }))}
+                    onCheckedChange={(checked) => setToggles((s) => ({ ...s, a: checked }))}
                   />
                   <Toggle
                     label="Notifications"
                     reserveLabel="Notifications"
                     checked={toggles.b}
-                    onChange={(e) => setToggles((s) => ({ ...s, b: e.target.checked }))}
+                    onCheckedChange={(checked) => setToggles((s) => ({ ...s, b: checked }))}
                   />
                 </div>
               </SubSection>
@@ -2080,7 +1603,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
 
         {/* Lists & Rows */}
         <Section title="Lists & Rows">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6">
             <SubSection label="Interactive list with selection" className="min-w-0">
               <Panel className="divide-y divide-[color:var(--border)]">
                 {[
@@ -2169,7 +1692,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
               <p>
                 <strong>Rendering rules (terminal-adjacent):</strong>
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[var(--text-subtle)]">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-2 text-[var(--text-subtle)]">
                 <div>
                   <span className="inline-block w-2 h-2 bg-[var(--category-blue)] mr-2" />
                   User: literal by default (preserves exact input)
@@ -2246,13 +1769,20 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
           <div className="flex flex-wrap gap-4 items-start">
             <SubSection label="Modal">
               <Button onClick={() => setModalOpen(true)}>Open Modal</Button>
-              <Modal
+              <ArtifactDialog
                 open={modalOpen}
-                onClose={() => setModalOpen(false)}
+                onOpenChange={(nextOpen) => {
+                  if (!nextOpen) setModalOpen(false);
+                }}
                 title="Confirm Action"
+                closeLabel="Close modal"
                 container={dialogPortalRef.current}
+                placement="viewport"
+                align="center"
+                contentClassName="max-w-md shadow-none"
+                bodyClassName="p-4"
               >
-                <p className="text-sm text-[var(--text-muted)] mb-4">
+                <p className="mb-4 text-sm text-[var(--text-muted)]">
                   Are you sure you want to proceed? This action cannot be undone.
                 </p>
                 <div className="flex justify-end gap-2">
@@ -2263,7 +1793,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
                     Confirm
                   </Button>
                 </div>
-              </Modal>
+              </ArtifactDialog>
             </SubSection>
             <SubSection label="Popover">
               <Popover
@@ -2300,7 +1830,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         <Section title="Layout & Grid">
           <div className="space-y-6">
             <SubSection label="Two-column layout">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-4">
                 <Panel className="p-4">
                   <div className="text-sm text-[var(--text-muted)]">Left panel</div>
                 </Panel>
@@ -2310,24 +1840,33 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
               </div>
             </SubSection>
             <SubSection label="Sidebar + content">
-              <div className="grid grid-cols-[200px_1fr] gap-4">
-                <Panel className="p-4">
+              <div className="flex flex-wrap gap-4">
+                <Panel className="min-w-[12rem] flex-[1_1_12rem] p-4">
                   <div className="text-xs font-medium uppercase tracking-wide text-[var(--text-subtle)] mb-3">
                     Navigation
                   </div>
                   <div className="space-y-1">
-                    <div className="px-2 py-1.5 text-sm text-[var(--text)] bg-[var(--surface-strong)] cursor-pointer">
+                    <button
+                      type="button"
+                      className="w-full cursor-pointer px-2 py-1.5 text-left text-sm text-[var(--text)] bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
+                    >
                       Sessions
-                    </div>
-                    <div className="px-2 py-1.5 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer">
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full cursor-pointer px-2 py-1.5 text-left text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
+                    >
                       Workspaces
-                    </div>
-                    <div className="px-2 py-1.5 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer">
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full cursor-pointer px-2 py-1.5 text-left text-sm text-[var(--text-muted)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
+                    >
                       Settings
-                    </div>
+                    </button>
                   </div>
                 </Panel>
-                <Panel className="p-4">
+                <Panel className="min-w-[16rem] flex-[999_1_20rem] p-4">
                   <div className="text-sm text-[var(--text-muted)]">
                     Main content area with min-w-0 for safe truncation
                   </div>
@@ -2336,18 +1875,18 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
             </SubSection>
             <SubSection label="Stacked panels (interactive rows)">
               <div className="space-y-2">
-                <Panel className="p-3 flex items-center justify-between hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none">
+                <Row className="justify-between border-l-transparent">
                   <span className="text-sm text-[var(--text)]">First item</span>
                   <Tag variant="muted">Active</Tag>
-                </Panel>
-                <Panel className="p-3 flex items-center justify-between hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none">
+                </Row>
+                <Row className="justify-between border-l-transparent">
                   <span className="text-sm text-[var(--text)]">Second item</span>
                   <Tag variant="base">Pending</Tag>
-                </Panel>
-                <Panel className="p-3 flex items-center justify-between hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none">
+                </Row>
+                <Row className="justify-between border-l-transparent">
                   <span className="text-sm text-[var(--text)]">Third item</span>
                   <Tag variant="muted">Archived</Tag>
-                </Panel>
+                </Row>
               </div>
             </SubSection>
           </div>
@@ -2359,8 +1898,8 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
             <SubSection label="Tab through these elements to see focus states (checkbox is interactive)">
               <div className="flex flex-wrap gap-3 items-center">
                 <Button>Button</Button>
-                <Input placeholder="Input" className="w-40" />
-                <Checkbox label="Checkbox" checked={demoCheckbox} onChange={(e) => setDemoCheckbox(e.target.checked)} />
+                <Input aria-label="Keyboard focus example input" placeholder="Input" className="w-40" />
+                <Checkbox label="Checkbox" checked={demoCheckbox} onCheckedChange={setDemoCheckbox} />
               </div>
             </SubSection>
             <div className="p-3 border border-[var(--border)] bg-[var(--surface-muted)] text-xs text-[var(--text-subtle)] space-y-2">
@@ -2390,7 +1929,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
 
         {/* Design Rules Summary */}
         <Section title="Sharp UI Rules (Summary)">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6 text-sm">
             <div className="space-y-3">
               <div className="flex items-start gap-2">
                 <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />

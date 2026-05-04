@@ -51,10 +51,10 @@ This avoids two bad outcomes:
 
 Before or during replacement, improve shared components where the review found clear gaps:
 
-- `Checkbox` and `Toggle`: remove disabled `pointer-events-none` if it prevents disabled cursor or tooltip behavior. Disabled controls should keep `cursor-not-allowed` and should not look clickable.
+- `Checkbox` and `Toggle`: remove disabled `pointer-events-none` if it prevents disabled cursor or tooltip behavior. Disabled controls should keep `cursor-not-allowed` and must not retain pointer, hover, or active affordances while disabled.
 - `Checkbox`: preserve active-state parity with the local implementation for unchecked active surface feedback.
 - `Toggle`: add visual parity with the local implementation for unchecked hover border, unchecked active surface, and checked active state.
-- `CopyButton`: apply the same disabled cursor/tooltip review as `Checkbox` and `Toggle`; disabled styling should not block useful cursor or tooltip affordances.
+- `CopyButton`: apply the same disabled cursor/tooltip review as `Checkbox` and `Toggle`; disabled styling should not block useful cursor or tooltip affordances and must not look interactive.
 - `CopyableLabel`: add an `ariaLabel` prop or default stable accessible name such as `Copy: ${value}` so the accessible name does not change to only `Copy`, `Copied`, or `Failed`.
 - `CopyableLabel`: preserve active-state background parity with local `sharp2`.
 - `StatusTag`: add a named export while preserving the default export, for consistency with the other shared primitives.
@@ -96,7 +96,7 @@ Requirements:
 - Keep stable heights for each size.
 - Preserve visible `focus-visible` ring with tokenized ring and offset.
 - Preserve visible hover and active states.
-- Disabled state must not look clickable and should keep useful cursor/tooltip behavior.
+- Disabled state must not look clickable: no pointer cursor, hover color shift, or active press affordance while disabled. It should still keep useful cursor/tooltip behavior.
 - Icon-only button usage must provide an accessible name at the call site.
 - Migrate current `sharp2` `size="default"` usages to omitted size or `size="md"`; do not keep `default` as a public size alias unless implementation feedback shows the migration causes real churn.
 
@@ -121,6 +121,7 @@ Requirements:
 
 - Use `forwardRef`.
 - Use `useArtifactThemeGuard`.
+- Require an accessible name: visible `label`, `aria-label`, or `aria-labelledby`.
 - Generate an id when none is provided.
 - Keep visible labels close to fields.
 - Wire `label` with `htmlFor`.
@@ -129,6 +130,16 @@ Requirements:
 - Preserve focus ring on error.
 - Let native disabled/read-only props pass through.
 - Avoid ambiguous class ownership: `className` applies to the root, `inputClassName` applies to the input.
+
+## Preview Responsiveness Requirements
+
+Artifact layouts must respond to the artifact preview container, not only the browser viewport. Avoid `md:`/`lg:` layout dependencies in preview-sensitive sections because the shell's fixed preview size can differ from the browser width.
+
+For `sharp2`, this means:
+
+- Use intrinsic `auto-fit`/`minmax()` grids for showcase columns.
+- Use wrapping flex tracks for sidebar/content examples instead of fixed `grid-cols-[200px_1fr]`.
+- Verify desktop, tablet, mobile portrait, and mobile landscape previews in the shell, plus standalone `/artifact/sharp2`.
 
 ### Tag
 
@@ -244,8 +255,9 @@ In this pass:
 
 - Preserve combobox wiring with `aria-expanded`, `aria-controls`, and `aria-activedescendant`.
 - Preserve ArrowUp, ArrowDown, Enter, and Escape behavior.
-- Keep the active option visually distinct through `aria-selected` and a non-color-only selected/active treatment where possible.
+- Keep the active option visually distinct through `aria-selected` plus a non-color-only treatment such as a left bar or square marker.
 - Replace generic `focus:` styling on focusable options with `focus-visible:` styling, or move focus management fully to the input/listbox pattern so option focus classes are unnecessary.
+- Include a compact no-results state when the query is non-empty and no options match.
 - Add static coverage for the ARIA attributes and class contracts that are chosen.
 
 ### Popover
@@ -254,11 +266,11 @@ Keep local. It demonstrates overlay behavior but is not yet a general menu/listb
 
 In this pass:
 
-- Preserve trigger `aria-haspopup` and `aria-expanded`.
-- Give menu items visible focus states, not hover-only states.
+- Preserve trigger `aria-expanded` and `aria-controls`; avoid `role="menu"` / `menuitem` unless implementing the full composite menu keyboard model.
+- Give popover action buttons visible focus states, not hover-only states.
 - Make Escape close the popover.
-- Support keyboard activation for focusable menu items through native button behavior.
-- Add static coverage for trigger ARIA and menu-item focus classes.
+- Support keyboard activation through native button behavior.
+- Add static coverage for trigger ARIA, lack of incomplete composite menu semantics, and action-button focus classes.
 
 ### CodeBlock
 
@@ -312,7 +324,7 @@ Add SSR/static tests for:
 
 Add regression tests for existing shared components:
 
-- `Checkbox` and `Toggle`: disabled classes keep `cursor-not-allowed` without blocking disabled cursor/tooltip behavior.
+- `Checkbox` and `Toggle`: disabled classes keep `cursor-not-allowed` without blocking disabled cursor/tooltip behavior and without pointer/hover/active affordances.
 - `Toggle`: unchecked hover/active and checked active classes are present.
 - `CopyableLabel`: accessible name remains stable and includes the copied value.
 - `StatusTag`: named export works if added while default export remains valid.
@@ -325,8 +337,9 @@ Add static/boundary tests for:
 - Shared primitives are imported from `src/components` at their actual usage sites under `src/artifacts/sharp2/**`; after the split, those usage sites may be local modules rather than `index.tsx`.
 - `Row` remains local and is not exported from `src/components`.
 - Icon-only shared `Button` usages in `sharp2` have an accessible name through `aria-label`, `aria-labelledby`, or visible text.
-- `SearchInput` preserves combobox ARIA attributes and does not rely on generic `focus:` option styling.
-- `Popover` trigger ARIA is present and menu items have visible focus styling.
+- `SearchInput` preserves combobox ARIA attributes, includes a non-color selected cue, includes a no-results state, and does not rely on generic `focus:` option styling.
+- `Popover` trigger ARIA is present, avoids incomplete composite menu roles, and action buttons have visible focus styling.
+- `ToolCall` icon-only expand/collapse has an accessible name, `aria-expanded`, and visible focus.
 - `sharp2.txt` mentions `ArtifactThemeRoot`.
 - `sharp2.txt` no longer recommends blind copy-paste of token-dependent components.
 
@@ -345,7 +358,8 @@ Add local behavior tests for:
 - Existing shared primitives keep or improve their current behavior while addressing disabled cursor/tooltip and accessible-name gaps.
 - `Row`, `SearchInput`, `Popover`, `CodeBlock`, and all conversation components remain local to `src/artifacts/sharp2`.
 - All icon-only shared `Button` usages in `sharp2` have accessible names.
-- `SearchInput` and `Popover` have explicit visible focus behavior and static ARIA/class coverage.
+- `SearchInput` and `Popover` have explicit visible focus behavior and static ARIA/class coverage without incomplete composite-widget semantics.
+- `sharp2` avoids preview-sensitive viewport breakpoint grids in favor of container-aware intrinsic layouts.
 - `sharp2.txt` documents `ArtifactThemeRoot` and import-and-compose usage for shared token-dependent components.
 - `sharp2-migration-guide.md` reflects completed shared primitive adoption and remaining local-only decisions.
 - Final verification includes `npm run check`.
@@ -375,7 +389,7 @@ npm run test
 
 Run `npm run check` before opening a PR.
 
-Visual verification should include `/?artifact=sharp2` in light and dark mode, with keyboard tabbing through controls to verify focus rings, disabled states, copy states, dialog behavior, popover behavior, search options, and conversation controls.
+Visual verification should include `/?artifact=sharp2` and `/artifact/sharp2` in light and dark mode, with keyboard tabbing through controls to verify focus rings, disabled states, copy states, dialog behavior, popover behavior, search options, conversation controls, and shell device previews including mobile portrait and landscape.
 
 ## Out Of Scope
 

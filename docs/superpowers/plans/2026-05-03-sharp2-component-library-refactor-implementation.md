@@ -156,8 +156,12 @@ test('disabled shared checkbox and toggle preserve disabled cursor without point
 
   assert.match(checkboxRootClass, /cursor-not-allowed/);
   assert.doesNotMatch(checkboxRootClass, /pointer-events-none/);
+  assert.doesNotMatch(checkboxRootClass, /cursor-pointer/);
+  assert.doesNotMatch(checkbox, /hover:border|active:bg/);
   assert.match(toggleRootClass, /cursor-not-allowed/);
   assert.doesNotMatch(toggleRootClass, /pointer-events-none/);
+  assert.doesNotMatch(toggleRootClass, /cursor-pointer/);
+  assert.doesNotMatch(toggle, /hover:border|active:bg/);
 });
 
 test('shared toggle and checkbox include active-state parity classes', () => {
@@ -195,6 +199,8 @@ test('disabled shared copy button preserves disabled cursor without pointer-even
 
   assert.match(rootClass, /cursor-not-allowed/);
   assert.doesNotMatch(rootClass, /pointer-events-none/);
+  assert.doesNotMatch(rootClass, /cursor-pointer/);
+  assert.doesNotMatch(rootClass, /hover:bg|active:bg/);
 });
 
 test('copyable label keeps a stable accessible name for the copied value', () => {
@@ -228,12 +234,11 @@ Expected: FAIL. Failures should mention the missing `StatusTag` named export and
 
 Make these targeted class changes:
 
-- In `src/components/Checkbox.tsx`, change the disabled root class from `opacity-50 pointer-events-none cursor-not-allowed` to `opacity-50 cursor-not-allowed`.
-- In `src/components/Checkbox.tsx`, change unchecked active class from `active:bg-[var(--surface-strong)]` to `active:bg-[var(--surface-pressed)]`.
-- In `src/components/Toggle.tsx`, change the disabled root class from `opacity-50 pointer-events-none cursor-not-allowed` to `opacity-50 cursor-not-allowed`.
-- In `src/components/Toggle.tsx`, add unchecked `hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]`.
-- In `src/components/Toggle.tsx`, add checked `active:bg-[var(--primary-active)]`.
-- In `src/components/CopyButton.tsx`, change disabled class from `disabled:opacity-40 disabled:pointer-events-none` to `disabled:opacity-40 disabled:cursor-not-allowed`.
+- In `src/components/Checkbox.tsx`, replace always-on `cursor-pointer` with `disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'`.
+- In `src/components/Checkbox.tsx`, remove unchecked hover/active classes when disabled; when enabled, change unchecked active class from `active:bg-[var(--surface-strong)]` to `active:bg-[var(--surface-pressed)]`.
+- In `src/components/Toggle.tsx`, replace always-on `cursor-pointer` with `disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'`.
+- In `src/components/Toggle.tsx`, remove checked/unchecked hover/active classes when disabled; when enabled, add unchecked `hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]` and checked `active:bg-[var(--primary-active)]`.
+- In `src/components/CopyButton.tsx`, remove disabled `pointer-events-none`, but also remove pointer/hover/active affordances when disabled: use `disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--copy-hover-bg)] active:bg-[var(--copy-active-bg)]'` or the equivalent existing token names.
 - In `src/components/CopyableLabel.tsx`, include `active:bg-[var(--copy-hover-bg)]` in both idle and hover tones.
 - Export the public prop types for shared primitive API consumers by changing `type CheckboxProps`, `type ToggleProps`, `type CopyButtonProps`, `type CopyableLabelProps`, and `type StatusTagProps` to `export type ...`.
 
@@ -241,23 +246,23 @@ The changed class snippets should look like:
 
 ```ts
 // Checkbox disabled root
-disabled && 'opacity-50 cursor-not-allowed'
+disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
 
 // Checkbox unchecked tone support
 checked
   ? 'active:bg-[var(--checkbox-on-bg)]'
-  : 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]'
+  : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]'
 
 // Toggle disabled root
-disabled && 'opacity-50 cursor-not-allowed'
+disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
 
 // Toggle checked / unchecked tone support
 checked
-  ? 'active:bg-[var(--primary-active)]'
-  : 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]'
+  ? !disabled && 'active:bg-[var(--primary-active)]'
+  : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]'
 
 // CopyButton disabled support
-'disabled:opacity-40 disabled:cursor-not-allowed'
+disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--copy-hover-bg)] active:bg-[var(--copy-active-bg)]'
 ```
 
 - [ ] **Step 4: Add stable CopyableLabel accessible name**
@@ -402,6 +407,12 @@ import { Tag } from '../../src/components/Tag';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
+function firstElementClass(markup: string) {
+  const className = markup.match(/^<[^>]+class="([^"]+)"/)?.[1];
+  assert.ok(className, `Expected first element to have class markup: ${markup}`);
+  return className;
+}
+
 test('Button defaults to type button and exposes sharp states', () => {
   const markup = renderToStaticMarkup(createElement(Button, { variant: 'primary' }, 'Save'));
 
@@ -413,9 +424,10 @@ test('Button defaults to type button and exposes sharp states', () => {
 
 test('Button supports disabled cursor without pointer-events-none', () => {
   const markup = renderToStaticMarkup(createElement(Button, { disabled: true }, 'Disabled'));
+  const rootClass = firstElementClass(markup);
 
-  assert.match(markup, /disabled:cursor-not-allowed/);
-  assert.doesNotMatch(markup, /disabled:pointer-events-none/);
+  assert.match(rootClass, /cursor-not-allowed/);
+  assert.doesNotMatch(rootClass, /pointer-events-none|cursor-pointer|hover:bg|active:bg/);
 });
 
 test('Input wires generated label and error description', () => {
@@ -548,15 +560,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     [ref],
   );
 
-  const variants: Record<ButtonVariant, string> = {
-    default:
-      'border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] active:border-[var(--border-strong)]',
-    primary:
-      'border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-contrast)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]',
-    ghost:
-      'border border-transparent bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)]',
-    danger:
-      'border border-[color:var(--danger)] bg-[var(--surface)] text-[var(--danger)] hover:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)]',
+  const variantBase: Record<ButtonVariant, string> = {
+    default: 'border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]',
+    primary: 'border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-contrast)]',
+    ghost: 'border border-transparent bg-transparent text-[var(--text-muted)]',
+    danger: 'border border-[color:var(--danger)] bg-[var(--surface)] text-[var(--danger)]',
+  };
+  const variantInteractive: Record<ButtonVariant, string> = {
+    default: 'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] active:border-[var(--border-strong)]',
+    primary: 'hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]',
+    ghost: 'hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)]',
+    danger: 'hover:bg-[var(--danger-weak)] active:bg-[var(--danger-weak)]',
   };
   const sizes: Record<ButtonSize, string> = {
     sm: 'h-8 px-2 text-xs',
@@ -570,10 +584,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       disabled={disabled}
       className={mergeClassNames(
-        'inline-flex items-center justify-center gap-2 font-medium transition-colors motion-reduce:transition-none cursor-pointer rounded-none',
+        'inline-flex items-center justify-center gap-2 font-medium transition-colors motion-reduce:transition-none rounded-none',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        variants[variant],
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+        variantBase[variant],
+        !disabled && variantInteractive[variant],
         sizes[size],
         className,
       )}
@@ -913,6 +928,15 @@ test('sharp2 keeps Panel structural instead of adding interactive affordances to
 
   assert.doesNotMatch(source, /<Panel\b[^>]*className="[^"]*(?:cursor-pointer|hover:bg|active:bg)/s);
 });
+
+test('sharp2 avoids viewport breakpoints in preview-sensitive showcase layout', async () => {
+  const files = await readSharp2SourceFiles();
+  const joined = files.map(({ file, source }) => `\n// ${file}\n${source}`).join('\n');
+
+  assert.doesNotMatch(joined, /\b(?:sm|md|lg|xl|2xl):grid-cols-/);
+  assert.doesNotMatch(joined, /grid-cols-\[200px_1fr\]/);
+  assert.match(joined, /auto-fit|minmax\(/);
+});
 ```
 
 - [ ] **Step 2: Run boundary test and verify it fails**
@@ -1114,6 +1138,27 @@ In the "Stacked panels (interactive rows)" example, replace interactive `Panel` 
 
 Repeat the same `Row` shape for "Second item" and "Third item".
 
+Replace preview-sensitive viewport breakpoint grids with container-aware grid/flex utilities that respond to available artifact width rather than browser viewport width. In particular:
+
+```tsx
+<div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-4">
+  {/* two-column layout panels */}
+</div>
+```
+
+For the sidebar + content example, avoid `grid-cols-[200px_1fr]`; use wrapping flex tracks so a narrow artifact preview can stack without relying on `md:`:
+
+```tsx
+<div className="flex flex-wrap gap-4">
+  <Panel className="min-w-[12rem] flex-[1_1_12rem] p-4">
+    {/* navigation */}
+  </Panel>
+  <Panel className="min-w-[16rem] flex-[999_1_20rem] p-4">
+    {/* content */}
+  </Panel>
+</div>
+```
+
 - [ ] **Step 8: Run focused tests and typecheck**
 
 Run:
@@ -1179,8 +1224,8 @@ type SectionProps = {
 
 const colsClass: Record<SectionCols, string> = {
   1: '',
-  2: 'grid grid-cols-2 gap-6',
-  3: 'grid grid-cols-3 gap-6',
+  2: 'grid grid-cols-[repeat(auto-fit,minmax(min(18rem,100%),1fr))] gap-6',
+  3: 'grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-6',
 };
 
 export function Section({ title, children, cols = 1 }: SectionProps) {
@@ -1282,14 +1327,22 @@ Use this option shape inside the listbox:
     onSelect?.(result);
   }}
   className={[
-    'flex w-full cursor-pointer items-center gap-3 border-b border-[color:var(--border)] px-3 py-2 text-left last:border-b-0',
+    'flex w-full cursor-pointer items-center gap-3 border-b border-l-2 border-b-[color:var(--border)] px-3 py-2 text-left last:border-b-0',
     'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]',
-    activeIndex === index ? 'bg-[var(--surface-muted)]' : '',
+    activeIndex === index ? 'border-l-[var(--accent)] bg-[var(--surface-muted)]' : 'border-l-transparent',
   ]
     .filter(Boolean)
     .join(' ')}
 >
   {/* keep the existing title/subtitle/meta/icon contents */}
+</div>
+```
+
+When `showResults` is true and the search value is non-empty but `results` is empty, render a compact empty state in the dropdown rather than removing the result surface entirely:
+
+```tsx
+<div className="border-t border-[var(--border)] px-3 py-3 text-xs text-[var(--text-muted)]">
+  No results for "{value}".
 </div>
 ```
 
@@ -1301,18 +1354,18 @@ Remove the old focus-target option class:
 
 Do not replace it with `focus-visible:*` on the options; the input owns keyboard focus and `activeIndex` owns the highlighted option state.
 
-- [ ] **Step 5: Move `Popover` to its own file and add menu semantics**
+- [ ] **Step 5: Move `Popover` to its own file and keep plain popover semantics**
 
 Create `src/artifacts/sharp2/components/Popover.tsx` by moving `PopoverTriggerProps`, `PopoverProps`, and `Popover`.
 
-Keep the trigger's `aria-haspopup="menu"` and add `aria-controls` that points at the popup id when open. Render the popup wrapper with `role="menu"` and `aria-orientation="vertical"`:
+Do not use `role="menu"` or `role="menuitem"` unless implementing the full composite menu keyboard model. Keep this local demo as a plain popover with native buttons: the trigger should expose `aria-expanded` and `aria-controls`, the popup should have an `id`, and the action buttons should remain normal `<button>` elements with visible focus styles.
+
+Render the popup wrapper without a composite ARIA role:
 
 ```tsx
 {open && (
   <div
-    id={menuId}
-    role="menu"
-    aria-orientation="vertical"
+    id={popoverId}
     className="absolute top-full left-0 z-10 mt-1 min-w-[200px] border border-[var(--border)] bg-[var(--surface)]"
   >
     {children}
@@ -1320,16 +1373,16 @@ Keep the trigger's `aria-haspopup="menu"` and add `aria-controls` that points at
 )}
 ```
 
-When `open` becomes true, focus the first descendant with `[role="menuitem"]`. When Escape closes the popover, return focus to the trigger if the trigger is still mounted.
+When `open` becomes true, focus the first descendant `button`. When Escape closes the popover, return focus to the trigger if the trigger is still mounted.
 
-Add this local helper export for menu item classes:
+Add this local helper export for popover action classes:
 
 ```ts
-export const popoverMenuItemClass =
+export const popoverActionClass =
   'w-full cursor-pointer px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:bg-[var(--surface-muted)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]';
 ```
 
-Use `popoverMenuItemClass` for the three menu item buttons in `index.tsx`, append `text-[var(--text)]` or `text-[var(--danger)]`, and add `role="menuitem"` to each button.
+Use `popoverActionClass` for the three action buttons in `index.tsx`, appending `text-[var(--text)]` or `text-[var(--danger)]`.
 
 - [ ] **Step 6: Move `CodeBlock` to its own file**
 
@@ -1345,7 +1398,7 @@ In `src/artifacts/sharp2/index.tsx`, add:
 
 ```tsx
 import { CodeBlock } from './components/CodeBlock';
-import { Popover, popoverMenuItemClass } from './components/Popover';
+import { Popover, popoverActionClass } from './components/Popover';
 import { Row } from './components/Row';
 import { SearchInput, type SearchResult } from './components/SearchInput';
 import { Section } from './components/Section';
@@ -1368,23 +1421,24 @@ test('sharp2 SearchInput uses managed combobox focus instead of focusable option
   assert.match(source, /aria-activedescendant=/);
   assert.match(source, /role="option"/);
   assert.match(source, /aria-selected=/);
+  assert.match(source, /border-l-\[var\(--accent\)\]/);
+  assert.match(source, /No results for/);
   assert.doesNotMatch(source, /<button[^>]*role="option"/s);
   assert.doesNotMatch(source, /focus:bg-\[var\(--surface-muted\)\]/);
 });
 
-test('sharp2 Popover uses menu semantics and visible item focus styling', async () => {
+test('sharp2 Popover stays plain and avoids incomplete composite menu semantics', async () => {
   const source = await readFile('src/artifacts/sharp2/components/Popover.tsx', 'utf8');
   const indexSource = await readFile('src/artifacts/sharp2/index.tsx', 'utf8');
 
-  assert.match(source, /aria-haspopup="menu"/);
   assert.match(source, /aria-expanded/);
   assert.match(source, /aria-controls/);
-  assert.match(source, /role="menu"/);
-  assert.match(source, /aria-orientation="vertical"/);
   assert.match(source, /Escape/);
+  assert.match(source, /focus\(\)/);
   assert.match(source, /focus-visible:bg-\[var\(--surface-muted\)\]/);
   assert.match(source, /focus-visible:ring-2/);
-  assert.match(indexSource, /role="menuitem"/);
+  assert.doesNotMatch(source, /role="menu"/);
+  assert.doesNotMatch(indexSource, /role="menuitem"/);
 });
 ```
 
@@ -1452,6 +1506,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { ConversationTurn } from '../../src/artifacts/sharp2/conversation/ConversationTurn';
 import { getTurnItemKey, getTurnKey } from '../../src/artifacts/sharp2/conversation/keys';
 import { getDefaultRenderMode, splitMessageContent } from '../../src/artifacts/sharp2/conversation/markdown';
+import { ToolCall } from '../../src/artifacts/sharp2/conversation/ToolCall';
 import type { ConversationTurnData } from '../../src/artifacts/sharp2/conversation/types';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
@@ -1511,6 +1566,21 @@ test('ConversationTurn filters hidden item types', () => {
   assert.match(markup, /Answer/);
   assert.doesNotMatch(markup, /Reasoning/);
   assert.doesNotMatch(markup, /npm test/);
+});
+
+test('ToolCall collapse button has an accessible name, expanded state, and visible focus', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      input: 'npm test',
+      output: 'PASS',
+      status: 'success',
+    }),
+  );
+
+  assert.match(markup, /aria-label="Collapse tool call details"/);
+  assert.match(markup, /aria-expanded="true"/);
+  assert.match(markup, /focus-visible:ring-2/);
 });
 ```
 
@@ -1717,7 +1787,7 @@ When creating `MessageCard.tsx`, keep the existing paragraph/list/heading render
 Move existing implementations from `index.tsx` into these files, updating imports to shared/local modules:
 
 - `TokenCounter.tsx`: import `CopyButton` from `../../../components/CopyButton`.
-- `ToolCall.tsx`: import `ChevronRight` from `lucide-react`, `CopyButton`, shared `Tag`, and type `ToolCallStatus`.
+- `ToolCall.tsx`: import `ChevronRight` from `lucide-react`, `CopyButton`, shared `Tag`, and type `ToolCallStatus`. Add `aria-label={expanded ? 'Collapse tool call details' : 'Expand tool call details'}`, `aria-expanded={expanded}`, and visible `focus-visible` ring classes to the icon-only collapse button.
 - `MessageTypeToggle.tsx`: import `Check` from `lucide-react`.
 - `MessageCard.tsx`: import `CopyButton`, `RenderErrorBoundary`, `renderInlineMarkdown`, `splitMessageContent`, and conversation types.
 - `ConversationTurn.tsx`: import shared `Tag`, `TokenCounter`, `ToolCall`, `MessageCard`, `getTurnItemKey`, and conversation types.
@@ -1946,6 +2016,7 @@ Open:
 
 ```txt
 http://localhost:5174/?artifact=sharp2
+http://localhost:5174/artifact/sharp2
 ```
 
 Verify:
@@ -1957,7 +2028,7 @@ Verify:
 - Disabled controls do not look clickable.
 - Copy controls keep stable width and announce status.
 - Modal opens/closes and stays inside the artifact theme boundary.
-- Search options and popover menu items have visible focus states.
+- Search options and popover action buttons have visible focus states.
 - Conversation filters, render toggles, tool call collapse, and copy controls still work.
 
 - [ ] **Step 8: Stop Vite**
@@ -2010,7 +2081,7 @@ Focus on:
 1. Shared component APIs and design-doc compliance.
 2. No duplicated primitive definitions under src/artifacts/sharp2/** for promoted/replaced primitives.
 3. Row, SearchInput, Popover, CodeBlock, and conversation components remain sharp2-local.
-4. Accessibility criteria: icon-only buttons, disabled cursor/tooltip behavior, focus-visible states, SearchInput/Popover ARIA.
+4. Accessibility criteria: icon-only buttons, disabled cursor/tooltip behavior, focus-visible states, SearchInput combobox semantics, and Popover plain-button semantics.
 5. Test coverage and verification commands.
 
 Return Critical, Important, and Minor issues with exact file/line references. Do not edit files.

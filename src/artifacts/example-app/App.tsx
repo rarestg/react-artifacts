@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import StatusTag from '../../components/StatusTag';
+import { mergeClassNames } from '../../lib/classNames';
 import { AppHeader } from './components/AppHeader';
 import { Button, Panel, Tag } from './components/Primitives';
 import { StatCard } from './components/StatCard';
@@ -242,16 +243,14 @@ export default function ExampleApp() {
                   type="button"
                   aria-pressed={view === 'all'}
                   onClick={() => setView('all')}
-                  className={[
+                  className={mergeClassNames(
                     'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'all'
                       ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
+                  )}
                 >
                   All
                 </button>
@@ -259,16 +258,14 @@ export default function ExampleApp() {
                   type="button"
                   aria-pressed={view === 'active'}
                   onClick={() => setView('active')}
-                  className={[
+                  className={mergeClassNames(
                     'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'active'
                       ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
+                  )}
                 >
                   Active only
                 </button>
@@ -290,7 +287,7 @@ export default function ExampleApp() {
                 type="button"
                 onClick={() => setActiveRow(row.id)}
                 onKeyDown={(event) => handleRowKeyDown(index, event)}
-                className={[
+                className={mergeClassNames(
                   // Only animate background so divider borders don't flash during list changes.
                   'w-full text-left px-3 py-2.5 flex items-center justify-between gap-4 transition-[background-color] motion-reduce:transition-none cursor-pointer border-l-2',
                   'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] focus:outline-none focus-visible:bg-[var(--surface-strong)]',
@@ -298,9 +295,7 @@ export default function ExampleApp() {
                   activeRow === row.id
                     ? 'bg-[var(--surface-muted)] border-l-[color:var(--accent)]'
                     : 'border-l-transparent',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                )}
               >
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-[var(--text)] truncate">{row.title}</div>
@@ -362,15 +357,13 @@ export default function ExampleApp() {
                     [swatch.id]: !prev[swatch.id],
                   }))
                 }
-                className={[
+                className={mergeClassNames(
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeSwatches[swatch.id]
                     ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                )}
               >
                 <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden />
                 {swatch.label}
@@ -416,15 +409,13 @@ export default function ExampleApp() {
                     [swatch.id]: !prev[swatch.id],
                   }))
                 }
-                className={[
+                className={mergeClassNames(
                   'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeCategorySwatches[swatch.id]
                     ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
                     : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                )}
               >
                 <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden />
                 {swatch.label}

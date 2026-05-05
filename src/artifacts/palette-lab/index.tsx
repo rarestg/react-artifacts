@@ -3,6 +3,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import {
   getDisplayLabel,
@@ -256,7 +257,7 @@ export default function PaletteLab() {
   return (
     <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]">
       <div className="grid min-h-screen grid-cols-[20rem_minmax(0,1fr)] gap-4 p-4 max-lg:grid-cols-1">
-        <aside className={[panelClass, 'self-start p-4'].join(' ')}>
+        <aside className={mergeClassNames(panelClass, 'self-start p-4')}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-base font-semibold">Palette Lab</h1>
@@ -331,13 +332,13 @@ export default function PaletteLab() {
               type="button"
               aria-pressed={autoTune}
               onClick={() => setAutoTune((current) => !current)}
-              className={[
+              className={mergeClassNames(
                 'h-8 border px-2 text-xs font-medium',
                 autoTune
                   ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
                   : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
                 focusClass,
-              ].join(' ')}
+              )}
             >
               Auto tune: {autoTune ? 'on' : 'off'}
             </button>
@@ -347,7 +348,9 @@ export default function PaletteLab() {
         </aside>
 
         <main className="grid min-w-0 content-start gap-4">
-          <section className={[panelClass, 'flex flex-wrap items-center justify-between gap-3 px-4 py-3'].join(' ')}>
+          <section
+            className={mergeClassNames(panelClass, 'flex flex-wrap items-center justify-between gap-3 px-4 py-3')}
+          >
             <div className="min-w-0">
               <h2 className="text-base font-semibold">Generated Toggle Grid</h2>
               <div className="mt-1 text-xs text-[var(--text-muted)]">
@@ -358,10 +361,10 @@ export default function PaletteLab() {
               <button
                 type="button"
                 onClick={toggleAll}
-                className={[
+                className={mergeClassNames(
                   'h-9 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
                   focusClass,
-                ].join(' ')}
+                )}
               >
                 {allVisibleSelected ? 'Clear' : 'Select all'}
               </button>
@@ -370,10 +373,10 @@ export default function PaletteLab() {
                 type="button"
                 aria-label="Open palette lab help"
                 onClick={() => setHelpOpen(true)}
-                className={[
+                className={mergeClassNames(
                   'inline-flex h-9 w-9 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
                   focusClass,
-                ].join(' ')}
+                )}
               >
                 <Info className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -381,10 +384,10 @@ export default function PaletteLab() {
           </section>
 
           <section
-            className={[
+            className={mergeClassNames(
               panelClass,
               'grid grid-cols-4 gap-3 p-4 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1',
-            ].join(' ')}
+            )}
             aria-label="Generated color toggles"
           >
             {colors.map((color, position) => {
@@ -410,13 +413,13 @@ export default function PaletteLab() {
                   aria-pressed={selected}
                   onClick={() => toggleIndex(color.index)}
                   style={style}
-                  className={[
+                  className={mergeClassNames(
                     'grid min-h-36 grid-rows-[auto_1fr_auto] gap-3 border p-3 text-left transition-[background-color,border-color,color] motion-reduce:transition-none',
                     selected
                       ? 'border-[color:var(--palette-color)] bg-[var(--palette-color-weak)] text-[var(--text)]'
                       : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)]',
                     focusClass,
-                  ].join(' ')}
+                  )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <span className="min-w-0 break-words text-xs font-semibold uppercase tracking-[0.16em]">
@@ -526,13 +529,13 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={[
+      className={mergeClassNames(
         modeButtonBase,
         active
           ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
           : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
         focusClass,
-      ].join(' ')}
+      )}
     >
       {children}
     </button>

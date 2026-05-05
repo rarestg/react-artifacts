@@ -183,7 +183,7 @@ test('getHueLabelsForPalette uses unique hue labels for dense generated palettes
 });
 
 test('getHueLabelsForPalette minimizes total hue distance instead of assigning greedily', () => {
-  assert.deepEqual(getHueLabelsForPalette([{ hue: 70.5 }, { hue: 70 }], 12), ['Amber', 'Orange']);
+  assert.deepEqual(getHueLabelsForPalette([{ hue: 65.8 }, { hue: 74 }], 12), ['Orange', 'Amber']);
 });
 
 test('getHueLabelsForPalette keeps dense-only hue words out of compact palettes', () => {

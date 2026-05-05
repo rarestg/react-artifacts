@@ -39,7 +39,7 @@ test('Palette Lab defaults to color names before index labels', async () => {
 
 test('Palette Lab exposes an accessible copy selected control', async () => {
   const markup = await renderPaletteLab();
-  const clearIndex = markup.indexOf('Clear</button>');
+  const clearIndex = markup.indexOf('>Clear</span>');
   const copyIndex = markup.indexOf('Copy 12 selected');
   const helpIndex = markup.indexOf('aria-label="Open palette lab help"');
 
@@ -47,6 +47,8 @@ test('Palette Lab exposes an accessible copy selected control', async () => {
   assert.ok(copyIndex > clearIndex);
   assert.ok(helpIndex > copyIndex);
   assert.match(markup, /aria-label="Copy selected colors as CSS custom properties"/);
+  assert.match(markup, />Select all<\/span>/);
+  assert.match(markup, />Copy 16 selected<\/span>/);
   assert.doesNotMatch(markup, /aria-label="Copy selected colors as CSS custom properties"[^>]*disabled/);
 });
 
@@ -62,13 +64,20 @@ test('Palette Lab formats selected colors as CSS variables', async () => {
     },
     {
       index: 1,
-      label: 'Sky',
+      label: 'Sky 2',
       lightStrongColor: 'oklch(64% 0.149 220)',
       darkStrongColor: 'oklch(78% 0.149 220)',
       weakMix: 20.5,
     },
     {
       index: 2,
+      label: 'Sky',
+      lightStrongColor: 'oklch(64% 0.149 220)',
+      darkStrongColor: 'oklch(78% 0.149 220)',
+      weakMix: 20.5,
+    },
+    {
+      index: 3,
       label: 'Color 03',
       lightStrongColor: 'oklch(88% 0.169 94.5)',
       darkStrongColor: 'oklch(88% 0.169 94.5)',
@@ -84,6 +93,7 @@ test('Palette Lab formats selected colors as CSS variables', async () => {
   );
   assert.match(css, /\n {2}--color-sky-border: var\(--color-sky\);/);
   assert.match(css, /\n {2}--color-sky-2: oklch\(64% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);
+  assert.match(css, /\n {2}--color-sky-3: oklch\(64% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);
   assert.match(css, /\n {2}--color-03: oklch\(88% 0\.169 94\.5\); \/\* #[0-9a-f]{6} \*\//);
   assert.match(css, /\n\n\.dark \{\n {2}--palette-surface: #0b1120;/);
   assert.match(css, /\n {2}--color-sky: oklch\(78% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);

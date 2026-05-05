@@ -51,6 +51,17 @@ type PaletteExportColorInput = {
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
 const focusClass =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+const maxColorCount = 16;
+const headerActionFrameClass = mergeClassNames(
+  'inline-flex h-9 shrink-0 cursor-pointer items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)]',
+  'transition-colors hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] motion-reduce:transition-none',
+  focusClass,
+);
+const headerTextActionClass = mergeClassNames(headerActionFrameClass, 'px-3 text-sm font-medium text-[var(--text)]');
+const headerIconActionClass = mergeClassNames(
+  headerActionFrameClass,
+  'w-9 text-[var(--text-muted)] hover:text-[var(--text)]',
+);
 const modeButtonBase =
   'inline-flex h-8 items-center justify-center border px-2 text-xs font-medium transition-colors motion-reduce:transition-none';
 
@@ -201,14 +212,20 @@ function getExportVariableBase(label: string, index: number) {
 }
 
 function getExportColorNames(colors: ReadonlyArray<PaletteExportColorInput>) {
-  const usedNames = new Map<string, number>();
+  const usedNames = new Set<string>();
 
   return colors.map((color) => {
     const baseName = getExportVariableBase(color.label, color.index);
-    const usedCount = usedNames.get(baseName) ?? 0;
-    usedNames.set(baseName, usedCount + 1);
+    let name = baseName;
+    let suffix = 2;
 
-    return usedCount === 0 ? baseName : `${baseName}-${usedCount + 1}`;
+    while (usedNames.has(name)) {
+      name = `${baseName}-${suffix}`;
+      suffix += 1;
+    }
+
+    usedNames.add(name);
+    return name;
   });
 }
 
@@ -424,7 +441,7 @@ export default function PaletteLab() {
               label="Color count"
               value={count}
               min={4}
-              max={16}
+              max={maxColorCount}
               step={1}
               displayValue={String(count)}
               onChange={setCount}
@@ -514,33 +531,29 @@ export default function PaletteLab() {
                 {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'color names'}
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleAll}
-                className={mergeClassNames(
-                  'h-9 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
-                  focusClass,
-                )}
-              >
-                {allVisibleSelected ? 'Clear' : 'Select all'}
+            <div className="flex flex-wrap items-center justify-end gap-2 max-sm:w-full max-sm:justify-start">
+              <button type="button" onClick={toggleAll} className={headerTextActionClass}>
+                <span className="relative inline-grid min-w-0">
+                  <span aria-hidden="true" className="pointer-events-none col-start-1 row-start-1 opacity-0">
+                    Select all
+                  </span>
+                  <span className="col-start-1 row-start-1">{allVisibleSelected ? 'Clear' : 'Select all'}</span>
+                </span>
               </button>
               <CopyButton
                 text={paletteExportCss}
                 idleLabel={`Copy ${selectedVisibleCount} selected`}
+                reserveLabel={`Copy ${maxColorCount} selected`}
                 ariaLabel="Copy selected colors as CSS custom properties"
                 disabled={selectedVisibleCount === 0}
-                className="h-9 px-3"
+                variant="headerAction"
               />
               <button
                 ref={helpButtonRef}
                 type="button"
                 aria-label="Open palette lab help"
                 onClick={() => setHelpOpen(true)}
-                className={mergeClassNames(
-                  'inline-flex h-9 w-9 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
-                  focusClass,
-                )}
+                className={headerIconActionClass}
               >
                 <Info className="h-4 w-4" aria-hidden="true" />
               </button>

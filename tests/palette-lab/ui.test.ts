@@ -40,7 +40,7 @@ test('Palette Lab defaults to color names before index labels', async () => {
 test('Palette Lab exposes an accessible copy selected control', async () => {
   const markup = await renderPaletteLab();
   const clearIndex = markup.indexOf('Clear</button>');
-  const copyIndex = markup.indexOf('Copy selected');
+  const copyIndex = markup.indexOf('Copy 12 selected');
   const helpIndex = markup.indexOf('aria-label="Open palette lab help"');
 
   assert.ok(clearIndex >= 0);
@@ -53,14 +53,40 @@ test('Palette Lab exposes an accessible copy selected control', async () => {
 test('Palette Lab formats selected colors as CSS variables', async () => {
   const { getPaletteExportCss } = await import('../../src/artifacts/palette-lab');
   const css = getPaletteExportCss([
-    { index: 0, label: 'Sky', strongColor: 'oklch(64% 0.149 220)' },
-    { index: 1, label: 'Sky', strongColor: 'oklch(64% 0.149 220)' },
-    { index: 2, label: 'Color 03', strongColor: 'oklch(88% 0.169 94.5)' },
+    {
+      index: 0,
+      label: 'Sky',
+      lightStrongColor: 'oklch(64% 0.149 220)',
+      darkStrongColor: 'oklch(78% 0.149 220)',
+      weakMix: 20.5,
+    },
+    {
+      index: 1,
+      label: 'Sky',
+      lightStrongColor: 'oklch(64% 0.149 220)',
+      darkStrongColor: 'oklch(78% 0.149 220)',
+      weakMix: 20.5,
+    },
+    {
+      index: 2,
+      label: 'Color 03',
+      lightStrongColor: 'oklch(88% 0.169 94.5)',
+      darkStrongColor: 'oklch(88% 0.169 94.5)',
+      weakMix: 20.5,
+    },
   ]);
 
-  assert.match(css, /^--color-sky: oklch\(64% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);
-  assert.match(css, /\n--color-sky-2: oklch\(64% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);
-  assert.match(css, /\n--color-03: oklch\(88% 0\.169 94\.5\); \/\* #[0-9a-f]{6} \*\//);
+  assert.match(css, /^:root \{\n {2}--palette-surface: #ffffff;/);
+  assert.match(css, /\n {2}--color-sky: oklch\(64% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);
+  assert.match(
+    css,
+    /\n {2}--color-sky-weak: color-mix\(in oklch, var\(--color-sky\) 20\.5%, var\(--palette-surface\)\);/,
+  );
+  assert.match(css, /\n {2}--color-sky-border: var\(--color-sky\);/);
+  assert.match(css, /\n {2}--color-sky-2: oklch\(64% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);
+  assert.match(css, /\n {2}--color-03: oklch\(88% 0\.169 94\.5\); \/\* #[0-9a-f]{6} \*\//);
+  assert.match(css, /\n\n\.dark \{\n {2}--palette-surface: #0b1120;/);
+  assert.match(css, /\n {2}--color-sky: oklch\(78% 0\.149 220\); \/\* #[0-9a-f]{6} \*\//);
 });
 
 test('Palette Lab uses profile chroma instead of a chroma slider', async () => {

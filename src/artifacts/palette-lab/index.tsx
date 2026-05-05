@@ -43,7 +43,9 @@ type PaletteCardLabelInput = {
 type PaletteExportColorInput = {
   index: number;
   label: string;
-  strongColor: string;
+  lightStrongColor: string;
+  darkStrongColor: string;
+  weakMix: number;
 };
 
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
@@ -198,22 +200,55 @@ function getExportVariableBase(label: string, index: number) {
   return `color-${slug}`;
 }
 
-export function getPaletteExportCss(colors: ReadonlyArray<PaletteExportColorInput>) {
+function getExportColorNames(colors: ReadonlyArray<PaletteExportColorInput>) {
   const usedNames = new Map<string, number>();
 
-  return colors
-    .map((color) => {
-      const baseName = getExportVariableBase(color.label, color.index);
-      const usedCount = usedNames.get(baseName) ?? 0;
-      usedNames.set(baseName, usedCount + 1);
+  return colors.map((color) => {
+    const baseName = getExportVariableBase(color.label, color.index);
+    const usedCount = usedNames.get(baseName) ?? 0;
+    usedNames.set(baseName, usedCount + 1);
 
-      const variableName = usedCount === 0 ? baseName : `${baseName}-${usedCount + 1}`;
-      const hex = parseColor(color.strongColor);
-      const hexComment = hex ? ` /* ${rgbToHex(hex)} */` : '';
+    return usedCount === 0 ? baseName : `${baseName}-${usedCount + 1}`;
+  });
+}
 
-      return `--${variableName}: ${color.strongColor};${hexComment}`;
-    })
-    .join('\n');
+function getStrongColorDeclaration(name: string, color: string) {
+  const hex = parseColor(color);
+  const hexComment = hex ? ` /* ${rgbToHex(hex)} */` : '';
+
+  return `  --${name}: ${color};${hexComment}`;
+}
+
+function getToneDeclarations(color: PaletteExportColorInput, name: string, strongColor: string) {
+  return [
+    getStrongColorDeclaration(name, strongColor),
+    `  --${name}-weak: color-mix(in oklch, var(--${name}) ${color.weakMix.toFixed(1)}%, var(--palette-surface));`,
+    `  --${name}-border: var(--${name});`,
+  ];
+}
+
+export function getPaletteExportCss(colors: ReadonlyArray<PaletteExportColorInput>) {
+  const names = getExportColorNames(colors);
+  const lightDeclarations = colors.flatMap((color, index) => {
+    const name = names[index] ?? getExportVariableBase(color.label, color.index);
+    return getToneDeclarations(color, name, color.lightStrongColor);
+  });
+  const darkDeclarations = colors.flatMap((color, index) => {
+    const name = names[index] ?? getExportVariableBase(color.label, color.index);
+    return getToneDeclarations(color, name, color.darkStrongColor);
+  });
+
+  return [
+    ':root {',
+    '  --palette-surface: #ffffff;',
+    ...lightDeclarations,
+    '}',
+    '',
+    '.dark {',
+    '  --palette-surface: #0b1120;',
+    ...darkDeclarations,
+    '}',
+  ].join('\n');
 }
 
 export default function PaletteLab() {
@@ -250,6 +285,32 @@ export default function PaletteLab() {
       }),
     [autoTune, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
   );
+  const lightExportColors = useMemo(
+    () =>
+      makeGeneratedPalette({
+        count,
+        hueOffset,
+        lightStrongL,
+        darkLift,
+        weakMix,
+        autoTune,
+        theme: 'light',
+      }),
+    [autoTune, count, darkLift, hueOffset, lightStrongL, weakMix],
+  );
+  const darkExportColors = useMemo(
+    () =>
+      makeGeneratedPalette({
+        count,
+        hueOffset,
+        lightStrongL,
+        darkLift,
+        weakMix,
+        autoTune,
+        theme: 'dark',
+      }),
+    [autoTune, count, darkLift, hueOffset, lightStrongL, weakMix],
+  );
   const paletteMaxChroma = useMemo(() => Math.max(...colors.map((color) => color.chroma)), [colors]);
   const hueLabelsByPosition = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
   const paletteCardLabels = useMemo(
@@ -269,10 +330,18 @@ export default function PaletteLab() {
     () =>
       colors.flatMap((color, position) =>
         selectedIndexes.includes(color.index)
-          ? [{ index: color.index, label: paletteCardLabels[position], strongColor: color.strongColor }]
+          ? [
+              {
+                index: color.index,
+                label: paletteCardLabels[position],
+                lightStrongColor: lightExportColors[position]?.strongColor ?? color.strongColor,
+                darkStrongColor: darkExportColors[position]?.strongColor ?? color.strongColor,
+                weakMix: color.weakMix,
+              },
+            ]
           : [],
       ),
-    [colors, paletteCardLabels, selectedIndexes],
+    [colors, darkExportColors, lightExportColors, paletteCardLabels, selectedIndexes],
   );
   const paletteExportCss = useMemo(() => getPaletteExportCss(selectedExportColors), [selectedExportColors]);
   const selectedVisibleCount = selectedExportColors.length;
@@ -458,7 +527,7 @@ export default function PaletteLab() {
               </button>
               <CopyButton
                 text={paletteExportCss}
-                idleLabel="Copy selected"
+                idleLabel={`Copy ${selectedVisibleCount} selected`}
                 ariaLabel="Copy selected colors as CSS custom properties"
                 disabled={selectedVisibleCount === 0}
                 className="h-9 px-3"

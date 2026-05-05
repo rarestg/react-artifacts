@@ -3,6 +3,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import {
   getDisplayLabel,
   getHueLabelsForPalette,
@@ -157,7 +158,8 @@ export function getPaletteCardLabel({ labelMode, hueLabel, index, hue, count }: 
 }
 
 export default function PaletteLab() {
-  const [theme, setTheme] = useState<PaletteTheme>('light');
+  const isDarkTheme = useRootDarkMode();
+  const theme: PaletteTheme = isDarkTheme ? 'dark' : 'light';
   const [count, setCount] = useState(12);
   const [hueOffset, setHueOffset] = useState(220);
   const [lightStrongL, setLightStrongL] = useState(60);
@@ -252,222 +254,210 @@ export default function PaletteLab() {
   };
 
   return (
-    <div className={theme === 'dark' ? 'dark' : undefined}>
-      <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]">
-        <div className="grid min-h-screen grid-cols-[20rem_minmax(0,1fr)] gap-4 p-4 max-lg:grid-cols-1">
-          <aside className={[panelClass, 'self-start p-4'].join(' ')}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h1 className="text-base font-semibold">Palette Lab</h1>
-                <div className="mt-1 font-mono text-[11px] text-[var(--text-muted)]">
-                  {count} colors / {theme}
-                </div>
+    <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]">
+      <div className="grid min-h-screen grid-cols-[20rem_minmax(0,1fr)] gap-4 p-4 max-lg:grid-cols-1">
+        <aside className={[panelClass, 'self-start p-4'].join(' ')}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-base font-semibold">Palette Lab</h1>
+              <div className="mt-1 font-mono text-[11px] text-[var(--text-muted)]">
+                {count} colors / {theme}
               </div>
-              <button
-                type="button"
-                onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-                className={[
-                  'h-8 shrink-0 border border-[var(--border-strong)] bg-[var(--surface)] px-2 text-xs font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
-                  focusClass,
-                ].join(' ')}
-              >
-                {theme === 'dark' ? 'Light' : 'Dark'}
-              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4">
+            <RangeControl
+              label="Color count"
+              value={count}
+              min={4}
+              max={16}
+              step={1}
+              displayValue={String(count)}
+              onChange={setCount}
+            />
+            <RangeControl
+              label="Hue offset"
+              value={hueOffset}
+              min={0}
+              max={359}
+              step={1}
+              displayValue={`${hueOffset}deg`}
+              onChange={setHueOffset}
+            />
+            <RangeControl
+              label="Light strong L"
+              value={lightStrongL}
+              min={48}
+              max={72}
+              step={1}
+              displayValue={`${lightStrongL}%`}
+              onChange={setLightStrongL}
+            />
+            <RangeControl
+              label="Dark lift"
+              value={darkLift}
+              min={8}
+              max={28}
+              step={1}
+              displayValue={`+${tuned.darkLift.toFixed(1)}`}
+              onChange={setDarkLift}
+            />
+            <RangeControl
+              label="Weak mix"
+              value={weakMix}
+              min={10}
+              max={34}
+              step={1}
+              displayValue={`${tuned.weakMix.toFixed(1)}%`}
+              onChange={setWeakMix}
+            />
+
+            <div className="grid gap-2">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                Labels
+              </div>
+              <div className="grid grid-cols-2">
+                <ModeButton active={labelMode === 'index'} onClick={() => setLabelMode('index')}>
+                  Index
+                </ModeButton>
+                <ModeButton active={labelMode === 'hue'} onClick={() => setLabelMode('hue')}>
+                  Hue name
+                </ModeButton>
+              </div>
             </div>
 
-            <div className="mt-4 grid gap-4">
-              <RangeControl
-                label="Color count"
-                value={count}
-                min={4}
-                max={16}
-                step={1}
-                displayValue={String(count)}
-                onChange={setCount}
-              />
-              <RangeControl
-                label="Hue offset"
-                value={hueOffset}
-                min={0}
-                max={359}
-                step={1}
-                displayValue={`${hueOffset}deg`}
-                onChange={setHueOffset}
-              />
-              <RangeControl
-                label="Light strong L"
-                value={lightStrongL}
-                min={48}
-                max={72}
-                step={1}
-                displayValue={`${lightStrongL}%`}
-                onChange={setLightStrongL}
-              />
-              <RangeControl
-                label="Dark lift"
-                value={darkLift}
-                min={8}
-                max={28}
-                step={1}
-                displayValue={`+${tuned.darkLift.toFixed(1)}`}
-                onChange={setDarkLift}
-              />
-              <RangeControl
-                label="Weak mix"
-                value={weakMix}
-                min={10}
-                max={34}
-                step={1}
-                displayValue={`${tuned.weakMix.toFixed(1)}%`}
-                onChange={setWeakMix}
-              />
-
-              <div className="grid gap-2">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                  Labels
-                </div>
-                <div className="grid grid-cols-2">
-                  <ModeButton active={labelMode === 'index'} onClick={() => setLabelMode('index')}>
-                    Index
-                  </ModeButton>
-                  <ModeButton active={labelMode === 'hue'} onClick={() => setLabelMode('hue')}>
-                    Hue name
-                  </ModeButton>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                aria-pressed={autoTune}
-                onClick={() => setAutoTune((current) => !current)}
-                className={[
-                  'h-8 border px-2 text-xs font-medium',
-                  autoTune
-                    ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
-                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-                  focusClass,
-                ].join(' ')}
-              >
-                Auto tune: {autoTune ? 'on' : 'off'}
-              </button>
-
-              <FormulaPanel theme={theme} chroma={tuned.chroma} weakMix={tuned.weakMix} darkLift={tuned.darkLift} />
-            </div>
-          </aside>
-
-          <main className="grid min-w-0 content-start gap-4">
-            <section className={[panelClass, 'flex flex-wrap items-center justify-between gap-3 px-4 py-3'].join(' ')}>
-              <div className="min-w-0">
-                <h2 className="text-base font-semibold">Generated Toggle Grid</h2>
-                <div className="mt-1 text-xs text-[var(--text-muted)]">
-                  {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'hue labels'}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  onClick={toggleAll}
-                  className={[
-                    'h-9 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
-                    focusClass,
-                  ].join(' ')}
-                >
-                  {allVisibleSelected ? 'Clear' : 'Select all'}
-                </button>
-                <button
-                  ref={helpButtonRef}
-                  type="button"
-                  aria-label="Open palette lab help"
-                  onClick={() => setHelpOpen(true)}
-                  className={[
-                    'inline-flex h-9 w-9 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
-                    focusClass,
-                  ].join(' ')}
-                >
-                  <Info className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            </section>
-
-            <section
+            <button
+              type="button"
+              aria-pressed={autoTune}
+              onClick={() => setAutoTune((current) => !current)}
               className={[
-                panelClass,
-                'grid grid-cols-4 gap-3 p-4 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1',
+                'h-8 border px-2 text-xs font-medium',
+                autoTune
+                  ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
+                  : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
+                focusClass,
               ].join(' ')}
-              aria-label="Generated color toggles"
             >
-              {colors.map((color, position) => {
-                const selected = selectedIndexes.includes(color.index);
-                const label = getPaletteCardLabel({
-                  labelMode,
-                  hueLabel: hueLabelsByPosition[position],
-                  index: color.index,
-                  hue: color.hue,
-                  count,
-                });
-                const style = {
-                  '--palette-color': color.strongColor,
-                  '--palette-color-weak': color.weakColor,
-                } as PaletteColorStyle;
-                const ratio = contrastRatios[color.index];
+              Auto tune: {autoTune ? 'on' : 'off'}
+            </button>
 
-                return (
-                  <button
-                    key={color.index}
-                    type="button"
-                    data-palette-index={color.index}
-                    aria-pressed={selected}
-                    onClick={() => toggleIndex(color.index)}
-                    style={style}
-                    className={[
-                      'grid min-h-36 grid-rows-[auto_1fr_auto] gap-3 border p-3 text-left transition-[background-color,border-color,color] motion-reduce:transition-none',
-                      selected
-                        ? 'border-[color:var(--palette-color)] bg-[var(--palette-color-weak)] text-[var(--text)]'
-                        : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)]',
-                      focusClass,
-                    ].join(' ')}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="min-w-0 break-words text-xs font-semibold uppercase tracking-[0.16em]">
-                        {label}
-                      </span>
-                      <span
-                        className="h-4 w-4 shrink-0 border border-[color:var(--palette-color)] bg-[var(--palette-color)]"
-                        aria-hidden="true"
-                      />
-                    </div>
+            <FormulaPanel theme={theme} chroma={tuned.chroma} weakMix={tuned.weakMix} darkLift={tuned.darkLift} />
+          </div>
+        </aside>
 
-                    <div className="grid content-end gap-1.5" aria-hidden="true">
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <span className="h-4 border border-[color:var(--palette-color)] bg-[var(--palette-color)]" />
-                        <span className="h-4 border border-[color:var(--palette-color)] bg-[var(--palette-color-weak)]" />
-                      </div>
-                    </div>
+        <main className="grid min-w-0 content-start gap-4">
+          <section className={[panelClass, 'flex flex-wrap items-center justify-between gap-3 px-4 py-3'].join(' ')}>
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold">Generated Toggle Grid</h2>
+              <div className="mt-1 text-xs text-[var(--text-muted)]">
+                {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'hue labels'}
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleAll}
+                className={[
+                  'h-9 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
+                  focusClass,
+                ].join(' ')}
+              >
+                {allVisibleSelected ? 'Clear' : 'Select all'}
+              </button>
+              <button
+                ref={helpButtonRef}
+                type="button"
+                aria-label="Open palette lab help"
+                onClick={() => setHelpOpen(true)}
+                className={[
+                  'inline-flex h-9 w-9 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
+                  focusClass,
+                ].join(' ')}
+              >
+                <Info className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          </section>
 
-                    <div className="grid gap-1 font-mono text-[11px] leading-4 text-[var(--text-muted)]">
-                      <span>
-                        h {color.hue.toFixed(1)} / L {color.strongLightness.toFixed(1)}
-                      </span>
-                      <span>mix {color.weakMix.toFixed(1)}%</span>
-                      <span className="font-semibold text-[var(--text)]">
-                        contrast {ratio === undefined ? '...' : `${ratio.toFixed(2)}:1`}
-                      </span>
+          <section
+            className={[
+              panelClass,
+              'grid grid-cols-4 gap-3 p-4 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1',
+            ].join(' ')}
+            aria-label="Generated color toggles"
+          >
+            {colors.map((color, position) => {
+              const selected = selectedIndexes.includes(color.index);
+              const label = getPaletteCardLabel({
+                labelMode,
+                hueLabel: hueLabelsByPosition[position],
+                index: color.index,
+                hue: color.hue,
+                count,
+              });
+              const style = {
+                '--palette-color': color.strongColor,
+                '--palette-color-weak': color.weakColor,
+              } as PaletteColorStyle;
+              const ratio = contrastRatios[color.index];
+
+              return (
+                <button
+                  key={color.index}
+                  type="button"
+                  data-palette-index={color.index}
+                  aria-pressed={selected}
+                  onClick={() => toggleIndex(color.index)}
+                  style={style}
+                  className={[
+                    'grid min-h-36 grid-rows-[auto_1fr_auto] gap-3 border p-3 text-left transition-[background-color,border-color,color] motion-reduce:transition-none',
+                    selected
+                      ? 'border-[color:var(--palette-color)] bg-[var(--palette-color-weak)] text-[var(--text)]'
+                      : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)]',
+                    focusClass,
+                  ].join(' ')}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="min-w-0 break-words text-xs font-semibold uppercase tracking-[0.16em]">
+                      {label}
+                    </span>
+                    <span
+                      className="h-4 w-4 shrink-0 border border-[color:var(--palette-color)] bg-[var(--palette-color)]"
+                      aria-hidden="true"
+                    />
+                  </div>
+
+                  <div className="grid content-end gap-1.5" aria-hidden="true">
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <span className="h-4 border border-[color:var(--palette-color)] bg-[var(--palette-color)]" />
+                      <span className="h-4 border border-[color:var(--palette-color)] bg-[var(--palette-color-weak)]" />
                     </div>
-                  </button>
-                );
-              })}
-            </section>
-          </main>
-        </div>
-        <div ref={dialogPortalRef} className="pointer-events-none" />
-        <PaletteHelpDialog
-          open={helpOpen}
-          onOpenChange={(open) => setHelpOpen(open)}
-          container={dialogPortalRef.current}
-          returnFocusTo={helpButtonRef.current}
-        />
-      </ArtifactThemeRoot>
-    </div>
+                  </div>
+
+                  <div className="grid gap-1 font-mono text-[11px] leading-4 text-[var(--text-muted)]">
+                    <span>
+                      h {color.hue.toFixed(1)} / L {color.strongLightness.toFixed(1)}
+                    </span>
+                    <span>mix {color.weakMix.toFixed(1)}%</span>
+                    <span className="font-semibold text-[var(--text)]">
+                      contrast {ratio === undefined ? '...' : `${ratio.toFixed(2)}:1`}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </section>
+        </main>
+      </div>
+      <div ref={dialogPortalRef} className="pointer-events-none" />
+      <PaletteHelpDialog
+        open={helpOpen}
+        onOpenChange={(open) => setHelpOpen(open)}
+        container={dialogPortalRef.current}
+        returnFocusTo={helpButtonRef.current}
+      />
+    </ArtifactThemeRoot>
   );
 }
 

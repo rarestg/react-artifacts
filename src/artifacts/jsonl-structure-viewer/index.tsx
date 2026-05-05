@@ -993,6 +993,7 @@ export default function JsonlStructureViewer() {
                 >
                   <button
                     type="button"
+                    aria-label="One column layout"
                     aria-pressed={visibleLayoutMode === 'one-column'}
                     onClick={() => setLayoutMode('one-column')}
                     className={mergeClassNames(
@@ -1015,6 +1016,7 @@ export default function JsonlStructureViewer() {
                   </button>
                   <button
                     type="button"
+                    aria-label="Two column layout"
                     aria-pressed={visibleLayoutMode === 'two-column'}
                     onClick={() => setLayoutMode('two-column')}
                     className={mergeClassNames(
@@ -1038,6 +1040,7 @@ export default function JsonlStructureViewer() {
                   {canUseThreeColumns && (
                     <button
                       type="button"
+                      aria-label="Three column layout"
                       aria-pressed={visibleLayoutMode === 'three-column'}
                       onClick={() => setLayoutMode('three-column')}
                       className={mergeClassNames(

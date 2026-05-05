@@ -1,8 +1,7 @@
-import { RedoDot, UndoDot } from 'lucide-react';
 import { type ReactNode, useId, useMemo, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
-import StatusTag from '../../components/StatusTag';
+import { Toggle } from '../../components/Toggle';
 import { mergeClassNames } from '../../lib/classNames';
 
 // ---------------------------------------------------------------------------
@@ -278,6 +277,8 @@ const segmentInactiveInteractive = 'hover:bg-[var(--surface-strong)]';
 
 export default function MessageUnescaper() {
   const inputLabelId = useId();
+  const showDashBreaksDescriptionId = useId();
+  const replaceDashBreaksDescriptionId = useId();
   const [input, setInput] = useState('');
   const [direction, setDirection] = useState<Direction>('unescape');
   const [wrapOutput, setWrapOutput] = useState(true);
@@ -318,6 +319,7 @@ export default function MessageUnescaper() {
     : showDashBreaksDisabled
       ? 'No dash breaks found to highlight'
       : 'Highlight detected dash breaks in output';
+  const replaceDashBreaksDisabled = !output || (!replaceDashBreaks && dashBreakCount === 0);
 
   const inputStats = useMemo(() => getStats(input), [input]);
   const outputStats = useMemo(() => getStats(output), [output]);
@@ -479,78 +481,31 @@ export default function MessageUnescaper() {
               <CopyButton text={output} idleLabel="Copy Output" disabled={!output} />
             </div>
             <div className="px-4 py-4">
-              <div className="mb-3 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2" title={showDashBreaksTooltip}>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                    Show Dash Breaks
-                  </span>
-                  <fieldset
-                    aria-label={showDashBreaksTooltip}
-                    className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                  >
-                    <button
-                      type="button"
-                      aria-pressed={showDashBreaks}
-                      onClick={() => setShowDashBreaks(true)}
-                      disabled={showDashBreaksDisabled}
-                      className={mergeClassNames(
-                        segmentBase,
-                        showDashBreaks ? segmentActive : segmentInactive,
-                        !showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
-                        'disabled:opacity-40',
-                      )}
-                    >
-                      <span className="relative inline-grid">
-                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          Off
-                        </span>
-                        <span className="col-start-1 row-start-1">On</span>
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={!showDashBreaks}
-                      onClick={() => setShowDashBreaks(false)}
-                      disabled={showDashBreaksDisabled}
-                      className={mergeClassNames(
-                        segmentBase,
-                        !showDashBreaks ? segmentActive : segmentInactive,
-                        showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
-                        'disabled:opacity-40',
-                      )}
-                    >
-                      <span className="relative inline-grid">
-                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          Off
-                        </span>
-                        <span className="col-start-1 row-start-1">Off</span>
-                      </span>
-                    </button>
-                  </fieldset>
-                </div>
-                <div title={replaceDashBreaksTooltip}>
-                  <button
-                    type="button"
-                    onClick={() => setReplaceDashBreaks((prev) => !prev)}
-                    disabled={!output || (!replaceDashBreaks && dashBreakCount === 0)}
-                    aria-label={replaceDashBreaksTooltip}
-                    aria-pressed={replaceDashBreaks}
-                    className="inline-flex cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <StatusTag
-                      label="Replace With Periods"
-                      reserveLabel="Replace With Periods"
-                      active={replaceDashBreaks}
-                      icon={
-                        replaceDashBreaks ? (
-                          <UndoDot className="h-3.5 w-3.5" aria-hidden="true" />
-                        ) : (
-                          <RedoDot className="h-3.5 w-3.5" aria-hidden="true" />
-                        )
-                      }
-                    />
-                  </button>
-                </div>
+              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <Toggle
+                  label="Show dash breaks"
+                  checked={showDashBreaks}
+                  onCheckedChange={setShowDashBreaks}
+                  disabled={showDashBreaksDisabled}
+                  title={showDashBreaksTooltip}
+                  aria-describedby={showDashBreaksDescriptionId}
+                  labelClassName="text-xs"
+                />
+                <span id={showDashBreaksDescriptionId} className="sr-only">
+                  {showDashBreaksTooltip}
+                </span>
+                <Toggle
+                  label="Replace with periods"
+                  checked={replaceDashBreaks}
+                  onCheckedChange={setReplaceDashBreaks}
+                  disabled={replaceDashBreaksDisabled}
+                  title={replaceDashBreaksTooltip}
+                  aria-describedby={replaceDashBreaksDescriptionId}
+                  labelClassName="text-xs"
+                />
+                <span id={replaceDashBreaksDescriptionId} className="sr-only">
+                  {replaceDashBreaksTooltip}
+                </span>
               </div>
               <div className="w-full min-h-[320px] max-h-[80vh] overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
                 {output ? (

@@ -9,6 +9,8 @@ export type ToggleProps = {
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
   focusTarget?: 'track' | 'container';
+  title?: string;
+  'aria-describedby'?: string;
   className?: string;
   labelClassName?: string;
   trackClassName?: string;
@@ -23,6 +25,8 @@ export function Toggle({
   onCheckedChange,
   disabled = false,
   focusTarget = 'track',
+  title,
+  'aria-describedby': ariaDescribedBy,
   className,
   labelClassName,
   trackClassName,
@@ -53,6 +57,7 @@ export function Toggle({
   return (
     <label
       ref={rootRef}
+      title={title}
       className={mergeClassNames(
         'inline-flex items-center gap-3 select-none py-1',
         focusTarget === 'container' && 'relative',
@@ -66,6 +71,7 @@ export function Toggle({
         onChange={(event) => onCheckedChange(event.target.checked)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
+        aria-describedby={ariaDescribedBy}
         className="peer sr-only"
       />
       {focusTarget === 'container' && (

@@ -48,24 +48,24 @@ const modeButtonBase =
 const helpItems = [
   {
     term: 'Rotation',
-    detail: 'Changes the palette phase and card order while keeping the required core categories in the set.',
+    detail: 'Rotates the palette order while preserving core color categories.',
   },
   {
     term: 'H',
-    detail: 'Final OKLCH hue in degrees after the selected profile position maps to tuned color anchors.',
+    detail: 'Final OKLCH hue in degrees for this generated color.',
   },
   {
     term: 'L',
-    detail: 'Final lightness for the strong color after hue-specific profile defaults, lightness bias, and dark lift.',
+    detail: 'Final OKLCH lightness after profile defaults, lightness bias, and dark-mode lift.',
   },
   {
     term: 'Chroma',
-    detail: 'Color intensity in OKLCH. Palette Lab uses hue-specific profile chroma, then softens dense palettes.',
+    detail: 'Final OKLCH color intensity. Dense palettes reduce chroma slightly to keep colors distinct.',
   },
   {
     term: 'Labels',
     detail:
-      'Hue names come from profile anchors. Names with distance limits fall back to index labels when too far away.',
+      'Color names come from profile anchors. If no name is close enough, the card falls back to its index label.',
   },
   {
     term: 'Mix',
@@ -78,7 +78,7 @@ const helpItems = [
   },
   {
     term: 'Dark lift',
-    detail: 'Moves each strong color toward the dark-mode lightness ceiling using its remaining headroom.',
+    detail: 'In dark mode, moves each color toward the lightness ceiling based on available headroom.',
   },
   {
     term: 'Auto tune',
@@ -332,7 +332,7 @@ export default function PaletteLab() {
               </div>
               <div className="grid grid-cols-2">
                 <ModeButton active={labelMode === 'hue'} onClick={() => setLabelMode('hue')}>
-                  Hue name
+                  Color name
                 </ModeButton>
                 <ModeButton active={labelMode === 'index'} onClick={() => setLabelMode('index')}>
                   Index
@@ -371,7 +371,7 @@ export default function PaletteLab() {
             <div className="min-w-0">
               <h2 className="text-base font-semibold">Generated Toggle Grid</h2>
               <div className="mt-1 text-xs text-[var(--text-muted)]">
-                {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'hue labels'}
+                {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'color names'}
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -573,8 +573,10 @@ function FormulaPanel({
   return (
     <div className="grid gap-2 border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-[11px] leading-5 text-[var(--text-muted)]">
       <div>
-        <span className="text-[var(--text)]">strong</span> profile oklch(
-        {theme === 'dark' ? `L -> ${DARK_LIGHTNESS_CEILING} ${Math.round(darkLiftFraction * 100)}%` : 'L'} C h)
+        <span className="text-[var(--text)]">strong</span> profile -&gt;{' '}
+        {theme === 'dark'
+          ? `L toward ${DARK_LIGHTNESS_CEILING} ${Math.round(darkLiftFraction * 100)}%`
+          : 'oklch(L C h)'}
       </div>
       <div>
         <span className="text-[var(--text)]">palette max C</span> {paletteMaxChroma.toFixed(3)}

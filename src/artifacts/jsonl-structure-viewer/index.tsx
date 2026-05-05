@@ -626,11 +626,8 @@ export default function JsonlStructureViewer() {
   const jsonViewTheme = isDarkTheme ? darkTheme : lightTheme;
 
   const inputPanel = (
-    <section ref={inputPanelRef} className={mergeClassNames('min-w-0 flex flex-col gap-6')}>
-      <div
-        ref={inputCardRef}
-        className={mergeClassNames('min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]')}
-      >
+    <section ref={inputPanelRef} className="min-w-0 flex flex-col gap-6">
+      <div ref={inputCardRef} className="min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]">
         <div className={panelHeaderRowClass}>
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Input</div>
@@ -662,7 +659,7 @@ export default function JsonlStructureViewer() {
             </div>
           </div>
         </div>
-        <div className={mergeClassNames('flex flex-col gap-4 px-4 py-4')}>
+        <div className="flex flex-col gap-4 px-4 py-4">
           <div className="min-w-0">
             <textarea
               ref={inputRef}
@@ -793,10 +790,7 @@ export default function JsonlStructureViewer() {
         visibleLayoutMode === 'two-column' && 'lg:self-stretch',
       )}
     >
-      <div
-        ref={outputCardRef}
-        className={mergeClassNames('flex flex-col border border-[var(--border)] bg-[var(--surface)]')}
-      >
+      <div ref={outputCardRef} className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
         <div className={panelHeaderRowClass}>
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Output</div>
@@ -815,7 +809,7 @@ export default function JsonlStructureViewer() {
             />
           </div>
         </div>
-        <div className={mergeClassNames('flex flex-col gap-4 px-4 py-4')}>
+        <div className="flex flex-col gap-4 px-4 py-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
@@ -948,9 +942,7 @@ export default function JsonlStructureViewer() {
           {/* biome-ignore lint/a11y/noStaticElementInteractions: support double-click on native resize handle */}
           <div
             ref={outputResizeRef}
-            className={mergeClassNames(
-              'min-w-0 min-h-[240px] h-[clamp(240px,40vh,520px)] border border-[var(--border)] bg-[var(--surface-muted)] resize-y overflow-auto',
-            )}
+            className="min-w-0 min-h-[240px] h-[clamp(240px,40vh,520px)] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)]"
             onDoubleClick={(event) => handleResizeDoubleClick(event, outputPanelRef.current, outputCardRef.current)}
           >
             {outputView === 'highlighted' && parsed.data ? (

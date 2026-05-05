@@ -153,6 +153,12 @@ export default function Artifact() {
 - Light and dark modes should preserve the same spacing, border weight, geometry, and state behavior.
 - When colors look wrong, inspect computed values. `color-mix()` may change what source code appears to say.
 
+## Class Composition
+
+- Use plain `className="..."` strings for static class lists.
+- Use `mergeClassNames(...)` only when composing fixed classes with conditionals, variants, or caller-provided class overrides.
+- Do not wrap a single static class string in `mergeClassNames(...)`; `tailwind-merge` is for resolving real composition conflicts.
+
 ## Color And Status
 
 - Accent is for focus, selection, action, and emphasis.

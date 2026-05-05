@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { type CSSProperties, type KeyboardEvent, type ReactNode, useRef } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type CheckboxProps = {
@@ -52,24 +53,22 @@ export function Checkbox({
   const checkSize = size === 'sm' ? 'h-2.5 w-2.5' : 'h-3 w-3';
   const boxFocus =
     focusTarget === 'box'
-      ? [
+      ? mergeClassNames(
           'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)]',
           'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]',
-        ].join(' ')
+        )
       : '';
 
   return (
     <label
       ref={rootRef}
       style={style}
-      className={[
+      className={mergeClassNames(
         'inline-flex items-center gap-2 select-none py-1',
-        focusTarget === 'container' ? 'relative' : '',
+        focusTarget === 'container' && 'relative',
         disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      )}
     >
       <input
         type="checkbox"
@@ -86,7 +85,7 @@ export function Checkbox({
         />
       )}
       <span
-        className={[
+        className={mergeClassNames(
           'flex shrink-0 items-center justify-center border rounded-none transition-colors motion-reduce:transition-none',
           boxSize,
           boxFocus,
@@ -95,21 +94,13 @@ export function Checkbox({
             : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]',
           boxTone,
           boxClassName,
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        )}
       >
         {checked && (
-          <Check
-            className={[checkClassName ?? 'text-[var(--primary-contrast)]', checkSize].filter(Boolean).join(' ')}
-          />
+          <Check className={mergeClassNames(checkClassName ?? 'text-[var(--primary-contrast)]', checkSize)} />
         )}
       </span>
-      <span
-        className={['relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName]
-          .filter(Boolean)
-          .join(' ')}
-      >
+      <span className={mergeClassNames('relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName)}>
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {resolvedReserveLabel}
         </span>

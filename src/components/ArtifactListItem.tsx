@@ -2,6 +2,7 @@ import { Layers, Square, SquareArrowOutUpRight } from 'lucide-react';
 import React from 'react';
 
 import type { ArtifactEntry } from '../artifacts';
+import { mergeClassNames } from '../lib/classNames';
 
 type ArtifactListItemArtifact = Pick<ArtifactEntry, 'id' | 'name' | 'subtitle' | 'kind' | 'model' | 'version'>;
 
@@ -26,12 +27,12 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
         type="button"
         aria-label={`Select ${artifact.name}`}
         onClick={() => onSelect(artifact.id)}
-        className={[
+        className={mergeClassNames(
           'block w-full px-3 pt-2 pr-12 pb-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950',
           selected
             ? 'bg-blue-100 font-medium text-blue-800 dark:bg-slate-800 dark:text-slate-100'
             : 'text-gray-700 group-hover:bg-gray-200 dark:text-slate-300 dark:group-hover:bg-slate-800',
-        ].join(' ')}
+        )}
       >
         <div className="flex items-center gap-2">
           {artifact.kind === 'app' ? (
@@ -65,11 +66,11 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
         rel="noopener noreferrer"
         aria-label={`Open ${artifact.name} standalone`}
         title="Open standalone view"
-        className={[
+        className={mergeClassNames(
           'absolute right-2 bottom-2 z-10 inline-flex h-7 w-7 items-center justify-center border border-transparent text-gray-500 transition',
           'hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
           'dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950',
-        ].join(' ')}
+        )}
       >
         <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden="true" />
       </a>

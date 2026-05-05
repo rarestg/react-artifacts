@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type CopyableLabelStatus = 'idle' | 'hover' | 'copied' | 'failed';
@@ -115,15 +116,13 @@ export function CopyableLabel({
       onFocus={handleFocus}
       onBlur={handleBlur}
       title={`Copy: ${value}`}
-      className={[
+      className={mergeClassNames(
         'inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
         'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
         'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         tone,
         className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      )}
     >
       {icon && <span className="shrink-0 text-[var(--copy-idle-text)]">{icon}</span>}
       <span className="relative inline-grid min-w-0">

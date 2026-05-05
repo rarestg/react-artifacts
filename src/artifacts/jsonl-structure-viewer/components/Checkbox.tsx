@@ -40,8 +40,8 @@ export default function Checkbox({
     <label
       className={mergeClassNames(
         wrapperClass,
-        'cursor-pointer select-none py-1 text-sm text-[var(--text-muted)]',
-        disabled && 'opacity-50 pointer-events-none cursor-not-allowed',
+        'select-none py-1 text-sm text-[var(--text-muted)]',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         className,
       )}
     >
@@ -51,9 +51,8 @@ export default function Checkbox({
           'h-4 w-4 shrink-0 border flex items-center justify-center',
           'transition-colors motion-reduce:transition-none',
           'focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-1 focus-within:ring-offset-[var(--surface)]',
-          checked
-            ? 'bg-[var(--accent)] border-[var(--accent)]'
-            : 'bg-[var(--surface)] border-[var(--border)] hover:border-[var(--border-strong)]',
+          checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--surface)] border-[var(--border)]',
+          !checked && !disabled && 'hover:border-[var(--border-strong)]',
         )}
       >
         {checked && <CheckIcon className="h-3 w-3 text-white" />}

@@ -7,4 +7,5 @@ test('artifact design guide requires pointer cursor affordance for enabled click
 
   assert.match(guide, /pointer cursor/i);
   assert.match(guide, /cursor-not-allowed/i);
+  assert.match(guide, /Do not use `pointer-events-none` as the default disabled state for real controls/i);
 });

@@ -23,6 +23,12 @@
 
   .decision-badge {
     @apply pointer-events-none absolute left-0 top-0;
+    /*
+     * Position the badge against the painted ring, not the target border box.
+     * Pull left by the full ring outset. Pull up by the label height plus that
+     * outset, then add the stroke width back so the label's inset bottom stroke
+     * sits on the target ring's top stroke.
+     */
     transform: translate(
       calc(-1 * var(--decision-ring-outset)),
       calc(-100% - var(--decision-ring-outset) + var(--decision-ring-width))
@@ -33,6 +39,7 @@
     @apply inline-flex items-center px-2 py-0.5 text-[11px] font-medium;
     background-color: var(--decision-bg);
     color: var(--decision-text);
+    /* Use an inset stroke so a real border does not create an extra outer edge. */
     box-shadow: inset 0 0 0 var(--decision-ring-width) var(--decision-ring);
   }
 

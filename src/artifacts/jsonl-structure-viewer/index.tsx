@@ -5,6 +5,7 @@ import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
 import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import Checkbox from './components/Checkbox';
 import CopyButton, { type CopyButtonHandle } from './components/CopyButton';
@@ -443,36 +444,30 @@ export default function JsonlStructureViewer() {
       : layoutMode === 'three-column'
         ? 'two-column'
         : layoutMode;
-  const headerGridClass = ['grid gap-6', headerStacked ? 'grid-cols-1' : 'grid-cols-[minmax(0,1fr)_auto]']
-    .filter(Boolean)
-    .join(' ');
-  const headerControlsClass = ['flex flex-col gap-2 min-w-0', headerStacked ? 'items-start w-full' : 'items-end w-auto']
-    .filter(Boolean)
-    .join(' ');
-  const headerControlGroupClass = [
+  const headerGridClass = mergeClassNames(
+    'grid gap-6',
+    headerStacked ? 'grid-cols-1' : 'grid-cols-[minmax(0,1fr)_auto]',
+  );
+  const headerControlsClass = mergeClassNames(
+    'flex flex-col gap-2 min-w-0',
+    headerStacked ? 'items-start w-full' : 'items-end w-auto',
+  );
+  const headerControlGroupClass = mergeClassNames(
     'min-w-0',
     headerStacked ? 'w-auto max-w-full' : 'w-auto',
     'flex flex-wrap items-center gap-2',
-    !headerStacked ? 'justify-end' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  const headerControlsRowClass = [
+    !headerStacked && 'justify-end',
+  );
+  const headerControlsRowClass = mergeClassNames(
     'min-w-0',
     headerStacked ? 'flex flex-wrap items-center gap-2 w-full' : 'flex flex-col items-end gap-2 w-auto',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  const headerHelpButtonClass = [
+  );
+  const headerHelpButtonClass = mergeClassNames(
     'border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
     'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-    headerStacked ? 'ml-auto' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  const headerStatusClass = [headerActionClass, 'cursor-default', 'hover:bg-[var(--surface)]']
-    .filter(Boolean)
-    .join(' ');
+    headerStacked && 'ml-auto',
+  );
+  const headerStatusClass = mergeClassNames(headerActionClass, 'cursor-default', 'hover:bg-[var(--surface)]');
 
   useEffect(() => {
     if (!hasLoggedLayoutRef.current) {
@@ -631,12 +626,10 @@ export default function JsonlStructureViewer() {
   const jsonViewTheme = isDarkTheme ? darkTheme : lightTheme;
 
   const inputPanel = (
-    <section ref={inputPanelRef} className={['min-w-0 flex flex-col gap-6'].filter(Boolean).join(' ')}>
+    <section ref={inputPanelRef} className={mergeClassNames('min-w-0 flex flex-col gap-6')}>
       <div
         ref={inputCardRef}
-        className={['min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]']
-          .filter(Boolean)
-          .join(' ')}
+        className={mergeClassNames('min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]')}
       >
         <div className={panelHeaderRowClass}>
           <div>
@@ -669,7 +662,7 @@ export default function JsonlStructureViewer() {
             </div>
           </div>
         </div>
-        <div className={['flex flex-col gap-4 px-4 py-4'].filter(Boolean).join(' ')}>
+        <div className={mergeClassNames('flex flex-col gap-4 px-4 py-4')}>
           <div className="min-w-0">
             <textarea
               ref={inputRef}
@@ -795,13 +788,14 @@ export default function JsonlStructureViewer() {
   const outputPanel = (
     <section
       ref={outputPanelRef}
-      className={['min-w-0 flex flex-col gap-6', visibleLayoutMode === 'two-column' ? 'lg:self-stretch' : '']
-        .filter(Boolean)
-        .join(' ')}
+      className={mergeClassNames(
+        'min-w-0 flex flex-col gap-6',
+        visibleLayoutMode === 'two-column' && 'lg:self-stretch',
+      )}
     >
       <div
         ref={outputCardRef}
-        className={['flex flex-col border border-[var(--border)] bg-[var(--surface)]'].filter(Boolean).join(' ')}
+        className={mergeClassNames('flex flex-col border border-[var(--border)] bg-[var(--surface)]')}
       >
         <div className={panelHeaderRowClass}>
           <div>
@@ -821,7 +815,7 @@ export default function JsonlStructureViewer() {
             />
           </div>
         </div>
-        <div className={['flex flex-col gap-4 px-4 py-4'].filter(Boolean).join(' ')}>
+        <div className={mergeClassNames('flex flex-col gap-4 px-4 py-4')}>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
@@ -835,16 +829,14 @@ export default function JsonlStructureViewer() {
                   type="button"
                   aria-pressed={outputView === 'raw'}
                   onClick={() => setOutputView('raw')}
-                  className={[
+                  className={mergeClassNames(
                     'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                     'relative focus-visible:z-10',
                     outputView === 'raw'
                       ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
+                  )}
                 >
                   <span className="relative inline-grid">
                     <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -857,16 +849,14 @@ export default function JsonlStructureViewer() {
                   type="button"
                   aria-pressed={outputView === 'highlighted'}
                   onClick={() => setOutputView('highlighted')}
-                  className={[
+                  className={mergeClassNames(
                     'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                     'relative focus-visible:z-10',
                     outputView === 'highlighted'
                       ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
+                  )}
                 >
                   <span className="relative inline-grid">
                     <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -890,16 +880,14 @@ export default function JsonlStructureViewer() {
                     type="button"
                     onClick={() => setOutputFormat('pretty')}
                     aria-pressed={outputFormat === 'pretty'}
-                    className={[
+                    className={mergeClassNames(
                       'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                       'relative focus-visible:z-10',
                       outputFormat === 'pretty'
                         ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                         : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
+                    )}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -912,16 +900,14 @@ export default function JsonlStructureViewer() {
                     type="button"
                     onClick={() => setOutputFormat('compact')}
                     aria-pressed={outputFormat === 'compact'}
-                    className={[
+                    className={mergeClassNames(
                       'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                       'relative focus-visible:z-10',
                       outputFormat === 'compact'
                         ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                         : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
+                    )}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -962,11 +948,9 @@ export default function JsonlStructureViewer() {
           {/* biome-ignore lint/a11y/noStaticElementInteractions: support double-click on native resize handle */}
           <div
             ref={outputResizeRef}
-            className={[
+            className={mergeClassNames(
               'min-w-0 min-h-[240px] h-[clamp(240px,40vh,520px)] border border-[var(--border)] bg-[var(--surface-muted)] resize-y overflow-auto',
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            )}
             onDoubleClick={(event) => handleResizeDoubleClick(event, outputPanelRef.current, outputCardRef.current)}
           >
             {outputView === 'highlighted' && parsed.data ? (
@@ -1030,7 +1014,7 @@ export default function JsonlStructureViewer() {
                       type="button"
                       aria-pressed={visibleLayoutMode === 'one-column'}
                       onClick={() => setLayoutMode('one-column')}
-                      className={[
+                      className={mergeClassNames(
                         'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                         'inline-flex items-center gap-1.5',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
@@ -1038,9 +1022,7 @@ export default function JsonlStructureViewer() {
                         visibleLayoutMode === 'one-column'
                           ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                           : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
+                      )}
                     >
                       <span className="relative inline-grid">
                         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -1054,7 +1036,7 @@ export default function JsonlStructureViewer() {
                       type="button"
                       aria-pressed={visibleLayoutMode === 'two-column'}
                       onClick={() => setLayoutMode('two-column')}
-                      className={[
+                      className={mergeClassNames(
                         'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                         'inline-flex items-center gap-1.5',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
@@ -1062,9 +1044,7 @@ export default function JsonlStructureViewer() {
                         visibleLayoutMode === 'two-column'
                           ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                           : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
+                      )}
                     >
                       <span className="relative inline-grid">
                         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -1079,7 +1059,7 @@ export default function JsonlStructureViewer() {
                         type="button"
                         aria-pressed={visibleLayoutMode === 'three-column'}
                         onClick={() => setLayoutMode('three-column')}
-                        className={[
+                        className={mergeClassNames(
                           'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                           'inline-flex items-center gap-1.5',
                           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
@@ -1087,9 +1067,7 @@ export default function JsonlStructureViewer() {
                           visibleLayoutMode === 'three-column'
                             ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                             : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
+                        )}
                       >
                         <span className="relative inline-grid">
                           <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -1116,16 +1094,14 @@ export default function JsonlStructureViewer() {
                       type="button"
                       aria-pressed={wrapOutput}
                       onClick={() => setWrapOutput(true)}
-                      className={[
+                      className={mergeClassNames(
                         'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                         'relative focus-visible:z-10',
                         wrapOutput
                           ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                           : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
+                      )}
                     >
                       <span className="relative inline-grid">
                         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -1138,16 +1114,14 @@ export default function JsonlStructureViewer() {
                       type="button"
                       aria-pressed={!wrapOutput}
                       onClick={() => setWrapOutput(false)}
-                      className={[
+                      className={mergeClassNames(
                         'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                         'relative focus-visible:z-10',
                         !wrapOutput
                           ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                           : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
+                      )}
                     >
                       <span className="relative inline-grid">
                         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">

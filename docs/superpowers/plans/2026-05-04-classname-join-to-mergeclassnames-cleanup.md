@@ -1,6 +1,6 @@
 # ClassName Join to MergeClassNames Cleanup Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** Implement this plan task-by-task and update the checkbox (`- [ ]`) statuses as work completes. If your environment provides `superpowers:subagent-driven-development` or `superpowers:executing-plans`, use one of those workflows; otherwise follow the task sequence directly.
 
 **Goal:** Replace CSS class composition `.join(' ')` patterns with `mergeClassNames(...)` where appropriate, while leaving non-CSS joins unchanged.
 
@@ -21,9 +21,9 @@ The suggestion is valid, but the repo sweep found the same convention issue in m
 Line numbers below are approximate and will drift as files change. Refresh with the commands in Task 1 before editing.
 
 Source `.join(' ')` totals:
-- `129` total `.join(' ')` occurrences under `src`.
-- `125` CSS class composition candidates for `mergeClassNames(...)`.
-- `124` other class candidates if excluding the original reviewed `src/components/ArtifactDialog.tsx:83` wrapper.
+- `128` total `.join(' ')` occurrences under `src` after the Palette Lab global-theme cleanup.
+- `124` CSS class composition candidates for `mergeClassNames(...)`.
+- `123` other class candidates if excluding the original reviewed `src/components/ArtifactDialog.tsx:83` wrapper.
 - `4` intentional/non-CSS `.join(' ')` cases should remain.
 - `26` additional template-literal `className` compositions were found; treat those as a separate, non-default follow-up task.
 
@@ -41,14 +41,14 @@ Strong class candidates in `src/components` (`24`):
 App shell candidates (`9`):
 - `src/App.tsx`: `415, 433, 451, 476, 494, 516, 536, 571, 580`
 
-Artifact candidates (`92`):
-- `src/artifacts/palette-lab/index.tsx`: `258, 272, 349, 359, 373, 385, 396, 428, 545`
+Artifact candidates (`91`):
+- `src/artifacts/palette-lab/index.tsx`: `259, 340, 350, 364, 376, 387, 419, 535`
 - `src/artifacts/prompt-library/index.tsx`: `139, 165, 187, 198, 213, 248, 256, 325, 377`
 - `src/artifacts/focus-compare/index.tsx`: `23, 47, 73, 85, 118, 146, 186, 231, 277, 293, 313, 330, 345, 371, 383, 405, 429, 459, 470, 495, 512`
 - `src/artifacts/message-unescaper/index.tsx`: `270, 276, 357, 370, 394, 407, 457, 497, 515, 537, 560`
 - `src/artifacts/example-app/components/Primitives.tsx`: `53, 66, 80`
 - `src/artifacts/example-app/App.tsx`: `254, 271, 303, 373, 427`
-- `src/artifacts/jsonl-structure-viewer/index.tsx`: `462, 465, 473, 479, 486, 489, 648, 653, 686, 814, 818, 838, 861, 883, 916, 938, 983, 1057, 1081, 1106, 1142, 1164`
+- `src/artifacts/jsonl-structure-viewer/index.tsx`: `448, 451, 459, 465, 472, 475, 634, 639, 672, 800, 804, 824, 847, 869, 902, 924, 969, 1043, 1067, 1092, 1128, 1150`
 - `src/artifacts/jsonl-structure-viewer/components/Checkbox.tsx`: `47, 60`
 - `src/artifacts/jsonl-structure-viewer/components/CopyButton.tsx`: `80`
 - `src/artifacts/jsonl-structure-viewer/components/PathList.tsx`: `12`
@@ -124,7 +124,7 @@ Be especially careful in demo artifacts such as `focus-compare`, where class str
 **Files:**
 - No tracked file changes.
 
-- [ ] **Step 1: Confirm branch and working tree**
+- [x] **Step 1: Confirm branch and working tree**
 
 Run:
 
@@ -132,9 +132,9 @@ Run:
 git status --short --branch
 ```
 
-Expected: branch is `sharp2-component-library-refactor`. Existing dirty files, if any, are noted before editing and not reverted unless they belong to this cleanup.
+Expected: work is on a fresh cleanup branch based on `origin/main`, because `sharp2-component-library-refactor` and `sharp2-review-fixes` have already landed. Existing dirty files, if any, are noted before editing and not reverted unless they belong to this cleanup.
 
-- [ ] **Step 2: Confirm the helper behavior**
+- [x] **Step 2: Confirm the helper behavior**
 
 Run:
 
@@ -144,7 +144,7 @@ node --import tsx --test tests/lib/classNames.test.ts
 
 Expected: `mergeClassNames` tests pass, including Tailwind conflict resolution and empty conditional values.
 
-- [ ] **Step 3: Refresh the source inventory**
+- [x] **Step 3: Refresh the source inventory**
 
 Run:
 
@@ -155,7 +155,7 @@ rg -n 'className=\{`|className=\{[^\n]*\$\{|const [A-Za-z0-9_]+Class\s*=\s*`' sr
 
 Expected: counts may differ from this plan, but non-CSS joins are still limited to the intentional cases listed above unless new code was added.
 
-- [ ] **Step 4: Record the baseline check**
+- [x] **Step 4: Record the baseline check**
 
 Run:
 
@@ -180,26 +180,27 @@ Commit suggestion: no commit for this guardrail task unless a dedicated baseline
 - Modify: `src/components/StatusTag.tsx`
 - Modify: `src/components/Toggle.tsx`
 
-- [ ] **Step 1: Add imports where missing**
+- [x] **Step 1: Add imports where missing**
 
 Use `import { mergeClassNames } from '../lib/classNames';` in shared component files that do not already import it. `ArtifactDialog.tsx` already imports the helper.
 
-- [ ] **Step 2: Convert only CSS class joins in `src/components`**
+- [x] **Step 2: Convert only CSS class joins in `src/components`**
 
 Convert the `24` strong candidates listed for `src/components`. Leave `src/components/Input.tsx:88` unchanged because it builds `aria-describedby`.
 
-- [ ] **Step 3: Verify shared component joins**
+- [x] **Step 3: Verify shared component joins**
 
 Run:
 
 ```bash
+npx biome check --write src/components
 rg -n "\\.join\\(' '\\)" src/components
 node --import tsx --test tests/lib/classNames.test.ts
 ```
 
-Expected: the only `src/components` match is `src/components/Input.tsx:88`. Tests pass.
+Expected: Biome formats and organizes imports. The only `src/components` match is `src/components/Input.tsx:88`. Tests pass.
 
-- [ ] **Step 4: Commit shared component cleanup**
+- [x] **Step 4: Commit shared component cleanup**
 
 Run:
 
@@ -213,26 +214,27 @@ git commit -m "refactor: use mergeClassNames in shared components"
 **Files:**
 - Modify: `src/App.tsx`
 
-- [ ] **Step 1: Import the helper**
+- [x] **Step 1: Import the helper**
 
 Add `import { mergeClassNames } from './lib/classNames';` and let Biome organize imports.
 
-- [ ] **Step 2: Convert shell class joins**
+- [x] **Step 2: Convert shell class joins**
 
 Convert `src/App.tsx` lines `415, 433, 451, 476, 494, 516, 536, 571, 580`.
 
-- [ ] **Step 3: Verify app shell joins**
+- [x] **Step 3: Verify app shell joins**
 
 Run:
 
 ```bash
+npx biome check --write src/App.tsx
 rg -n "\\.join\\(' '\\)" src/App.tsx
 npm run lint
 ```
 
-Expected: no `.join(' ')` matches in `src/App.tsx`. Lint passes.
+Expected: Biome formats and organizes imports. No `.join(' ')` matches in `src/App.tsx`. Lint passes.
 
-- [ ] **Step 4: Commit app shell cleanup**
+- [x] **Step 4: Commit app shell cleanup**
 
 Run:
 
@@ -256,19 +258,25 @@ git commit -m "refactor: use mergeClassNames in app shell"
 - Modify: `src/artifacts/sharp2/conversation/MessageCard.tsx`
 - Modify: `src/artifacts/sharp2/conversation/MessageTypeToggle.tsx`
 
-- [ ] **Step 1: Add imports with the correct relative path**
+- [x] **Step 1: Add imports with the correct relative path**
 
 Use `../../../lib/classNames` from artifact subdirectories under `src/artifacts/<id>/components`, `src/artifacts/<id>/conversation`, and `src/artifacts/<id>/lib`.
 
-- [ ] **Step 2: Convert component-like artifact joins**
+- [x] **Step 2: Convert component-like artifact joins**
 
 Convert the candidate lines listed for the files in this task. These are the highest-leverage artifact conversions because they are local primitives or shared constants within an artifact.
 
-- [ ] **Step 3: Verify this batch**
+- [x] **Step 3: Verify this batch**
 
 Run:
 
 ```bash
+npx biome check --write \
+  src/artifacts/example-app/components/Primitives.tsx \
+  src/artifacts/jsonl-structure-viewer/components \
+  src/artifacts/jsonl-structure-viewer/lib/ui.ts \
+  src/artifacts/sharp2/components \
+  src/artifacts/sharp2/conversation
 rg -n "\\.join\\(' '\\)" \
   src/artifacts/example-app/components/Primitives.tsx \
   src/artifacts/jsonl-structure-viewer/components \
@@ -278,9 +286,9 @@ rg -n "\\.join\\(' '\\)" \
 npm run lint
 ```
 
-Expected: no `.join(' ')` matches in these paths. Lint passes.
+Expected: Biome formats and organizes imports. No `.join(' ')` matches in these paths. Lint passes.
 
-- [ ] **Step 4: Commit artifact component cleanup**
+- [x] **Step 4: Commit artifact component cleanup**
 
 Run:
 
@@ -302,19 +310,24 @@ git commit -m "refactor: use mergeClassNames in artifact components"
 - Modify: `src/artifacts/palette-lab/index.tsx`
 - Modify: `src/artifacts/prompt-library/index.tsx`
 
-- [ ] **Step 1: Add imports with the correct relative path**
+- [x] **Step 1: Add imports with the correct relative path**
 
 Use `../../lib/classNames` from top-level artifact `index.tsx` and artifact `App.tsx` files.
 
-- [ ] **Step 2: Convert class joins**
+- [x] **Step 2: Convert class joins**
 
 Convert the candidate lines listed for these four files. In `prompt-library/index.tsx`, leave the searchable tag text join at line `478` unchanged.
 
-- [ ] **Step 3: Verify this batch**
+- [x] **Step 3: Verify this batch**
 
 Run:
 
 ```bash
+npx biome check --write \
+  src/artifacts/example-app/App.tsx \
+  src/artifacts/message-unescaper/index.tsx \
+  src/artifacts/palette-lab/index.tsx \
+  src/artifacts/prompt-library/index.tsx
 rg -n "\\.join\\(' '\\)" \
   src/artifacts/example-app/App.tsx \
   src/artifacts/message-unescaper/index.tsx \
@@ -324,9 +337,9 @@ rg -n "\\.join\\(' '\\)" \
 npm run lint
 ```
 
-Expected: only the prompt-library searchable tag joins remain in `src/artifacts/prompt-library/index.tsx` and `src/artifacts/prompt-library/search.ts`. Lint passes.
+Expected: Biome formats and organizes imports. Only the prompt-library searchable tag joins remain in `src/artifacts/prompt-library/index.tsx` and `src/artifacts/prompt-library/search.ts`. Lint passes.
 
-- [ ] **Step 4: Commit artifact screen batch A**
+- [x] **Step 4: Commit artifact screen batch A**
 
 Run:
 
@@ -345,28 +358,31 @@ git commit -m "refactor: use mergeClassNames in artifact screens"
 - Modify: `src/artifacts/focus-compare/index.tsx`
 - Modify: `src/artifacts/jsonl-structure-viewer/index.tsx`
 
-- [ ] **Step 1: Add imports with the correct relative path**
+- [x] **Step 1: Add imports with the correct relative path**
 
 Use `../../lib/classNames` in both top-level artifact files.
 
-- [ ] **Step 2: Convert class joins with extra review**
+- [x] **Step 2: Convert class joins with extra review**
 
-Convert the candidate lines listed for `focus-compare` and `jsonl-structure-viewer/index.tsx`. Review each converted string for intentional duplicate Tailwind utilities before saving, because these files contain demos and dense state controls.
+Convert the candidate lines listed for `jsonl-structure-viewer/index.tsx`. For `focus-compare`, convert only when `mergeClassNames(...)` preserves the demonstrated behavior. If `tailwind-merge` would erase an intentional conflict, state comparison, or order-sensitive example, leave that specific `.join(' ')` in place and document it near the final `rg` output or PR notes. Review each converted string for intentional duplicate Tailwind utilities before saving, because these files contain demos and dense state controls.
 
-- [ ] **Step 3: Verify this batch**
+- [x] **Step 3: Verify this batch**
 
 Run:
 
 ```bash
+npx biome check --write \
+  src/artifacts/focus-compare/index.tsx \
+  src/artifacts/jsonl-structure-viewer/index.tsx
 rg -n "\\.join\\(' '\\)" \
   src/artifacts/focus-compare/index.tsx \
   src/artifacts/jsonl-structure-viewer/index.tsx
 npm run lint
 ```
 
-Expected: no `.join(' ')` matches in these two files. Lint passes.
+Expected: Biome formats and organizes imports. No `.join(' ')` matches in these two files unless a `focus-compare` join was intentionally preserved and documented. Lint passes.
 
-- [ ] **Step 4: Commit artifact screen batch B**
+- [x] **Step 4: Commit artifact screen batch B**
 
 Run:
 
@@ -380,7 +396,7 @@ git commit -m "refactor: use mergeClassNames in remaining artifact screens"
 **Files:**
 - No planned source changes unless verification exposes a missed candidate or mistaken conversion.
 
-- [ ] **Step 1: Verify only intentional source joins remain**
+- [x] **Step 1: Verify only intentional source joins remain**
 
 Run:
 
@@ -397,7 +413,9 @@ src/artifacts/prompt-library/index.tsx:... prompt.tags.join(' ')
 src/artifacts/prompt-library/search.ts:... result.prompt.tags.join(' ')
 ```
 
-- [ ] **Step 2: Run full repo check**
+If any `focus-compare` joins remain, they must be explicitly documented as preserved demo behavior from Task 6. Do not leave other CSS class joins behind.
+
+- [x] **Step 2: Run full repo check**
 
 Run:
 
@@ -407,7 +425,7 @@ npm run check
 
 Expected: all checks pass.
 
-- [ ] **Step 3: Visual smoke shared components and impacted artifacts**
+- [x] **Step 3: Visual smoke shared components and impacted artifacts**
 
 Run the app:
 
@@ -429,7 +447,7 @@ Smoke these screens in light and dark themes:
 - `focus-compare`, because it intentionally demonstrates class/state differences.
 - `jsonl-structure-viewer`, especially header controls, layout controls, and output controls.
 
-- [ ] **Step 4: Commit final fixes if verification required changes**
+- [x] **Step 4: Commit final fixes if verification required changes**
 
 If Task 7 required source changes, run:
 
@@ -473,10 +491,11 @@ Use `mergeClassNames(...)` for fixed class parts plus dynamic whole-class string
 Run:
 
 ```bash
+npx biome check --write src/components src/artifacts src/App.tsx
 npm run check
 ```
 
-Expected: all checks pass. Perform the same visual smoke from Task 7.
+Expected: Biome formats and organizes imports. All checks pass. Perform the same visual smoke from Task 7.
 
 - [ ] **Step 4: Commit optional follow-up separately**
 

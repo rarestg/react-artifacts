@@ -8,7 +8,7 @@ import {
   Plug as PlugIcon,
   Search as SearchIcon,
 } from 'lucide-react';
-import { type CSSProperties, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Button } from '../../components/Button';
@@ -209,25 +209,14 @@ export default function DesignSystem() {
                 />
                 <StatusTag label="Indexed" active={true} />
                 <StatusTag label="Offline" active={false} />
-                {/* Position the label relative to the ring, not the tag. */}
-                {/* Formula: ring-outset = ring width + ring offset (e.g., 2px + 1px = 3px). */}
-                {/* Translate up by 100% + ring-outset to sit on the ring edge. */}
-                {/* Translate left by ring-outset (+2px) to align with the ring. */}
-                {/* Note: inset rings don't change the outer size. If using a normal (non-inset) ring on the label, */}
-                {/* add 1px to ring-outset and the horizontal calc to keep alignment tight. */}
-                <div className="relative inline-flex" style={{ '--ring-outset': '1px' } as CSSProperties}>
-                  <span className="pointer-events-none absolute left-0 top-0 -translate-y-[calc(100%+var(--ring-outset))] -translate-x-[calc(var(--ring-outset)+2px)]">
-                    <Tag
-                      variant="muted"
-                      className="!bg-[var(--category-amber-weak)] !text-[var(--category-amber)] ring-2 ring-inset ring-[var(--category-amber)]"
-                    >
-                      Click me
-                    </Tag>
+                <div className="decision-frame decision-theme-amber inline-flex">
+                  <span className="decision-badge">
+                    <span className="decision-badge-label">Click me</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => setSearchingActive((prev) => !prev)}
-                    className="inline-flex cursor-pointer border-0 bg-transparent p-0 ring-2 ring-[var(--category-amber)] ring-offset-1 ring-offset-[color:var(--surface)] focus:outline-none"
+                    className="decision-ring inline-flex cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--ring)]"
                   >
                     <StatusTag
                       label={searchingActive ? 'Searching' : 'Done'}

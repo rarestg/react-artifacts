@@ -212,7 +212,7 @@ export default function JsonlStructureViewer() {
   const copyButtonRef = useRef<CopyButtonHandle>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const panelsGridRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const titlePanelRef = useRef<HTMLElement>(null);
   const inputPanelRef = useRef<HTMLElement>(null);
   const inputCardRef = useRef<HTMLDivElement>(null);
@@ -1132,72 +1132,75 @@ export default function JsonlStructureViewer() {
         </div>
       </header>
 
-      <main ref={contentRef} className="flex flex-1 flex-col gap-4 p-4">
-        {showHelp && (
-          <section
-            id="jsonl-structure-help"
-            aria-label="JSONL Structure Viewer help"
-            className="grid gap-3 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-muted)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,auto)]"
-          >
-            <div className="min-w-0">
-              <div className="font-semibold uppercase tracking-[0.2em] text-[10px] text-[var(--text-muted)]">
-                How to use
+      <main className="flex flex-1 flex-col p-4">
+        <div ref={contentRef} className="flex flex-col gap-4">
+          {showHelp && (
+            <section
+              id="jsonl-structure-help"
+              aria-label="JSONL Structure Viewer help"
+              className="grid gap-3 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-muted)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,auto)]"
+            >
+              <div className="min-w-0">
+                <div className="font-semibold uppercase tracking-[0.2em] text-[10px] text-[var(--text-muted)]">
+                  How to use
+                </div>
+                <div className="mt-1">
+                  Paste JSON, JSON arrays, or JSONL. Use path filters, then copy trimmed output or a structure-only
+                  view.
+                </div>
               </div>
-              <div className="mt-1">
-                Paste JSON, JSON arrays, or JSONL. Use path filters, then copy trimmed output or a structure-only view.
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Shortcuts
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Enter</span>
+                    <span>Parse now</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+F</span>
+                    <span>Search paths</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+L</span>
+                    <span>Focus input</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+C</span>
+                    <span>Copy output</span>
+                  </span>
+                </div>
               </div>
-            </div>
-            <div className="min-w-0">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                Shortcuts
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
-                <span className="inline-flex items-center gap-2">
-                  <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Enter</span>
-                  <span>Parse now</span>
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+F</span>
-                  <span>Search paths</span>
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+L</span>
-                  <span>Focus input</span>
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Shift+C</span>
-                  <span>Copy output</span>
-                </span>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <div
-          ref={panelsGridRef}
-          className={`grid grid-cols-1 gap-4 ${
-            visibleLayoutMode === 'three-column'
-              ? 'lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]'
-              : visibleLayoutMode === 'two-column'
-                ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start'
-                : ''
-          }`}
-        >
-          {visibleLayoutMode === 'two-column' ? (
-            <>
-              <div className="min-w-0 flex flex-col gap-4 lg:self-start">
-                {inputPanel}
-                {outputPanel}
-              </div>
-              {pathPanel}
-            </>
-          ) : (
-            <>
-              {inputPanel}
-              {pathPanel}
-              {outputPanel}
-            </>
+            </section>
           )}
+
+          <div
+            ref={panelsGridRef}
+            className={`grid grid-cols-1 gap-4 ${
+              visibleLayoutMode === 'three-column'
+                ? 'lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]'
+                : visibleLayoutMode === 'two-column'
+                  ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start'
+                  : ''
+            }`}
+          >
+            {visibleLayoutMode === 'two-column' ? (
+              <>
+                <div className="min-w-0 flex flex-col gap-4 lg:self-start">
+                  {inputPanel}
+                  {outputPanel}
+                </div>
+                {pathPanel}
+              </>
+            ) : (
+              <>
+                {inputPanel}
+                {pathPanel}
+                {outputPanel}
+              </>
+            )}
+          </div>
         </div>
       </main>
     </ArtifactThemeRoot>

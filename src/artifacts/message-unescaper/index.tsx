@@ -323,267 +323,257 @@ export default function MessageUnescaper() {
   const outputStats = useMemo(() => getStats(output), [output]);
 
   return (
-    <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col">
-      <div className="mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-10 lg:px-8 xl:px-10">
-        {/* Header */}
-        <header className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-6">
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <div className="min-w-0 flex flex-col gap-2">
-              <h1 className="m-0 text-3xl font-semibold leading-tight">Message Unescaper</h1>
-              <p className="m-0 max-w-3xl text-sm text-[var(--text-muted)]">
-                Convert escaped sequences to their actual characters, or re-escape text for embedding in strings.
-              </p>
+    <ArtifactThemeRoot className="flex min-h-screen flex-col bg-[var(--surface-muted)] text-[var(--text)]">
+      <header className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold">Message Unescaper</h1>
+            <p className="mt-1 max-w-3xl text-xs text-[var(--text-muted)]">
+              Convert escaped sequences to characters, or re-escape text for strings.
+            </p>
+          </div>
+          <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                Mode
+              </span>
+              <fieldset
+                aria-label="Direction"
+                className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
+              >
+                <button
+                  type="button"
+                  aria-pressed={direction === 'unescape'}
+                  onClick={() => setDirection('unescape')}
+                  className={mergeClassNames(
+                    segmentBase,
+                    direction === 'unescape' ? segmentActive : segmentInactive,
+                    direction !== 'unescape' && segmentInactiveInteractive,
+                  )}
+                >
+                  <span className="relative inline-grid">
+                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                      Unescape
+                    </span>
+                    <span className="col-start-1 row-start-1">Unescape</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={direction === 'escape'}
+                  onClick={() => setDirection('escape')}
+                  className={mergeClassNames(
+                    segmentBase,
+                    direction === 'escape' ? segmentActive : segmentInactive,
+                    direction !== 'escape' && segmentInactiveInteractive,
+                  )}
+                >
+                  <span className="relative inline-grid">
+                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                      Unescape
+                    </span>
+                    <span className="col-start-1 row-start-1">Escape</span>
+                  </span>
+                </button>
+              </fieldset>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-              {/* Direction toggle */}
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Mode
-                </span>
-                <fieldset
-                  aria-label="Direction"
-                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                Wrap
+              </span>
+              <fieldset
+                aria-label="Word wrap"
+                className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
+              >
+                <button
+                  type="button"
+                  aria-pressed={wrapOutput}
+                  onClick={() => setWrapOutput(true)}
+                  className={mergeClassNames(
+                    segmentBase,
+                    wrapOutput ? segmentActive : segmentInactive,
+                    !wrapOutput && segmentInactiveInteractive,
+                  )}
                 >
-                  <button
-                    type="button"
-                    aria-pressed={direction === 'unescape'}
-                    onClick={() => setDirection('unescape')}
-                    className={mergeClassNames(
-                      segmentBase,
-                      direction === 'unescape' ? segmentActive : segmentInactive,
-                      direction !== 'unescape' && segmentInactiveInteractive,
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        Unescape
-                      </span>
-                      <span className="col-start-1 row-start-1">Unescape</span>
+                  <span className="relative inline-grid">
+                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                      Off
                     </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={direction === 'escape'}
-                    onClick={() => setDirection('escape')}
-                    className={mergeClassNames(
-                      segmentBase,
-                      direction === 'escape' ? segmentActive : segmentInactive,
-                      direction !== 'escape' && segmentInactiveInteractive,
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        Unescape
-                      </span>
-                      <span className="col-start-1 row-start-1">Escape</span>
+                    <span className="col-start-1 row-start-1">On</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={!wrapOutput}
+                  onClick={() => setWrapOutput(false)}
+                  className={mergeClassNames(
+                    segmentBase,
+                    !wrapOutput ? segmentActive : segmentInactive,
+                    wrapOutput && segmentInactiveInteractive,
+                  )}
+                >
+                  <span className="relative inline-grid">
+                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                      Off
                     </span>
-                  </button>
-                </fieldset>
+                    <span className="col-start-1 row-start-1">Off</span>
+                  </span>
+                </button>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="grid flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-2">
+        {/* Input */}
+        <section className="min-w-0 flex flex-col">
+          <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
+            <div className={panelHeaderRowClass}>
+              <div>
+                <div
+                  id={inputLabelId}
+                  className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]"
+                >
+                  Input
+                </div>
+                <div className={panelHeaderSubtitleClass}>
+                  <span>{formatStatsLine(inputStats.chars, inputStats.lines)}</span>
+                </div>
               </div>
-              {/* Word wrap toggle */}
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Wrap
-                </span>
-                <fieldset
-                  aria-label="Word wrap"
-                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                >
+              <button type="button" onClick={() => setInput('')} disabled={!input} className={headerActionClass}>
+                Clear
+              </button>
+            </div>
+            <div className="px-4 py-4">
+              <textarea
+                aria-labelledby={inputLabelId}
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                placeholder={direction === 'unescape' ? 'Paste escaped text here...' : 'Paste text to escape here...'}
+                spellCheck={false}
+                wrap={wrapOutput ? 'soft' : 'off'}
+                rows={16}
+                className={mergeClassNames(
+                  'w-full min-h-[320px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)]',
+                  'placeholder:text-[var(--text-subtle)]',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                  wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
+                )}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Output */}
+        <section className="min-w-0 flex flex-col">
+          <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
+            <div className={panelHeaderRowClass}>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Output</div>
+                <div className={panelHeaderSubtitleClass}>
+                  <span>{formatStatsLine(outputStats.chars, outputStats.lines)}</span>
+                  <span>{`· ${dashBreakCount} ${dashBreakCount === 1 ? 'dash break' : 'dash breaks'}`}</span>
+                </div>
+              </div>
+              <CopyButton text={output} idleLabel="Copy Output" disabled={!output} />
+            </div>
+            <div className="px-4 py-4">
+              <div className="mb-3 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2" title={showDashBreaksTooltip}>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                    Show Dash Breaks
+                  </span>
+                  <fieldset
+                    aria-label={showDashBreaksTooltip}
+                    className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={showDashBreaks}
+                      onClick={() => setShowDashBreaks(true)}
+                      disabled={showDashBreaksDisabled}
+                      className={mergeClassNames(
+                        segmentBase,
+                        showDashBreaks ? segmentActive : segmentInactive,
+                        !showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
+                        'disabled:opacity-40',
+                      )}
+                    >
+                      <span className="relative inline-grid">
+                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                          Off
+                        </span>
+                        <span className="col-start-1 row-start-1">On</span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={!showDashBreaks}
+                      onClick={() => setShowDashBreaks(false)}
+                      disabled={showDashBreaksDisabled}
+                      className={mergeClassNames(
+                        segmentBase,
+                        !showDashBreaks ? segmentActive : segmentInactive,
+                        showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
+                        'disabled:opacity-40',
+                      )}
+                    >
+                      <span className="relative inline-grid">
+                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                          Off
+                        </span>
+                        <span className="col-start-1 row-start-1">Off</span>
+                      </span>
+                    </button>
+                  </fieldset>
+                </div>
+                <div title={replaceDashBreaksTooltip}>
                   <button
                     type="button"
-                    aria-pressed={wrapOutput}
-                    onClick={() => setWrapOutput(true)}
+                    onClick={() => setReplaceDashBreaks((prev) => !prev)}
+                    disabled={!output || (!replaceDashBreaks && dashBreakCount === 0)}
+                    aria-label={replaceDashBreaksTooltip}
+                    aria-pressed={replaceDashBreaks}
+                    className="inline-flex cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <StatusTag
+                      label="Replace With Periods"
+                      reserveLabel="Replace With Periods"
+                      active={replaceDashBreaks}
+                      icon={
+                        replaceDashBreaks ? (
+                          <UndoDot className="h-3.5 w-3.5" aria-hidden="true" />
+                        ) : (
+                          <RedoDot className="h-3.5 w-3.5" aria-hidden="true" />
+                        )
+                      }
+                    />
+                  </button>
+                </div>
+              </div>
+              <div className="w-full min-h-[320px] max-h-[80vh] overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
+                {output ? (
+                  <pre
                     className={mergeClassNames(
-                      segmentBase,
-                      wrapOutput ? segmentActive : segmentInactive,
-                      !wrapOutput && segmentInactiveInteractive,
+                      'font-mono text-xs text-[var(--text)] leading-relaxed',
+                      wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
                     )}
                   >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        Off
-                      </span>
-                      <span className="col-start-1 row-start-1">On</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={!wrapOutput}
-                    onClick={() => setWrapOutput(false)}
-                    className={mergeClassNames(
-                      segmentBase,
-                      !wrapOutput ? segmentActive : segmentInactive,
-                      wrapOutput && segmentInactiveInteractive,
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        Off
-                      </span>
-                      <span className="col-start-1 row-start-1">Off</span>
-                    </span>
-                  </button>
-                </fieldset>
+                    {outputDisplay}
+                  </pre>
+                ) : (
+                  <span className="text-xs text-[var(--text-subtle)]">
+                    {direction === 'unescape'
+                      ? 'Unescaped output will appear here...'
+                      : 'Escaped output will appear here...'}
+                  </span>
+                )}
               </div>
             </div>
           </div>
-        </header>
-
-        {/* Panels */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Input */}
-          <section className="min-w-0 flex flex-col">
-            <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
-              <div className={panelHeaderRowClass}>
-                <div>
-                  <div
-                    id={inputLabelId}
-                    className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]"
-                  >
-                    Input
-                  </div>
-                  <div className={panelHeaderSubtitleClass}>
-                    <span>{formatStatsLine(inputStats.chars, inputStats.lines)}</span>
-                  </div>
-                </div>
-                <button type="button" onClick={() => setInput('')} disabled={!input} className={headerActionClass}>
-                  Clear
-                </button>
-              </div>
-              <div className="px-4 py-4">
-                <textarea
-                  aria-labelledby={inputLabelId}
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  placeholder={direction === 'unescape' ? 'Paste escaped text here...' : 'Paste text to escape here...'}
-                  spellCheck={false}
-                  wrap={wrapOutput ? 'soft' : 'off'}
-                  rows={16}
-                  className={mergeClassNames(
-                    'w-full min-h-[320px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)]',
-                    'placeholder:text-[var(--text-subtle)]',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                    wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
-                  )}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Output */}
-          <section className="min-w-0 flex flex-col">
-            <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
-              <div className={panelHeaderRowClass}>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">
-                    Output
-                  </div>
-                  <div className={panelHeaderSubtitleClass}>
-                    <span>{formatStatsLine(outputStats.chars, outputStats.lines)}</span>
-                    <span>{`· ${dashBreakCount} ${dashBreakCount === 1 ? 'dash break' : 'dash breaks'}`}</span>
-                  </div>
-                </div>
-                <CopyButton text={output} idleLabel="Copy Output" disabled={!output} />
-              </div>
-              <div className="px-4 py-4">
-                <div className="mb-3 flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2" title={showDashBreaksTooltip}>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                      Show Dash Breaks
-                    </span>
-                    <fieldset
-                      aria-label={showDashBreaksTooltip}
-                      className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                    >
-                      <button
-                        type="button"
-                        aria-pressed={showDashBreaks}
-                        onClick={() => setShowDashBreaks(true)}
-                        disabled={showDashBreaksDisabled}
-                        className={mergeClassNames(
-                          segmentBase,
-                          showDashBreaks ? segmentActive : segmentInactive,
-                          !showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
-                          'disabled:opacity-40',
-                        )}
-                      >
-                        <span className="relative inline-grid">
-                          <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                            Off
-                          </span>
-                          <span className="col-start-1 row-start-1">On</span>
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        aria-pressed={!showDashBreaks}
-                        onClick={() => setShowDashBreaks(false)}
-                        disabled={showDashBreaksDisabled}
-                        className={mergeClassNames(
-                          segmentBase,
-                          !showDashBreaks ? segmentActive : segmentInactive,
-                          showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
-                          'disabled:opacity-40',
-                        )}
-                      >
-                        <span className="relative inline-grid">
-                          <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                            Off
-                          </span>
-                          <span className="col-start-1 row-start-1">Off</span>
-                        </span>
-                      </button>
-                    </fieldset>
-                  </div>
-                  <div title={replaceDashBreaksTooltip}>
-                    <button
-                      type="button"
-                      onClick={() => setReplaceDashBreaks((prev) => !prev)}
-                      disabled={!output || (!replaceDashBreaks && dashBreakCount === 0)}
-                      aria-label={replaceDashBreaksTooltip}
-                      aria-pressed={replaceDashBreaks}
-                      className={
-                        'inline-flex cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed'
-                      }
-                    >
-                      <StatusTag
-                        label="Replace With Periods"
-                        reserveLabel="Replace With Periods"
-                        active={replaceDashBreaks}
-                        icon={
-                          replaceDashBreaks ? (
-                            <UndoDot className="h-3.5 w-3.5" aria-hidden="true" />
-                          ) : (
-                            <RedoDot className="h-3.5 w-3.5" aria-hidden="true" />
-                          )
-                        }
-                      />
-                    </button>
-                  </div>
-                </div>
-                <div className="w-full min-h-[320px] max-h-[80vh] overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
-                  {output ? (
-                    <pre
-                      className={mergeClassNames(
-                        'font-mono text-xs text-[var(--text)] leading-relaxed',
-                        wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
-                      )}
-                    >
-                      {outputDisplay}
-                    </pre>
-                  ) : (
-                    <span className="text-xs text-[var(--text-subtle)]">
-                      {direction === 'unescape'
-                        ? 'Unescaped output will appear here...'
-                        : 'Escaped output will appear here...'}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
+        </section>
+      </main>
     </ArtifactThemeRoot>
   );
 }

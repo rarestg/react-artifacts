@@ -53,10 +53,7 @@ export function Checkbox({
   const checkSize = size === 'sm' ? 'h-2.5 w-2.5' : 'h-3 w-3';
   const boxFocus =
     focusTarget === 'box'
-      ? mergeClassNames(
-          'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)]',
-          'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]',
-        )
+      ? 'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]'
       : '';
 
   return (

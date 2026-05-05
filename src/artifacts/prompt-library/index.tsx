@@ -323,10 +323,9 @@ function PromptCommandPalette({
             key={result.prompt.id}
             value={result.prompt.id}
             onSelect={() => onSelectResult(result)}
-            className={mergeClassNames(
-              'cursor-pointer border border-transparent p-3 text-left outline-none',
-              'data-[selected=true]:border-[var(--border-strong)] data-[selected=true]:bg-[var(--surface-muted)]',
-            )}
+            className={
+              'cursor-pointer border border-transparent p-3 text-left outline-none data-[selected=true]:border-[var(--border-strong)] data-[selected=true]:bg-[var(--surface-muted)]'
+            }
           >
             <PromptSearchResultItem result={result} query={query} />
           </Command.Item>

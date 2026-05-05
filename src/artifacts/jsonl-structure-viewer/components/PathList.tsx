@@ -1,16 +1,11 @@
 import { type ReactNode, type RefObject, useMemo } from 'react';
 
-import { mergeClassNames } from '../../../lib/classNames';
 import { headerActionClass, panelHeaderRowClass } from '../lib/ui';
 import type { PathNode } from '../types';
 import Checkbox from './Checkbox';
 
-const actionButtonBase = mergeClassNames(
-  'border border-[var(--border)] bg-[var(--surface)]',
-  'text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
-  'hover:bg-[var(--surface-strong)]',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-);
+const actionButtonBase =
+  'border border-[var(--border)] bg-[var(--surface)] text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]';
 
 const actionButtonCompact = `${actionButtonBase} px-1.5 py-0.5`;
 

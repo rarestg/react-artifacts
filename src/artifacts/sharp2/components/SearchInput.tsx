@@ -115,11 +115,9 @@ export function SearchInput({
           aria-expanded={showDropdown}
           aria-controls={listboxId}
           aria-activedescendant={activeOptionId}
-          className={mergeClassNames(
-            'h-9 w-full border bg-[var(--surface)] pl-9 pr-3 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)]',
-            'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-            'border-[var(--border)]',
-          )}
+          className={
+            'h-9 w-full border bg-[var(--surface)] pl-9 pr-3 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)] border-[var(--border)]'
+          }
         />
       </div>
 

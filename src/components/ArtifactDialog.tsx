@@ -129,11 +129,9 @@ export function ArtifactDialog({
                 <button
                   type="button"
                   aria-label={closeLabel}
-                  className={mergeClassNames(
-                    'inline-flex h-8 w-8 shrink-0 items-center justify-center border border-transparent bg-transparent text-[var(--text-muted)]',
-                    'hover:border-[var(--border)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-strong)]',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-                  )}
+                  className={
+                    'inline-flex h-8 w-8 shrink-0 items-center justify-center border border-transparent bg-transparent text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]'
+                  }
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>

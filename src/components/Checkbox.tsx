@@ -2,7 +2,7 @@ import { Check } from 'lucide-react';
 import { type CSSProperties, type KeyboardEvent, type ReactNode, useRef } from 'react';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
-type CheckboxProps = {
+export type CheckboxProps = {
   label: string;
   reserveLabel?: string;
   checked: boolean;
@@ -63,9 +63,9 @@ export function Checkbox({
       ref={rootRef}
       style={style}
       className={[
-        'inline-flex items-center gap-2 cursor-pointer select-none py-1',
+        'inline-flex items-center gap-2 select-none py-1',
         focusTarget === 'container' ? 'relative' : '',
-        disabled && 'opacity-50 pointer-events-none cursor-not-allowed',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         className,
       ]
         .filter(Boolean)
@@ -91,8 +91,8 @@ export function Checkbox({
           boxSize,
           boxFocus,
           checked
-            ? 'active:bg-[var(--checkbox-on-bg)]'
-            : 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-strong)]',
+            ? !disabled && 'active:bg-[var(--checkbox-on-bg)]'
+            : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]',
           boxTone,
           boxClassName,
         ]

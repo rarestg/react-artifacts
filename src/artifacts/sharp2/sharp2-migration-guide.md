@@ -9,12 +9,12 @@ This guide tracks the migration of `sharp2` to the shared Sharp UI token system 
 - Keep the artifact as the source of truth for patterns and behaviors.
 
 ## Scope
-- Files in scope: `src/artifacts/sharp2/index.tsx`, `src/artifacts/sharp2/sharp2.txt`
-- Optional helper styles: `src/artifacts/sharp2/sharp2.css` if you want local role tokens
+- Files in scope: `src/artifacts/sharp2/index.tsx`, `src/artifacts/sharp2/components/**`, `src/artifacts/sharp2/conversation/**`, `src/artifacts/sharp2/fixtures.tsx`, `src/artifacts/sharp2/sharp2.txt`, and this guide.
+- Optional helper styles: `src/artifacts/sharp2/sharp2.css` if future local role tokens are needed.
 
 ## Decisions to Lock Before Editing
 - [x] Role color strategy for conversation rendering. (Using categorical tokens aliased to semantic palette.)
-- [x] Shared primitives vs local primitives. (Local primitives retained for now; TODO to compare with shared components.)
+- [x] Shared primitives vs local primitives. (Shared primitives import from `src/components`; showcase and domain examples remain sharp2-local.)
 - [x] Whether to add local role tokens in a scoped CSS file. (Not needed; using category tokens.)
 - [x] Whether to introduce a local `--text-subtle` token for very muted copy. (Now part of the global token contract.)
 
@@ -33,12 +33,18 @@ Pick one strategy for `MessageCard` borders, tool call accents, and role badges.
 
 ### 3) Shared Primitive Adoption (Recommended)
 Prefer shared components to avoid drift.
-- [ ] Replace local `Checkbox` with `src/components/Checkbox.tsx`.
-- [ ] Replace local `Toggle` with `src/components/Toggle.tsx`.
-- [ ] Replace local `CopyableLabel` with `src/components/CopyableLabel.tsx`.
-- [ ] Replace local `StatusTag` with `src/components/StatusTag.tsx`.
-- [ ] Remove unused local implementations after replacement.
-  - Note: local primitives retained for now; a TODO in `sharp2` tracks consolidation.
+- [x] Replace local `Button` with `src/components/Button.tsx`.
+- [x] Replace local `Input` with `src/components/Input.tsx`.
+- [x] Replace local `Tag` with `src/components/Tag.tsx`.
+- [x] Replace local `Panel` with `src/components/Panel.tsx`.
+- [x] Replace local `Checkbox` with `src/components/Checkbox.tsx`.
+- [x] Replace local `Toggle` with `src/components/Toggle.tsx`.
+- [x] Replace local `CopyButton` with `src/components/CopyButton.tsx`.
+- [x] Replace local `CopyableLabel` with `src/components/CopyableLabel.tsx`.
+- [x] Replace local `StatusTag` with `src/components/StatusTag.tsx`.
+- [x] Remove unused local implementations after replacement.
+
+`Row`, `SearchInput`, `Popover`, `CodeBlock`, and conversation rendering remain sharp2-local because their semantics are not yet proven as shared APIs.
 
 ### 4) Tokenization (Base Palette)
 Replace hardcoded Tailwind colors with tokens throughout `index.tsx`.
@@ -65,20 +71,20 @@ Replace semantic Tailwind colors with shared tokens.
 
 ### 6) Focus and Accessibility
 Ensure focus-visible and a11y conventions match the style guide.
-- [~] Add `focus-visible` ring to icon-only buttons and toggles.
-  - Note: render toggle has a ring; remaining icon-only controls still need focus-visible.
-- [~] Provide `aria-label` for icon-only controls.
-  - Note: add labels for tool-call expand button, modal close button, and icon-only ghost button.
-- [~] Replace `focus:` background styles with `focus-visible:` on row-like controls.
-  - Note: search result rows still use `focus:` and need `focus-visible`.
-- [~] Ensure hover affordances also appear on focus-visible.
-  - Note: CopyableLabel now shows hover on focus; popover items still hover-only.
+- [x] Add `focus-visible` ring to icon-only buttons and toggles.
+  - Note: render toggles, tool-call collapse, modal close, and icon-only ghost buttons now have visible focus rings.
+- [x] Provide `aria-label` for icon-only controls.
+  - Note: tool-call collapse, modal close, and icon-only ghost buttons now expose accessible names.
+- [x] Replace `focus:` background styles with managed or `focus-visible` row states.
+  - Note: search result options are managed by the combobox input with `aria-activedescendant`; popover actions use `focus-visible`.
+- [x] Ensure hover affordances also appear on focus-visible.
+  - Note: CopyableLabel and Popover items now show visible focus affordances.
 - [x] Ensure `focus-within` rings on checkbox/toggle containers use tokenized ring and offset.
 
 ### 7) Overlay, Modal, and Popover
 - [x] Replace modal scrim `bg-slate-900/50` with `bg-[var(--overlay)]`.
 - [x] Ensure modal surface uses tokenized border and surface colors.
-- [ ] Ensure popover items have focus-visible states, not hover-only.
+- [x] Ensure popover items have focus-visible states, not hover-only.
 
 ### 8) Remove Legacy Token Block
 - [~] Delete the conceptual `tokens` object or replace it with a short comment pointing to shared tokens.
@@ -87,7 +93,7 @@ Ensure focus-visible and a11y conventions match the style guide.
 ### 9) Documentation Update
 Update the design narrative to match tokenized usage.
 - [x] Replace hardcoded Slate examples in `sharp2.txt` with token examples.
-- [ ] Mention `ArtifactThemeRoot` as the boundary requirement.
+- [x] Mention `ArtifactThemeRoot` as the boundary requirement.
 - [x] Update “forbidden” examples to show token-friendly equivalents.
 
 ### 10) Layout and Spacing Hygiene
@@ -100,7 +106,7 @@ Update the design narrative to match tokenized usage.
 - [ ] Tab through controls and confirm focus-visible rings are visible and unclipped.
 - [ ] Verify no UA outlines, rounded corners, or shadows appear.
 - [ ] Check that copy/hover/active states are still readable.
-- [ ] Run `rg -n "slate-|emerald-|amber-|red-|blue-|violet-" src/artifacts/sharp2/index.tsx` to confirm no legacy colors remain.
+- [ ] Run `rg -n "\\b(?:bg|text|border|ring|divide|from|via|to|accent|caret|decoration|outline|placeholder)-(?:slate|emerald|amber|red|blue|violet)-" src/artifacts/sharp2 -g '*.{ts,tsx,css}'` to confirm no legacy Tailwind colors remain.
 
 ## Notes
 - If you add `sharp2.css`, keep it minimal and scoped to role tokens.

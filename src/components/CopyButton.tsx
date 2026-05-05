@@ -8,7 +8,7 @@ export type CopyButtonHandle = {
   copy: () => void;
 };
 
-type CopyButtonProps = {
+export type CopyButtonProps = {
   text: string;
   idleLabel?: string;
   ariaLabel?: string;
@@ -66,9 +66,11 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
         ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
         : [
             'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]',
-            'hover:border-[color:var(--copy-hover-border)] hover:bg-[var(--copy-hover-bg)] hover:text-[var(--copy-hover-text)]',
-            'active:bg-[var(--copy-hover-bg)]',
-          ].join(' ');
+            !disabled &&
+              'hover:border-[color:var(--copy-hover-border)] hover:bg-[var(--copy-hover-bg)] hover:text-[var(--copy-hover-text)]',
+          ]
+            .filter(Boolean)
+            .join(' ');
 
   return (
     <button
@@ -78,10 +80,12 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
       disabled={disabled}
       aria-label={resolvedAriaLabel}
       className={[
-        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none cursor-pointer',
+        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none',
         'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
         'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        'disabled:opacity-40 disabled:pointer-events-none',
+        disabled
+          ? 'opacity-40 cursor-not-allowed'
+          : 'cursor-pointer hover:bg-[var(--copy-hover-bg)] active:bg-[var(--copy-hover-bg)]',
         tone,
         className,
       ]

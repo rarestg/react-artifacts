@@ -32,6 +32,13 @@ test('Palette Lab uses generated max chroma instead of a chroma slider', async (
   assert.match(markup, /oklch\(L 0\.205 h\)/);
 });
 
+test('Palette Lab does not render an internal light or dark theme toggle', async () => {
+  const markup = await renderPaletteLab();
+
+  assert.doesNotMatch(markup, />Light<\/button>/);
+  assert.doesNotMatch(markup, />Dark<\/button>/);
+});
+
 test('Palette Lab hue labels fall back to index labels when missing', async () => {
   const { getPaletteCardLabel } = await import('../../src/artifacts/palette-lab');
 

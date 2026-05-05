@@ -5,6 +5,7 @@ import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
 import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import Checkbox from './components/Checkbox';
 import CopyButton, { type CopyButtonHandle } from './components/CopyButton';
 import PathList from './components/PathList';
@@ -197,10 +198,7 @@ export default function JsonlStructureViewer() {
     if (typeof window === 'undefined') return THREE_COLUMN_MIN_WIDTH;
     return window.innerWidth;
   });
-  const [isDarkTheme, setIsDarkTheme] = useState(() => {
-    if (typeof document === 'undefined') return false;
-    return document.documentElement.classList.contains('dark');
-  });
+  const isDarkTheme = useRootDarkMode();
 
   const [selection, setSelection] = useLocalStorageState<Record<string, boolean>>(`${STORAGE_PREFIX}-selection`, {});
   const [expandedPaths, setExpandedPaths] = useLocalStorageState<Record<string, boolean>>(
@@ -342,18 +340,6 @@ export default function JsonlStructureViewer() {
       }
     };
   }, [logPanelMetrics]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const root = document.documentElement;
-    const updateTheme = () => {
-      setIsDarkTheme(root.classList.contains('dark'));
-    };
-    updateTheme();
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

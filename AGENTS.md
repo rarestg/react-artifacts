@@ -16,6 +16,7 @@ Start with `README.md`. It is the main orientation doc for the stack, repo map, 
 ## Working Notes
 
 - Read before editing. Check file length first, then read the whole relevant file or doc when practical. For long files, read enough surrounding context to understand ownership, data flow, and local patterns before patching.
+- Use `wc -l <file>` before reading a file so you know its total length; when reading in `sed` chunks, use that count to plan all chunks and confirm you reached the real end instead of stopping early.
 - Delegate with fresh context. For substantive delegated work, prefer a new worker with `fork_context: false`; give it the goal, relevant files, constraints, ownership boundaries, and expected outputs. When model choice is available and the task is complex, prefer `gpt-5.5` with `xhigh` reasoning.
 - Keep changes scoped. Avoid mixing unrelated cleanup into feature work; call out unrelated dirty files instead of normalizing them silently.
 - Follow the design docs for UI choices. `design/SHARP_MINIMAL_DESIGN.md` and `design/ARTIFACT_DESIGN_GUIDE.md` are the source of truth for geometry, layout, focus, and interaction details.

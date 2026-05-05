@@ -1,5 +1,6 @@
 import { Copy } from 'lucide-react';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type CopyButtonStatus = 'idle' | 'copied' | 'failed';
@@ -64,13 +65,11 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
       ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
       : status === 'failed'
         ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
-        : [
+        : mergeClassNames(
             'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]',
             !disabled &&
               'hover:border-[color:var(--copy-hover-border)] hover:bg-[var(--copy-hover-bg)] hover:text-[var(--copy-hover-text)]',
-          ]
-            .filter(Boolean)
-            .join(' ');
+          );
 
   return (
     <button
@@ -79,7 +78,7 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
       onClick={handleCopy}
       disabled={disabled}
       aria-label={resolvedAriaLabel}
-      className={[
+      className={mergeClassNames(
         'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2 py-1 text-[11px] font-medium border transition-colors motion-reduce:transition-none',
         'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
         'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
@@ -88,9 +87,7 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
           : 'cursor-pointer hover:bg-[var(--copy-hover-bg)] active:bg-[var(--copy-hover-bg)]',
         tone,
         className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      )}
     >
       {showIcon && <Copy className="w-3 h-3 shrink-0" />}
       {idleLabel && (

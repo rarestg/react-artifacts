@@ -5,6 +5,7 @@ import { Checkbox } from '../../components/Checkbox';
 import { CopyableLabel } from '../../components/CopyableLabel';
 import { Toggle } from '../../components/Toggle';
 import { useRovingFocus } from '../../hooks/useRovingFocus';
+import { mergeClassNames } from '../../lib/classNames';
 
 const sampleResults = [
   { title: 'Artifact sync', subtitle: 'queue/worker-02', meta: '00:42' },
@@ -17,10 +18,10 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
 
   const focusClasses =
     variant === 'current'
-      ? [
+      ? mergeClassNames(
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1',
           'focus-visible:ring-offset-[color:var(--surface)]',
-        ].join(' ')
+        )
       : 'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ring)] focus-visible:outline-offset-2';
 
   const inputClasses =
@@ -39,12 +40,10 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
         </span>
       )}
       <div
-        className={[
+        className={mergeClassNames(
           'flex w-full flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-4',
           chosenRingClasses,
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        )}
       >
         <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
           {variant === 'current' ? 'Current (ring)' : 'Proposed (outline)'}
@@ -63,26 +62,22 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
         </div>
         <button
           type="button"
-          className={[
+          className={mergeClassNames(
             'inline-flex items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)]',
             'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-            variant === 'proposed' ? 'focus-visible:bg-[var(--surface-muted)]' : '',
+            variant === 'proposed' && 'focus-visible:bg-[var(--surface-muted)]',
             focusClasses,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
         >
           Primary action
         </button>
         <button
           type="button"
-          className={[
+          className={mergeClassNames(
             'inline-flex items-center justify-center border border-[var(--primary)] bg-[var(--primary)] px-3 py-2 text-sm font-medium text-[var(--primary-contrast)]',
             'hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]',
             focusClasses,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
         >
           Primary filled
         </button>
@@ -110,12 +105,10 @@ function SearchResultsDemo({ variant }: { variant: 'current' | 'proposed' }) {
         </span>
       )}
       <div
-        className={[
+        className={mergeClassNames(
           'flex w-full flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-4',
           chosenRingClasses,
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        )}
       >
         <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
           {variant === 'current' ? 'Search rows (current)' : 'Search rows (focus-visible)'}
@@ -135,15 +128,13 @@ function SearchResultsDemo({ variant }: { variant: 'current' | 'proposed' }) {
               {...roving.getItemProps(index)}
               type="button"
               onClick={() => setSelectedIndex(index)}
-              className={[
+              className={mergeClassNames(
                 'w-full text-left px-3 py-2 flex items-center gap-3 cursor-pointer border-l-2',
                 index === selectedIndex ? 'border-l-[var(--accent)] bg-[var(--surface-muted)]' : 'border-l-transparent',
                 'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
                 index < sampleResults.length - 1 && 'border-b border-[color:var(--border)]',
                 focusClasses,
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              )}
             >
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-[var(--text)] truncate">{result.title}</div>
@@ -180,11 +171,7 @@ function CompareCard({
   const labelTone = badgeTone ?? (variant === 'current' ? 'text-[var(--text-muted)]' : 'text-[var(--success)]');
 
   return (
-    <div
-      className={['border border-[var(--border)] bg-[var(--surface)] p-4 space-y-3', className]
-        .filter(Boolean)
-        .join(' ')}
-    >
+    <div className={mergeClassNames('border border-[var(--border)] bg-[var(--surface)] p-4 space-y-3', className)}>
       <div className="flex items-baseline justify-between">
         <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">{title}</div>
         <div className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${labelTone}`}>{label}</div>
@@ -220,15 +207,13 @@ function SearchOptionFocusCompare({ variant }: { variant: 'current' | 'compliant
           {...roving.getItemProps(index)}
           type="button"
           onClick={() => setSelectedIndex(index)}
-          className={[
+          className={mergeClassNames(
             'w-full text-left px-3 py-2 flex items-center gap-3 cursor-pointer border-l-2',
             index === selectedIndex ? 'border-l-[var(--accent)] bg-[var(--surface-muted)]' : 'border-l-transparent',
             'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
             index < sampleResults.length - 1 && 'border-b border-[color:var(--border)]',
             focusClasses,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
         >
           <div className="flex-1 min-w-0">
             <div className="text-sm text-[var(--text)] truncate">{result.title}</div>
@@ -268,13 +253,11 @@ function PopoverItemFocusCompare({ variant }: { variant: 'current' | 'compliant'
           key={label}
           {...roving.getItemProps(index)}
           type="button"
-          className={[
+          className={mergeClassNames(
             'w-full text-left px-3 py-2 text-sm cursor-pointer focus:outline-none',
             getItemStates(label),
             index < 2 && 'border-b border-[color:var(--border)]',
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
         >
           {label}
         </button>
@@ -287,10 +270,10 @@ function ToolCallToggleCompare({ variant }: { variant: 'current' | 'compliant' }
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : [
+      : mergeClassNames(
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
           'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        ].join(' ');
+        );
   const buttonSize = variant === 'current' ? 'w-6 h-6' : 'w-7 h-7';
 
   return (
@@ -303,14 +286,12 @@ function ToolCallToggleCompare({ variant }: { variant: 'current' | 'compliant' }
         <button
           type="button"
           aria-label="Toggle tool call details"
-          className={[
+          className={mergeClassNames(
             'inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)]',
             'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
             buttonSize,
             buttonFocus,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
         >
           <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
@@ -324,10 +305,10 @@ function RenderToggleCompare({ variant }: { variant: 'current' | 'compliant' }) 
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : [
+      : mergeClassNames(
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
           'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        ].join(' ');
+        );
 
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)]">
@@ -335,14 +316,12 @@ function RenderToggleCompare({ variant }: { variant: 'current' | 'compliant' }) 
         <div className="text-xs font-semibold text-[var(--text)]">Assistant</div>
         <button
           type="button"
-          className={[
+          className={mergeClassNames(
             'px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]',
             'hover:text-[var(--text)] hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
             'cursor-pointer transition-colors',
             buttonFocus,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
         >
           Rendered
         </button>
@@ -363,24 +342,22 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
     return (
       <div className="flex flex-col gap-2">
         <button
-          className={[
+          className={mergeClassNames(
             'flex h-8 items-center gap-2 cursor-pointer select-none px-2 py-1 border border-[var(--border)] bg-[var(--surface)] transition-colors rounded-none focus:outline-none',
             'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
           type="button"
           aria-pressed={currentEnabled}
           onClick={() => setCurrentEnabled((prev) => !prev)}
         >
           <span
             aria-hidden="true"
-            className={[
+            className={mergeClassNames(
               'w-3.5 h-3.5 shrink-0 border transition-colors',
               currentEnabled
                 ? 'border-[var(--primary)] bg-[var(--primary)]'
                 : 'border-[var(--border-strong)] bg-[var(--surface)]',
-            ].join(' ')}
+            )}
           />
           <span className="text-xs text-[var(--text-muted)]">Tool Calls</span>
           <span className="text-[10px] font-medium text-[var(--text-muted)] bg-[var(--surface-strong)] px-1.5 py-0.5 tabular-nums">
@@ -399,10 +376,10 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         checked={toolCallsContained}
         onCheckedChange={setToolCallsContained}
         focusTarget="container"
-        className={[
+        className={mergeClassNames(
           'w-full h-8 gap-2 border border-[var(--border)] bg-[var(--surface)] rounded-none px-2 py-1',
           'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-        ].join(' ')}
+        )}
         labelClassName="text-xs text-[var(--text-muted)]"
         suffix={
           <span className="ml-auto text-[10px] font-medium text-[var(--text-muted)] bg-[var(--surface-strong)] px-1.5 py-0.5 tabular-nums">
@@ -423,10 +400,10 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         checked={streamingContained}
         onCheckedChange={setStreamingContained}
         focusTarget="container"
-        className={[
+        className={mergeClassNames(
           'gap-2 border border-[var(--border)] bg-[var(--surface)] px-2 py-1 rounded-none h-8',
           'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-        ].join(' ')}
+        )}
         labelClassName="text-xs text-[var(--text-muted)]"
       />
       <Toggle
@@ -453,21 +430,21 @@ function IconOnlyButtonCompare({ variant }: { variant: 'current' | 'compliant' }
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : [
+      : mergeClassNames(
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
           'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        ].join(' ');
+        );
 
   return (
     <div className="space-y-2">
       <button
         type="button"
         aria-label={variant === 'compliant' ? 'Copy to clipboard' : undefined}
-        className={[
+        className={mergeClassNames(
           'inline-flex items-center justify-center w-8 h-8 border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)]',
           'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] cursor-pointer',
           buttonFocus,
-        ].join(' ')}
+        )}
       >
         [ ]{variant === 'compliant' && <span className="sr-only">Copy to clipboard</span>}
       </button>
@@ -488,11 +465,11 @@ function RingColorCompare({ variant }: { variant: 'current' | 'compliant' }) {
     <div className="inline-flex items-center gap-3">
       <button
         type="button"
-        className={[
+        className={mergeClassNames(
           'inline-flex items-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--text)]',
           'rounded-none focus:outline-none',
           ringClasses,
-        ].join(' ')}
+        )}
       >
         <span className="w-2 h-2 border border-[var(--border-strong)] bg-[var(--surface)]" aria-hidden="true" />
         Selected
@@ -509,7 +486,7 @@ function ScrimTokenCompare({ variant }: { variant: 'current' | 'compliant' }) {
     <div className="border border-[var(--border)] bg-[var(--surface)] p-3 space-y-2">
       <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Modal scrim</div>
       <div className="relative h-20 border border-[var(--border)] bg-[var(--surface-muted)]">
-        <div className={['absolute inset-0', overlayClass].join(' ')} />
+        <div className={mergeClassNames('absolute inset-0', overlayClass)} />
         <div className="absolute inset-0 flex items-center justify-center text-xs text-[var(--surface)] dark:text-[var(--text)]">
           Overlay
         </div>

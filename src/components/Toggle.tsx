@@ -1,4 +1,5 @@
 import { type KeyboardEvent, type ReactNode, useRef } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type ToggleProps = {
@@ -46,23 +47,21 @@ export function Toggle({
   const knobTone = checked ? 'bg-[var(--toggle-knob-on-bg)]' : 'bg-[var(--toggle-knob-off-bg)]';
   const trackFocus =
     focusTarget === 'track'
-      ? [
+      ? mergeClassNames(
           'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)]',
           'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]',
-        ].join(' ')
+        )
       : '';
 
   return (
     <label
       ref={rootRef}
-      className={[
+      className={mergeClassNames(
         'inline-flex items-center gap-3 select-none py-1',
-        focusTarget === 'container' ? 'relative' : '',
+        focusTarget === 'container' && 'relative',
         disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      )}
     >
       <input
         type="checkbox"
@@ -80,7 +79,7 @@ export function Toggle({
       )}
       <span
         data-state={checked ? 'on' : 'off'}
-        className={[
+        className={mergeClassNames(
           'sharp-toggle transition-colors motion-reduce:transition-none',
           trackFocus,
           checked
@@ -88,17 +87,11 @@ export function Toggle({
             : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]',
           trackTone,
           trackClassName,
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        )}
       >
-        <span className={['sharp-toggle__knob', knobTone, knobClassName].filter(Boolean).join(' ')} />
+        <span className={mergeClassNames('sharp-toggle__knob', knobTone, knobClassName)} />
       </span>
-      <span
-        className={['relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName]
-          .filter(Boolean)
-          .join(' ')}
-      >
+      <span className={mergeClassNames('relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName)}>
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {resolvedReserveLabel}
         </span>

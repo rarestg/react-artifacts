@@ -7,6 +7,7 @@ import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Checkbox } from '../../components/Checkbox';
 import { CopyButton } from '../../components/CopyButton';
+import { mergeClassNames } from '../../lib/classNames';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import {
   getPromptTag,
@@ -132,11 +133,11 @@ export default function PromptLibrary() {
               aria-label={`Search (${searchShortcutHint.label})`}
               aria-keyshortcuts="Meta+K Control+K"
               onClick={openSearchPalette}
-              className={[
+              className={mergeClassNames(
                 'inline-flex h-9 items-center gap-2 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)]',
                 'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
                 focusClass,
-              ].join(' ')}
+              )}
             >
               <Search className="h-4 w-4" aria-hidden="true" />
               Search
@@ -162,7 +163,10 @@ export default function PromptLibrary() {
         </header>
 
         <main className="flex flex-1 flex-col gap-4 p-4">
-          <section className={['flex flex-wrap items-center gap-2 p-3', panelClass].join(' ')} aria-label="Prompt tags">
+          <section
+            className={mergeClassNames('flex flex-wrap items-center gap-2 p-3', panelClass)}
+            aria-label="Prompt tags"
+          >
             {promptTags.map((tag) => {
               const checked = selectedTags.includes(tag.id);
               const tagColorStyle = getPromptTagColorStyle(tag.color);
@@ -181,21 +185,21 @@ export default function PromptLibrary() {
                   label={tag.label}
                   suffix={
                     <span
-                      className={[
+                      className={mergeClassNames(
                         'font-mono text-[10px] tabular-nums',
                         checked ? 'text-[var(--text)]' : 'text-[var(--text-muted)]',
-                      ].join(' ')}
+                      )}
                     >
                       {count}
                     </span>
                   }
                   style={tagColorStyle}
-                  className={[
+                  className={mergeClassNames(
                     'border px-2 text-xs',
                     checked
                       ? 'border-[color:var(--prompt-tag-color)] bg-[var(--prompt-tag-color-weak)]'
                       : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-muted)]',
-                  ].join(' ')}
+                  )}
                   labelClassName="text-xs"
                   checkClassName="text-[var(--surface)]"
                 />
@@ -210,7 +214,7 @@ export default function PromptLibrary() {
               ))}
             </section>
           ) : (
-            <section className={['p-6 text-sm text-[var(--text-muted)]', panelClass].join(' ')}>
+            <section className={mergeClassNames('p-6 text-sm text-[var(--text-muted)]', panelClass)}>
               No prompts match the selected tags.
             </section>
           )}
@@ -245,15 +249,15 @@ export default function PromptLibrary() {
 
 function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: HTMLElement) => void }) {
   return (
-    <article className={['flex min-h-56 flex-col gap-4 p-4', panelClass].join(' ')}>
+    <article className={mergeClassNames('flex min-h-56 flex-col gap-4 p-4', panelClass)}>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <button
           type="button"
           onClick={(event) => onOpen(event.currentTarget)}
-          className={[
+          className={mergeClassNames(
             'min-w-0 cursor-pointer text-left text-sm font-semibold text-[var(--text)] underline-offset-2 transition-colors hover:underline active:text-[var(--text-muted)] motion-reduce:transition-none',
             focusClass,
-          ].join(' ')}
+          )}
         >
           {prompt.title}
         </button>
@@ -319,10 +323,10 @@ function PromptCommandPalette({
             key={result.prompt.id}
             value={result.prompt.id}
             onSelect={() => onSelectResult(result)}
-            className={[
+            className={mergeClassNames(
               'cursor-pointer border border-transparent p-3 text-left outline-none',
               'data-[selected=true]:border-[var(--border-strong)] data-[selected=true]:bg-[var(--surface-muted)]',
-            ].join(' ')}
+            )}
           >
             <PromptSearchResultItem result={result} query={query} />
           </Command.Item>
@@ -369,12 +373,12 @@ function PromptTags({
           <span
             key={tag.id}
             style={tagColorStyle}
-            className={[
+            className={mergeClassNames(
               'inline-flex items-center gap-1.5 border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em]',
               highlighted
                 ? 'border-[color:var(--prompt-tag-color)] bg-[var(--surface-muted)] text-[var(--text)]'
                 : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
-            ].join(' ')}
+            )}
           >
             <span className="h-1.5 w-1.5 shrink-0 rounded-none bg-[var(--prompt-tag-color)]" aria-hidden="true" />
             {tag.label}

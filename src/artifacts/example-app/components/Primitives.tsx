@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { mergeClassNames } from '../../../lib/classNames';
 
 type ButtonVariant = 'default' | 'primary' | 'ghost';
 type ButtonSize = 'sm' | 'md';
@@ -42,15 +43,13 @@ export function Button({ variant = 'default', size = 'md', className, ...props }
   return (
     <button
       type="button"
-      className={[
+      className={mergeClassNames(
         'inline-flex items-center gap-2 font-medium transition-colors motion-reduce:transition-none cursor-pointer',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         buttonVariants[variant],
         buttonSizes[size],
         className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      )}
       {...props}
     />
   );
@@ -63,7 +62,7 @@ export function Panel({ children, variant = 'default', className }: PanelProps) 
     dashed: 'border border-dashed border-[var(--border-strong)] bg-[var(--surface)]',
   };
 
-  return <div className={[variants[variant], className].filter(Boolean).join(' ')}>{children}</div>;
+  return <div className={mergeClassNames(variants[variant], className)}>{children}</div>;
 }
 
 export function Tag({ children, variant = 'base', className }: TagProps) {
@@ -75,9 +74,11 @@ export function Tag({ children, variant = 'base', className }: TagProps) {
 
   return (
     <span
-      className={['inline-flex items-center px-2 py-0.5 text-[11px] font-medium', variants[variant], className]
-        .filter(Boolean)
-        .join(' ')}
+      className={mergeClassNames(
+        'inline-flex items-center px-2 py-0.5 text-[11px] font-medium',
+        variants[variant],
+        className,
+      )}
     >
       {children}
     </span>

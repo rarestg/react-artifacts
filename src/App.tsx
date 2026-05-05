@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { type ArtifactEntry, artifacts } from './artifacts';
 import { ArtifactListItem } from './components/ArtifactListItem';
+import { mergeClassNames } from './lib/classNames';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
 type DeviceOrientation = 'portrait' | 'landscape';
@@ -405,14 +406,12 @@ export default function App() {
               type="button"
               aria-pressed={theme === 'light'}
               onClick={() => setTheme('light')}
-              className={[
+              className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 theme === 'light'
                   ? 'border-gray-900 bg-white text-gray-900'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              )}
             >
               <span className="inline-flex items-center gap-1.5">
                 <Sun className="h-3.5 w-3.5" aria-hidden="true" />
@@ -423,14 +422,12 @@ export default function App() {
               type="button"
               aria-pressed={theme === 'system'}
               onClick={() => setTheme('system')}
-              className={[
+              className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 theme === 'system'
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              )}
             >
               <span className="inline-flex items-center gap-1.5">
                 <Monitor className="h-3.5 w-3.5" aria-hidden="true" />
@@ -441,14 +438,12 @@ export default function App() {
               type="button"
               aria-pressed={theme === 'dark'}
               onClick={() => setTheme('dark')}
-              className={[
+              className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 theme === 'dark'
                   ? 'border-slate-100 bg-slate-800 text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              )}
             >
               <span className="inline-flex items-center gap-1.5">
                 <Moon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -466,14 +461,12 @@ export default function App() {
               type="button"
               aria-pressed={devicePreview === 'iphone'}
               onClick={() => setDevicePreview((prev) => (prev === 'iphone' ? 'none' : 'iphone'))}
-              className={[
+              className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 devicePreview === 'iphone'
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              )}
             >
               <span className="inline-flex items-center gap-1.5">
                 <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
@@ -484,14 +477,12 @@ export default function App() {
               type="button"
               aria-pressed={devicePreview === 'ipad'}
               onClick={() => setDevicePreview((prev) => (prev === 'ipad' ? 'none' : 'ipad'))}
-              className={[
+              className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 devicePreview === 'ipad'
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              )}
             >
               <span className="inline-flex items-center gap-1.5">
                 <Tablet className="h-3.5 w-3.5" aria-hidden="true" />
@@ -505,15 +496,13 @@ export default function App() {
               aria-pressed={deviceOrientation === 'portrait'}
               onClick={() => setDeviceOrientation('portrait')}
               disabled={!isDevicePreviewActive}
-              className={[
+              className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 deviceOrientation === 'portrait' && isDevicePreviewActive
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
-                !isDevicePreviewActive ? 'cursor-not-allowed opacity-50' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+                !isDevicePreviewActive && 'cursor-not-allowed opacity-50',
+              )}
             >
               <span className="inline-flex items-center gap-1.5">
                 <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />
@@ -525,15 +514,13 @@ export default function App() {
               aria-pressed={deviceOrientation === 'landscape'}
               onClick={() => setDeviceOrientation('landscape')}
               disabled={!isDevicePreviewActive}
-              className={[
+              className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 deviceOrientation === 'landscape' && isDevicePreviewActive
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
-                !isDevicePreviewActive ? 'cursor-not-allowed opacity-50' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+                !isDevicePreviewActive && 'cursor-not-allowed opacity-50',
+              )}
             >
               <span className="inline-flex items-center gap-1.5">
                 <RectangleHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
@@ -561,23 +548,19 @@ export default function App() {
         onTouchStart={handleTouchStart}
         onDoubleClick={handleResetWidth}
         onKeyDown={handleHandleKeyDown}
-        className={[
+        className={mergeClassNames(
           'm-0 h-auto w-2 self-stretch cursor-col-resize border-0 border-r border-gray-200 bg-gray-50 touch-none',
           'hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
           'dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-700 dark:focus-visible:ring-offset-slate-950',
-          isDragging ? 'bg-gray-300 dark:bg-slate-700' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
+          isDragging && 'bg-gray-300 dark:bg-slate-700',
+        )}
       />
       <main
         ref={mainRef}
-        className={[
+        className={mergeClassNames(
           'relative flex-1 min-w-0 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]',
-          isDevicePreviewActive ? 'flex items-center justify-center' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
+          isDevicePreviewActive && 'flex items-center justify-center',
+        )}
       >
         {canvasSize.width > 0 && (
           <button

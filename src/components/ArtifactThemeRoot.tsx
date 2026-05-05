@@ -1,4 +1,5 @@
 import { createContext, forwardRef, type HTMLAttributes, useContext, useEffect } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 
 const ArtifactThemeContext = createContext(false);
 const warnedComponents = new Set<string>();
@@ -9,7 +10,7 @@ export const ArtifactThemeRoot = forwardRef<HTMLDivElement, HTMLAttributes<HTMLD
 ) {
   return (
     <ArtifactThemeContext.Provider value={true}>
-      <div ref={ref} className={['artifact-theme', className].filter(Boolean).join(' ')} {...props} />
+      <div ref={ref} className={mergeClassNames('artifact-theme', className)} {...props} />
     </ArtifactThemeContext.Provider>
   );
 });

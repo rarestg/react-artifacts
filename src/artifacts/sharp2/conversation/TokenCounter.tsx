@@ -1,4 +1,5 @@
 import { CopyButton } from '../../../components/CopyButton';
+import { mergeClassNames } from '../../../lib/classNames';
 
 export type TokenCounterProps = {
   used: number;
@@ -58,14 +59,14 @@ export function TokenCounter({ used, limit, label = 'Context Window' }: TokenCou
             <span className="text-[var(--text-subtle)]">]</span>
           </div>
           <span
-            className={[
+            className={mergeClassNames(
               'tabular-nums',
               percentage !== null && percentage > 90
                 ? 'text-[var(--danger)]'
                 : percentage !== null && percentage > 75
                   ? 'text-[var(--warning)]'
                   : 'text-[var(--text-muted)]',
-            ].join(' ')}
+            )}
           >
             {percentageText}
           </span>

@@ -8,6 +8,7 @@ import {
   useId,
   useState,
 } from 'react';
+import { mergeClassNames } from '../../../lib/classNames';
 
 export type SearchResult = {
   id?: string;
@@ -114,11 +115,11 @@ export function SearchInput({
           aria-expanded={showDropdown}
           aria-controls={listboxId}
           aria-activedescendant={activeOptionId}
-          className={[
+          className={mergeClassNames(
             'h-9 w-full border bg-[var(--surface)] pl-9 pr-3 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)]',
             'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
             'border-[var(--border)]',
-          ].join(' ')}
+          )}
         />
       </div>
 
@@ -141,13 +142,11 @@ export function SearchInput({
                   event.preventDefault();
                   onSelect?.(result);
                 }}
-                className={[
+                className={mergeClassNames(
                   'flex w-full cursor-pointer items-center gap-3 border-b border-l-2 border-b-[color:var(--border)] px-3 py-2 text-left last:border-b-0',
                   'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]',
                   activeIndex === index ? 'border-l-[var(--accent)] bg-[var(--surface-muted)]' : 'border-l-transparent',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                )}
               >
                 {result.icon && <span className="shrink-0 text-[var(--text-subtle)]">{result.icon}</span>}
                 <div className="min-w-0 flex-1">

@@ -1,5 +1,6 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
+import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type ListboxOption<T extends string> = {
@@ -155,7 +156,7 @@ export function ListboxSelect<T extends string>({
     activeIndex >= 0 && activeIndex < options.length ? `${listboxId}-option-${activeIndex}` : undefined;
 
   return (
-    <div ref={containerRef} className={['relative', className].filter(Boolean).join(' ')}>
+    <div ref={containerRef} className={mergeClassNames('relative', className)}>
       <button
         id={id}
         ref={triggerRef}
@@ -165,13 +166,11 @@ export function ListboxSelect<T extends string>({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        className={[
+        className={mergeClassNames(
           'flex h-9 w-full items-center justify-between gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)]',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
           triggerClassName,
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        )}
       >
         <span className="truncate">{selectedOption?.label ?? 'Select'}</span>
         <span className="text-[var(--text-muted)]">▾</span>
@@ -185,13 +184,11 @@ export function ListboxSelect<T extends string>({
           aria-activedescendant={activeOptionId}
           ref={listboxRef}
           onKeyDown={handleListboxKeyDown}
-          className={[
+          className={mergeClassNames(
             'absolute left-0 right-0 top-full z-10 mt-1 border border-[var(--border)] bg-[var(--surface)]',
             'focus:outline-none',
             listboxClassName,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          )}
         >
           {options.map((option, index) => {
             const isActive = index === activeIndex;
@@ -210,15 +207,13 @@ export function ListboxSelect<T extends string>({
                 onMouseEnter={() => setActiveIndex(index)}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => selectIndex(index)}
-                className={[
+                className={mergeClassNames(
                   'flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm cursor-pointer',
                   'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-muted)]',
                   isActive && 'bg-[var(--surface-muted)]',
                   isSelected && 'border-l-2 border-l-[var(--accent)] pl-[calc(0.75rem-2px)]',
                   optionClassName,
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                )}
               >
                 <span className="truncate">{option.label}</span>
                 {isSelected && (

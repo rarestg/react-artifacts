@@ -3,6 +3,7 @@ import { type ReactNode, useId, useMemo, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
 import StatusTag from '../../components/StatusTag';
+import { mergeClassNames } from '../../lib/classNames';
 
 // ---------------------------------------------------------------------------
 // Transform functions (pure, testable)
@@ -261,19 +262,19 @@ const panelHeaderRowClass =
 
 const panelHeaderSubtitleClass = 'flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--text-muted)]';
 
-const headerActionClass = [
+const headerActionClass = mergeClassNames(
   'px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em]',
   'border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
   'hover:bg-[var(--surface-strong)]',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
   'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:bg-[var(--surface)]',
-].join(' ');
+);
 
-const segmentBase = [
+const segmentBase = mergeClassNames(
   'h-8 px-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
   'relative focus-visible:z-10',
-].join(' ');
+);
 
 const segmentActive = 'bg-[var(--accent-weak)] text-[var(--accent)]';
 const segmentInactive = 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]';
@@ -354,7 +355,7 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={direction === 'unescape'}
                     onClick={() => setDirection('unescape')}
-                    className={[segmentBase, direction === 'unescape' ? segmentActive : segmentInactive].join(' ')}
+                    className={mergeClassNames(segmentBase, direction === 'unescape' ? segmentActive : segmentInactive)}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -367,7 +368,7 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={direction === 'escape'}
                     onClick={() => setDirection('escape')}
-                    className={[segmentBase, direction === 'escape' ? segmentActive : segmentInactive].join(' ')}
+                    className={mergeClassNames(segmentBase, direction === 'escape' ? segmentActive : segmentInactive)}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -391,7 +392,7 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={wrapOutput}
                     onClick={() => setWrapOutput(true)}
-                    className={[segmentBase, wrapOutput ? segmentActive : segmentInactive].join(' ')}
+                    className={mergeClassNames(segmentBase, wrapOutput ? segmentActive : segmentInactive)}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -404,7 +405,7 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={!wrapOutput}
                     onClick={() => setWrapOutput(false)}
-                    className={[segmentBase, !wrapOutput ? segmentActive : segmentInactive].join(' ')}
+                    className={mergeClassNames(segmentBase, !wrapOutput ? segmentActive : segmentInactive)}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -449,12 +450,12 @@ export default function MessageUnescaper() {
                   spellCheck={false}
                   wrap={wrapOutput ? 'soft' : 'off'}
                   rows={16}
-                  className={[
+                  className={mergeClassNames(
                     'w-full min-h-[320px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)]',
                     'placeholder:text-[var(--text-subtle)]',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                     wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
-                  ].join(' ')}
+                  )}
                 />
               </div>
             </div>
@@ -490,11 +491,11 @@ export default function MessageUnescaper() {
                         aria-pressed={showDashBreaks}
                         onClick={() => setShowDashBreaks(true)}
                         disabled={showDashBreaksDisabled}
-                        className={[
+                        className={mergeClassNames(
                           segmentBase,
                           showDashBreaks ? segmentActive : segmentInactive,
                           'disabled:opacity-40 disabled:pointer-events-none',
-                        ].join(' ')}
+                        )}
                       >
                         <span className="relative inline-grid">
                           <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -508,11 +509,11 @@ export default function MessageUnescaper() {
                         aria-pressed={!showDashBreaks}
                         onClick={() => setShowDashBreaks(false)}
                         disabled={showDashBreaksDisabled}
-                        className={[
+                        className={mergeClassNames(
                           segmentBase,
                           !showDashBreaks ? segmentActive : segmentInactive,
                           'disabled:opacity-40 disabled:pointer-events-none',
-                        ].join(' ')}
+                        )}
                       >
                         <span className="relative inline-grid">
                           <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -530,11 +531,11 @@ export default function MessageUnescaper() {
                       disabled={!output || (!replaceDashBreaks && dashBreakCount === 0)}
                       aria-label={replaceDashBreaksTooltip}
                       aria-pressed={replaceDashBreaks}
-                      className={[
+                      className={mergeClassNames(
                         'inline-flex cursor-pointer border-0 bg-transparent p-0',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                         'disabled:opacity-40 disabled:pointer-events-none',
-                      ].join(' ')}
+                      )}
                     >
                       <StatusTag
                         label="Replace With Periods"
@@ -554,10 +555,10 @@ export default function MessageUnescaper() {
                 <div className="w-full min-h-[320px] max-h-[80vh] overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
                   {output ? (
                     <pre
-                      className={[
+                      className={mergeClassNames(
                         'font-mono text-xs text-[var(--text)] leading-relaxed',
                         wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
-                      ].join(' ')}
+                      )}
                     >
                       {outputDisplay}
                     </pre>

@@ -30,7 +30,8 @@ test('Palette Lab uses profile chroma instead of a chroma slider', async () => {
 
   assert.doesNotMatch(markup, /Base chroma/);
   assert.match(markup, /profile oklch\(L C h\)/);
-  assert.match(markup, /max C<\/span> 0\.205/);
+  assert.doesNotMatch(markup, /max C<\/span> 0\.205/);
+  assert.match(markup, /palette max C<\/span> 0\.186/);
 });
 
 test('Palette Lab does not render an internal light or dark theme toggle', async () => {

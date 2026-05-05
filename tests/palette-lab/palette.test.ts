@@ -9,7 +9,7 @@ import {
   makeGeneratedPalette,
 } from '../../src/artifacts/palette-lab/palette';
 
-test('makeGeneratedPalette maps rotation through the hue-aware profile', () => {
+test('makeGeneratedPalette keeps core categories ordered by rotation', () => {
   const colors = makeGeneratedPalette({
     count: 4,
     hueOffset: 220,
@@ -21,15 +21,41 @@ test('makeGeneratedPalette maps rotation through the hue-aware profile', () => {
   });
 
   assert.deepEqual(
+    colors.map((color) => color.profilePosition),
+    [220, 0, 60, 120],
+  );
+  assert.deepEqual(
     colors.map((color) => color.hue),
-    [220, 314.4, 65.7, 148.7],
+    [220, 18.3, 94.5, 142],
   );
   assert.equal(colors[0].strongColor, 'oklch(64% 0.16 220)');
 });
 
-test('makeGeneratedPalette includes a true yellow in the default 7 color palette', () => {
+test('makeGeneratedPalette includes a true yellow in common default palettes', () => {
+  for (const count of [7, 8, 10, 12]) {
+    const colors = makeGeneratedPalette({
+      count,
+      hueOffset: 220,
+      lightStrongL: 60,
+      darkLift: 18,
+      weakMix: 22,
+      autoTune: true,
+      theme: 'light',
+    });
+    const labels = getHueLabelsForPalette(colors, count);
+    const yellow = colors[labels.indexOf('Yellow')];
+
+    assert.ok(yellow, `expected Yellow at count ${count}`);
+    assert.ok(yellow.hue >= 92);
+    assert.ok(yellow.hue <= 97);
+    assert.ok(yellow.strongLightness >= 86);
+    assert.ok(yellow.chroma >= 0.15);
+  }
+});
+
+test('makeGeneratedPalette supports low-count core category palettes', () => {
   const colors = makeGeneratedPalette({
-    count: 7,
+    count: 3,
     hueOffset: 220,
     lightStrongL: 60,
     darkLift: 18,
@@ -37,17 +63,16 @@ test('makeGeneratedPalette includes a true yellow in the default 7 color palette
     autoTune: true,
     theme: 'light',
   });
-  const labels = getHueLabelsForPalette(colors, 7);
-  const yellow = colors[labels.indexOf('Yellow')];
+  const labels = getHueLabelsForPalette(colors, 3);
 
-  assert.ok(yellow);
-  assert.ok(yellow.hue >= 95);
-  assert.ok(yellow.hue <= 105);
-  assert.ok(yellow.strongLightness >= 74);
-  assert.ok(yellow.chroma >= 0.14);
+  assert.deepEqual(labels, ['Sky', 'Red', 'Yellow']);
+  assert.deepEqual(
+    colors.map((color) => color.hue),
+    [220, 18.3, 94.5],
+  );
 });
 
-test('makeGeneratedPalette lifts lightness in dark mode', () => {
+test('makeGeneratedPalette lifts lightness toward the dark-mode ceiling', () => {
   const colors = makeGeneratedPalette({
     count: 1,
     hueOffset: 220,
@@ -58,8 +83,26 @@ test('makeGeneratedPalette lifts lightness in dark mode', () => {
     theme: 'dark',
   });
 
-  assert.equal(colors[0].strongLightness, 82);
-  assert.equal(colors[0].strongColor, 'oklch(82% 0.16 220)');
+  assert.equal(colors[0].strongLightness, 77.5);
+  assert.equal(colors[0].strongColor, 'oklch(77.5% 0.16 220)');
+});
+
+test('makeGeneratedPalette preserves hue-aware lightness in dark mode', () => {
+  const colors = makeGeneratedPalette({
+    count: 8,
+    hueOffset: 220,
+    lightStrongL: 60,
+    darkLift: 18,
+    weakMix: 22,
+    autoTune: true,
+    theme: 'dark',
+  });
+  const warmAndGreenLightness = colors
+    .filter((color) => [57.3, 94.5, 142].includes(color.hue))
+    .map((color) => color.strongLightness);
+
+  assert.deepEqual(warmAndGreenLightness, [79.3, 88, 78.8]);
+  assert.ok(new Set(warmAndGreenLightness).size > 1);
 });
 
 test('makeGeneratedPalette scales profile chroma by the count-aware maximum even when auto tune is off', () => {
@@ -84,6 +127,13 @@ test('getHueName uses broad color words for compact palettes', () => {
   assert.equal(getHueName(100, 8), 'Yellow');
   assert.equal(getHueName(220, 8), 'Sky');
   assert.equal(getHueName(310, 8), 'Purple');
+});
+
+test('getHueLabelsForPalette withholds labels that exceed an anchor distance limit', () => {
+  const labels = getHueLabelsForPalette([{ hue: 114 }], 8);
+
+  assert.deepEqual(labels, ['']);
+  assert.equal(getDisplayLabel({ index: 0, hue: 114, count: 8, mode: 'hue' }), 'Color 01');
 });
 
 test('getHueName uses medium-specific color words for 9 to 12 colors', () => {

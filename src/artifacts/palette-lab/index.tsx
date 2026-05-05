@@ -5,6 +5,8 @@ import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import {
+  DARK_LIGHTNESS_CEILING,
+  getDarkLiftFraction,
   getDisplayLabel,
   getHueLabelsForPalette,
   getTunedPaletteSettings,
@@ -44,17 +46,25 @@ const modeButtonBase =
 
 const helpItems = [
   {
+    term: 'Rotation',
+    detail: 'Changes the palette phase and card order while keeping the required core categories in the set.',
+  },
+  {
     term: 'H',
-    detail: 'Final OKLCH hue in degrees after the palette profile maps rotation to tuned color anchors.',
+    detail: 'Final OKLCH hue in degrees after the selected profile position maps to tuned color anchors.',
   },
   {
     term: 'L',
-    detail: 'Final lightness for the strong color. Palette Lab starts from hue-specific profile defaults.',
+    detail: 'Final lightness for the strong color after hue-specific profile defaults, lightness bias, and dark lift.',
   },
   {
     term: 'Chroma',
+    detail: 'Color intensity in OKLCH. Palette Lab uses hue-specific profile chroma, then softens dense palettes.',
+  },
+  {
+    term: 'Labels',
     detail:
-      'Color intensity in OKLCH. Palette Lab uses hue-specific profile chroma, then softens it as color count gets denser.',
+      'Hue names come from profile anchors. Names with distance limits fall back to index labels when too far away.',
   },
   {
     term: 'Mix',
@@ -67,7 +77,7 @@ const helpItems = [
   },
   {
     term: 'Dark lift',
-    detail: 'Extra lightness added in dark mode so vivid colors stay visible against dark surfaces.',
+    detail: 'Moves each strong color toward the dark-mode lightness ceiling using its remaining headroom.',
   },
   {
     term: 'Auto tune',
@@ -177,6 +187,7 @@ export default function PaletteLab() {
     () => getTunedPaletteSettings({ count, darkLift, weakMix, autoTune }),
     [autoTune, count, darkLift, weakMix],
   );
+  const darkLiftFraction = getDarkLiftFraction(tuned.darkLift);
   const colors = useMemo(
     () =>
       makeGeneratedPalette({
@@ -190,6 +201,7 @@ export default function PaletteLab() {
       }),
     [autoTune, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
   );
+  const paletteMaxChroma = useMemo(() => Math.max(...colors.map((color) => color.chroma)), [colors]);
   const hueLabelsByPosition = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
   const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
@@ -300,7 +312,7 @@ export default function PaletteLab() {
               min={8}
               max={28}
               step={1}
-              displayValue={`+${tuned.darkLift.toFixed(1)}`}
+              displayValue={`${Math.round(darkLiftFraction * 100)}%`}
               onChange={setDarkLift}
             />
             <RangeControl
@@ -342,7 +354,12 @@ export default function PaletteLab() {
               Auto tune: {autoTune ? 'on' : 'off'}
             </button>
 
-            <FormulaPanel theme={theme} chroma={tuned.chroma} weakMix={tuned.weakMix} darkLift={tuned.darkLift} />
+            <FormulaPanel
+              theme={theme}
+              paletteMaxChroma={paletteMaxChroma}
+              weakMix={tuned.weakMix}
+              darkLiftFraction={darkLiftFraction}
+            />
           </div>
         </aside>
 
@@ -541,23 +558,23 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
 
 function FormulaPanel({
   theme,
-  chroma,
+  paletteMaxChroma,
   weakMix,
-  darkLift,
+  darkLiftFraction,
 }: {
   theme: PaletteTheme;
-  chroma: number;
+  paletteMaxChroma: number;
   weakMix: number;
-  darkLift: number;
+  darkLiftFraction: number;
 }) {
   return (
     <div className="grid gap-2 border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-[11px] leading-5 text-[var(--text-muted)]">
       <div>
         <span className="text-[var(--text)]">strong</span> profile oklch(
-        {theme === 'dark' ? `L + ${darkLift.toFixed(1)}` : 'L'} C h)
+        {theme === 'dark' ? `L -> ${DARK_LIGHTNESS_CEILING} ${Math.round(darkLiftFraction * 100)}%` : 'L'} C h)
       </div>
       <div>
-        <span className="text-[var(--text)]">max C</span> {chroma.toFixed(3)}
+        <span className="text-[var(--text)]">palette max C</span> {paletteMaxChroma.toFixed(3)}
       </div>
       <div>
         <span className="text-[var(--text)]">weak</span> color-mix(in oklch, strong {weakMix.toFixed(1)}%, surface)

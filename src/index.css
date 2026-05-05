@@ -23,6 +23,7 @@
 
   .decision-badge {
     @apply pointer-events-none absolute left-0 top-0;
+
     /*
      * Position the badge against the painted ring, not the target border box.
      * Pull left by the full ring outset. Pull up by the label height plus that
@@ -37,6 +38,7 @@
 
   .decision-badge-label {
     @apply inline-flex items-center px-2 py-0.5 text-[11px] font-medium;
+
     background-color: var(--decision-bg);
     color: var(--decision-text);
     /* Use an inset stroke so a real border does not create an extra outer edge. */

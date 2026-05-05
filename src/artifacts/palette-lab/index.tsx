@@ -177,7 +177,7 @@ export default function PaletteLab() {
   const [darkLift, setDarkLift] = useState(18);
   const [weakMix, setWeakMix] = useState(22);
   const [autoTune, setAutoTune] = useState(true);
-  const [labelMode, setLabelMode] = useState<PaletteLabelMode>('index');
+  const [labelMode, setLabelMode] = useState<PaletteLabelMode>('hue');
   const [selectedIndexes, setSelectedIndexes] = useState(() => Array.from({ length: 16 }, (_, index) => index));
   const [contrastRatios, setContrastRatios] = useState<Record<number, number>>({});
   const [helpOpen, setHelpOpen] = useState(false);
@@ -331,11 +331,11 @@ export default function PaletteLab() {
                 Labels
               </div>
               <div className="grid grid-cols-2">
-                <ModeButton active={labelMode === 'index'} onClick={() => setLabelMode('index')}>
-                  Index
-                </ModeButton>
                 <ModeButton active={labelMode === 'hue'} onClick={() => setLabelMode('hue')}>
                   Hue name
+                </ModeButton>
+                <ModeButton active={labelMode === 'index'} onClick={() => setLabelMode('index')}>
+                  Index
                 </ModeButton>
               </div>
             </div>

@@ -25,6 +25,18 @@ test('Palette Lab header includes an accessible help button', async () => {
   assert.match(markup, /aria-label="Open palette lab help"/);
 });
 
+test('Palette Lab defaults to hue labels before index labels', async () => {
+  const markup = await renderPaletteLab();
+  const hueIndex = markup.indexOf('Hue name</button>');
+  const indexIndex = markup.indexOf('Index</button>');
+
+  assert.ok(hueIndex >= 0);
+  assert.ok(indexIndex > hueIndex);
+  assert.match(markup, /aria-pressed="true"[^>]*>Hue name<\/button>/);
+  assert.match(markup, /12 selected \/ hue labels/);
+  assert.match(markup, />Sky<\/span>/);
+});
+
 test('Palette Lab uses profile chroma instead of a chroma slider', async () => {
   const markup = await renderPaletteLab();
 

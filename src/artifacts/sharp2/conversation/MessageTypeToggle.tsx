@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import type { ChangeEventHandler } from 'react';
+import { mergeClassNames } from '../../../lib/classNames';
 
 export type MessageTypeToggleProps = {
   label: string;
@@ -18,10 +19,10 @@ export function MessageTypeToggle({ label, count, checked, onChange, color }: Me
         className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring)] ring-offset-1 ring-offset-[color:var(--surface)] opacity-0 peer-focus-visible:opacity-100"
       />
       <span
-        className={[
+        className={mergeClassNames(
           'w-3.5 h-3.5 shrink-0 border flex items-center justify-center transition-colors motion-reduce:transition-none',
           checked ? `${color} border-current` : 'bg-[var(--surface)] border-[var(--border-strong)]',
-        ].join(' ')}
+        )}
       >
         {checked && <Check className="w-2.5 h-2.5 text-[var(--surface)]" />}
       </span>

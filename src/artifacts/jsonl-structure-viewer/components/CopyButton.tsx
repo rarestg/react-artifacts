@@ -1,4 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { mergeClassNames } from '../../../lib/classNames';
 
 type CopyStatus = 'idle' | 'copied' | 'failed';
 
@@ -70,14 +71,12 @@ const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(
         type="button"
         onClick={handleCopy}
         disabled={disabled}
-        className={[
+        className={mergeClassNames(
           'inline-grid items-center border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
           'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-          disabled ? 'cursor-not-allowed opacity-60' : '',
+          disabled && 'cursor-not-allowed opacity-60',
           className,
-        ]
-          .filter(Boolean)
-          .join(' ')}
+        )}
       >
         <span className="col-start-1 row-start-1 opacity-0" aria-hidden>
           {reserveLabel}

@@ -1,4 +1,5 @@
 import { CopyButton } from '../../../components/CopyButton';
+import { mergeClassNames } from '../../../lib/classNames';
 import { getDefaultRenderMode, RenderErrorBoundary, renderInlineMarkdown, splitMessageContent } from './markdown';
 import type { MessageRole, RenderMode } from './types';
 
@@ -46,7 +47,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
     (renderMode === 'default' && getDefaultRenderMode(role) === 'literal');
 
   return (
-    <div className={['border border-[var(--border)] border-l-2', config.borderColor, config.bgColor].join(' ')}>
+    <div className={mergeClassNames('border border-[var(--border)] border-l-2', config.borderColor, config.bgColor)}>
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-[color:var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-2">

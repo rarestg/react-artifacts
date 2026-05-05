@@ -103,6 +103,7 @@ export default function Artifact() {
   - Segmented controls switch modes among a small fixed set.
   - Menus and listboxes handle larger option sets.
 - Keep control heights consistent within a toolbar or form.
+- Actions in the same toolbar should usually share one local action class for height, border, background, hover, active, cursor, and focus behavior. Reserve changing labels with an invisible widest label instead of fixed pixel widths.
 - Enabled controls and other click targets should use the pointer cursor. Disabled controls should use a disabled
   cursor such as `cursor-not-allowed` and should not show pointer affordance.
 - Do not use `pointer-events-none` as the default disabled state for real controls. Native disabled buttons, inputs,
@@ -233,6 +234,7 @@ Use these rules for artifacts that render conversations, logs, commands, code, m
 - Error states should say what failed and how to recover.
 - Do not explain obvious UI mechanics in the UI.
 - Keep developer-facing output literal when formatting could change meaning.
+- Copied or exported developer-facing output should be pasteable for the primary use case, complete enough to avoid reconstruction, and explicit about assumptions such as selectors, theme surfaces, required tokens, or browser features.
 - Links in app chrome should stay low-noise; links in prose need a non-color affordance.
 
 ## Before Calling A Design Done

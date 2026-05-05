@@ -1,16 +1,9 @@
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
-import { Search, X } from 'lucide-react';
-import {
-  type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { Search } from 'lucide-react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 
+import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Checkbox } from '../../components/Checkbox';
 import { CopyButton } from '../../components/CopyButton';
@@ -42,15 +35,6 @@ const shortcutKeyClass =
   'inline-flex h-5 min-w-5 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-1.5 font-mono text-[10px] font-semibold leading-none text-[var(--text-muted)]';
 // The command glyph has more internal whitespace than Latin letters; size it optically so it balances with "K".
 const commandGlyphClass = 'text-[13px]';
-
-const focusableSelector = [
-  'button:not([disabled])',
-  '[href]',
-  'input:not([disabled])',
-  'textarea:not([disabled])',
-  'select:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(', ');
 
 type HighlightIndices = readonly (readonly [number, number])[];
 
@@ -238,6 +222,7 @@ export default function PromptLibrary() {
           prompt={activePrompt}
           searchResult={activeSearchResult}
           searchQuery={activeSearchQuery}
+          container={themePortalRef.current}
           returnFocusTo={detailReturnFocusRef.current}
           fallbackFocusTo={searchButtonRef.current}
           onClose={closePromptDetail}
@@ -265,9 +250,10 @@ function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: 
         <button
           type="button"
           onClick={(event) => onOpen(event.currentTarget)}
-          className={['min-w-0 text-left text-sm font-semibold text-[var(--text)] hover:underline', focusClass].join(
-            ' ',
-          )}
+          className={[
+            'min-w-0 cursor-pointer text-left text-sm font-semibold text-[var(--text)] underline-offset-2 transition-colors hover:underline active:text-[var(--text-muted)] motion-reduce:transition-none',
+            focusClass,
+          ].join(' ')}
         >
           {prompt.title}
         </button>
@@ -464,6 +450,7 @@ function PromptDetailDialog({
   prompt,
   searchResult,
   searchQuery,
+  container,
   returnFocusTo,
   fallbackFocusTo = null,
   onClose,
@@ -471,13 +458,11 @@ function PromptDetailDialog({
   prompt: PromptEntry;
   searchResult?: PromptSearchResult | null;
   searchQuery: string;
+  container: HTMLElement | null;
   returnFocusTo: HTMLElement | null;
   fallbackFocusTo?: HTMLElement | null;
   onClose: () => void;
 }) {
-  const headingId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const matchingSearchResult = searchResult?.prompt.id === prompt.id ? searchResult : undefined;
   const titleMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'title') : undefined;
   const summaryMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'summary') : undefined;
@@ -501,118 +486,40 @@ function PromptDetailDialog({
   const promptIndices = promptDisplayMatch?.indices;
   const highlightedTagIds = matchingSearchResult ? getMatchedTagIds(matchingSearchResult) : [];
 
-  useEffect(() => {
-    headingRef.current?.focus();
-
-    return () => {
-      if (returnFocusTo?.isConnected) {
-        returnFocusTo.focus();
-        return;
-      }
-
-      if (fallbackFocusTo?.isConnected) {
-        fallbackFocusTo.focus();
-      }
-    };
-  }, [fallbackFocusTo, returnFocusTo]);
-
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-
-    if (event.key !== 'Tab') return;
-
-    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? []);
-
-    if (!focusable.length) return;
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const activeElement = document.activeElement;
-
-    if (!dialogRef.current?.contains(activeElement)) {
-      event.preventDefault();
-      first.focus();
-      return;
-    }
-
-    if (!focusable.includes(activeElement as HTMLElement)) {
-      event.preventDefault();
-      (event.shiftKey ? last : first).focus();
-      return;
-    }
-
-    if (event.shiftKey && activeElement === first) {
-      event.preventDefault();
-      last.focus();
-      return;
-    }
-
-    if (!event.shiftKey && activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
   return (
-    <div className="absolute inset-0 z-40 flex items-start justify-center overflow-y-auto bg-[color:var(--overlay)] p-4">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={headingId}
-        onKeyDown={handleKeyDown}
-        className="flex max-h-full w-full max-w-[46rem] flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
-      >
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
-          <div className="min-w-0">
-            <h2
-              ref={headingRef}
-              id={headingId}
-              tabIndex={-1}
-              className={['text-base font-semibold', focusClass].join(' ')}
-            >
-              <HighlightedText text={prompt.title} indices={titleIndices} />
-            </h2>
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
-              <HighlightedText text={prompt.summary} indices={summaryIndices} />
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close prompt details"
-            className={['p-1 text-[var(--text-muted)] hover:text-[var(--text)]', focusClass].join(' ')}
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
-          <PromptTags prompt={prompt} highlightedTagIds={highlightedTagIds} />
-          <section className="text-sm text-[var(--text-muted)]">
-            <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-              Usage Context
-            </h3>
-            <p>
-              <HighlightedText text={prompt.context} indices={contextIndices} />
-            </p>
-          </section>
-          <section className="min-h-0">
-            <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-              Prompt
-            </h3>
-            <pre className="max-h-80 overflow-auto whitespace-pre-wrap border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5 text-[var(--text)]">
-              <HighlightedText text={prompt.prompt} indices={promptIndices} />
-            </pre>
-          </section>
-        </div>
-        <div className="flex justify-end border-t border-[var(--border)] px-4 py-3">
-          <CopyButton text={prompt.prompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy Prompt" />
-        </div>
-      </div>
-    </div>
+    <ArtifactDialog
+      open={Boolean(prompt)}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+      title={<HighlightedText text={prompt.title} indices={titleIndices} />}
+      description={<HighlightedText text={prompt.summary} indices={summaryIndices} />}
+      footer={<CopyButton text={prompt.prompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy Prompt" />}
+      closeLabel="Close prompt details"
+      container={container}
+      placement="contained"
+      align="center"
+      contentClassName="max-w-[46rem]"
+      bodyClassName="flex flex-col gap-4"
+      footerClassName="flex justify-end"
+      returnFocusTo={returnFocusTo}
+      fallbackFocusTo={fallbackFocusTo}
+    >
+      <PromptTags prompt={prompt} highlightedTagIds={highlightedTagIds} />
+      <section className="text-sm text-[var(--text-muted)]">
+        <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+          Usage Context
+        </h3>
+        <p>
+          <HighlightedText text={prompt.context} indices={contextIndices} />
+        </p>
+      </section>
+      <section className="min-h-0">
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">Prompt</h3>
+        <pre className="max-h-80 overflow-auto whitespace-pre-wrap border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5 text-[var(--text)]">
+          <HighlightedText text={prompt.prompt} indices={promptIndices} />
+        </pre>
+      </section>
+    </ArtifactDialog>
   );
 }

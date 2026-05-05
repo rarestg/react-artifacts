@@ -1,14 +1,7 @@
-import { Info, X } from 'lucide-react';
-import {
-  type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { Info } from 'lucide-react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 
+import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import {
   getDisplayLabel,
@@ -47,14 +40,6 @@ const focusClass =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 const modeButtonBase =
   'inline-flex h-8 items-center justify-center border px-2 text-xs font-medium transition-colors motion-reduce:transition-none';
-const focusableSelector = [
-  'a[href]',
-  'button:not([disabled])',
-  'input:not([disabled])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',');
 
 const helpItems = [
   {
@@ -183,6 +168,7 @@ export default function PaletteLab() {
   const [selectedIndexes, setSelectedIndexes] = useState(() => Array.from({ length: 16 }, (_, index) => index));
   const [contrastRatios, setContrastRatios] = useState<Record<number, number>>({});
   const [helpOpen, setHelpOpen] = useState(false);
+  const dialogPortalRef = useRef<HTMLDivElement>(null);
   const helpButtonRef = useRef<HTMLButtonElement>(null);
 
   const tuned = useMemo(
@@ -473,124 +459,54 @@ export default function PaletteLab() {
             </section>
           </main>
         </div>
-        {helpOpen ? (
-          <PaletteHelpDialog returnFocusTo={helpButtonRef.current} onClose={() => setHelpOpen(false)} />
-        ) : null}
+        <div ref={dialogPortalRef} className="pointer-events-none" />
+        <PaletteHelpDialog
+          open={helpOpen}
+          onOpenChange={(open) => setHelpOpen(open)}
+          container={dialogPortalRef.current}
+          returnFocusTo={helpButtonRef.current}
+        />
       </ArtifactThemeRoot>
     </div>
   );
 }
 
 function PaletteHelpDialog({
+  open,
+  onOpenChange,
+  container,
   returnFocusTo,
-  onClose,
 }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  container: HTMLElement | null;
   returnFocusTo: HTMLButtonElement | null;
-  onClose: () => void;
 }) {
-  const headingId = useId();
-  const descriptionId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    headingRef.current?.focus();
-
-    return () => {
-      if (returnFocusTo?.isConnected) {
-        returnFocusTo.focus();
-      }
-    };
-  }, [returnFocusTo]);
-
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-
-    if (event.key !== 'Tab') return;
-
-    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? []);
-    if (!focusable.length) return;
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const activeElement = document.activeElement;
-
-    if (!dialogRef.current?.contains(activeElement)) {
-      event.preventDefault();
-      first.focus();
-      return;
-    }
-
-    if (!focusable.includes(activeElement as HTMLElement)) {
-      event.preventDefault();
-      (event.shiftKey ? last : first).focus();
-      return;
-    }
-
-    if (event.shiftKey && activeElement === first) {
-      event.preventDefault();
-      last.focus();
-      return;
-    }
-
-    if (!event.shiftKey && activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[color:var(--overlay)] p-4">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={headingId}
-        aria-describedby={descriptionId}
-        onKeyDown={handleKeyDown}
-        className="mt-12 flex max-h-[calc(100vh-6rem)] w-full max-w-[34rem] flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)] max-sm:mt-0 max-sm:max-h-full"
-      >
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
-          <div className="min-w-0">
-            <h2
-              ref={headingRef}
-              id={headingId}
-              tabIndex={-1}
-              className={['text-base font-semibold', focusClass].join(' ')}
-            >
-              Reading the cards
-            </h2>
-            <p id={descriptionId} className="mt-1 text-sm text-[var(--text-muted)]">
-              The card metrics show how each generated OKLCH color is built and how readable it is.
-            </p>
+    <ArtifactDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Reading the cards"
+      description="The card metrics show how each generated OKLCH color is built and how readable it is."
+      closeLabel="Close palette lab help"
+      container={container}
+      placement="viewport"
+      align="start"
+      contentClassName="mt-12 max-h-[calc(100%-6rem)] max-w-[34rem] max-sm:mt-0 max-sm:max-h-full"
+      bodyClassName="min-h-0 overflow-y-auto p-4"
+      returnFocusTo={returnFocusTo}
+    >
+      <dl className="grid gap-3 text-sm">
+        {helpItems.map((item) => (
+          <div key={item.term} className="grid gap-1 border border-[var(--border)] bg-[var(--surface-muted)] p-3">
+            <dt className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text)]">
+              {item.term}
+            </dt>
+            <dd className="text-[var(--text-muted)]">{item.detail}</dd>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close palette lab help"
-            className={['p-1 text-[var(--text-muted)] hover:text-[var(--text)]', focusClass].join(' ')}
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-        <div className="min-h-0 overflow-y-auto p-4">
-          <dl className="grid gap-3 text-sm">
-            {helpItems.map((item) => (
-              <div key={item.term} className="grid gap-1 border border-[var(--border)] bg-[var(--surface-muted)] p-3">
-                <dt className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text)]">
-                  {item.term}
-                </dt>
-                <dd className="text-[var(--text-muted)]">{item.detail}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </div>
-    </div>
+        ))}
+      </dl>
+    </ArtifactDialog>
   );
 }
 

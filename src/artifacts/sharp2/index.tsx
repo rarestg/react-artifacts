@@ -18,6 +18,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 
 type SectionCols = 1 | 2 | 3;
@@ -184,6 +185,7 @@ type ModalProps = {
   onClose?: () => void;
   title: string;
   children: ReactNode;
+  container?: HTMLElement | null;
 };
 
 type PopoverTriggerProps = {
@@ -322,7 +324,6 @@ import {
   MessageSquare as MessageIcon,
   Plug as PlugIcon,
   Search as SearchIcon,
-  X as XIcon,
 } from 'lucide-react';
 
 // ============================================
@@ -875,72 +876,23 @@ function CodeBlock({ children, language }: CodeBlockProps) {
 // ============================================
 // PRIMITIVES: MODAL
 // ============================================
-function Modal({ open, onClose, title, children }: ModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  // Escape key to close
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose?.();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
-
-  // Focus trap
-  useEffect(() => {
-    if (!open || !modalRef.current) return;
-    const modal = modalRef.current;
-    const focusable = modal.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    if (focusable.length > 0) focusable[0].focus();
-
-    const handleTab = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab' || focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', handleTab);
-    return () => document.removeEventListener('keydown', handleTab);
-  }, [open]);
-
-  if (!open) return null;
-
+function Modal({ open, onClose, title, children, container }: ModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay scrim (allowed exception) */}
-      <div className="absolute inset-0 bg-[color:var(--overlay)]" onClick={onClose} aria-hidden="true" />
-
-      {/* Modal surface */}
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className="relative z-10 w-full max-w-md border border-[var(--border-strong)] bg-[var(--surface)] shadow-none"
-      >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-muted)]">
-          <h3 className="text-sm font-semibold text-[var(--text)]">{title}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
-          >
-            <XIcon className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="p-4">{children}</div>
-      </div>
-    </div>
+    <ArtifactDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose?.();
+      }}
+      title={title}
+      closeLabel="Close modal"
+      container={container}
+      placement="viewport"
+      align="center"
+      contentClassName="max-w-md shadow-none"
+      bodyClassName="p-4"
+    >
+      {children}
+    </ArtifactDialog>
   );
 }
 
@@ -1521,6 +1473,7 @@ export default function DesignSystem() {
   const [searchValue, setSearchValue] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchingActive, setSearchingActive] = useState(true);
+  const dialogPortalRef = useRef<HTMLDivElement>(null);
 
   // Sample search results
   const allSearchResults: SearchResult[] = [
@@ -2293,7 +2246,12 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
           <div className="flex flex-wrap gap-4 items-start">
             <SubSection label="Modal">
               <Button onClick={() => setModalOpen(true)}>Open Modal</Button>
-              <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Confirm Action">
+              <Modal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title="Confirm Action"
+                container={dialogPortalRef.current}
+              >
                 <p className="text-sm text-[var(--text-muted)] mb-4">
                   Are you sure you want to proceed? This action cannot be undone.
                 </p>
@@ -2464,6 +2422,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
           </div>
         </Section>
       </div>
+      <div ref={dialogPortalRef} className="pointer-events-none" />
     </ArtifactThemeRoot>
   );
 }

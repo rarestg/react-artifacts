@@ -45,16 +45,16 @@ const modeButtonBase =
 const helpItems = [
   {
     term: 'H',
-    detail: 'Hue angle in degrees on the OKLCH color wheel. Moving it rotates the generated palette around the wheel.',
+    detail: 'Final OKLCH hue in degrees after the palette profile maps rotation to tuned color anchors.',
   },
   {
     term: 'L',
-    detail: 'Lightness for the strong color. Higher values make the generated swatch brighter.',
+    detail: 'Final lightness for the strong color. Palette Lab starts from hue-specific profile defaults.',
   },
   {
     term: 'Chroma',
     detail:
-      'Color intensity in OKLCH. Palette Lab uses the highest base chroma, then softens it as color count gets denser.',
+      'Color intensity in OKLCH. Palette Lab uses hue-specific profile chroma, then softens it as color count gets denser.',
   },
   {
     term: 'Mix',
@@ -277,7 +277,7 @@ export default function PaletteLab() {
               onChange={setCount}
             />
             <RangeControl
-              label="Hue offset"
+              label="Rotation"
               value={hueOffset}
               min={0}
               max={359}
@@ -286,12 +286,12 @@ export default function PaletteLab() {
               onChange={setHueOffset}
             />
             <RangeControl
-              label="Light strong L"
+              label="Lightness bias"
               value={lightStrongL}
               min={48}
               max={72}
               step={1}
-              displayValue={`${lightStrongL}%`}
+              displayValue={`${lightStrongL - 60 >= 0 ? '+' : ''}${lightStrongL - 60}%`}
               onChange={setLightStrongL}
             />
             <RangeControl
@@ -553,8 +553,11 @@ function FormulaPanel({
   return (
     <div className="grid gap-2 border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-[11px] leading-5 text-[var(--text-muted)]">
       <div>
-        <span className="text-[var(--text)]">strong</span> oklch({theme === 'dark' ? `L + ${darkLift.toFixed(1)}` : 'L'}{' '}
-        {chroma.toFixed(3)} h)
+        <span className="text-[var(--text)]">strong</span> profile oklch(
+        {theme === 'dark' ? `L + ${darkLift.toFixed(1)}` : 'L'} C h)
+      </div>
+      <div>
+        <span className="text-[var(--text)]">max C</span> {chroma.toFixed(3)}
       </div>
       <div>
         <span className="text-[var(--text)]">weak</span> color-mix(in oklch, strong {weakMix.toFixed(1)}%, surface)

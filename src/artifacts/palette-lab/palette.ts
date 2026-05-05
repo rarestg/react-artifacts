@@ -26,6 +26,37 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 const round = (value: number, precision = 3) => Number(value.toFixed(precision));
 
 export const MAX_BASE_CHROMA = 0.22;
+const DEFAULT_LIGHT_STRONG_L = 60;
+
+type PaletteProfileAnchor = {
+  position: number;
+  hue: number;
+  label: string;
+  strongLightness: number;
+  strongChroma: number;
+  minCount?: number;
+};
+
+const paletteProfileAnchors = [
+  { position: 0, hue: 18.3, label: 'Red', strongLightness: 62, strongChroma: 0.2 },
+  { position: 18, hue: 32, label: 'Vermilion', strongLightness: 63, strongChroma: 0.21, minCount: 13 },
+  { position: 35, hue: 57.3, label: 'Orange', strongLightness: 68, strongChroma: 0.18 },
+  { position: 45, hue: 74, label: 'Amber', strongLightness: 72, strongChroma: 0.18, minCount: 9 },
+  { position: 60, hue: 95.7, label: 'Yellow', strongLightness: 78, strongChroma: 0.17 },
+  { position: 90, hue: 118, label: 'Olive', strongLightness: 70, strongChroma: 0.16, minCount: 9 },
+  { position: 120, hue: 142, label: 'Green', strongLightness: 67, strongChroma: 0.18 },
+  { position: 132, hue: 150, label: 'Lime', strongLightness: 70, strongChroma: 0.17, minCount: 13 },
+  { position: 150, hue: 164.2, label: 'Mint', strongLightness: 68, strongChroma: 0.18, minCount: 9 },
+  { position: 165, hue: 178, label: 'Teal', strongLightness: 66, strongChroma: 0.16, minCount: 9 },
+  { position: 180, hue: 190, label: 'Cyan', strongLightness: 66, strongChroma: 0.15 },
+  { position: 220, hue: 220, label: 'Sky', strongLightness: 64, strongChroma: 0.16 },
+  { position: 245, hue: 254.1, label: 'Blue', strongLightness: 64, strongChroma: 0.16 },
+  { position: 275, hue: 274, label: 'Indigo', strongLightness: 63, strongChroma: 0.15 },
+  { position: 300, hue: 300, label: 'Purple', strongLightness: 64, strongChroma: 0.16 },
+  { position: 315, hue: 321.6, label: 'Violet', strongLightness: 64, strongChroma: 0.16, minCount: 9 },
+  { position: 322, hue: 332, label: 'Magenta', strongLightness: 64, strongChroma: 0.18, minCount: 13 },
+  { position: 335, hue: 350, label: 'Rose', strongLightness: 64, strongChroma: 0.19, minCount: 9 },
+] as const satisfies readonly PaletteProfileAnchor[];
 
 export function getTunedPaletteSettings({
   count,
@@ -52,23 +83,73 @@ export function getTunedPaletteSettings({
   };
 }
 
+function normalizeHue(hue: number) {
+  const normalized = ((hue % 360) + 360) % 360;
+  return Number.isFinite(normalized) ? normalized : 0;
+}
+
+function circularDistance(a: number, b: number) {
+  const distance = Math.abs(normalizeHue(a) - normalizeHue(b));
+  return Math.min(distance, 360 - distance);
+}
+
+function interpolateHue(start: number, end: number, amount: number) {
+  const delta = ((normalizeHue(end) - normalizeHue(start) + 540) % 360) - 180;
+  return normalizeHue(start + delta * amount);
+}
+
+function getProfileAtPosition(position: number) {
+  const normalizedPosition = normalizeHue(position);
+  const anchors = paletteProfileAnchors;
+
+  for (let index = 0; index < anchors.length; index += 1) {
+    const start = anchors[index];
+    const end = anchors[(index + 1) % anchors.length];
+    const endPosition = end.position <= start.position ? end.position + 360 : end.position;
+    const adjustedPosition =
+      normalizedPosition < start.position && endPosition >= 360 ? normalizedPosition + 360 : normalizedPosition;
+
+    if (adjustedPosition < start.position || adjustedPosition > endPosition) continue;
+
+    const amount =
+      endPosition === start.position ? 0 : (adjustedPosition - start.position) / (endPosition - start.position);
+
+    return {
+      hue: interpolateHue(start.hue, end.hue, amount),
+      strongLightness: start.strongLightness + (end.strongLightness - start.strongLightness) * amount,
+      strongChroma: start.strongChroma + (end.strongChroma - start.strongChroma) * amount,
+    };
+  }
+
+  const fallback = anchors[0];
+  return {
+    hue: fallback.hue,
+    strongLightness: fallback.strongLightness,
+    strongChroma: fallback.strongChroma,
+  };
+}
+
 export function makeGeneratedPalette(settings: PaletteSettings): GeneratedColor[] {
   const count = Math.round(clamp(settings.count, 1, 16));
   const tuned = getTunedPaletteSettings(settings);
+  const chromaScale = tuned.chroma / MAX_BASE_CHROMA;
+  const lightnessBias = settings.lightStrongL - DEFAULT_LIGHT_STRONG_L;
   const hueStep = 360 / count;
 
   return Array.from({ length: count }, (_, index) => {
-    const hue = round((settings.hueOffset + index * hueStep) % 360, 1);
+    const profile = getProfileAtPosition(settings.hueOffset + index * hueStep);
+    const hue = round(profile.hue, 1);
     const strongLightness =
       settings.theme === 'dark'
-        ? round(clamp(settings.lightStrongL + tuned.darkLift, 55, 88), 1)
-        : round(clamp(settings.lightStrongL, 40, 78), 1);
-    const strongColor = `oklch(${strongLightness}% ${tuned.chroma} ${hue})`;
+        ? round(clamp(profile.strongLightness + lightnessBias + tuned.darkLift, 55, 88), 1)
+        : round(clamp(profile.strongLightness + lightnessBias, 40, 88), 1);
+    const chroma = round(clamp(profile.strongChroma * chromaScale, 0.05, MAX_BASE_CHROMA));
+    const strongColor = `oklch(${strongLightness}% ${chroma} ${hue})`;
 
     return {
       index,
       hue,
-      chroma: tuned.chroma,
+      chroma,
       strongLightness,
       weakMix: tuned.weakMix,
       strongColor,
@@ -83,43 +164,18 @@ type HueAnchor = {
   minCount?: number;
 };
 
-const hueAnchors = [
-  { hue: 0, label: 'Red' },
-  { hue: 18, label: 'Vermilion', minCount: 13 },
-  { hue: 35, label: 'Orange' },
-  { hue: 45, label: 'Amber', minCount: 9 },
-  { hue: 60, label: 'Yellow' },
-  { hue: 90, label: 'Olive', minCount: 9 },
-  { hue: 120, label: 'Green' },
-  { hue: 132, label: 'Lime', minCount: 13 },
-  { hue: 150, label: 'Mint', minCount: 9 },
-  { hue: 165, label: 'Teal', minCount: 9 },
-  { hue: 180, label: 'Cyan' },
-  { hue: 220, label: 'Sky' },
-  { hue: 245, label: 'Blue' },
-  { hue: 275, label: 'Indigo' },
-  { hue: 300, label: 'Purple' },
-  { hue: 315, label: 'Violet', minCount: 9 },
-  { hue: 322, label: 'Magenta', minCount: 13 },
-  { hue: 335, label: 'Rose', minCount: 9 },
-] as const satisfies readonly HueAnchor[];
+const hueAnchors: HueAnchor[] = paletteProfileAnchors.map((anchor) =>
+  'minCount' in anchor
+    ? { hue: anchor.hue, label: anchor.label, minCount: anchor.minCount }
+    : { hue: anchor.hue, label: anchor.label },
+);
 
 const HUE_ASSIGNMENT_EPSILON = 1e-9;
-
-function normalizeHue(hue: number) {
-  const normalized = ((hue % 360) + 360) % 360;
-  return Number.isFinite(normalized) ? normalized : 0;
-}
-
-function circularDistance(a: number, b: number) {
-  const distance = Math.abs(normalizeHue(a) - normalizeHue(b));
-  return Math.min(distance, 360 - distance);
-}
 
 function getAllowedHueAnchors(count: number, fallback: number): HueAnchor[] {
   const normalizedCount = Number.isFinite(count) ? count : fallback;
   const densityCount = Math.round(clamp(normalizedCount, 1, 16));
-  return hueAnchors.filter((anchor) => densityCount >= ('minCount' in anchor ? anchor.minCount : 1));
+  return hueAnchors.filter((anchor) => densityCount >= (anchor.minCount ?? 1));
 }
 
 function getNearestHueAnchor(hue: number, anchors: readonly HueAnchor[]) {

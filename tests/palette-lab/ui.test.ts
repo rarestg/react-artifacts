@@ -25,11 +25,12 @@ test('Palette Lab header includes an accessible help button', async () => {
   assert.match(markup, /aria-label="Open palette lab help"/);
 });
 
-test('Palette Lab uses generated max chroma instead of a chroma slider', async () => {
+test('Palette Lab uses profile chroma instead of a chroma slider', async () => {
   const markup = await renderPaletteLab();
 
   assert.doesNotMatch(markup, /Base chroma/);
-  assert.match(markup, /oklch\(L 0\.205 h\)/);
+  assert.match(markup, /profile oklch\(L C h\)/);
+  assert.match(markup, /max C<\/span> 0\.205/);
 });
 
 test('Palette Lab does not render an internal light or dark theme toggle', async () => {

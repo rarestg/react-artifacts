@@ -3,7 +3,7 @@ import { getTurnItemKey } from './keys';
 import { MessageCard } from './MessageCard';
 import { TokenCounter } from './TokenCounter';
 import { ToolCall } from './ToolCall';
-import type { RenderMode, TurnItem, VisibleTypes } from './types';
+import { getTurnItemVisibleType, type RenderMode, type TurnItem, type VisibleTypes } from './types';
 
 export type ConversationTurnProps = {
   turnNumber: number;
@@ -25,14 +25,9 @@ export function ConversationTurn({
   visibleTypes,
 }: ConversationTurnProps) {
   // Filter items based on visible types
-  const filteredItems = items.filter((item) => {
-    if (item.type === 'token_counter') return visibleTypes?.tokenCounters ?? true;
-    if (item.type === 'tool_call') return visibleTypes?.toolCalls ?? true;
-    if (item.role === 'user') return visibleTypes?.user ?? true;
-    if (item.role === 'assistant') return visibleTypes?.assistant ?? true;
-    if (item.role === 'thinking') return visibleTypes?.thinking ?? true;
-    return true;
-  });
+  const filteredItems = items
+    .map((item, originalIndex) => ({ item, originalIndex }))
+    .filter(({ item }) => visibleTypes?.[getTurnItemVisibleType(item)] ?? true);
 
   if (filteredItems.length === 0) return null;
 
@@ -58,18 +53,22 @@ export function ConversationTurn({
 
       {/* Messages */}
       <div className="p-3 space-y-3">
-        {filteredItems.map((item) => {
-          // Find original index for render mode
-          const originalIndex = items.indexOf(item);
-
+        {filteredItems.map(({ item, originalIndex }) => {
           if (item.type === 'token_counter') {
-            return <TokenCounter key={getTurnItemKey(item)} used={item.used} limit={item.limit} label={item.label} />;
+            return (
+              <TokenCounter
+                key={getTurnItemKey(item, originalIndex)}
+                used={item.used}
+                limit={item.limit}
+                label={item.label}
+              />
+            );
           }
 
           if (item.type === 'tool_call') {
             return (
               <ToolCall
-                key={getTurnItemKey(item)}
+                key={getTurnItemKey(item, originalIndex)}
                 tool={item.tool}
                 input={item.input}
                 output={item.output}
@@ -81,12 +80,12 @@ export function ConversationTurn({
 
           return (
             <MessageCard
-              key={getTurnItemKey(item)}
+              key={getTurnItemKey(item, originalIndex)}
               role={item.role}
               content={item.content}
               timestamp={item.timestamp}
               renderMode={renderModes?.[originalIndex] || 'default'}
-              onToggleRender={() => onToggleRender?.(originalIndex)}
+              onToggleRender={onToggleRender ? () => onToggleRender(originalIndex) : undefined}
             />
           );
         })}

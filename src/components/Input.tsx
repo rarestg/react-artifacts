@@ -1,14 +1,4 @@
-import {
-  type ForwardedRef,
-  forwardRef,
-  type InputHTMLAttributes,
-  type MutableRefObject,
-  type ReactNode,
-  useCallback,
-  useId,
-  useMemo,
-  useRef,
-} from 'react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode, useId, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
@@ -37,16 +27,6 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'a
   labelClassName?: string;
 } & InputAccessibleName;
 
-function assignRef<T>(ref: ForwardedRef<T>, value: T | null) {
-  if (typeof ref === 'function') {
-    ref(value);
-    return;
-  }
-  if (ref) {
-    (ref as MutableRefObject<T | null>).current = value;
-  }
-}
-
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   {
     id,
@@ -67,17 +47,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const rootRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useArtifactThemeGuard('Input', rootRef);
-
-  const setInputRef = useCallback(
-    (node: HTMLInputElement | null) => {
-      inputRef.current = node;
-      assignRef(ref, node);
-    },
-    [ref],
-  );
 
   const helperId = helperText ? `${inputId}-helper` : undefined;
   const hasError = error !== undefined && error !== null && error !== false;
@@ -101,7 +72,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         </label>
       )}
       <input
-        ref={setInputRef}
+        ref={ref}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         aria-describedby={describedBy}

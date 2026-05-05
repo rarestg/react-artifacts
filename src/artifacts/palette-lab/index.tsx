@@ -3,6 +3,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { CopyButton } from '../../components/CopyButton';
 import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import {
@@ -37,6 +38,12 @@ type PaletteCardLabelInput = {
   index: number;
   hue: number;
   count: number;
+};
+
+type PaletteExportColorInput = {
+  index: number;
+  label: string;
+  strongColor: string;
 };
 
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
@@ -168,6 +175,47 @@ export function getPaletteCardLabel({ labelMode, hueLabel, index, hue, count }: 
   return labelMode === 'hue' ? hueLabel || indexLabel : indexLabel;
 }
 
+function rgbToHex([red, green, blue]: [number, number, number]) {
+  return `#${[red, green, blue].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function slugifyColorName(value: string) {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getExportVariableBase(label: string, index: number) {
+  const slug = slugifyColorName(label);
+  const fallbackIndex = String(index + 1).padStart(2, '0');
+
+  if (!slug) return `color-${fallbackIndex}`;
+  if (/^color-\d+$/.test(slug)) return slug;
+
+  return `color-${slug}`;
+}
+
+export function getPaletteExportCss(colors: ReadonlyArray<PaletteExportColorInput>) {
+  const usedNames = new Map<string, number>();
+
+  return colors
+    .map((color) => {
+      const baseName = getExportVariableBase(color.label, color.index);
+      const usedCount = usedNames.get(baseName) ?? 0;
+      usedNames.set(baseName, usedCount + 1);
+
+      const variableName = usedCount === 0 ? baseName : `${baseName}-${usedCount + 1}`;
+      const hex = parseColor(color.strongColor);
+      const hexComment = hex ? ` /* ${rgbToHex(hex)} */` : '';
+
+      return `--${variableName}: ${color.strongColor};${hexComment}`;
+    })
+    .join('\n');
+}
+
 export default function PaletteLab() {
   const isDarkTheme = useRootDarkMode();
   const theme: PaletteTheme = isDarkTheme ? 'dark' : 'light';
@@ -204,7 +252,30 @@ export default function PaletteLab() {
   );
   const paletteMaxChroma = useMemo(() => Math.max(...colors.map((color) => color.chroma)), [colors]);
   const hueLabelsByPosition = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
-  const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
+  const paletteCardLabels = useMemo(
+    () =>
+      colors.map((color, position) =>
+        getPaletteCardLabel({
+          labelMode,
+          hueLabel: hueLabelsByPosition[position],
+          index: color.index,
+          hue: color.hue,
+          count,
+        }),
+      ),
+    [colors, count, hueLabelsByPosition, labelMode],
+  );
+  const selectedExportColors = useMemo(
+    () =>
+      colors.flatMap((color, position) =>
+        selectedIndexes.includes(color.index)
+          ? [{ index: color.index, label: paletteCardLabels[position], strongColor: color.strongColor }]
+          : [],
+      ),
+    [colors, paletteCardLabels, selectedIndexes],
+  );
+  const paletteExportCss = useMemo(() => getPaletteExportCss(selectedExportColors), [selectedExportColors]);
+  const selectedVisibleCount = selectedExportColors.length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
   const contrastMeasurementKey = useMemo(() => {
     const colorKey = colors.map((color) => `${color.strongColor}:${color.weakColor}`).join('|');
@@ -385,6 +456,13 @@ export default function PaletteLab() {
               >
                 {allVisibleSelected ? 'Clear' : 'Select all'}
               </button>
+              <CopyButton
+                text={paletteExportCss}
+                idleLabel="Copy selected"
+                ariaLabel="Copy selected colors as CSS custom properties"
+                disabled={selectedVisibleCount === 0}
+                className="h-9 px-3"
+              />
               <button
                 ref={helpButtonRef}
                 type="button"
@@ -409,13 +487,7 @@ export default function PaletteLab() {
           >
             {colors.map((color, position) => {
               const selected = selectedIndexes.includes(color.index);
-              const label = getPaletteCardLabel({
-                labelMode,
-                hueLabel: hueLabelsByPosition[position],
-                index: color.index,
-                hue: color.hue,
-                count,
-              });
+              const label = paletteCardLabels[position];
               const style = {
                 '--palette-color': color.strongColor,
                 '--palette-color-weak': color.weakColor,

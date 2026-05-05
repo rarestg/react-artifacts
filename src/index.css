@@ -5,7 +5,7 @@
 
 @layer components {
   .decision-frame {
-    @apply relative w-full flex flex-col h-full;
+    @apply relative;
     --decision-ring-width: 2px;
     --decision-ring-offset: 1px;
     --decision-ring-outset: calc(var(--decision-ring-width) + var(--decision-ring-offset));
@@ -16,7 +16,6 @@
   }
 
   .decision-ring {
-    @apply w-full flex flex-col flex-1;
     box-shadow:
       0 0 0 var(--decision-ring-offset) var(--decision-ring-offset-color),
       0 0 0 calc(var(--decision-ring-width) + var(--decision-ring-offset)) var(--decision-ring);
@@ -24,7 +23,10 @@
 
   .decision-badge {
     @apply pointer-events-none absolute left-0 top-0;
-    transform: translate(calc(-1 * var(--decision-ring-outset)), calc(-100% - var(--decision-ring-outset) + 2px));
+    transform: translate(
+      calc(-1 * var(--decision-ring-outset)),
+      calc(-100% - var(--decision-ring-outset) + var(--decision-ring-width))
+    );
   }
 
   .decision-badge-label {

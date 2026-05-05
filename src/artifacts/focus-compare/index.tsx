@@ -28,13 +28,12 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
       ? 'w-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus-visible:border-[var(--border-strong)]'
       : 'w-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus-visible:border-[var(--border-strong)]';
 
-  const chosenRingClasses = variant === 'current' ? 'decision-ring' : '';
+  const chosenRingClasses = variant === 'current' ? 'decision-ring flex-1' : '';
 
   return (
-    <div className="decision-frame decision-theme-amber">
+    <div className="decision-frame decision-theme-amber flex h-full w-full flex-col">
       {variant === 'current' && (
         <span className="decision-badge">
-          {/* Label uses ring-inset only; subtract ring thickness (2px) from Y offset to sit flush. */}
           <span className="decision-badge-label">CHOSEN</span>
         </span>
       )}
@@ -99,13 +98,12 @@ function SearchResultsDemo({ variant }: { variant: 'current' | 'proposed' }) {
       ? 'focus:outline-none focus:bg-[var(--surface-muted)]'
       : 'focus:outline-none focus-visible:bg-[var(--surface-strong)]';
 
-  const chosenRingClasses = variant === 'proposed' ? 'decision-ring' : '';
+  const chosenRingClasses = variant === 'proposed' ? 'decision-ring flex-1' : '';
 
   return (
-    <div className="decision-frame decision-theme-amber">
+    <div className="decision-frame decision-theme-amber flex h-full w-full flex-col">
       {variant === 'proposed' && (
         <span className="decision-badge">
-          {/* Label uses ring-inset only; subtract ring thickness (2px) from Y offset to sit flush. */}
           <span className="decision-badge-label">CHOSEN</span>
         </span>
       )}
@@ -689,11 +687,11 @@ export default function FocusCompare() {
           >
             <PopoverItemFocusCompare variant="compliant" />
           </CompareCard>
-          <div className="decision-frame decision-theme-amber">
+          <div className="decision-frame decision-theme-amber flex h-full w-full flex-col">
             <span className="decision-badge">
               <span className="decision-badge-label">CHOSEN</span>
             </span>
-            <div className="decision-ring">
+            <div className="decision-ring flex w-full flex-1 flex-col">
               <CompareCard
                 variant="compliant"
                 badge="Alt"

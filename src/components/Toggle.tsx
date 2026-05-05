@@ -47,10 +47,7 @@ export function Toggle({
   const knobTone = checked ? 'bg-[var(--toggle-knob-on-bg)]' : 'bg-[var(--toggle-knob-off-bg)]';
   const trackFocus =
     focusTarget === 'track'
-      ? mergeClassNames(
-          'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)]',
-          'peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]',
-        )
+      ? 'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]'
       : '';
 
   return (

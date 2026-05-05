@@ -105,6 +105,13 @@ export default function Artifact() {
 - Keep control heights consistent within a toolbar or form.
 - Enabled controls and other click targets should use the pointer cursor. Disabled controls should use a disabled
   cursor such as `cursor-not-allowed` and should not show pointer affordance.
+- Do not use `pointer-events-none` as the default disabled state for real controls. Native disabled buttons, inputs,
+  and labels still need to receive pointer hit testing so the disabled cursor can appear; the `disabled` attribute
+  already blocks activation.
+- Reserve `pointer-events-none` for inert visual children, focus-ring overlays, hidden label-reservation spans, portal
+  shells, and other layers that should never become the hover target.
+- For anchors or custom controls that use `aria-disabled`, guard click and keyboard handlers explicitly because they are
+  not natively disabled.
 - Use icon buttons for common tool actions when the icon is familiar.
 - Give unfamiliar icon buttons a tooltip or accessible label.
 - Passive icons should stay neutral.
@@ -152,6 +159,12 @@ export default function Artifact() {
 - Verify themes in light and dark mode.
 - Light and dark modes should preserve the same spacing, border weight, geometry, and state behavior.
 - When colors look wrong, inspect computed values. `color-mix()` may change what source code appears to say.
+
+## Class Composition
+
+- Use plain `className="..."` strings for static class lists.
+- Use `mergeClassNames(...)` only when composing fixed classes with conditionals, variants, or caller-provided class overrides.
+- Do not wrap a single static class string in `mergeClassNames(...)`; `tailwind-merge` is for resolving real composition conflicts.
 
 ## Color And Status
 

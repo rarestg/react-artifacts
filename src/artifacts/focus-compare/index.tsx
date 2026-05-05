@@ -18,10 +18,7 @@ function FocusDemo({ variant }: { variant: 'current' | 'proposed' }) {
 
   const focusClasses =
     variant === 'current'
-      ? mergeClassNames(
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1',
-          'focus-visible:ring-offset-[color:var(--surface)]',
-        )
+      ? 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]'
       : 'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ring)] focus-visible:outline-offset-2';
 
   const inputClasses =
@@ -270,10 +267,7 @@ function ToolCallToggleCompare({ variant }: { variant: 'current' | 'compliant' }
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : mergeClassNames(
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
-          'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        );
+      : 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
   const buttonSize = variant === 'current' ? 'w-6 h-6' : 'w-7 h-7';
 
   return (
@@ -305,10 +299,7 @@ function RenderToggleCompare({ variant }: { variant: 'current' | 'compliant' }) 
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : mergeClassNames(
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
-          'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        );
+      : 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)]">
@@ -342,10 +333,9 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
     return (
       <div className="flex flex-col gap-2">
         <button
-          className={mergeClassNames(
-            'flex h-8 items-center gap-2 cursor-pointer select-none px-2 py-1 border border-[var(--border)] bg-[var(--surface)] transition-colors rounded-none focus:outline-none',
-            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-          )}
+          className={
+            'flex h-8 items-center gap-2 cursor-pointer select-none px-2 py-1 border border-[var(--border)] bg-[var(--surface)] transition-colors rounded-none focus:outline-none hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]'
+          }
           type="button"
           aria-pressed={currentEnabled}
           onClick={() => setCurrentEnabled((prev) => !prev)}
@@ -376,10 +366,9 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         checked={toolCallsContained}
         onCheckedChange={setToolCallsContained}
         focusTarget="container"
-        className={mergeClassNames(
-          'w-full h-8 gap-2 border border-[var(--border)] bg-[var(--surface)] rounded-none px-2 py-1',
-          'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-        )}
+        className={
+          'w-full h-8 gap-2 border border-[var(--border)] bg-[var(--surface)] rounded-none px-2 py-1 hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]'
+        }
         labelClassName="text-xs text-[var(--text-muted)]"
         suffix={
           <span className="ml-auto text-[10px] font-medium text-[var(--text-muted)] bg-[var(--surface-strong)] px-1.5 py-0.5 tabular-nums">
@@ -400,10 +389,9 @@ function MessageTypeToggleCompare({ variant }: { variant: 'current' | 'compliant
         checked={streamingContained}
         onCheckedChange={setStreamingContained}
         focusTarget="container"
-        className={mergeClassNames(
-          'gap-2 border border-[var(--border)] bg-[var(--surface)] px-2 py-1 rounded-none h-8',
-          'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-        )}
+        className={
+          'gap-2 border border-[var(--border)] bg-[var(--surface)] px-2 py-1 rounded-none h-8 hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]'
+        }
         labelClassName="text-xs text-[var(--text-muted)]"
       />
       <Toggle
@@ -430,10 +418,7 @@ function IconOnlyButtonCompare({ variant }: { variant: 'current' | 'compliant' }
   const buttonFocus =
     variant === 'current'
       ? 'focus:outline-none'
-      : mergeClassNames(
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
-          'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        );
+      : 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 
   return (
     <div className="space-y-2">

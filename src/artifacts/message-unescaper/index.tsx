@@ -262,22 +262,15 @@ const panelHeaderRowClass =
 
 const panelHeaderSubtitleClass = 'flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--text-muted)]';
 
-const headerActionClass = mergeClassNames(
-  'px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em]',
-  'border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-  'hover:bg-[var(--surface-strong)]',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-  'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:bg-[var(--surface)]',
-);
+const headerActionClass =
+  'px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--surface)]';
 
-const segmentBase = mergeClassNames(
-  'h-8 px-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-  'relative focus-visible:z-10',
-);
+const segmentBase =
+  'h-8 px-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] relative focus-visible:z-10';
 
 const segmentActive = 'bg-[var(--accent-weak)] text-[var(--accent)]';
-const segmentInactive = 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]';
+const segmentInactive = 'bg-[var(--surface)] text-[var(--text-muted)]';
+const segmentInactiveInteractive = 'hover:bg-[var(--surface-strong)]';
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -355,7 +348,11 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={direction === 'unescape'}
                     onClick={() => setDirection('unescape')}
-                    className={mergeClassNames(segmentBase, direction === 'unescape' ? segmentActive : segmentInactive)}
+                    className={mergeClassNames(
+                      segmentBase,
+                      direction === 'unescape' ? segmentActive : segmentInactive,
+                      direction !== 'unescape' && segmentInactiveInteractive,
+                    )}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -368,7 +365,11 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={direction === 'escape'}
                     onClick={() => setDirection('escape')}
-                    className={mergeClassNames(segmentBase, direction === 'escape' ? segmentActive : segmentInactive)}
+                    className={mergeClassNames(
+                      segmentBase,
+                      direction === 'escape' ? segmentActive : segmentInactive,
+                      direction !== 'escape' && segmentInactiveInteractive,
+                    )}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -392,7 +393,11 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={wrapOutput}
                     onClick={() => setWrapOutput(true)}
-                    className={mergeClassNames(segmentBase, wrapOutput ? segmentActive : segmentInactive)}
+                    className={mergeClassNames(
+                      segmentBase,
+                      wrapOutput ? segmentActive : segmentInactive,
+                      !wrapOutput && segmentInactiveInteractive,
+                    )}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -405,7 +410,11 @@ export default function MessageUnescaper() {
                     type="button"
                     aria-pressed={!wrapOutput}
                     onClick={() => setWrapOutput(false)}
-                    className={mergeClassNames(segmentBase, !wrapOutput ? segmentActive : segmentInactive)}
+                    className={mergeClassNames(
+                      segmentBase,
+                      !wrapOutput ? segmentActive : segmentInactive,
+                      wrapOutput && segmentInactiveInteractive,
+                    )}
                   >
                     <span className="relative inline-grid">
                       <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
@@ -494,7 +503,8 @@ export default function MessageUnescaper() {
                         className={mergeClassNames(
                           segmentBase,
                           showDashBreaks ? segmentActive : segmentInactive,
-                          'disabled:opacity-40 disabled:pointer-events-none',
+                          !showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
+                          'disabled:opacity-40',
                         )}
                       >
                         <span className="relative inline-grid">
@@ -512,7 +522,8 @@ export default function MessageUnescaper() {
                         className={mergeClassNames(
                           segmentBase,
                           !showDashBreaks ? segmentActive : segmentInactive,
-                          'disabled:opacity-40 disabled:pointer-events-none',
+                          showDashBreaks && !showDashBreaksDisabled && segmentInactiveInteractive,
+                          'disabled:opacity-40',
                         )}
                       >
                         <span className="relative inline-grid">
@@ -531,11 +542,9 @@ export default function MessageUnescaper() {
                       disabled={!output || (!replaceDashBreaks && dashBreakCount === 0)}
                       aria-label={replaceDashBreaksTooltip}
                       aria-pressed={replaceDashBreaks}
-                      className={mergeClassNames(
-                        'inline-flex cursor-pointer border-0 bg-transparent p-0',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-                        'disabled:opacity-40 disabled:pointer-events-none',
-                      )}
+                      className={
+                        'inline-flex cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed'
+                      }
                     >
                       <StatusTag
                         label="Replace With Periods"

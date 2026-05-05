@@ -66,11 +66,9 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
         rel="noopener noreferrer"
         aria-label={`Open ${artifact.name} standalone`}
         title="Open standalone view"
-        className={mergeClassNames(
-          'absolute right-2 bottom-2 z-10 inline-flex h-7 w-7 items-center justify-center border border-transparent text-gray-500 transition',
-          'hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
-          'dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950',
-        )}
+        className={
+          'absolute right-2 bottom-2 z-10 inline-flex h-7 w-7 items-center justify-center border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950'
+        }
       >
         <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden="true" />
       </a>

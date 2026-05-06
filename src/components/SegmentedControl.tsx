@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
@@ -8,7 +8,9 @@ export type SegmentedControlSize = 'compact' | 'default';
 export type SegmentedControlOption<TValue extends string = string> = {
   value: TValue;
   label: string;
+  ariaLabel?: string;
   reserveLabel?: string;
+  icon?: ReactNode;
   disabled?: boolean;
   title?: string;
 };
@@ -89,6 +91,7 @@ export function SegmentedControl<TValue extends string = string>({
             key={option.value}
             type="button"
             aria-pressed={selected}
+            aria-label={option.ariaLabel}
             disabled={optionDisabled}
             title={option.title}
             onClick={() => onValueChange(option.value)}
@@ -97,6 +100,7 @@ export function SegmentedControl<TValue extends string = string>({
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)] focus-visible:z-20',
               sizeClass[size],
               fullWidth && 'flex-1',
+              option.icon ? 'gap-1.5' : '',
               index > 0 && '-ml-px',
               selected ? 'z-10' : 'z-0',
               selected ? selectedTone[tone] : inactiveTone[tone],
@@ -115,6 +119,7 @@ export function SegmentedControl<TValue extends string = string>({
               </span>
               <span className="col-start-1 row-start-1 min-w-0 truncate">{option.label}</span>
             </span>
+            {option.icon}
           </button>
         );
       })}

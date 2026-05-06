@@ -5,6 +5,7 @@ import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
 import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import Checkbox from './components/Checkbox';
@@ -620,10 +621,6 @@ export default function JsonlStructureViewer() {
 
   const errorsReport = parsed.errors.length ? formatErrorsReport(parsed.errors) : '';
   const errorReserveLabel = 'Invalid JSONL. Each line must be valid JSON.';
-  const layoutReserveLabel = '3';
-  const outputFormatReserveLabel = 'Compact';
-  const outputViewReserveLabel = 'Highlighted';
-  const wrapReserveLabel = 'Off';
   const jsonViewTheme = isDarkTheme ? darkTheme : lightTheme;
 
   const inputPanel = (
@@ -814,102 +811,34 @@ export default function JsonlStructureViewer() {
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 View
               </span>
-              <fieldset
-                aria-label="Output view"
-                className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-              >
-                <button
-                  type="button"
-                  aria-pressed={outputView === 'raw'}
-                  onClick={() => setOutputView('raw')}
-                  className={mergeClassNames(
-                    'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                    'relative focus-visible:z-10',
-                    outputView === 'raw'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                      : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      {outputViewReserveLabel}
-                    </span>
-                    <span className="col-start-1 row-start-1">Raw</span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={outputView === 'highlighted'}
-                  onClick={() => setOutputView('highlighted')}
-                  className={mergeClassNames(
-                    'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                    'relative focus-visible:z-10',
-                    outputView === 'highlighted'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                      : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      {outputViewReserveLabel}
-                    </span>
-                    <span className="col-start-1 row-start-1">Highlighted</span>
-                  </span>
-                </button>
-              </fieldset>
+              <SegmentedControl
+                ariaLabel="Output view"
+                value={outputView}
+                onValueChange={setOutputView}
+                tone="accent"
+                size="compact"
+                options={[
+                  { value: 'raw', label: 'Raw' },
+                  { value: 'highlighted', label: 'Highlighted' },
+                ]}
+              />
             </div>
             {outputView === 'raw' && (
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Format
                 </span>
-                <fieldset
-                  aria-label="Output format"
-                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOutputFormat('pretty')}
-                    aria-pressed={outputFormat === 'pretty'}
-                    className={mergeClassNames(
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      outputFormat === 'pretty'
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {outputFormatReserveLabel}
-                      </span>
-                      <span className="col-start-1 row-start-1">Pretty</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOutputFormat('compact')}
-                    aria-pressed={outputFormat === 'compact'}
-                    className={mergeClassNames(
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      outputFormat === 'compact'
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {outputFormatReserveLabel}
-                      </span>
-                      <span className="col-start-1 row-start-1">Compact</span>
-                    </span>
-                  </button>
-                </fieldset>
+                <SegmentedControl
+                  ariaLabel="Output format"
+                  value={outputFormat}
+                  onValueChange={setOutputFormat}
+                  tone="accent"
+                  size="default"
+                  options={[
+                    { value: 'pretty', label: 'Pretty' },
+                    { value: 'compact', label: 'Compact' },
+                  ]}
+                />
               </div>
             )}
             {outputView === 'highlighted' && (
@@ -992,82 +921,40 @@ export default function JsonlStructureViewer() {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Layout
                 </span>
-                <fieldset
-                  aria-label="Layout mode"
-                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                >
-                  <button
-                    type="button"
-                    aria-label="One column layout"
-                    aria-pressed={visibleLayoutMode === 'one-column'}
-                    onClick={() => setLayoutMode('one-column')}
-                    className={mergeClassNames(
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'inline-flex items-center gap-1.5',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      visibleLayoutMode === 'one-column'
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {layoutReserveLabel}
-                      </span>
-                      <span className="col-start-1 row-start-1">1</span>
-                    </span>
-                    <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Two column layout"
-                    aria-pressed={visibleLayoutMode === 'two-column'}
-                    onClick={() => setLayoutMode('two-column')}
-                    className={mergeClassNames(
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'inline-flex items-center gap-1.5',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      visibleLayoutMode === 'two-column'
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {layoutReserveLabel}
-                      </span>
-                      <span className="col-start-1 row-start-1">2</span>
-                    </span>
-                    <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                  {canUseThreeColumns && (
-                    <button
-                      type="button"
-                      aria-label="Three column layout"
-                      aria-pressed={visibleLayoutMode === 'three-column'}
-                      onClick={() => setLayoutMode('three-column')}
-                      className={mergeClassNames(
-                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                        'inline-flex items-center gap-1.5',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                        'relative focus-visible:z-10',
-                        visibleLayoutMode === 'three-column'
-                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      )}
-                    >
-                      <span className="relative inline-grid">
-                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          {layoutReserveLabel}
-                        </span>
-                        <span className="col-start-1 row-start-1">3</span>
-                      </span>
-                      <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
-                  )}
-                </fieldset>
+                <SegmentedControl
+                  ariaLabel="Layout mode"
+                  value={visibleLayoutMode}
+                  onValueChange={setLayoutMode}
+                  tone="accent"
+                  size="default"
+                  options={[
+                    {
+                      value: 'one-column',
+                      label: '1',
+                      ariaLabel: 'One column layout',
+                      reserveLabel: '3',
+                      icon: <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />,
+                    },
+                    {
+                      value: 'two-column',
+                      label: '2',
+                      ariaLabel: 'Two column layout',
+                      reserveLabel: '3',
+                      icon: <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />,
+                    },
+                    ...(canUseThreeColumns
+                      ? [
+                          {
+                            value: 'three-column' as const,
+                            label: '3',
+                            ariaLabel: 'Three column layout',
+                            reserveLabel: '3',
+                            icon: <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />,
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
               </div>
             )}
             <div className={headerControlsRowClass}>
@@ -1075,51 +962,17 @@ export default function JsonlStructureViewer() {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Word Wrap
                 </span>
-                <fieldset
-                  aria-label="Word wrap"
-                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                >
-                  <button
-                    type="button"
-                    aria-pressed={wrapOutput}
-                    onClick={() => setWrapOutput(true)}
-                    className={mergeClassNames(
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      wrapOutput
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {wrapReserveLabel}
-                      </span>
-                      <span className="col-start-1 row-start-1">On</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={!wrapOutput}
-                    onClick={() => setWrapOutput(false)}
-                    className={mergeClassNames(
-                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                      'relative focus-visible:z-10',
-                      !wrapOutput
-                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        {wrapReserveLabel}
-                      </span>
-                      <span className="col-start-1 row-start-1">Off</span>
-                    </span>
-                  </button>
-                </fieldset>
+                <SegmentedControl
+                  ariaLabel="Word wrap"
+                  value={wrapOutput ? 'on' : 'off'}
+                  onValueChange={(nextValue) => setWrapOutput(nextValue === 'on')}
+                  tone="accent"
+                  size="default"
+                  options={[
+                    { value: 'on', label: 'On' },
+                    { value: 'off', label: 'Off' },
+                  ]}
+                />
               </div>
               <button
                 type="button"

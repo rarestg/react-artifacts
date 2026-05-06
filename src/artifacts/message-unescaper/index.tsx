@@ -265,8 +265,14 @@ const formatStatsLine = (chars: number, lines: number) =>
 const headerActionClass =
   'px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--surface)]';
 
+const panelBodyToolbarClass =
+  'flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--border)] px-4 py-2';
+
 const segmentBase =
   'h-8 px-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] relative focus-visible:z-10';
+
+const compactSegmentBase =
+  'h-6 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] relative focus-visible:z-10';
 
 const segmentActive = 'bg-[var(--accent-weak)] text-[var(--accent)]';
 const segmentInactive = 'bg-[var(--surface)] text-[var(--text-muted)]';
@@ -338,50 +344,6 @@ export default function MessageUnescaper() {
           <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                Mode
-              </span>
-              <fieldset
-                aria-label="Direction"
-                className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-              >
-                <button
-                  type="button"
-                  aria-pressed={direction === 'unescape'}
-                  onClick={() => setDirection('unescape')}
-                  className={mergeClassNames(
-                    segmentBase,
-                    direction === 'unescape' ? segmentActive : segmentInactive,
-                    direction !== 'unescape' && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Unescape
-                    </span>
-                    <span className="col-start-1 row-start-1">Unescape</span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={direction === 'escape'}
-                  onClick={() => setDirection('escape')}
-                  className={mergeClassNames(
-                    segmentBase,
-                    direction === 'escape' ? segmentActive : segmentInactive,
-                    direction !== 'escape' && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Unescape
-                    </span>
-                    <span className="col-start-1 row-start-1">Escape</span>
-                  </span>
-                </button>
-              </fieldset>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Wrap
               </span>
               <fieldset
@@ -445,6 +407,52 @@ export default function MessageUnescaper() {
                 Clear
               </button>
             </div>
+            <div className={panelBodyToolbarClass}>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Mode
+                </span>
+                <fieldset
+                  aria-label="Direction"
+                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={direction === 'unescape'}
+                    onClick={() => setDirection('unescape')}
+                    className={mergeClassNames(
+                      compactSegmentBase,
+                      direction === 'unescape' ? segmentActive : segmentInactive,
+                      direction !== 'unescape' && segmentInactiveInteractive,
+                    )}
+                  >
+                    <span className="relative inline-grid">
+                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                        Unescape
+                      </span>
+                      <span className="col-start-1 row-start-1">Unescape</span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={direction === 'escape'}
+                    onClick={() => setDirection('escape')}
+                    className={mergeClassNames(
+                      compactSegmentBase,
+                      direction === 'escape' ? segmentActive : segmentInactive,
+                      direction !== 'escape' && segmentInactiveInteractive,
+                    )}
+                  >
+                    <span className="relative inline-grid">
+                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                        Unescape
+                      </span>
+                      <span className="col-start-1 row-start-1">Escape</span>
+                    </span>
+                  </button>
+                </fieldset>
+              </div>
+            </div>
             <div className="px-4 py-4">
               <textarea
                 aria-labelledby={inputLabelId}
@@ -478,8 +486,8 @@ export default function MessageUnescaper() {
               </div>
               <CopyButton text={output} idleLabel="Copy Output" disabled={!output} />
             </div>
-            <div className="px-4 py-4">
-              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className={panelBodyToolbarClass}>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                 <Toggle
                   label="Show dash breaks"
                   checked={showDashBreaks}
@@ -505,6 +513,8 @@ export default function MessageUnescaper() {
                   {replaceDashBreaksTooltip}
                 </span>
               </div>
+            </div>
+            <div className="px-4 py-4">
               <div className="w-full min-h-[320px] max-h-[80vh] overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
                 {output ? (
                   <pre

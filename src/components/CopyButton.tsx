@@ -1,9 +1,8 @@
 import { Copy } from 'lucide-react';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { type CopyStatus, useCopyToClipboard } from '../lib/useCopyToClipboard';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
-
-type CopyButtonStatus = 'idle' | 'copied' | 'failed';
 
 export type CopyButtonHandle = {
   copy: () => void;
@@ -36,13 +35,13 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
   },
   ref,
 ) {
-  const [status, setStatus] = useState<CopyButtonStatus>('idle');
+  const { status, copy, announcement } = useCopyToClipboard();
   const rootRef = useRef<HTMLButtonElement>(null);
   const resolvedAriaLabel = ariaLabel?.trim() || idleLabel.trim() || 'Copy';
 
   useArtifactThemeGuard('CopyButton', rootRef);
 
-  const labels: Record<CopyButtonStatus, string> = useMemo(
+  const labels: Record<CopyStatus, string> = useMemo(
     () => ({ idle: idleLabel, copied: COPIED_LABEL, failed: FAILED_LABEL }),
     [idleLabel],
   );
@@ -55,21 +54,10 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
 
   const handleCopy = useCallback(async () => {
     if (disabled) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setStatus('copied');
-    } catch {
-      setStatus('failed');
-    }
-  }, [disabled, text]);
+    await copy(text);
+  }, [copy, disabled, text]);
 
   useImperativeHandle(ref, () => ({ copy: handleCopy }), [handleCopy]);
-
-  useEffect(() => {
-    if (status === 'idle') return;
-    const timeout = window.setTimeout(() => setStatus('idle'), 2000);
-    return () => window.clearTimeout(timeout);
-  }, [status]);
 
   const tone =
     status === 'copied'
@@ -118,7 +106,7 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
         </span>
       )}
       <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {status === 'copied' ? 'Copied to clipboard' : status === 'failed' ? 'Copy failed' : ''}
+        {announcement}
       </span>
     </button>
   );

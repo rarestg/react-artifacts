@@ -211,7 +211,19 @@ test('copyable label keeps a stable accessible name for the copied value', () =>
   const markup = renderToStaticMarkup(createElement(CopyableLabel, { value: '~/projects/app' }));
 
   assert.match(markup, /aria-label="Copy: ~\/projects\/app"/);
+  assert.match(markup, /\bgroup\b/);
+  assert.match(markup, /group-hover:opacity-0/);
+  assert.match(markup, /group-focus-visible:opacity-0/);
   assert.match(markup, /active:bg-\[var\(--copy-hover-bg\)\]/);
+});
+
+test('copyable label can suppress focus-visible copy label without disabling hover affordance', () => {
+  const markup = renderToStaticMarkup(
+    createElement(CopyableLabel, { value: '~/projects/app', showHoverOnFocus: false }),
+  );
+
+  assert.match(markup, /group-hover:opacity-0/);
+  assert.doesNotMatch(markup, /group-focus-visible:opacity/);
 });
 
 test('StatusTag supports default and named imports', async () => {

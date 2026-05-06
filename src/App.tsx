@@ -12,6 +12,7 @@ import {
 import { type ArtifactEntry, artifacts } from './artifacts';
 import { ArtifactListItem } from './components/ArtifactListItem';
 import { mergeClassNames } from './lib/classNames';
+import { useCopyToClipboard } from './lib/useCopyToClipboard';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
 type DeviceOrientation = 'portrait' | 'landscape';
@@ -73,7 +74,14 @@ export default function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [rootFontSize, setRootFontSize] = useState(16);
-  const [sizeCopied, setSizeCopied] = useState(false);
+  const {
+    status: sizeCopyStatus,
+    copy: copyCanvasSize,
+    announcement: sizeCopyAnnouncement,
+  } = useCopyToClipboard({
+    resetDelayMs: 1500,
+    copiedAnnouncement: 'Copied canvas size to clipboard',
+  });
   const [devicePreview, setDevicePreview] = useState<DevicePreview>('none');
   const [deviceOrientation, setDeviceOrientation] = useState<DeviceOrientation>('portrait');
   const current: ArtifactEntry | undefined = artifacts.find((a) => a.id === selected);
@@ -146,12 +154,6 @@ export default function App() {
       updateArtifactUrl(selected, 'replace');
     }
   }, [selected]);
-
-  useEffect(() => {
-    if (!sizeCopied) return;
-    const timeout = window.setTimeout(() => setSizeCopied(false), 1500);
-    return () => window.clearTimeout(timeout);
-  }, [sizeCopied]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -373,6 +375,10 @@ export default function App() {
   const widthLabel = hasCanvasSize ? `W ${widthPx}px · ${widthPt}pt · ${widthRem}rem` : 'W --px · --pt · --rem';
   const heightLabel = hasCanvasSize ? `H ${heightPx}px · ${heightPt}pt · ${heightRem}rem` : 'H --px · --pt · --rem';
   const sizeLabel = `W ${widthPx}px · ${widthPt}pt · ${widthRem}rem\nH ${heightPx}px · ${heightPt}pt · ${heightRem}rem`;
+  const sizeCopied = sizeCopyStatus === 'copied';
+  const sizeCopyFailed = sizeCopyStatus === 'failed';
+  const sizeCopyActive = sizeCopyStatus !== 'idle';
+  const sizeCopyFeedback = sizeCopied ? 'Copied' : sizeCopyFailed ? 'Failed' : 'Copy';
   const isDevicePreviewActive = devicePreview !== 'none';
   const activePreset = isDevicePreviewActive ? DEVICE_PRESETS[devicePreview] : null;
   const previewWidth = activePreset ? (deviceOrientation === 'portrait' ? activePreset.width : activePreset.height) : 0;
@@ -383,13 +389,8 @@ export default function App() {
     : 0;
   const handleCopySize = useCallback(async () => {
     if (!hasCanvasSize) return;
-    try {
-      await navigator.clipboard.writeText(sizeLabel);
-      setSizeCopied(true);
-    } catch {
-      setSizeCopied(false);
-    }
-  }, [hasCanvasSize, sizeLabel]);
+    await copyCanvasSize(sizeLabel);
+  }, [copyCanvasSize, hasCanvasSize, sizeLabel]);
 
   return (
     <div ref={layoutRef} className="flex min-h-screen bg-white text-gray-900 dark:bg-slate-950 dark:text-slate-100">
@@ -547,9 +548,11 @@ export default function App() {
               'dark:focus-visible:ring-offset-slate-900',
               sizeCopied
                 ? 'cursor-pointer border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/40 dark:text-emerald-300'
-                : hasCanvasSize
-                  ? 'cursor-pointer border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800'
-                  : 'cursor-not-allowed border-gray-200 bg-white text-gray-400 opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500',
+                : sizeCopyFailed
+                  ? 'cursor-pointer border-red-300 bg-red-50 text-red-700 dark:border-red-500/60 dark:bg-red-950/40 dark:text-red-300'
+                  : hasCanvasSize
+                    ? 'cursor-pointer border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800'
+                    : 'cursor-not-allowed border-gray-200 bg-white text-gray-400 opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500',
             )}
             aria-label={hasCanvasSize ? `Copy canvas size: ${sizeLabel}` : 'Canvas size unavailable'}
             title={hasCanvasSize ? 'Copy canvas size' : 'Canvas size unavailable'}
@@ -559,7 +562,7 @@ export default function App() {
                 className={mergeClassNames(
                   'col-start-1 row-start-1 font-mono text-[11px] leading-4 tabular-nums transition-opacity',
                   hasCanvasSize && 'group-hover:opacity-0 group-focus-visible:opacity-0',
-                  sizeCopied && 'opacity-0',
+                  sizeCopyActive && 'opacity-0',
                 )}
               >
                 <span className="block">{widthLabel}</span>
@@ -571,16 +574,18 @@ export default function App() {
                     'col-start-1 row-start-1 text-[10px] font-semibold uppercase tracking-[0.18em] opacity-0 transition-opacity',
                     sizeCopied
                       ? 'text-emerald-700 opacity-100 dark:text-emerald-300'
-                      : 'text-gray-500 group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-slate-300',
+                      : sizeCopyFailed
+                        ? 'text-red-700 opacity-100 dark:text-red-300'
+                        : 'text-gray-500 group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-slate-300',
                   )}
                   aria-hidden="true"
                 >
-                  {sizeCopied ? 'Copied' : 'Copy'}
+                  {sizeCopyFeedback}
                 </span>
               )}
             </span>
             <span className="sr-only" aria-live="polite" aria-atomic="true">
-              {sizeCopied ? 'Copied canvas size to clipboard' : ''}
+              {sizeCopyAnnouncement}
             </span>
           </button>
         </div>

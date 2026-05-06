@@ -1,6 +1,13 @@
 import { type ReactNode, type RefObject, useMemo } from 'react';
 
-import { headerActionClass, panelHeaderRowClass } from '../lib/ui';
+import {
+  headerActionClass,
+  panelHeaderActionsClass,
+  panelHeaderMetaClass,
+  panelHeaderRowClass,
+  panelHeaderTextClass,
+  panelHeaderTitleClass,
+} from '../lib/ui';
 import type { PathNode } from '../types';
 import Checkbox from './Checkbox';
 
@@ -244,13 +251,14 @@ export default function PathList({
   return (
     <div className="flex flex-1 min-h-0 flex-col border border-[var(--border)] bg-[var(--surface)]">
       <div className={panelHeaderRowClass}>
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Path Filters</div>
-          <div className="text-xs text-[var(--text-muted)]">
-            {visibleCount} shown - {includedCount}/{flatNodes.length} included
+        <div className={panelHeaderTextClass}>
+          <div className={panelHeaderTitleClass}>Path Filters</div>
+          <div className={panelHeaderMetaClass}>
+            <span>{visibleCount} shown</span>
+            <span>{`· ${includedCount}/${flatNodes.length} included`}</span>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
+        <div className={panelHeaderActionsClass}>
           <button
             type="button"
             onClick={onExpandAll}
@@ -296,7 +304,7 @@ export default function PathList({
           label="Leaf paths only"
           className="text-xs text-[var(--text-muted)]"
         />
-        <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
+        <div className={panelHeaderActionsClass}>
           <button type="button" onClick={() => onSelectAll(true)} className={headerActionClass}>
             Select All
           </button>

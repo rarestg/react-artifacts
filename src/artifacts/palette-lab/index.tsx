@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import {
@@ -62,8 +63,6 @@ const headerIconActionClass = mergeClassNames(
   headerActionFrameClass,
   'w-9 text-[var(--text-muted)] hover:text-[var(--text)]',
 );
-const modeButtonBase =
-  'inline-flex h-8 items-center justify-center border px-2 text-xs font-medium transition-colors motion-reduce:transition-none';
 
 const helpItems = [
   {
@@ -487,14 +486,18 @@ export default function PaletteLab() {
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
                 Labels
               </div>
-              <div className="grid grid-cols-2">
-                <ModeButton active={labelMode === 'hue'} onClick={() => setLabelMode('hue')}>
-                  Color name
-                </ModeButton>
-                <ModeButton active={labelMode === 'index'} onClick={() => setLabelMode('index')}>
-                  Index
-                </ModeButton>
-              </div>
+              <SegmentedControl
+                ariaLabel="Labels"
+                value={labelMode}
+                onValueChange={setLabelMode}
+                tone="neutral"
+                size="default"
+                fullWidth
+                options={[
+                  { value: 'hue', label: 'Color name' },
+                  { value: 'index', label: 'Index' },
+                ]}
+              />
             </div>
 
             <button
@@ -691,25 +694,6 @@ function RangeControl({ label, value, min, max, step, displayValue, onChange }: 
         className="w-full accent-[var(--text)]"
       />
     </label>
-  );
-}
-
-function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={mergeClassNames(
-        modeButtonBase,
-        active
-          ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
-          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-        focusClass,
-      )}
-    >
-      {children}
-    </button>
   );
 }
 

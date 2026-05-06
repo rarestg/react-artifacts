@@ -27,12 +27,12 @@ test('Palette Lab header includes an accessible help button', async () => {
 
 test('Palette Lab defaults to color names before index labels', async () => {
   const markup = await renderPaletteLab();
-  const hueIndex = markup.indexOf('Color name</button>');
-  const indexIndex = markup.indexOf('Index</button>');
+  const hueIndex = markup.indexOf('>Color name</span>');
+  const indexIndex = markup.indexOf('>Index</span>');
 
   assert.ok(hueIndex >= 0);
   assert.ok(indexIndex > hueIndex);
-  assert.match(markup, /aria-pressed="true"[^>]*>Color name<\/button>/);
+  assert.match(markup, /aria-pressed="true"[\s\S]*>Color name<\/span>/);
   assert.match(markup, /12 selected \/ color names/);
   assert.match(markup, />Sky<\/span>/);
 });

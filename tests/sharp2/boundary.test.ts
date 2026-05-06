@@ -7,6 +7,7 @@ const sharp2Dir = 'src/artifacts/sharp2';
 const sharedPrimitiveNames = [
   'Checkbox',
   'Toggle',
+  'SegmentedControl',
   'CopyButton',
   'CopyableLabel',
   'StatusTag',
@@ -55,7 +56,17 @@ test('sharp2 imports shared primitives from src/components at usage sites', asyn
   const files = await readSharp2SourceFiles();
   const joined = files.map(({ source }) => source).join('\n');
 
-  for (const name of ['Button', 'Input', 'Tag', 'Panel', 'Checkbox', 'Toggle', 'CopyButton', 'CopyableLabel']) {
+  for (const name of [
+    'Button',
+    'Input',
+    'Tag',
+    'Panel',
+    'Checkbox',
+    'Toggle',
+    'SegmentedControl',
+    'CopyButton',
+    'CopyableLabel',
+  ]) {
     assert.match(joined, new RegExp(`import \\{[^}]*${name}[^}]*\\} from ['"](?:\\.\\.\\/)+components\\/${name}['"]`));
   }
   assert.match(joined, /import \{ StatusTag \} from ['"](?:\.\.\/)+components\/StatusTag['"]/);
@@ -81,6 +92,8 @@ test('sharp2 documentation matches shared primitive APIs', async () => {
   assert.match(guide, /`Button`[^|]*\|[^|]*\|[^|\n]*`size`: `sm`, `md`, `lg`/);
   assert.match(guide, /`Checkbox`[^|]*\|[^|]*\|[^|\n]*`onCheckedChange`/);
   assert.match(guide, /`Toggle`[^|]*\|[^|]*\|[^|\n]*`onCheckedChange`/);
+  assert.match(guide, /`SegmentedControl`[^|]*\|[^|]*\|[^|\n]*`onValueChange`/);
+  assert.match(guide, /`SegmentedControl`[^|]*\|[^|]*\|[^|\n]*`tone`: `neutral`, `accent`/);
   assert.doesNotMatch(guide, /`Button`[^|\n]*\|[^|\n]*\|[^|\n]*`size`: `sm`, `default`, `lg`/);
   assert.doesNotMatch(guide, /`(?:Checkbox|Toggle)`[^|\n]*\|[^|\n]*\|[^|\n]*`onChange`/);
 });

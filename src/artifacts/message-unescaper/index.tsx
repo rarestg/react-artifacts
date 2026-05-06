@@ -1,14 +1,24 @@
-import { type ReactNode, useId, useMemo, useState } from 'react';
+import { Columns2, RectangleVertical } from 'lucide-react';
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
+import {
+  panelHeaderMetaClass,
+  panelHeaderRowClass,
+  panelHeaderTextClass,
+  panelHeaderTitleClass,
+} from '../../components/panelHeaderClasses';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { Toggle } from '../../components/Toggle';
 import { mergeClassNames } from '../../lib/classNames';
+import { useLocalStorageState } from '../../lib/useLocalStorageState';
 
 // ---------------------------------------------------------------------------
 // Transform functions (pure, testable)
 // ---------------------------------------------------------------------------
 
 type Direction = 'unescape' | 'escape';
+type PanelLayoutMode = 'one-column' | 'two-column';
 type TextRange = { start: number; end: number };
 
 const dashBreakTokenPattern = /--|—/g;
@@ -253,37 +263,54 @@ const formatStatsLine = (chars: number, lines: number) =>
   `${formatCompact(chars)} chars · ${lines} ${lines === 1 ? 'line' : 'lines'}`;
 
 // ---------------------------------------------------------------------------
-// Shared class strings (matching JSONL viewer patterns)
+// Local class strings
 // ---------------------------------------------------------------------------
-
-const panelHeaderRowClass =
-  'flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3';
-
-const panelHeaderSubtitleClass = 'flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--text-muted)]';
 
 const headerActionClass =
   'px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--surface)]';
 
-const segmentBase =
-  'h-8 px-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] relative focus-visible:z-10';
+const panelBodyToolbarClass =
+  'flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--border)] px-4 py-2';
 
-const segmentActive = 'bg-[var(--accent-weak)] text-[var(--accent)]';
-const segmentInactive = 'bg-[var(--surface)] text-[var(--text-muted)]';
-const segmentInactiveInteractive = 'hover:bg-[var(--surface-strong)]';
+const MESSAGE_PANEL_MIN_WIDTH = 400;
+const MESSAGE_PANEL_GAP = 16;
+const MESSAGE_TWO_COLUMN_MIN_WIDTH = MESSAGE_PANEL_MIN_WIDTH * 2 + MESSAGE_PANEL_GAP;
+const MESSAGE_LAYOUT_STORAGE_KEY = 'message-unescaper-layout';
 
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
 export default function MessageUnescaper() {
+  const mainRef = useRef<HTMLElement>(null);
   const inputLabelId = useId();
   const showDashBreaksDescriptionId = useId();
   const replaceDashBreaksDescriptionId = useId();
+  const [preferredPanelLayout, setPreferredPanelLayout] = useLocalStorageState<PanelLayoutMode>(
+    MESSAGE_LAYOUT_STORAGE_KEY,
+    'two-column',
+  );
+  const [mainContentWidth, setMainContentWidth] = useState(MESSAGE_TWO_COLUMN_MIN_WIDTH);
   const [input, setInput] = useState('');
   const [direction, setDirection] = useState<Direction>('unescape');
   const [wrapOutput, setWrapOutput] = useState(true);
   const [showDashBreaks, setShowDashBreaks] = useState(false);
   const [replaceDashBreaks, setReplaceDashBreaks] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') return;
+    const element = mainRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      setMainContentWidth(entry.contentRect.width);
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   const baseOutput = useMemo(() => {
     if (!input) return '';
@@ -323,6 +350,8 @@ export default function MessageUnescaper() {
 
   const inputStats = useMemo(() => getStats(input), [input]);
   const outputStats = useMemo(() => getStats(output), [output]);
+  const canUseTwoColumnLayout = mainContentWidth >= MESSAGE_TWO_COLUMN_MIN_WIDTH;
+  const visiblePanelLayout: PanelLayoutMode = canUseTwoColumnLayout ? preferredPanelLayout : 'one-column';
 
   return (
     <ArtifactThemeRoot className="flex min-h-screen flex-col bg-[var(--surface-muted)] text-[var(--text)]">
@@ -335,117 +364,96 @@ export default function MessageUnescaper() {
             </p>
           </div>
           <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                Mode
-              </span>
-              <fieldset
-                aria-label="Direction"
-                className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-              >
-                <button
-                  type="button"
-                  aria-pressed={direction === 'unescape'}
-                  onClick={() => setDirection('unescape')}
-                  className={mergeClassNames(
-                    segmentBase,
-                    direction === 'unescape' ? segmentActive : segmentInactive,
-                    direction !== 'unescape' && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Unescape
-                    </span>
-                    <span className="col-start-1 row-start-1">Unescape</span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={direction === 'escape'}
-                  onClick={() => setDirection('escape')}
-                  className={mergeClassNames(
-                    segmentBase,
-                    direction === 'escape' ? segmentActive : segmentInactive,
-                    direction !== 'escape' && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Unescape
-                    </span>
-                    <span className="col-start-1 row-start-1">Escape</span>
-                  </span>
-                </button>
-              </fieldset>
-            </div>
+            {canUseTwoColumnLayout && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Layout
+                </span>
+                <SegmentedControl
+                  ariaLabel="Panel layout"
+                  value={visiblePanelLayout}
+                  onValueChange={setPreferredPanelLayout}
+                  size="default"
+                  tone="accent"
+                  options={[
+                    {
+                      value: 'one-column',
+                      label: '1',
+                      ariaLabel: 'One column layout',
+                      reserveLabel: '2',
+                      icon: <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />,
+                    },
+                    {
+                      value: 'two-column',
+                      label: '2',
+                      ariaLabel: 'Two column layout',
+                      reserveLabel: '2',
+                      icon: <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />,
+                    },
+                  ]}
+                />
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Wrap
               </span>
-              <fieldset
-                aria-label="Word wrap"
-                className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-              >
-                <button
-                  type="button"
-                  aria-pressed={wrapOutput}
-                  onClick={() => setWrapOutput(true)}
-                  className={mergeClassNames(
-                    segmentBase,
-                    wrapOutput ? segmentActive : segmentInactive,
-                    !wrapOutput && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Off
-                    </span>
-                    <span className="col-start-1 row-start-1">On</span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={!wrapOutput}
-                  onClick={() => setWrapOutput(false)}
-                  className={mergeClassNames(
-                    segmentBase,
-                    !wrapOutput ? segmentActive : segmentInactive,
-                    wrapOutput && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Off
-                    </span>
-                    <span className="col-start-1 row-start-1">Off</span>
-                  </span>
-                </button>
-              </fieldset>
+              <SegmentedControl
+                ariaLabel="Word wrap"
+                value={wrapOutput ? 'on' : 'off'}
+                onValueChange={(nextValue) => setWrapOutput(nextValue === 'on')}
+                size="default"
+                tone="accent"
+                options={[
+                  { value: 'on', label: 'On' },
+                  { value: 'off', label: 'Off' },
+                ]}
+              />
             </div>
           </div>
         </div>
       </header>
 
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-2">
+      <main
+        ref={mainRef}
+        className={mergeClassNames(
+          'grid flex-1 grid-cols-1 gap-4 p-4',
+          visiblePanelLayout === 'two-column' && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)]',
+        )}
+      >
         {/* Input */}
         <section className="min-w-0 flex flex-col">
           <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
             <div className={panelHeaderRowClass}>
-              <div>
-                <div
-                  id={inputLabelId}
-                  className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]"
-                >
+              <div className={panelHeaderTextClass}>
+                <div id={inputLabelId} className={panelHeaderTitleClass}>
                   Input
                 </div>
-                <div className={panelHeaderSubtitleClass}>
+                <div className={panelHeaderMetaClass}>
                   <span>{formatStatsLine(inputStats.chars, inputStats.lines)}</span>
                 </div>
               </div>
               <button type="button" onClick={() => setInput('')} disabled={!input} className={headerActionClass}>
                 Clear
               </button>
+            </div>
+            <div className={panelBodyToolbarClass}>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Mode
+                </span>
+                <SegmentedControl
+                  ariaLabel="Direction"
+                  value={direction}
+                  onValueChange={setDirection}
+                  size="compact"
+                  tone="accent"
+                  options={[
+                    { value: 'unescape', label: 'Unescape' },
+                    { value: 'escape', label: 'Escape' },
+                  ]}
+                />
+              </div>
             </div>
             <div className="px-4 py-4">
               <textarea
@@ -457,7 +465,7 @@ export default function MessageUnescaper() {
                 wrap={wrapOutput ? 'soft' : 'off'}
                 rows={16}
                 className={mergeClassNames(
-                  'w-full min-h-[320px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)]',
+                  'block w-full min-h-[320px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)]',
                   'placeholder:text-[var(--text-subtle)]',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                   wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
@@ -471,17 +479,17 @@ export default function MessageUnescaper() {
         <section className="min-w-0 flex flex-col">
           <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
             <div className={panelHeaderRowClass}>
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Output</div>
-                <div className={panelHeaderSubtitleClass}>
+              <div className={panelHeaderTextClass}>
+                <div className={panelHeaderTitleClass}>Output</div>
+                <div className={panelHeaderMetaClass}>
                   <span>{formatStatsLine(outputStats.chars, outputStats.lines)}</span>
                   <span>{`· ${dashBreakCount} ${dashBreakCount === 1 ? 'dash break' : 'dash breaks'}`}</span>
                 </div>
               </div>
               <CopyButton text={output} idleLabel="Copy Output" disabled={!output} />
             </div>
-            <div className="px-4 py-4">
-              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className={panelBodyToolbarClass}>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                 <Toggle
                   label="Show dash breaks"
                   checked={showDashBreaks}
@@ -507,6 +515,8 @@ export default function MessageUnescaper() {
                   {replaceDashBreaksTooltip}
                 </span>
               </div>
+            </div>
+            <div className="px-4 py-4">
               <div className="w-full min-h-[320px] max-h-[80vh] overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
                 {output ? (
                   <pre

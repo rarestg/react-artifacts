@@ -15,6 +15,7 @@ A local viewer for developing and refining React artifacts. Drop a folder into `
 - `src/artifacts.ts` — artifact discovery through `import.meta.glob`.
 - `src/artifacts/` — self-contained artifact folders.
 - `src/components/` — shared UI primitives.
+- `src/lib/` — shared non-visual helpers and hooks.
 - `src/theme/` — shared artifact theme tokens.
 - `design/` — design philosophy, artifact design guidance, and UI implementation notes.
 - `worker/` — Cloudflare Worker API entry.
@@ -142,6 +143,23 @@ browser window size, not the preview size.
 container-width logic) instead of viewport breakpoints. Reserve `sm:`/`lg:` for full-page prototypes that are meant to
 track the actual browser viewport (or when using DevTools device emulation).
 
+## Shared Components And Helpers
+
+Tokenized artifact primitives live in `src/components/` and should render under `ArtifactThemeRoot`. This includes
+common artifact UI such as `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `Toggle`, `SegmentedControl`,
+`ListboxSelect`, `CopyButton`, `CopyableLabel`, `StatusTag`, `ArtifactDialog`, and `panelHeaderClasses` for dense tool
+panel headers.
+
+Not every `src/components/` export is an artifact primitive. Shell UI in `src/App.tsx` is not artifact UI; do not pull
+artifact-token components into shell chrome unless the subtree is intentionally wrapped. Prefer headless hooks and
+shell-specific classes in shell chrome.
+
+Shared non-visual helpers live in `src/lib/`: `mergeClassNames`, `useCopyToClipboard`, `useLocalStorageState`,
+`useRootDarkMode`, `getPlatformShortcutHint`, and `assignRef`.
+
+Use shared primitives when behavior and visual contract match. Keep artifact-local components local when semantics are
+domain-specific or experimental.
+
 ## UI Implementation Notes (Living Guide)
 
 Before making UI/layout changes, read `design/SHARP_MINIMAL_DESIGN.md` and `design/ARTIFACT_DESIGN_GUIDE.md`.
@@ -257,7 +275,7 @@ Artifacts often come in rough — untyped props, accessibility issues, lint viol
 
 1. **Drop the artifact** into `src/artifacts/` (folder with `index.tsx` entry; optional `meta.ts`)
 2. **Run `npm run lint`** to see Biome errors (a11y, suspicious patterns, style)
-3. **Run `npm run build`** to see TypeScript errors (implicit `any`, missing types)
+3. **Run `npm run typecheck`** to see TypeScript errors (implicit `any`, missing types)
 4. **Fix iteratively** — use `npm run lint:fix` for auto-fixable issues, then address the rest manually
 
 Example `meta.ts`:

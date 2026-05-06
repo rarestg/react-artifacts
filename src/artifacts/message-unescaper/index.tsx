@@ -277,6 +277,14 @@ const MESSAGE_PANEL_GAP = 16;
 const MESSAGE_TWO_COLUMN_MIN_WIDTH = MESSAGE_PANEL_MIN_WIDTH * 2 + MESSAGE_PANEL_GAP;
 const MESSAGE_LAYOUT_STORAGE_KEY = 'message-unescaper-layout';
 
+function getElementContentWidth(element: HTMLElement): number {
+  const styles = window.getComputedStyle(element);
+  const borderX = (Number.parseFloat(styles.borderLeftWidth) || 0) + (Number.parseFloat(styles.borderRightWidth) || 0);
+  const paddingX = (Number.parseFloat(styles.paddingLeft) || 0) + (Number.parseFloat(styles.paddingRight) || 0);
+
+  return Math.max(0, element.getBoundingClientRect().width - borderX - paddingX);
+}
+
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -290,7 +298,7 @@ export default function MessageUnescaper() {
     MESSAGE_LAYOUT_STORAGE_KEY,
     'two-column',
   );
-  const [mainContentWidth, setMainContentWidth] = useState(MESSAGE_TWO_COLUMN_MIN_WIDTH);
+  const [mainContentWidth, setMainContentWidth] = useState<number | null>(null);
   const [input, setInput] = useState('');
   const [direction, setDirection] = useState<Direction>('unescape');
   const [wrapOutput, setWrapOutput] = useState(true);
@@ -298,9 +306,12 @@ export default function MessageUnescaper() {
   const [replaceDashBreaks, setReplaceDashBreaks] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') return;
+    if (typeof window === 'undefined') return;
     const element = mainRef.current;
     if (!element) return;
+
+    setMainContentWidth(getElementContentWidth(element));
+    if (typeof ResizeObserver === 'undefined') return;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -350,7 +361,7 @@ export default function MessageUnescaper() {
 
   const inputStats = useMemo(() => getStats(input), [input]);
   const outputStats = useMemo(() => getStats(output), [output]);
-  const canUseTwoColumnLayout = mainContentWidth >= MESSAGE_TWO_COLUMN_MIN_WIDTH;
+  const canUseTwoColumnLayout = mainContentWidth !== null && mainContentWidth >= MESSAGE_TWO_COLUMN_MIN_WIDTH;
   const visiblePanelLayout: PanelLayoutMode = canUseTwoColumnLayout ? preferredPanelLayout : 'one-column';
 
   return (

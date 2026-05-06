@@ -17,6 +17,7 @@ export function useCopyToClipboard({
   const [announcement, setAnnouncement] = useState('');
   const mountedRef = useRef(true);
   const resetTimeoutRef = useRef<number | undefined>(undefined);
+  const requestIdRef = useRef(0);
 
   const clearResetTimeout = useCallback(() => {
     if (resetTimeoutRef.current === undefined) return;
@@ -36,17 +37,19 @@ export function useCopyToClipboard({
 
   const copy = useCallback(
     async (text: string) => {
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
       clearResetTimeout();
 
       try {
         await navigator.clipboard.writeText(text);
-        if (!mountedRef.current) return true;
+        if (!mountedRef.current || requestId !== requestIdRef.current) return true;
         setStatus('copied');
         setAnnouncement(copiedAnnouncement);
         scheduleReset();
         return true;
       } catch {
-        if (!mountedRef.current) return false;
+        if (!mountedRef.current || requestId !== requestIdRef.current) return false;
         setStatus('failed');
         setAnnouncement(failedAnnouncement);
         scheduleReset();
@@ -57,6 +60,7 @@ export function useCopyToClipboard({
   );
 
   const reset = useCallback(() => {
+    requestIdRef.current += 1;
     clearResetTimeout();
     setStatus('idle');
     setAnnouncement('');

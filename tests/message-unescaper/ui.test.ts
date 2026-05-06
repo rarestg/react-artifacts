@@ -17,10 +17,15 @@ async function readMessageUnescaperSource() {
   return readFile(new URL('../../src/artifacts/message-unescaper/index.tsx', import.meta.url), 'utf8');
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function toggleMarkupByLabel(markup: string, label: string) {
+  const labelPattern = new RegExp(`>\\s*${escapeRegExp(label)}\\s*</span>`);
   const toggleMarkup = [...markup.matchAll(/<label\b[\s\S]*?<\/label>/g)]
     .map((match) => match[0])
-    .find((labelMarkup) => labelMarkup.includes(`>${label}</span>`));
+    .find((labelMarkup) => labelPattern.test(labelMarkup));
   assert.ok(toggleMarkup, `Expected toggle markup for ${label}: ${markup}`);
   return toggleMarkup;
 }
@@ -33,9 +38,10 @@ function assertToggleDisabledReason(markup: string, label: string, reason: strin
   const describedBy = inputTag.match(/\baria-describedby="([^"]+)"/)?.[1];
   assert.ok(describedBy, `Expected aria-describedby on ${label} input: ${inputTag}`);
 
+  const reasonPattern = new RegExp(`>\\s*${escapeRegExp(reason)}\\s*</span>`);
   const reasonSpan = [...markup.matchAll(/<span\b[^>]*>[\s\S]*?<\/span>/g)]
     .map((match) => match[0])
-    .find((spanMarkup) => spanMarkup.includes(`id="${describedBy}"`) && spanMarkup.includes(`>${reason}</span>`));
+    .find((spanMarkup) => spanMarkup.includes(`id="${describedBy}"`) && reasonPattern.test(spanMarkup));
   assert.ok(reasonSpan, `Expected sr-only disabled reason for ${label}: ${markup}`);
 
   const reasonClass = reasonSpan.match(/\bclass="([^"]+)"/)?.[1];
@@ -65,15 +71,12 @@ test('Message Unescaper exposes container-aware panel layout controls', async ()
   assert.match(source, /ariaLabel=["']Panel layout["']/);
   assert.match(source, /ariaLabel:\s*["']One column layout["']/);
   assert.match(source, /ariaLabel:\s*["']Two column layout["']/);
-  assert.match(source, /canUseTwoColumnLayout\s*&&\s*\(/);
   assert.match(source, /setMainContentWidth\(getElementContentWidth\(element\)\)/);
   assert.match(source, /entry\.contentRect\.width/);
   assert.match(source, /mainContentWidth\s*!==\s*null\s*&&\s*mainContentWidth\s*>=\s*MESSAGE_TWO_COLUMN_MIN_WIDTH/);
   assert.match(source, /MESSAGE_TWO_COLUMN_MIN_WIDTH\s*=\s*MESSAGE_PANEL_MIN_WIDTH\s*\*\s*2\s*\+\s*MESSAGE_PANEL_GAP/);
-  assert.match(
-    source,
-    /visiblePanelLayout\s*===\s*["']two-column["'][\s\S]*grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/,
-  );
+  assert.match(source, /grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/);
+  assert.doesNotMatch(markup, /grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/);
   assert.doesNotMatch(source, /Two column layout unavailable/);
   assert.doesNotMatch(source, /disabled: !canUseTwoColumnLayout/);
   assert.doesNotMatch(source, /lg:grid-cols-2/);

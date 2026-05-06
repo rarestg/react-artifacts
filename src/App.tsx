@@ -369,6 +369,9 @@ export default function App() {
   const heightPt = (canvasSize.height * 0.75).toFixed(1);
   const widthRem = rootFontSize ? (canvasSize.width / rootFontSize).toFixed(2) : '0.00';
   const heightRem = rootFontSize ? (canvasSize.height / rootFontSize).toFixed(2) : '0.00';
+  const hasCanvasSize = canvasSize.width > 0 && canvasSize.height > 0;
+  const widthLabel = hasCanvasSize ? `W ${widthPx}px · ${widthPt}pt · ${widthRem}rem` : 'W --px · --pt · --rem';
+  const heightLabel = hasCanvasSize ? `H ${heightPx}px · ${heightPt}pt · ${heightRem}rem` : 'H --px · --pt · --rem';
   const sizeLabel = `W ${widthPx}px · ${widthPt}pt · ${widthRem}rem\nH ${heightPx}px · ${heightPt}pt · ${heightRem}rem`;
   const isDevicePreviewActive = devicePreview !== 'none';
   const activePreset = isDevicePreviewActive ? DEVICE_PRESETS[devicePreview] : null;
@@ -379,13 +382,14 @@ export default function App() {
       : activePreset.width
     : 0;
   const handleCopySize = useCallback(async () => {
+    if (!hasCanvasSize) return;
     try {
       await navigator.clipboard.writeText(sizeLabel);
       setSizeCopied(true);
     } catch {
       setSizeCopied(false);
     }
-  }, [sizeLabel]);
+  }, [hasCanvasSize, sizeLabel]);
 
   return (
     <div ref={layoutRef} className="flex min-h-screen bg-white text-gray-900 dark:bg-slate-950 dark:text-slate-100">
@@ -529,8 +533,61 @@ export default function App() {
             </button>
           </div>
         </div>
+        <div className="mb-4 space-y-2">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+            Canvas Size
+          </div>
+          <button
+            type="button"
+            onClick={handleCopySize}
+            disabled={!hasCanvasSize}
+            className={mergeClassNames(
+              'group flex w-full flex-col items-center justify-center rounded-md border px-3 py-2.5 text-center transition-colors',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-50',
+              'dark:focus-visible:ring-offset-slate-900',
+              sizeCopied
+                ? 'cursor-pointer border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+                : hasCanvasSize
+                  ? 'cursor-pointer border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800'
+                  : 'cursor-not-allowed border-gray-200 bg-white text-gray-400 opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500',
+            )}
+            aria-label={hasCanvasSize ? `Copy canvas size: ${sizeLabel}` : 'Canvas size unavailable'}
+            title={hasCanvasSize ? 'Copy canvas size' : 'Canvas size unavailable'}
+          >
+            <span className="relative inline-grid min-h-8 min-w-full items-center justify-items-center">
+              <span
+                className={mergeClassNames(
+                  'col-start-1 row-start-1 font-mono text-[11px] leading-4 tabular-nums transition-opacity',
+                  hasCanvasSize && 'group-hover:opacity-0 group-focus-visible:opacity-0',
+                  sizeCopied && 'opacity-0',
+                )}
+              >
+                <span className="block">{widthLabel}</span>
+                <span className="block">{heightLabel}</span>
+              </span>
+              {hasCanvasSize && (
+                <span
+                  className={mergeClassNames(
+                    'col-start-1 row-start-1 text-[10px] font-semibold uppercase tracking-[0.18em] opacity-0 transition-opacity',
+                    sizeCopied
+                      ? 'text-emerald-700 opacity-100 dark:text-emerald-300'
+                      : 'text-gray-500 group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-slate-300',
+                  )}
+                  aria-hidden="true"
+                >
+                  {sizeCopied ? 'Copied' : 'Copy'}
+                </span>
+              )}
+            </span>
+            <span className="sr-only" aria-live="polite" aria-atomic="true">
+              {sizeCopied ? 'Copied canvas size to clipboard' : ''}
+            </span>
+          </button>
+        </div>
         <div className="my-3 h-px w-full bg-gray-200 dark:bg-slate-800" />
-        <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3 dark:text-slate-400">Artifacts</h2>
+        <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          Artifacts
+        </h2>
         <ul className="space-y-1">
           {artifacts.map((a) => (
             <ArtifactListItem key={a.id} artifact={a} selected={selected === a.id} onSelect={handleSelectArtifact} />
@@ -562,19 +619,6 @@ export default function App() {
           isDevicePreviewActive && 'flex items-center justify-center',
         )}
       >
-        {canvasSize.width > 0 && (
-          <button
-            type="button"
-            onClick={handleCopySize}
-            className="absolute right-4 top-4 rounded border border-gray-200 bg-white/90 px-2 py-1 text-[11px] font-mono text-gray-700 shadow-sm transition-colors hover:bg-white dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900"
-            aria-label="Copy canvas size"
-            title="Copy canvas size"
-          >
-            <div>{`W ${widthPx}px · ${widthPt}pt · ${widthRem}rem`}</div>
-            <div>{`H ${heightPx}px · ${heightPt}pt · ${heightRem}rem`}</div>
-            {sizeCopied && <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-600">Copied</div>}
-          </button>
-        )}
         {current ? (
           isDevicePreviewActive ? (
             <div

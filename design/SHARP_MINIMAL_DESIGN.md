@@ -50,6 +50,7 @@ Sharp minimal design is clear, structured, calm, and intentional. It reduces noi
 ## Interaction
 
 - Every control needs clear default, hover, active, selected, disabled, and focus states where applicable.
+- Controls grouped together should share a common shell: height, border, background, and state behavior. Express hierarchy through placement, labels, icons, and restrained foreground emphasis, not accidental geometry or token drift.
 - Enabled click targets should show the pointer cursor on hover; disabled controls should not look clickable.
 - Focus must always be visible.
 - Selection must persist clearly and remain distinct from hover and focus.

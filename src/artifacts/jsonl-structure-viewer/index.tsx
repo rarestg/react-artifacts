@@ -444,28 +444,22 @@ export default function JsonlStructureViewer() {
       : layoutMode === 'three-column'
         ? 'two-column'
         : layoutMode;
-  const headerGridClass = mergeClassNames(
-    'grid gap-6',
-    headerStacked ? 'grid-cols-1' : 'grid-cols-[minmax(0,1fr)_auto]',
-  );
+  const headerGridClass = 'flex flex-wrap items-center justify-between gap-3';
   const headerControlsClass = mergeClassNames(
-    'flex flex-col gap-2 min-w-0',
-    headerStacked ? 'items-start w-full' : 'items-end w-auto',
+    'flex max-w-full flex-wrap items-center gap-x-4 gap-y-2',
+    headerStacked ? 'w-full justify-start' : 'ml-auto justify-end',
   );
   const headerControlGroupClass = mergeClassNames(
-    'min-w-0',
-    headerStacked ? 'w-auto max-w-full' : 'w-auto',
-    'flex flex-wrap items-center gap-2',
-    !headerStacked && 'justify-end',
+    'flex min-w-0 flex-wrap items-center gap-2',
+    headerStacked ? 'justify-start' : 'justify-end',
   );
   const headerControlsRowClass = mergeClassNames(
-    'min-w-0',
-    headerStacked ? 'flex flex-wrap items-center gap-2 w-full' : 'flex flex-col items-end gap-2 w-auto',
+    'flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2',
+    headerStacked ? 'w-full justify-start' : 'justify-end',
   );
   const headerHelpButtonClass = mergeClassNames(
-    'border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
+    'inline-flex h-8 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
     'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-    headerStacked && 'ml-auto',
   );
   const headerStatusClass = mergeClassNames(headerActionClass, 'cursor-default', 'hover:bg-[var(--surface)]');
 
@@ -979,173 +973,187 @@ export default function JsonlStructureViewer() {
       ref={containerRef}
       className="jsonl-structure-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col"
     >
-      <div ref={contentRef} className="mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-10 lg:px-8 xl:px-10">
-        <header
-          ref={titlePanelRef}
-          className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-6"
-        >
-          <div className={headerGridClass}>
-            <div className="min-w-0 flex flex-col gap-2">
-              <h1 className="m-0 text-3xl font-semibold leading-tight">JSONL Structure Viewer</h1>
-              <p className="m-0 max-w-3xl text-sm text-[var(--text-muted)]">
-                Explore JSON arrays, single objects, or JSONL streams. Trim long strings, filter by path, and copy a
-                structure-first view without the noise.
-              </p>
-            </div>
-            <div className={headerControlsClass}>
-              {canUseTwoColumns && (
-                <div className={headerControlGroupClass}>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                    Layout
-                  </span>
-                  <fieldset
-                    aria-label="Layout mode"
-                    className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                  >
-                    <button
-                      type="button"
-                      aria-pressed={visibleLayoutMode === 'one-column'}
-                      onClick={() => setLayoutMode('one-column')}
-                      className={mergeClassNames(
-                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                        'inline-flex items-center gap-1.5',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                        'relative focus-visible:z-10',
-                        visibleLayoutMode === 'one-column'
-                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      )}
-                    >
-                      <span className="relative inline-grid">
-                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          {layoutReserveLabel}
-                        </span>
-                        <span className="col-start-1 row-start-1">1</span>
-                      </span>
-                      <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={visibleLayoutMode === 'two-column'}
-                      onClick={() => setLayoutMode('two-column')}
-                      className={mergeClassNames(
-                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                        'inline-flex items-center gap-1.5',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                        'relative focus-visible:z-10',
-                        visibleLayoutMode === 'two-column'
-                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      )}
-                    >
-                      <span className="relative inline-grid">
-                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          {layoutReserveLabel}
-                        </span>
-                        <span className="col-start-1 row-start-1">2</span>
-                      </span>
-                      <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
-                    {canUseThreeColumns && (
-                      <button
-                        type="button"
-                        aria-pressed={visibleLayoutMode === 'three-column'}
-                        onClick={() => setLayoutMode('three-column')}
-                        className={mergeClassNames(
-                          'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                          'inline-flex items-center gap-1.5',
-                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                          'relative focus-visible:z-10',
-                          visibleLayoutMode === 'three-column'
-                            ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                            : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                        )}
-                      >
-                        <span className="relative inline-grid">
-                          <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                            {layoutReserveLabel}
-                          </span>
-                          <span className="col-start-1 row-start-1">3</span>
-                        </span>
-                        <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
-                      </button>
+      <header ref={titlePanelRef} className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+        <div className={headerGridClass}>
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold">JSONL Structure Viewer</h1>
+            <p className="mt-1 max-w-3xl text-xs text-[var(--text-muted)]">
+              Explore JSON arrays, objects, or JSONL streams; filter paths and copy structure-first output.
+            </p>
+          </div>
+          <div className={headerControlsClass}>
+            {canUseTwoColumns && (
+              <div className={headerControlGroupClass}>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Layout
+                </span>
+                <fieldset
+                  aria-label="Layout mode"
+                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={visibleLayoutMode === 'one-column'}
+                    onClick={() => setLayoutMode('one-column')}
+                    className={mergeClassNames(
+                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                      'inline-flex items-center gap-1.5',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                      'relative focus-visible:z-10',
+                      visibleLayoutMode === 'one-column'
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                     )}
-                  </fieldset>
-                </div>
-              )}
-              <div className={headerControlsRowClass}>
-                <div className={headerControlGroupClass}>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                    Word Wrap
-                  </span>
-                  <fieldset
-                    aria-label="Word wrap"
-                    className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
                   >
+                    <span className="relative inline-grid">
+                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                        {layoutReserveLabel}
+                      </span>
+                      <span className="col-start-1 row-start-1">1</span>
+                    </span>
+                    <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={visibleLayoutMode === 'two-column'}
+                    onClick={() => setLayoutMode('two-column')}
+                    className={mergeClassNames(
+                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                      'inline-flex items-center gap-1.5',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                      'relative focus-visible:z-10',
+                      visibleLayoutMode === 'two-column'
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                    )}
+                  >
+                    <span className="relative inline-grid">
+                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                        {layoutReserveLabel}
+                      </span>
+                      <span className="col-start-1 row-start-1">2</span>
+                    </span>
+                    <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                  {canUseThreeColumns && (
                     <button
                       type="button"
-                      aria-pressed={wrapOutput}
-                      onClick={() => setWrapOutput(true)}
+                      aria-pressed={visibleLayoutMode === 'three-column'}
+                      onClick={() => setLayoutMode('three-column')}
                       className={mergeClassNames(
                         'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                        'inline-flex items-center gap-1.5',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                         'relative focus-visible:z-10',
-                        wrapOutput
+                        visibleLayoutMode === 'three-column'
                           ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
                           : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                       )}
                     >
                       <span className="relative inline-grid">
                         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          {wrapReserveLabel}
+                          {layoutReserveLabel}
                         </span>
-                        <span className="col-start-1 row-start-1">On</span>
+                        <span className="col-start-1 row-start-1">3</span>
                       </span>
+                      <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
-                    <button
-                      type="button"
-                      aria-pressed={!wrapOutput}
-                      onClick={() => setWrapOutput(false)}
-                      className={mergeClassNames(
-                        'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-                        'relative focus-visible:z-10',
-                        !wrapOutput
-                          ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
-                          : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
-                      )}
-                    >
-                      <span className="relative inline-grid">
-                        <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                          {wrapReserveLabel}
-                        </span>
-                        <span className="col-start-1 row-start-1">Off</span>
-                      </span>
-                    </button>
-                  </fieldset>
-                </div>
-                <button type="button" onClick={() => setShowHelp((prev) => !prev)} className={headerHelpButtonClass}>
-                  {showHelp ? 'Hide Help' : 'Show Help'}
-                </button>
+                  )}
+                </fieldset>
               </div>
+            )}
+            <div className={headerControlsRowClass}>
+              <div className={headerControlGroupClass}>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Word Wrap
+                </span>
+                <fieldset
+                  aria-label="Word wrap"
+                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={wrapOutput}
+                    onClick={() => setWrapOutput(true)}
+                    className={mergeClassNames(
+                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                      'relative focus-visible:z-10',
+                      wrapOutput
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                    )}
+                  >
+                    <span className="relative inline-grid">
+                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                        {wrapReserveLabel}
+                      </span>
+                      <span className="col-start-1 row-start-1">On</span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={!wrapOutput}
+                    onClick={() => setWrapOutput(false)}
+                    className={mergeClassNames(
+                      'h-8 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+                      'relative focus-visible:z-10',
+                      !wrapOutput
+                        ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                        : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                    )}
+                  >
+                    <span className="relative inline-grid">
+                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                        {wrapReserveLabel}
+                      </span>
+                      <span className="col-start-1 row-start-1">Off</span>
+                    </span>
+                  </button>
+                </fieldset>
+              </div>
+              <button
+                type="button"
+                aria-controls="jsonl-structure-help"
+                aria-expanded={showHelp}
+                onClick={() => setShowHelp((prev) => !prev)}
+                className={headerHelpButtonClass}
+              >
+                <span className="relative inline-grid">
+                  <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
+                    Hide Help
+                  </span>
+                  <span className="col-start-1 row-start-1">{showHelp ? 'Hide Help' : 'Show Help'}</span>
+                </span>
+              </button>
             </div>
           </div>
+        </div>
+      </header>
+
+      <main className="flex flex-1 flex-col p-4">
+        <div ref={contentRef} className="flex flex-col gap-4">
           {showHelp && (
-            <div className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-xs text-[var(--text-muted)]">
-              <div className="flex flex-col gap-2">
+            <section
+              id="jsonl-structure-help"
+              aria-label="JSONL Structure Viewer help"
+              className="grid gap-3 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-muted)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,auto)]"
+            >
+              <div className="min-w-0">
                 <div className="font-semibold uppercase tracking-[0.2em] text-[10px] text-[var(--text-muted)]">
                   How to use
                 </div>
-                <div>
-                  Paste JSON, JSON arrays, or JSONL. Use the path filters to include or exclude fields, then copy the
-                  trimmed output. Toggle Structure Only for a schema-like view.
+                <div className="mt-1">
+                  Paste JSON, JSON arrays, or JSONL. Use path filters, then copy trimmed output or a structure-only
+                  view.
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="min-w-0">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Shortcuts
                 </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
+                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
                   <span className="inline-flex items-center gap-2">
                     <span className="border border-[var(--border)] px-2 py-0.5 font-mono">Cmd/Ctrl+Enter</span>
                     <span>Parse now</span>
@@ -1164,37 +1172,37 @@ export default function JsonlStructureViewer() {
                   </span>
                 </div>
               </div>
-            </div>
+            </section>
           )}
-        </header>
 
-        <div
-          ref={panelsGridRef}
-          className={`grid grid-cols-1 gap-6 ${
-            visibleLayoutMode === 'three-column'
-              ? 'lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]'
-              : visibleLayoutMode === 'two-column'
-                ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start'
-                : ''
-          }`}
-        >
-          {visibleLayoutMode === 'two-column' ? (
-            <>
-              <div className="min-w-0 flex flex-col gap-6 lg:self-start">
+          <div
+            ref={panelsGridRef}
+            className={`grid grid-cols-1 gap-4 ${
+              visibleLayoutMode === 'three-column'
+                ? 'lg:grid-cols-[minmax(0,10fr)_minmax(0,9fr)_minmax(0,9fr)]'
+                : visibleLayoutMode === 'two-column'
+                  ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start'
+                  : ''
+            }`}
+          >
+            {visibleLayoutMode === 'two-column' ? (
+              <>
+                <div className="min-w-0 flex flex-col gap-4 lg:self-start">
+                  {inputPanel}
+                  {outputPanel}
+                </div>
+                {pathPanel}
+              </>
+            ) : (
+              <>
                 {inputPanel}
+                {pathPanel}
                 {outputPanel}
-              </div>
-              {pathPanel}
-            </>
-          ) : (
-            <>
-              {inputPanel}
-              {pathPanel}
-              {outputPanel}
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </ArtifactThemeRoot>
   );
 }

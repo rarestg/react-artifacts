@@ -3,6 +3,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { CopyButton } from '../../components/CopyButton';
 import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import {
@@ -39,33 +40,52 @@ type PaletteCardLabelInput = {
   count: number;
 };
 
+type PaletteExportColorInput = {
+  index: number;
+  label: string;
+  lightStrongColor: string;
+  darkStrongColor: string;
+  weakMix: number;
+};
+
 const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
 const focusClass =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+const maxColorCount = 16;
+const headerActionFrameClass = mergeClassNames(
+  'inline-flex h-9 shrink-0 cursor-pointer items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)]',
+  'transition-colors hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] motion-reduce:transition-none',
+  focusClass,
+);
+const headerTextActionClass = mergeClassNames(headerActionFrameClass, 'px-3 text-sm font-medium text-[var(--text)]');
+const headerIconActionClass = mergeClassNames(
+  headerActionFrameClass,
+  'w-9 text-[var(--text-muted)] hover:text-[var(--text)]',
+);
 const modeButtonBase =
   'inline-flex h-8 items-center justify-center border px-2 text-xs font-medium transition-colors motion-reduce:transition-none';
 
 const helpItems = [
   {
     term: 'Rotation',
-    detail: 'Changes the palette phase and card order while keeping the required core categories in the set.',
+    detail: 'Rotates the palette order while preserving core color categories.',
   },
   {
     term: 'H',
-    detail: 'Final OKLCH hue in degrees after the selected profile position maps to tuned color anchors.',
+    detail: 'Final OKLCH hue in degrees for this generated color.',
   },
   {
     term: 'L',
-    detail: 'Final lightness for the strong color after hue-specific profile defaults, lightness bias, and dark lift.',
+    detail: 'Final OKLCH lightness after profile defaults, lightness bias, and dark-mode lift.',
   },
   {
     term: 'Chroma',
-    detail: 'Color intensity in OKLCH. Palette Lab uses hue-specific profile chroma, then softens dense palettes.',
+    detail: 'Final OKLCH color intensity. Dense palettes reduce chroma slightly to keep colors distinct.',
   },
   {
     term: 'Labels',
     detail:
-      'Hue names come from profile anchors. Names with distance limits fall back to index labels when too far away.',
+      'Color names come from profile anchors. If no name is close enough, the card falls back to its index label.',
   },
   {
     term: 'Mix',
@@ -78,7 +98,7 @@ const helpItems = [
   },
   {
     term: 'Dark lift',
-    detail: 'Moves each strong color toward the dark-mode lightness ceiling using its remaining headroom.',
+    detail: 'In dark mode, moves each color toward the lightness ceiling based on available headroom.',
   },
   {
     term: 'Auto tune',
@@ -168,6 +188,86 @@ export function getPaletteCardLabel({ labelMode, hueLabel, index, hue, count }: 
   return labelMode === 'hue' ? hueLabel || indexLabel : indexLabel;
 }
 
+function rgbToHex([red, green, blue]: [number, number, number]) {
+  return `#${[red, green, blue].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function slugifyColorName(value: string) {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getExportVariableBase(label: string, index: number) {
+  const slug = slugifyColorName(label);
+  const fallbackIndex = String(index + 1).padStart(2, '0');
+
+  if (!slug) return `color-${fallbackIndex}`;
+  if (/^color-\d+$/.test(slug)) return slug;
+
+  return `color-${slug}`;
+}
+
+function getExportColorNames(colors: ReadonlyArray<PaletteExportColorInput>) {
+  const usedNames = new Set<string>();
+
+  return colors.map((color) => {
+    const baseName = getExportVariableBase(color.label, color.index);
+    let name = baseName;
+    let suffix = 2;
+
+    while (usedNames.has(name)) {
+      name = `${baseName}-${suffix}`;
+      suffix += 1;
+    }
+
+    usedNames.add(name);
+    return name;
+  });
+}
+
+function getStrongColorDeclaration(name: string, color: string) {
+  const hex = parseColor(color);
+  const hexComment = hex ? ` /* ${rgbToHex(hex)} */` : '';
+
+  return `  --${name}: ${color};${hexComment}`;
+}
+
+function getToneDeclarations(color: PaletteExportColorInput, name: string, strongColor: string) {
+  return [
+    getStrongColorDeclaration(name, strongColor),
+    `  --${name}-weak: color-mix(in oklch, var(--${name}) ${color.weakMix.toFixed(1)}%, var(--palette-surface));`,
+    `  --${name}-border: var(--${name});`,
+  ];
+}
+
+export function getPaletteExportCss(colors: ReadonlyArray<PaletteExportColorInput>) {
+  const names = getExportColorNames(colors);
+  const lightDeclarations = colors.flatMap((color, index) => {
+    const name = names[index] ?? getExportVariableBase(color.label, color.index);
+    return getToneDeclarations(color, name, color.lightStrongColor);
+  });
+  const darkDeclarations = colors.flatMap((color, index) => {
+    const name = names[index] ?? getExportVariableBase(color.label, color.index);
+    return getToneDeclarations(color, name, color.darkStrongColor);
+  });
+
+  return [
+    ':root {',
+    '  --palette-surface: #ffffff;',
+    ...lightDeclarations,
+    '}',
+    '',
+    '.dark {',
+    '  --palette-surface: #0b1120;',
+    ...darkDeclarations,
+    '}',
+  ].join('\n');
+}
+
 export default function PaletteLab() {
   const isDarkTheme = useRootDarkMode();
   const theme: PaletteTheme = isDarkTheme ? 'dark' : 'light';
@@ -177,7 +277,7 @@ export default function PaletteLab() {
   const [darkLift, setDarkLift] = useState(18);
   const [weakMix, setWeakMix] = useState(22);
   const [autoTune, setAutoTune] = useState(true);
-  const [labelMode, setLabelMode] = useState<PaletteLabelMode>('index');
+  const [labelMode, setLabelMode] = useState<PaletteLabelMode>('hue');
   const [selectedIndexes, setSelectedIndexes] = useState(() => Array.from({ length: 16 }, (_, index) => index));
   const [contrastRatios, setContrastRatios] = useState<Record<number, number>>({});
   const [helpOpen, setHelpOpen] = useState(false);
@@ -202,9 +302,66 @@ export default function PaletteLab() {
       }),
     [autoTune, count, darkLift, hueOffset, lightStrongL, theme, weakMix],
   );
+  const lightExportColors = useMemo(
+    () =>
+      makeGeneratedPalette({
+        count,
+        hueOffset,
+        lightStrongL,
+        darkLift,
+        weakMix,
+        autoTune,
+        theme: 'light',
+      }),
+    [autoTune, count, darkLift, hueOffset, lightStrongL, weakMix],
+  );
+  const darkExportColors = useMemo(
+    () =>
+      makeGeneratedPalette({
+        count,
+        hueOffset,
+        lightStrongL,
+        darkLift,
+        weakMix,
+        autoTune,
+        theme: 'dark',
+      }),
+    [autoTune, count, darkLift, hueOffset, lightStrongL, weakMix],
+  );
   const paletteMaxChroma = useMemo(() => Math.max(...colors.map((color) => color.chroma)), [colors]);
   const hueLabelsByPosition = useMemo(() => getHueLabelsForPalette(colors, count), [colors, count]);
-  const selectedVisibleCount = colors.filter((color) => selectedIndexes.includes(color.index)).length;
+  const paletteCardLabels = useMemo(
+    () =>
+      colors.map((color, position) =>
+        getPaletteCardLabel({
+          labelMode,
+          hueLabel: hueLabelsByPosition[position],
+          index: color.index,
+          hue: color.hue,
+          count,
+        }),
+      ),
+    [colors, count, hueLabelsByPosition, labelMode],
+  );
+  const selectedExportColors = useMemo(
+    () =>
+      colors.flatMap((color, position) =>
+        selectedIndexes.includes(color.index)
+          ? [
+              {
+                index: color.index,
+                label: paletteCardLabels[position],
+                lightStrongColor: lightExportColors[position]?.strongColor ?? color.strongColor,
+                darkStrongColor: darkExportColors[position]?.strongColor ?? color.strongColor,
+                weakMix: color.weakMix,
+              },
+            ]
+          : [],
+      ),
+    [colors, darkExportColors, lightExportColors, paletteCardLabels, selectedIndexes],
+  );
+  const paletteExportCss = useMemo(() => getPaletteExportCss(selectedExportColors), [selectedExportColors]);
+  const selectedVisibleCount = selectedExportColors.length;
   const allVisibleSelected = selectedVisibleCount === colors.length;
   const contrastMeasurementKey = useMemo(() => {
     const colorKey = colors.map((color) => `${color.strongColor}:${color.weakColor}`).join('|');
@@ -284,7 +441,7 @@ export default function PaletteLab() {
               label="Color count"
               value={count}
               min={4}
-              max={16}
+              max={maxColorCount}
               step={1}
               displayValue={String(count)}
               onChange={setCount}
@@ -331,11 +488,11 @@ export default function PaletteLab() {
                 Labels
               </div>
               <div className="grid grid-cols-2">
+                <ModeButton active={labelMode === 'hue'} onClick={() => setLabelMode('hue')}>
+                  Color name
+                </ModeButton>
                 <ModeButton active={labelMode === 'index'} onClick={() => setLabelMode('index')}>
                   Index
-                </ModeButton>
-                <ModeButton active={labelMode === 'hue'} onClick={() => setLabelMode('hue')}>
-                  Hue name
                 </ModeButton>
               </div>
             </div>
@@ -371,29 +528,32 @@ export default function PaletteLab() {
             <div className="min-w-0">
               <h2 className="text-base font-semibold">Generated Toggle Grid</h2>
               <div className="mt-1 text-xs text-[var(--text-muted)]">
-                {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'hue labels'}
+                {selectedVisibleCount} selected / {labelMode === 'index' ? 'index labels' : 'color names'}
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleAll}
-                className={mergeClassNames(
-                  'h-9 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-muted)]',
-                  focusClass,
-                )}
-              >
-                {allVisibleSelected ? 'Clear' : 'Select all'}
+            <div className="flex flex-wrap items-center justify-end gap-2 max-sm:w-full max-sm:justify-start">
+              <button type="button" onClick={toggleAll} className={headerTextActionClass}>
+                <span className="relative inline-grid min-w-0">
+                  <span aria-hidden="true" className="pointer-events-none col-start-1 row-start-1 opacity-0">
+                    Select all
+                  </span>
+                  <span className="col-start-1 row-start-1">{allVisibleSelected ? 'Clear' : 'Select all'}</span>
+                </span>
               </button>
+              <CopyButton
+                text={paletteExportCss}
+                idleLabel={`Copy ${selectedVisibleCount} selected`}
+                reserveLabel={`Copy ${maxColorCount} selected`}
+                ariaLabel="Copy selected colors as CSS custom properties"
+                disabled={selectedVisibleCount === 0}
+                variant="headerAction"
+              />
               <button
                 ref={helpButtonRef}
                 type="button"
                 aria-label="Open palette lab help"
                 onClick={() => setHelpOpen(true)}
-                className={mergeClassNames(
-                  'inline-flex h-9 w-9 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
-                  focusClass,
-                )}
+                className={headerIconActionClass}
               >
                 <Info className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -409,13 +569,7 @@ export default function PaletteLab() {
           >
             {colors.map((color, position) => {
               const selected = selectedIndexes.includes(color.index);
-              const label = getPaletteCardLabel({
-                labelMode,
-                hueLabel: hueLabelsByPosition[position],
-                index: color.index,
-                hue: color.hue,
-                count,
-              });
+              const label = paletteCardLabels[position];
               const style = {
                 '--palette-color': color.strongColor,
                 '--palette-color-weak': color.weakColor,
@@ -573,8 +727,10 @@ function FormulaPanel({
   return (
     <div className="grid gap-2 border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-[11px] leading-5 text-[var(--text-muted)]">
       <div>
-        <span className="text-[var(--text)]">strong</span> profile oklch(
-        {theme === 'dark' ? `L -> ${DARK_LIGHTNESS_CEILING} ${Math.round(darkLiftFraction * 100)}%` : 'L'} C h)
+        <span className="text-[var(--text)]">strong</span> profile -&gt;{' '}
+        {theme === 'dark'
+          ? `L toward ${DARK_LIGHTNESS_CEILING} ${Math.round(darkLiftFraction * 100)}%`
+          : 'oklch(L C h)'}
       </div>
       <div>
         <span className="text-[var(--text)]">palette max C</span> {paletteMaxChroma.toFixed(3)}

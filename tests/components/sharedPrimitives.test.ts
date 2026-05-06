@@ -88,6 +88,22 @@ test('shared toggle and checkbox include active-state parity classes', () => {
   assert.match(toggleOn, /active:bg-\[var\(--primary-active\)\]/);
 });
 
+test('shared toggle passes through title and described-by metadata', () => {
+  const markup = renderToStaticMarkup(
+    createElement(Toggle, {
+      label: 'Show details',
+      checked: false,
+      onCheckedChange: () => undefined,
+      title: 'Details are unavailable',
+      'aria-describedby': 'details-description',
+    }),
+  );
+
+  assert.match(markup, /title="Details are unavailable"/);
+  assert.match(markup, /aria-describedby="details-description"/);
+  assert.match(markup, />Show details</);
+});
+
 test('disabled shared copy button preserves disabled cursor without pointer-events-none', () => {
   const markup = renderToStaticMarkup(createElement(CopyButton, { text: 'value', disabled: true }));
   const rootClass = firstElementClass(markup);

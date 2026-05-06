@@ -7,7 +7,9 @@ Start with `README.md`. It is the main orientation doc for the stack, repo map, 
 - `src/App.tsx` is the viewer shell: sidebar, artifact selection, theme/device controls, and preview frame.
 - `src/artifacts.ts` discovers artifacts with `import.meta.glob`.
 - `src/artifacts/<id>/` contains each artifact. `index.tsx` exports the React component; optional `meta.ts` controls sidebar labels.
-- `src/components/` contains shared UI primitives used across the shell and artifacts.
+- `src/components/` contains shared UI primitives, mostly for tokenized artifact UI rather than shell chrome.
+- `src/lib/` contains shared non-visual helpers and hooks.
+- `src/main.tsx`, `src/StandaloneRoot.tsx`, and `src/StandaloneFallback.tsx` handle standalone `/artifact/<id>` routes.
 - `src/theme/` and `ArtifactThemeRoot` provide tokenized artifact styling.
 - `design/` contains the visual language and UI implementation guidance.
 - `tests/` contains Node test runner coverage.

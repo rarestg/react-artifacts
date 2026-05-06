@@ -19,7 +19,14 @@ import { formatOutput, getItemCount, getOutputStats } from './lib/formatOutput';
 import { formatBadge, parseInput } from './lib/parseInput';
 import { buildDescendantMap, buildPaths, buildTree, computeEffectiveSelection, flattenTree } from './lib/pathTree';
 import { computeResizePlan, type ResizeRect, toResizeRect } from './lib/resizePlan';
-import { headerActionClass, panelHeaderRowClass, panelHeaderSubtitleClass } from './lib/ui';
+import {
+  headerActionClass,
+  panelHeaderActionsClass,
+  panelHeaderMetaClass,
+  panelHeaderRowClass,
+  panelHeaderTextClass,
+  panelHeaderTitleClass,
+} from './lib/ui';
 import type { LayoutMode, OutputFormat } from './types';
 
 import './theme.css';
@@ -623,9 +630,9 @@ export default function JsonlStructureViewer() {
     <section ref={inputPanelRef} className="min-w-0 flex flex-col gap-6">
       <div ref={inputCardRef} className="min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]">
         <div className={panelHeaderRowClass}>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Input</div>
-            <div className={panelHeaderSubtitleClass}>
+          <div className={panelHeaderTextClass}>
+            <div className={panelHeaderTitleClass}>Input</div>
+            <div className={panelHeaderMetaClass}>
               {parsed.error ? (
                 <span className="border border-[var(--danger)] bg-[var(--danger-weak)] px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--danger)]">
                   {parsed.error || errorReserveLabel}
@@ -636,7 +643,7 @@ export default function JsonlStructureViewer() {
               <span>{`· ${inputMetaLine}`}</span>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
+          <div className={panelHeaderActionsClass}>
             <button type="button" onClick={() => setInput('')} className={headerActionClass}>
               Clear
             </button>
@@ -709,10 +716,8 @@ export default function JsonlStructureViewer() {
       {parsed.errors.length > 0 && (
         <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
           <div className={panelHeaderRowClass}>
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">
-                JSONL Errors
-              </div>
+            <div className={panelHeaderTextClass}>
+              <div className={panelHeaderTitleClass}>JSONL Errors</div>
               <div className="text-xs text-[var(--text-muted)]">
                 {parsed.errors.length} line{parsed.errors.length === 1 ? '' : 's'} failed to parse.
               </div>
@@ -786,14 +791,14 @@ export default function JsonlStructureViewer() {
     >
       <div ref={outputCardRef} className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
         <div className={panelHeaderRowClass}>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Output</div>
-            <div className={panelHeaderSubtitleClass}>
+          <div className={panelHeaderTextClass}>
+            <div className={panelHeaderTitleClass}>Output</div>
+            <div className={panelHeaderMetaClass}>
               <span>{`${outputItemsLabel} · ${outputLinesLabel}`}</span>
               <span>{`· ${outputMetaLine}`}</span>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto">
+          <div className={panelHeaderActionsClass}>
             <CopyButton
               ref={copyButtonRef}
               text={outputForCopy}

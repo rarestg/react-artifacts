@@ -1,6 +1,12 @@
 import { type ReactNode, useId, useMemo, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
+import {
+  panelHeaderMetaClass,
+  panelHeaderRowClass,
+  panelHeaderTextClass,
+  panelHeaderTitleClass,
+} from '../../components/panelHeaderClasses';
 import { Toggle } from '../../components/Toggle';
 import { mergeClassNames } from '../../lib/classNames';
 
@@ -253,13 +259,8 @@ const formatStatsLine = (chars: number, lines: number) =>
   `${formatCompact(chars)} chars · ${lines} ${lines === 1 ? 'line' : 'lines'}`;
 
 // ---------------------------------------------------------------------------
-// Shared class strings (matching JSONL viewer patterns)
+// Local class strings
 // ---------------------------------------------------------------------------
-
-const panelHeaderRowClass =
-  'flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3';
-
-const panelHeaderSubtitleClass = 'flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--text-muted)]';
 
 const headerActionClass =
   'px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--surface)]';
@@ -432,14 +433,11 @@ export default function MessageUnescaper() {
         <section className="min-w-0 flex flex-col">
           <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
             <div className={panelHeaderRowClass}>
-              <div>
-                <div
-                  id={inputLabelId}
-                  className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]"
-                >
+              <div className={panelHeaderTextClass}>
+                <div id={inputLabelId} className={panelHeaderTitleClass}>
                   Input
                 </div>
-                <div className={panelHeaderSubtitleClass}>
+                <div className={panelHeaderMetaClass}>
                   <span>{formatStatsLine(inputStats.chars, inputStats.lines)}</span>
                 </div>
               </div>
@@ -471,9 +469,9 @@ export default function MessageUnescaper() {
         <section className="min-w-0 flex flex-col">
           <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">
             <div className={panelHeaderRowClass}>
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Output</div>
-                <div className={panelHeaderSubtitleClass}>
+              <div className={panelHeaderTextClass}>
+                <div className={panelHeaderTitleClass}>Output</div>
+                <div className={panelHeaderMetaClass}>
                   <span>{formatStatsLine(outputStats.chars, outputStats.lines)}</span>
                   <span>{`· ${dashBreakCount} ${dashBreakCount === 1 ? 'dash break' : 'dash breaks'}`}</span>
                 </div>

@@ -110,8 +110,11 @@ test('shared toggle passes through title and described-by metadata', () => {
     }),
   );
 
+  const inputTag = markup.match(/<input\b[^>]*>/)?.[0];
+  assert.ok(inputTag, `Expected toggle input markup: ${markup}`);
+
   assert.match(markup, /title="Details are unavailable"/);
-  assert.match(markup, /aria-describedby="details-description"/);
+  assert.match(inputTag, /aria-describedby="details-description"/);
   assert.match(markup, />Show details</);
 });
 
@@ -147,6 +150,27 @@ test('SegmentedControl renders pressed buttons with child-owned borders', () => 
   assert.match(selectedClass, /bg-\[var\(--accent-weak\)\]/);
   assert.match(markup, /aria-pressed="false"/);
   assert.match(markup, /aria-pressed="true"/);
+});
+
+test('SegmentedControl keeps option labels and pressed states on each button', () => {
+  const markup = renderToStaticMarkup(
+    createElement(SegmentedControl, {
+      ariaLabel: 'Layout',
+      value: 'one-column',
+      onValueChange: () => undefined,
+      options: [
+        { value: 'one-column', label: '1', ariaLabel: 'One column layout' },
+        { value: 'two-column', label: '2', ariaLabel: 'Two column layout' },
+      ],
+    }),
+  );
+  const buttonTags = [...markup.matchAll(/<button\b[^>]*>/g)].map((match) => match[0]);
+
+  assert.equal(buttonTags.length, 2);
+  assert.match(buttonTags[0], /aria-label="One column layout"/);
+  assert.match(buttonTags[0], /aria-pressed="true"/);
+  assert.match(buttonTags[1], /aria-label="Two column layout"/);
+  assert.match(buttonTags[1], /aria-pressed="false"/);
 });
 
 test('SegmentedControl supports full-width neutral mode controls', () => {

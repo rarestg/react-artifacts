@@ -24,7 +24,8 @@ test('Message Unescaper output toggles keep stable names and describe disabled r
   assert.match(markup, />Replace with periods</);
   assert.match(markup, /title="Enter text to detect dash breaks"/);
   assert.match(markup, /title="Enter text to enable dash replacement"/);
-  assert.match(markup, /aria-describedby="[^"]+"/);
+  const describedByMatches = markup.match(/aria-describedby="[^"]+"/g) ?? [];
+  assert.equal(describedByMatches.length, 2);
   assert.doesNotMatch(markup, /aria-label="Enter text to detect dash breaks"/);
   assert.doesNotMatch(markup, /aria-label="Enter text to enable dash replacement"/);
 });

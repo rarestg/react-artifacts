@@ -25,7 +25,11 @@ function buttonClasses(markup: string) {
 }
 
 function buttonClassByPressed(markup: string, pressed: boolean) {
-  const className = markup.match(new RegExp(`<button[^>]*aria-pressed="${pressed}"[^>]*class="([^"]+)"`))?.[1];
+  const buttonTag = [...markup.matchAll(/<button\b[^>]*>/g)]
+    .map((match) => match[0])
+    .find((tag) => tag.includes(`aria-pressed="${pressed}"`));
+  assert.ok(buttonTag, `Expected ${pressed ? 'pressed' : 'unpressed'} button markup: ${markup}`);
+  const className = buttonTag.match(/\bclass="([^"]+)"/)?.[1];
   assert.ok(className, `Expected ${pressed ? 'pressed' : 'unpressed'} button class markup: ${markup}`);
   return className;
 }
@@ -233,9 +237,10 @@ test('disabled shared copy button preserves disabled cursor without pointer-even
 
 test('copyable label keeps a stable accessible name for the copied value', () => {
   const markup = renderToStaticMarkup(createElement(CopyableLabel, { value: '~/projects/app' }));
+  const rootClass = firstElementClass(markup);
 
   assert.match(markup, /aria-label="Copy: ~\/projects\/app"/);
-  assert.match(markup, /\bgroup\b/);
+  assert.match(rootClass, /(?:^|\s)group(?:\s|$)/);
   assert.match(markup, /group-hover:opacity-0/);
   assert.match(markup, /group-focus-visible:opacity-0/);
   assert.match(markup, /active:bg-\[var\(--copy-hover-bg\)\]/);

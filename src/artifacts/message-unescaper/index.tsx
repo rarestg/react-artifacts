@@ -290,7 +290,7 @@ export default function MessageUnescaper() {
     MESSAGE_LAYOUT_STORAGE_KEY,
     'two-column',
   );
-  const [mainContentWidth, setMainContentWidth] = useState(MESSAGE_TWO_COLUMN_MIN_WIDTH);
+  const [mainContentWidth, setMainContentWidth] = useState<number | null>(null);
   const [input, setInput] = useState('');
   const [direction, setDirection] = useState<Direction>('unescape');
   const [wrapOutput, setWrapOutput] = useState(true);
@@ -298,9 +298,12 @@ export default function MessageUnescaper() {
   const [replaceDashBreaks, setReplaceDashBreaks] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') return;
+    if (typeof window === 'undefined') return;
     const element = mainRef.current;
     if (!element) return;
+
+    setMainContentWidth(element.getBoundingClientRect().width);
+    if (typeof ResizeObserver === 'undefined') return;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -350,7 +353,7 @@ export default function MessageUnescaper() {
 
   const inputStats = useMemo(() => getStats(input), [input]);
   const outputStats = useMemo(() => getStats(output), [output]);
-  const canUseTwoColumnLayout = mainContentWidth >= MESSAGE_TWO_COLUMN_MIN_WIDTH;
+  const canUseTwoColumnLayout = mainContentWidth !== null && mainContentWidth >= MESSAGE_TWO_COLUMN_MIN_WIDTH;
   const visiblePanelLayout: PanelLayoutMode = canUseTwoColumnLayout ? preferredPanelLayout : 'one-column';
 
   return (

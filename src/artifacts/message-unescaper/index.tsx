@@ -1,4 +1,5 @@
-import { type ReactNode, useId, useMemo, useState } from 'react';
+import { Columns2, RectangleVertical } from 'lucide-react';
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
 import {
@@ -10,12 +11,14 @@ import {
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { Toggle } from '../../components/Toggle';
 import { mergeClassNames } from '../../lib/classNames';
+import { useLocalStorageState } from '../../lib/useLocalStorageState';
 
 // ---------------------------------------------------------------------------
 // Transform functions (pure, testable)
 // ---------------------------------------------------------------------------
 
 type Direction = 'unescape' | 'escape';
+type PanelLayoutMode = 'one-column' | 'two-column';
 type TextRange = { start: number; end: number };
 
 const dashBreakTokenPattern = /--|—/g;
@@ -269,19 +272,45 @@ const headerActionClass =
 const panelBodyToolbarClass =
   'flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--border)] px-4 py-2';
 
+const MESSAGE_PANEL_MIN_WIDTH = 400;
+const MESSAGE_PANEL_GAP = 16;
+const MESSAGE_TWO_COLUMN_MIN_WIDTH = MESSAGE_PANEL_MIN_WIDTH * 2 + MESSAGE_PANEL_GAP;
+const MESSAGE_LAYOUT_STORAGE_KEY = 'message-unescaper-layout';
+
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
 export default function MessageUnescaper() {
+  const mainRef = useRef<HTMLElement>(null);
   const inputLabelId = useId();
   const showDashBreaksDescriptionId = useId();
   const replaceDashBreaksDescriptionId = useId();
+  const [preferredPanelLayout, setPreferredPanelLayout] = useLocalStorageState<PanelLayoutMode>(
+    MESSAGE_LAYOUT_STORAGE_KEY,
+    'two-column',
+  );
+  const [mainContentWidth, setMainContentWidth] = useState(MESSAGE_TWO_COLUMN_MIN_WIDTH);
   const [input, setInput] = useState('');
   const [direction, setDirection] = useState<Direction>('unescape');
   const [wrapOutput, setWrapOutput] = useState(true);
   const [showDashBreaks, setShowDashBreaks] = useState(false);
   const [replaceDashBreaks, setReplaceDashBreaks] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') return;
+    const element = mainRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      setMainContentWidth(entry.contentRect.width);
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   const baseOutput = useMemo(() => {
     if (!input) return '';
@@ -321,6 +350,8 @@ export default function MessageUnescaper() {
 
   const inputStats = useMemo(() => getStats(input), [input]);
   const outputStats = useMemo(() => getStats(output), [output]);
+  const canUseTwoColumnLayout = mainContentWidth >= MESSAGE_TWO_COLUMN_MIN_WIDTH;
+  const visiblePanelLayout: PanelLayoutMode = canUseTwoColumnLayout ? preferredPanelLayout : 'one-column';
 
   return (
     <ArtifactThemeRoot className="flex min-h-screen flex-col bg-[var(--surface-muted)] text-[var(--text)]">
@@ -333,6 +364,36 @@ export default function MessageUnescaper() {
             </p>
           </div>
           <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
+            {canUseTwoColumnLayout && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Layout
+                </span>
+                <SegmentedControl
+                  ariaLabel="Panel layout"
+                  value={visiblePanelLayout}
+                  onValueChange={setPreferredPanelLayout}
+                  size="default"
+                  tone="accent"
+                  options={[
+                    {
+                      value: 'one-column',
+                      label: '1',
+                      ariaLabel: 'One column layout',
+                      reserveLabel: '2',
+                      icon: <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />,
+                    },
+                    {
+                      value: 'two-column',
+                      label: '2',
+                      ariaLabel: 'Two column layout',
+                      reserveLabel: '2',
+                      icon: <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />,
+                    },
+                  ]}
+                />
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Wrap
@@ -353,7 +414,13 @@ export default function MessageUnescaper() {
         </div>
       </header>
 
-      <main className="grid flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-2">
+      <main
+        ref={mainRef}
+        className={mergeClassNames(
+          'grid flex-1 grid-cols-1 gap-4 p-4',
+          visiblePanelLayout === 'two-column' && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)]',
+        )}
+      >
         {/* Input */}
         <section className="min-w-0 flex flex-col">
           <div className="flex flex-col border border-[var(--border)] bg-[var(--surface)]">

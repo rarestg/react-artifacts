@@ -7,12 +7,12 @@ import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, us
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
+import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import Checkbox from './components/Checkbox';
 import CopyButton, { type CopyButtonHandle } from './components/CopyButton';
 import PathList from './components/PathList';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
-import { useLocalStorageState } from './hooks/useLocalStorageState';
 import { defaultTruncation, sampleInput } from './lib/constants';
 import { applyFilter, applyStructureOnly, truncateValue } from './lib/filtering';
 import { formatCompactNumber } from './lib/formatNumber';

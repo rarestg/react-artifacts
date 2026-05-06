@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Checkbox } from '../../src/components/Checkbox';
 import { CopyableLabel } from '../../src/components/CopyableLabel';
 import { CopyButton } from '../../src/components/CopyButton';
+import { SegmentedControl } from '../../src/components/SegmentedControl';
 import StatusTag from '../../src/components/StatusTag';
 import { Toggle } from '../../src/components/Toggle';
 
@@ -16,6 +17,16 @@ import { Toggle } from '../../src/components/Toggle';
 function firstElementClass(markup: string) {
   const className = markup.match(/^<[^>]+class="([^"]+)"/)?.[1];
   assert.ok(className, `Expected first element to have class markup: ${markup}`);
+  return className;
+}
+
+function buttonClasses(markup: string) {
+  return [...markup.matchAll(/<button[^>]*class="([^"]+)"/g)].map((match) => match[1]);
+}
+
+function buttonClassByPressed(markup: string, pressed: boolean) {
+  const className = markup.match(new RegExp(`<button[^>]*aria-pressed="${pressed}"[^>]*class="([^"]+)"`))?.[1];
+  assert.ok(className, `Expected ${pressed ? 'pressed' : 'unpressed'} button class markup: ${markup}`);
   return className;
 }
 
@@ -102,6 +113,88 @@ test('shared toggle passes through title and described-by metadata', () => {
   assert.match(markup, /title="Details are unavailable"/);
   assert.match(markup, /aria-describedby="details-description"/);
   assert.match(markup, />Show details</);
+});
+
+test('SegmentedControl renders pressed buttons with child-owned borders', () => {
+  const markup = renderToStaticMarkup(
+    createElement(SegmentedControl, {
+      ariaLabel: 'Direction',
+      value: 'escape',
+      onValueChange: () => undefined,
+      tone: 'accent',
+      size: 'compact',
+      options: [
+        { value: 'unescape', label: 'Unescape' },
+        { value: 'escape', label: 'Escape' },
+      ],
+    }),
+  );
+  const rootClass = firstElementClass(markup);
+  const classes = buttonClasses(markup);
+  const selectedClass = buttonClassByPressed(markup, true);
+
+  assert.match(markup, /^<fieldset/);
+  assert.match(markup, /aria-label="Direction"/);
+  assert.doesNotMatch(rootClass, /gap-px/);
+  assert.equal(classes.length, 2);
+  assert.match(classes[0], /border/);
+  assert.match(classes[1], /-ml-px/);
+  assert.match(selectedClass, /z-10/);
+  assert.match(selectedClass, /text-xs/);
+  assert.match(selectedClass, /font-medium/);
+  assert.doesNotMatch(selectedClass, /font-mono|uppercase|tracking-\[/);
+  assert.match(selectedClass, /border-\[color:var\(--accent\)\]/);
+  assert.match(selectedClass, /bg-\[var\(--accent-weak\)\]/);
+  assert.match(markup, /aria-pressed="false"/);
+  assert.match(markup, /aria-pressed="true"/);
+});
+
+test('SegmentedControl supports full-width neutral mode controls', () => {
+  const markup = renderToStaticMarkup(
+    createElement(SegmentedControl, {
+      ariaLabel: 'Labels',
+      value: 'hue',
+      onValueChange: () => undefined,
+      tone: 'neutral',
+      fullWidth: true,
+      options: [
+        { value: 'hue', label: 'Color name' },
+        { value: 'index', label: 'Index' },
+      ],
+    }),
+  );
+  const rootClass = firstElementClass(markup);
+  const selectedClass = buttonClassByPressed(markup, true);
+
+  assert.match(rootClass, /flex/);
+  assert.match(rootClass, /w-full/);
+  assert.match(markup, /flex-1/);
+  assert.match(selectedClass, /border-\[var\(--border-strong\)\]/);
+  assert.match(selectedClass, /bg-\[var\(--surface-strong\)\]/);
+  assert.match(markup, />Color name<\/span>/);
+  assert.match(markup, />Index<\/span>/);
+});
+
+test('disabled SegmentedControl preserves disabled cursor without interactive affordances', () => {
+  const markup = renderToStaticMarkup(
+    createElement(SegmentedControl, {
+      ariaLabel: 'Disabled mode',
+      value: 'one',
+      onValueChange: () => undefined,
+      disabled: true,
+      options: [
+        { value: 'one', label: 'One' },
+        { value: 'two', label: 'Two' },
+      ],
+    }),
+  );
+  const rootClass = firstElementClass(markup);
+
+  assert.match(rootClass, /opacity-50/);
+  for (const className of buttonClasses(markup)) {
+    assert.match(className, /cursor-not-allowed/);
+    assert.doesNotMatch(className, /cursor-pointer|hover:bg|active:bg/);
+  }
 });
 
 test('disabled shared copy button preserves disabled cursor without pointer-events-none', () => {

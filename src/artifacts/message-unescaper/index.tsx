@@ -7,6 +7,7 @@ import {
   panelHeaderTextClass,
   panelHeaderTitleClass,
 } from '../../components/panelHeaderClasses';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { Toggle } from '../../components/Toggle';
 import { mergeClassNames } from '../../lib/classNames';
 
@@ -268,16 +269,6 @@ const headerActionClass =
 const panelBodyToolbarClass =
   'flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--border)] px-4 py-2';
 
-const segmentBase =
-  'h-8 px-3 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] relative focus-visible:z-10';
-
-const compactSegmentBase =
-  'h-6 px-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-colors motion-reduce:transition-none cursor-pointer disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] relative focus-visible:z-10';
-
-const segmentActive = 'bg-[var(--accent-weak)] text-[var(--accent)]';
-const segmentInactive = 'bg-[var(--surface)] text-[var(--text-muted)]';
-const segmentInactiveInteractive = 'hover:bg-[var(--surface-strong)]';
-
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -346,45 +337,17 @@ export default function MessageUnescaper() {
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Wrap
               </span>
-              <fieldset
-                aria-label="Word wrap"
-                className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-              >
-                <button
-                  type="button"
-                  aria-pressed={wrapOutput}
-                  onClick={() => setWrapOutput(true)}
-                  className={mergeClassNames(
-                    segmentBase,
-                    wrapOutput ? segmentActive : segmentInactive,
-                    !wrapOutput && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Off
-                    </span>
-                    <span className="col-start-1 row-start-1">On</span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={!wrapOutput}
-                  onClick={() => setWrapOutput(false)}
-                  className={mergeClassNames(
-                    segmentBase,
-                    !wrapOutput ? segmentActive : segmentInactive,
-                    wrapOutput && segmentInactiveInteractive,
-                  )}
-                >
-                  <span className="relative inline-grid">
-                    <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                      Off
-                    </span>
-                    <span className="col-start-1 row-start-1">Off</span>
-                  </span>
-                </button>
-              </fieldset>
+              <SegmentedControl
+                ariaLabel="Word wrap"
+                value={wrapOutput ? 'on' : 'off'}
+                onValueChange={(nextValue) => setWrapOutput(nextValue === 'on')}
+                size="default"
+                tone="accent"
+                options={[
+                  { value: 'on', label: 'On' },
+                  { value: 'off', label: 'Off' },
+                ]}
+              />
             </div>
           </div>
         </div>
@@ -412,45 +375,17 @@ export default function MessageUnescaper() {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Mode
                 </span>
-                <fieldset
-                  aria-label="Direction"
-                  className="inline-flex border border-[var(--border-strong)] bg-[var(--border)] gap-px"
-                >
-                  <button
-                    type="button"
-                    aria-pressed={direction === 'unescape'}
-                    onClick={() => setDirection('unescape')}
-                    className={mergeClassNames(
-                      compactSegmentBase,
-                      direction === 'unescape' ? segmentActive : segmentInactive,
-                      direction !== 'unescape' && segmentInactiveInteractive,
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        Unescape
-                      </span>
-                      <span className="col-start-1 row-start-1">Unescape</span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={direction === 'escape'}
-                    onClick={() => setDirection('escape')}
-                    className={mergeClassNames(
-                      compactSegmentBase,
-                      direction === 'escape' ? segmentActive : segmentInactive,
-                      direction !== 'escape' && segmentInactiveInteractive,
-                    )}
-                  >
-                    <span className="relative inline-grid">
-                      <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                        Unescape
-                      </span>
-                      <span className="col-start-1 row-start-1">Escape</span>
-                    </span>
-                  </button>
-                </fieldset>
+                <SegmentedControl
+                  ariaLabel="Direction"
+                  value={direction}
+                  onValueChange={setDirection}
+                  size="compact"
+                  tone="accent"
+                  options={[
+                    { value: 'unescape', label: 'Unescape' },
+                    { value: 'escape', label: 'Escape' },
+                  ]}
+                />
               </div>
             </div>
             <div className="px-4 py-4">

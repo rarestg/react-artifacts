@@ -63,6 +63,7 @@ theme-boundary guards resolve correctly.
 | `Panel` | Shared structural container primitive | `variant`: `default`, `muted`, `dashed` |
 | `Checkbox` | Shared boolean selection primitive | `checked`, `onCheckedChange`, `label`, `reserveLabel` |
 | `Toggle` | Shared on/off primitive | `checked`, `onCheckedChange`, `label`, `reserveLabel` |
+| `SegmentedControl` | Shared small fixed-set mode primitive | `value`, `onValueChange`, `options`, `tone`: `neutral`, `accent`; `size`: `compact`, `default` |
 | `CopyButton` | Shared copy-to-clipboard primitive | `text` |
 | `CopyableLabel` | Shared metadata-with-copy primitive | `value`, `icon` |
 | `StatusTag` | Shared stable-width status primitive | `label`, `active`, `reserveLabel`, `icon` |
@@ -115,7 +116,7 @@ When a label changes (like "Copy" → "Copied"), the button width can jump. This
 </span>
 ```
 
-Used in: `StatusTag`, `CopyButton`, `CopyableLabel`, `Checkbox`, `Toggle`
+Used in: `StatusTag`, `CopyButton`, `CopyableLabel`, `Checkbox`, `Toggle`, `SegmentedControl`
 
 ### 2. The Clickability Contract
 

@@ -17,6 +17,7 @@ import { CopyableLabel } from '../../components/CopyableLabel';
 import { CopyButton } from '../../components/CopyButton';
 import { Input } from '../../components/Input';
 import { Panel } from '../../components/Panel';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatusTag } from '../../components/StatusTag';
 import { Tag } from '../../components/Tag';
 import { Toggle } from '../../components/Toggle';
@@ -66,6 +67,8 @@ export default function DesignSystem() {
     c: false,
   });
   const [toggles, setToggles] = useState<{ a: boolean; b: boolean }>({ a: true, b: false });
+  const [viewMode, setViewMode] = useState<'overview' | 'details'>('overview');
+  const [outputMode, setOutputMode] = useState<'raw' | 'rendered'>('rendered');
   const [modalOpen, setModalOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -425,6 +428,32 @@ export default function DesignSystem() {
                     reserveLabel="Notifications"
                     checked={toggles.b}
                     onCheckedChange={(checked) => setToggles((s) => ({ ...s, b: checked }))}
+                  />
+                </div>
+              </SubSection>
+              <SubSection label="Segmented controls">
+                <div className="space-y-3">
+                  <SegmentedControl
+                    ariaLabel="View mode"
+                    value={viewMode}
+                    onValueChange={setViewMode}
+                    tone="neutral"
+                    fullWidth
+                    options={[
+                      { value: 'overview', label: 'Overview' },
+                      { value: 'details', label: 'Details' },
+                    ]}
+                  />
+                  <SegmentedControl
+                    ariaLabel="Output mode"
+                    value={outputMode}
+                    onValueChange={setOutputMode}
+                    tone="accent"
+                    size="compact"
+                    options={[
+                      { value: 'raw', label: 'Raw' },
+                      { value: 'rendered', label: 'Rendered' },
+                    ]}
                   />
                 </div>
               </SubSection>

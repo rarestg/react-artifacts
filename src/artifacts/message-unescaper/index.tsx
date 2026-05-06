@@ -457,7 +457,7 @@ export default function MessageUnescaper() {
                 wrap={wrapOutput ? 'soft' : 'off'}
                 rows={16}
                 className={mergeClassNames(
-                  'w-full min-h-[320px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)]',
+                  'block w-full min-h-[320px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)]',
                   'placeholder:text-[var(--text-subtle)]',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
                   wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',

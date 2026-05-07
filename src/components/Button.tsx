@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, forwardRef, type ReactNode, useCallback, useRef } from 'react';
+import { type ButtonHTMLAttributes, type ReactNode, type Ref, useCallback, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { assignRef } from '../lib/refs';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
@@ -7,15 +7,22 @@ export type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: Ref<HTMLButtonElement>;
   variant?: ButtonVariant;
   size?: ButtonSize;
   children?: ReactNode;
 };
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { children, variant = 'default', size = 'md', disabled, type = 'button', className, ...props },
+export function Button({
   ref,
-) {
+  children,
+  variant = 'default',
+  size = 'md',
+  disabled,
+  type = 'button',
+  className,
+  ...props
+}: ButtonProps) {
   const rootRef = useRef<HTMLButtonElement>(null);
   useArtifactThemeGuard('Button', rootRef);
 
@@ -64,4 +71,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       {children}
     </button>
   );
-});
+}

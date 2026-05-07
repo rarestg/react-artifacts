@@ -1,5 +1,5 @@
 import { Copy } from 'lucide-react';
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { type Ref, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { type CopyStatus, useCopyToClipboard } from '../lib/useCopyToClipboard';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
@@ -9,6 +9,7 @@ export type CopyButtonHandle = {
 };
 
 export type CopyButtonProps = {
+  ref?: Ref<CopyButtonHandle>;
   text: string;
   idleLabel?: string;
   reserveLabel?: string;
@@ -22,19 +23,17 @@ export type CopyButtonProps = {
 const COPIED_LABEL = 'Copied \u2713';
 const FAILED_LABEL = 'Failed \u2717';
 
-export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function CopyButton(
-  {
-    text,
-    idleLabel = 'Copy',
-    reserveLabel: reserveLabelOverride,
-    ariaLabel,
-    showIcon = true,
-    className,
-    disabled,
-    variant = 'default',
-  },
+export function CopyButton({
   ref,
-) {
+  text,
+  idleLabel = 'Copy',
+  reserveLabel: reserveLabelOverride,
+  ariaLabel,
+  showIcon = true,
+  className,
+  disabled,
+  variant = 'default',
+}: CopyButtonProps) {
   const { status, copy, announcement } = useCopyToClipboard();
   const rootRef = useRef<HTMLButtonElement>(null);
   const resolvedAriaLabel = ariaLabel?.trim() || idleLabel.trim() || 'Copy';
@@ -110,4 +109,4 @@ export const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(function
       </span>
     </button>
   );
-});
+}

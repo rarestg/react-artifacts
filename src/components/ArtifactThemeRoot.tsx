@@ -1,19 +1,20 @@
-import { createContext, forwardRef, type HTMLAttributes, useContext, useEffect } from 'react';
+import { createContext, type HTMLAttributes, type Ref, useContext, useEffect } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 
 const ArtifactThemeContext = createContext(false);
 const warnedComponents = new Set<string>();
 
-export const ArtifactThemeRoot = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(function ArtifactThemeRoot(
-  { className, ...props },
-  ref,
-) {
+export type ArtifactThemeRootProps = HTMLAttributes<HTMLDivElement> & {
+  ref?: Ref<HTMLDivElement>;
+};
+
+export function ArtifactThemeRoot({ ref, className, ...props }: ArtifactThemeRootProps) {
   return (
     <ArtifactThemeContext.Provider value={true}>
       <div ref={ref} className={mergeClassNames('artifact-theme', className)} {...props} />
     </ArtifactThemeContext.Provider>
   );
-});
+}
 
 type ThemeRootRef = { current: HTMLElement | null } | null | undefined;
 
@@ -21,7 +22,7 @@ export function useArtifactThemeGuard(componentName = 'Component', ref?: ThemeRo
   const inTheme = useContext(ArtifactThemeContext);
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
+    if (!import.meta.env?.DEV) return;
     const hasThemeAncestor = ref?.current?.closest('.artifact-theme');
     if (hasThemeAncestor) return;
     if (inTheme && !ref) return;

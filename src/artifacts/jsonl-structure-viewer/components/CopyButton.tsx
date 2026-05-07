@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { type Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { mergeClassNames } from '../../../lib/classNames';
 
 type CopyStatus = 'idle' | 'copied' | 'failed';
@@ -8,6 +8,7 @@ export type CopyButtonHandle = {
 };
 
 type CopyButtonProps = {
+  ref?: Ref<CopyButtonHandle>;
   text: string;
   idleLabel?: string;
   successLabel?: string;
@@ -22,74 +23,65 @@ const DEFAULT_LABELS: Record<CopyStatus, string> = {
   failed: 'Failed',
 };
 
-const CopyButton = forwardRef<CopyButtonHandle, CopyButtonProps>(
-  (
-    {
-      text,
-      idleLabel = DEFAULT_LABELS.idle,
-      successLabel = DEFAULT_LABELS.copied,
-      failureLabel = DEFAULT_LABELS.failed,
-      className,
-      disabled,
-    },
-    ref,
-  ) => {
-    const [status, setStatus] = useState<CopyStatus>('idle');
+function CopyButton({
+  ref,
+  text,
+  idleLabel = DEFAULT_LABELS.idle,
+  successLabel = DEFAULT_LABELS.copied,
+  failureLabel = DEFAULT_LABELS.failed,
+  className,
+  disabled,
+}: CopyButtonProps) {
+  const [status, setStatus] = useState<CopyStatus>('idle');
 
-    const labels = useMemo(
-      () => ({ idle: idleLabel, copied: successLabel, failed: failureLabel }),
-      [idleLabel, successLabel, failureLabel],
-    );
-    const reserveLabel = useMemo(() => {
-      const labelList = [idleLabel, successLabel, failureLabel];
-      return labelList.reduce(
-        (longest, current) => (current.length > longest.length ? current : longest),
-        labelList[0],
-      );
-    }, [idleLabel, successLabel, failureLabel]);
+  const labels = useMemo(
+    () => ({ idle: idleLabel, copied: successLabel, failed: failureLabel }),
+    [idleLabel, successLabel, failureLabel],
+  );
+  const reserveLabel = useMemo(() => {
+    const labelList = [idleLabel, successLabel, failureLabel];
+    return labelList.reduce((longest, current) => (current.length > longest.length ? current : longest), labelList[0]);
+  }, [idleLabel, successLabel, failureLabel]);
 
-    const handleCopy = useCallback(async () => {
-      if (disabled) return;
-      try {
-        await navigator.clipboard.writeText(text);
-        setStatus('copied');
-      } catch {
-        setStatus('failed');
-      }
-    }, [disabled, text]);
+  const handleCopy = useCallback(async () => {
+    if (disabled) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus('copied');
+    } catch {
+      setStatus('failed');
+    }
+  }, [disabled, text]);
 
-    useImperativeHandle(ref, () => ({ copy: handleCopy }), [handleCopy]);
+  useImperativeHandle(ref, () => ({ copy: handleCopy }), [handleCopy]);
 
-    useEffect(() => {
-      if (status === 'idle') return;
-      const timeout = window.setTimeout(() => setStatus('idle'), 2000);
-      return () => window.clearTimeout(timeout);
-    }, [status]);
+  useEffect(() => {
+    if (status === 'idle') return;
+    const timeout = window.setTimeout(() => setStatus('idle'), 2000);
+    return () => window.clearTimeout(timeout);
+  }, [status]);
 
-    return (
-      <button
-        type="button"
-        onClick={handleCopy}
-        disabled={disabled}
-        className={mergeClassNames(
-          'inline-grid items-center border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
-          'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-          disabled && 'cursor-not-allowed opacity-60',
-          className,
-        )}
-      >
-        <span className="col-start-1 row-start-1 opacity-0" aria-hidden>
-          {reserveLabel}
-        </span>
-        <span className="col-start-1 row-start-1">{labels[status]}</span>
-        <span className="sr-only" aria-live="polite">
-          {status === 'copied' ? 'Copied to clipboard.' : status === 'failed' ? 'Copy failed.' : ''}
-        </span>
-      </button>
-    );
-  },
-);
-
-CopyButton.displayName = 'CopyButton';
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      disabled={disabled}
+      className={mergeClassNames(
+        'inline-grid items-center border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
+        'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
+        disabled && 'cursor-not-allowed opacity-60',
+        className,
+      )}
+    >
+      <span className="col-start-1 row-start-1 opacity-0" aria-hidden>
+        {reserveLabel}
+      </span>
+      <span className="col-start-1 row-start-1">{labels[status]}</span>
+      <span className="sr-only" aria-live="polite">
+        {status === 'copied' ? 'Copied to clipboard.' : status === 'failed' ? 'Copy failed.' : ''}
+      </span>
+    </button>
+  );
+}
 
 export default CopyButton;

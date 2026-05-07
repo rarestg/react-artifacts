@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes, useCallback, useRef } from 'react';
+import { type HTMLAttributes, type Ref, useCallback, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { assignRef } from '../lib/refs';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
@@ -6,13 +6,11 @@ import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 export type PanelVariant = 'default' | 'muted' | 'dashed';
 
 export type PanelProps = HTMLAttributes<HTMLDivElement> & {
+  ref?: Ref<HTMLDivElement>;
   variant?: PanelVariant;
 };
 
-export const Panel = forwardRef<HTMLDivElement, PanelProps>(function Panel(
-  { children, variant = 'default', className, ...props },
-  ref,
-) {
+export function Panel({ ref, children, variant = 'default', className, ...props }: PanelProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   useArtifactThemeGuard('Panel', rootRef);
 
@@ -35,4 +33,4 @@ export const Panel = forwardRef<HTMLDivElement, PanelProps>(function Panel(
       {children}
     </div>
   );
-});
+}

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 
 const sharp2Dir = 'src/artifacts/sharp2';
+const sharp2ReadmePath = `${sharp2Dir}/README.md`;
 const sharedPrimitiveNames = [
   'Checkbox',
   'Toggle',
@@ -15,6 +16,9 @@ const sharedPrimitiveNames = [
   'Input',
   'Tag',
   'Panel',
+  'ListboxSelect',
+  'ArtifactDialog',
+  'panelHeaderClasses',
 ];
 
 async function readSharp2SourceFiles(dir = sharp2Dir): Promise<Array<{ file: string; source: string }>> {
@@ -73,10 +77,13 @@ test('sharp2 imports shared primitives from src/components at usage sites', asyn
 });
 
 test('sharp2 documentation describes ArtifactThemeRoot and import-based shared components', async () => {
-  const guide = await readFile('src/artifacts/sharp2/sharp2.txt', 'utf8');
+  const guide = await readFile(sharp2ReadmePath, 'utf8');
 
   assert.match(guide, /ArtifactThemeRoot/);
+  assert.match(guide, /src\/components/);
   assert.match(guide, /import/i);
+  assert.match(guide, /reference showcase/i);
+  assert.match(guide, /not the design policy source of truth/i);
   assert.doesNotMatch(guide, /self-contained React file/i);
   assert.doesNotMatch(guide, /any React environment/i);
   assert.doesNotMatch(guide, /copy any component directly/i);
@@ -86,14 +93,18 @@ test('sharp2 documentation describes ArtifactThemeRoot and import-based shared c
   assert.doesNotMatch(guide, /\bpaste\b[^.\n]*\bcomponent\b/i);
 });
 
-test('sharp2 documentation matches shared primitive APIs', async () => {
-  const guide = await readFile('src/artifacts/sharp2/sharp2.txt', 'utf8');
+test('sharp2 README lists shared primitive ownership and showcase status', async () => {
+  const guide = await readFile(sharp2ReadmePath, 'utf8');
 
-  assert.match(guide, /`Button`[^|]*\|[^|]*\|[^|\n]*`size`: `sm`, `md`, `lg`/);
-  assert.match(guide, /`Checkbox`[^|]*\|[^|]*\|[^|\n]*`onCheckedChange`/);
-  assert.match(guide, /`Toggle`[^|]*\|[^|]*\|[^|\n]*`onCheckedChange`/);
-  assert.match(guide, /`SegmentedControl`[^|]*\|[^|]*\|[^|\n]*`onValueChange`/);
-  assert.match(guide, /`SegmentedControl`[^|]*\|[^|]*\|[^|\n]*`tone`: `neutral`, `accent`/);
+  assert.match(guide, /Shared primitive APIs\s*\|\s*`src\/components\/\*`/);
+  assert.match(guide, /`ListboxSelect`\s*\|\s*Shared but not currently demonstrated here\./);
+  assert.match(guide, /`panelHeaderClasses`\s*\|\s*Shared but not currently demonstrated here\./);
+  assert.match(guide, /`ArtifactDialog`\s*\|\s*Demonstrated in the modal section\./);
+
+  for (const name of sharedPrimitiveNames) {
+    assert.ok(guide.includes(`| \`${name}\``), `${name} should be listed in the sharp2 README`);
+  }
+
   assert.doesNotMatch(guide, /`Button`[^|\n]*\|[^|\n]*\|[^|\n]*`size`: `sm`, `default`, `lg`/);
   assert.doesNotMatch(guide, /`(?:Checkbox|Toggle)`[^|\n]*\|[^|\n]*\|[^|\n]*`onChange`/);
 });

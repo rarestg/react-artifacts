@@ -57,5 +57,3 @@ export function StatusTag({
     </span>
   );
 }
-
-export default StatusTag;

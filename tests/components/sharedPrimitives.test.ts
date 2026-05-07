@@ -9,7 +9,7 @@ import { Checkbox } from '../../src/components/Checkbox';
 import { CopyableLabel } from '../../src/components/CopyableLabel';
 import { CopyButton } from '../../src/components/CopyButton';
 import { SegmentedControl } from '../../src/components/SegmentedControl';
-import StatusTag from '../../src/components/StatusTag';
+import { StatusTag } from '../../src/components/StatusTag';
 import { Toggle } from '../../src/components/Toggle';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
@@ -255,11 +255,12 @@ test('copyable label can suppress focus-visible copy label without disabling hov
   assert.doesNotMatch(markup, /group-focus-visible:opacity/);
 });
 
-test('StatusTag supports default and named imports', async () => {
+test('StatusTag supports named export markup', async () => {
   const module = await import('../../src/components/StatusTag');
 
+  assert.equal('default' in module, false);
   assert.equal(module.StatusTag, StatusTag);
 
-  const markup = renderToStaticMarkup(createElement(module.StatusTag, { label: 'Connected', active: true }));
+  const markup = renderToStaticMarkup(createElement(StatusTag, { label: 'Connected', active: true }));
   assert.match(markup, /Connected/);
 });

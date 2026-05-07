@@ -2,7 +2,7 @@ import { ArrowBigUpDash as CapsLockIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
-import StatusTag from '../../components/StatusTag';
+import { StatusTag } from '../../components/StatusTag';
 import { mergeClassNames } from '../../lib/classNames';
 import { AppHeader } from './components/AppHeader';
 import { Button, Panel, Tag } from './components/Primitives';

@@ -33,6 +33,27 @@ type RangeControlProps = {
   onChange: (value: number) => void;
 };
 
+type PaletteControlsPanelProps = {
+  count: number;
+  theme: PaletteTheme;
+  hueOffset: number;
+  lightStrongL: number;
+  darkLift: number;
+  weakMix: number;
+  autoTune: boolean;
+  labelMode: PaletteLabelMode;
+  tunedWeakMix: number;
+  darkLiftFraction: number;
+  paletteMaxChroma: number;
+  onCountChange: (value: number) => void;
+  onHueOffsetChange: (value: number) => void;
+  onLightStrongLChange: (value: number) => void;
+  onDarkLiftChange: (value: number) => void;
+  onWeakMixChange: (value: number) => void;
+  onAutoTuneToggle: () => void;
+  onLabelModeChange: (value: PaletteLabelMode) => void;
+};
+
 type PaletteCardLabelInput = {
   labelMode: PaletteLabelMode;
   hueLabel?: string;
@@ -425,104 +446,26 @@ export default function PaletteLab() {
   return (
     <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]">
       <div className="grid min-h-screen grid-cols-[20rem_minmax(0,1fr)] gap-4 p-4 max-lg:grid-cols-1">
-        <aside className={mergeClassNames(panelClass, 'self-start p-4')}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-base font-semibold">Palette Lab</h1>
-              <div className="mt-1 font-mono text-[11px] text-[var(--text-muted)]">
-                {count} colors / {theme}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-4">
-            <RangeControl
-              label="Color count"
-              value={count}
-              min={4}
-              max={maxColorCount}
-              step={1}
-              displayValue={String(count)}
-              onChange={setCount}
-            />
-            <RangeControl
-              label="Rotation"
-              value={hueOffset}
-              min={0}
-              max={359}
-              step={1}
-              displayValue={`${hueOffset}deg`}
-              onChange={setHueOffset}
-            />
-            <RangeControl
-              label="Lightness bias"
-              value={lightStrongL}
-              min={48}
-              max={72}
-              step={1}
-              displayValue={`${lightStrongL - 60 >= 0 ? '+' : ''}${lightStrongL - 60}%`}
-              onChange={setLightStrongL}
-            />
-            <RangeControl
-              label="Dark lift"
-              value={darkLift}
-              min={8}
-              max={28}
-              step={1}
-              displayValue={`${Math.round(darkLiftFraction * 100)}%`}
-              onChange={setDarkLift}
-            />
-            <RangeControl
-              label="Weak mix"
-              value={weakMix}
-              min={10}
-              max={34}
-              step={1}
-              displayValue={`${tuned.weakMix.toFixed(1)}%`}
-              onChange={setWeakMix}
-            />
-
-            <div className="grid gap-2">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                Labels
-              </div>
-              <SegmentedControl
-                ariaLabel="Labels"
-                value={labelMode}
-                onValueChange={setLabelMode}
-                tone="neutral"
-                size="default"
-                fullWidth
-                options={[
-                  { value: 'hue', label: 'Color name' },
-                  { value: 'index', label: 'Index' },
-                ]}
-              />
-            </div>
-
-            <button
-              type="button"
-              aria-pressed={autoTune}
-              onClick={() => setAutoTune((current) => !current)}
-              className={mergeClassNames(
-                'h-8 border px-2 text-xs font-medium',
-                autoTune
-                  ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
-                  : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-                focusClass,
-              )}
-            >
-              Auto tune: {autoTune ? 'on' : 'off'}
-            </button>
-
-            <FormulaPanel
-              theme={theme}
-              paletteMaxChroma={paletteMaxChroma}
-              weakMix={tuned.weakMix}
-              darkLiftFraction={darkLiftFraction}
-            />
-          </div>
-        </aside>
+        <PaletteControlsPanel
+          count={count}
+          theme={theme}
+          hueOffset={hueOffset}
+          lightStrongL={lightStrongL}
+          darkLift={darkLift}
+          weakMix={weakMix}
+          autoTune={autoTune}
+          labelMode={labelMode}
+          tunedWeakMix={tuned.weakMix}
+          darkLiftFraction={darkLiftFraction}
+          paletteMaxChroma={paletteMaxChroma}
+          onCountChange={setCount}
+          onHueOffsetChange={setHueOffset}
+          onLightStrongLChange={setLightStrongL}
+          onDarkLiftChange={setDarkLift}
+          onWeakMixChange={setWeakMix}
+          onAutoTuneToggle={() => setAutoTune((current) => !current)}
+          onLabelModeChange={setLabelMode}
+        />
 
         <main className="grid min-w-0 content-start gap-4">
           <section
@@ -635,6 +578,126 @@ export default function PaletteLab() {
         returnFocusTo={helpButtonRef.current}
       />
     </ArtifactThemeRoot>
+  );
+}
+
+function PaletteControlsPanel({
+  count,
+  theme,
+  hueOffset,
+  lightStrongL,
+  darkLift,
+  weakMix,
+  autoTune,
+  labelMode,
+  tunedWeakMix,
+  darkLiftFraction,
+  paletteMaxChroma,
+  onCountChange,
+  onHueOffsetChange,
+  onLightStrongLChange,
+  onDarkLiftChange,
+  onWeakMixChange,
+  onAutoTuneToggle,
+  onLabelModeChange,
+}: PaletteControlsPanelProps) {
+  return (
+    <aside className={mergeClassNames(panelClass, 'self-start p-4')}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-base font-semibold">Palette Lab</h1>
+          <div className="mt-1 font-mono text-[11px] text-[var(--text-muted)]">
+            {count} colors / {theme}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4">
+        <RangeControl
+          label="Color count"
+          value={count}
+          min={4}
+          max={maxColorCount}
+          step={1}
+          displayValue={String(count)}
+          onChange={onCountChange}
+        />
+        <RangeControl
+          label="Rotation"
+          value={hueOffset}
+          min={0}
+          max={359}
+          step={1}
+          displayValue={`${hueOffset}deg`}
+          onChange={onHueOffsetChange}
+        />
+        <RangeControl
+          label="Lightness bias"
+          value={lightStrongL}
+          min={48}
+          max={72}
+          step={1}
+          displayValue={`${lightStrongL - 60 >= 0 ? '+' : ''}${lightStrongL - 60}%`}
+          onChange={onLightStrongLChange}
+        />
+        <RangeControl
+          label="Dark lift"
+          value={darkLift}
+          min={8}
+          max={28}
+          step={1}
+          displayValue={`${Math.round(darkLiftFraction * 100)}%`}
+          onChange={onDarkLiftChange}
+        />
+        <RangeControl
+          label="Weak mix"
+          value={weakMix}
+          min={10}
+          max={34}
+          step={1}
+          displayValue={`${tunedWeakMix.toFixed(1)}%`}
+          onChange={onWeakMixChange}
+        />
+
+        <div className="grid gap-2">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">Labels</div>
+          <SegmentedControl
+            ariaLabel="Labels"
+            value={labelMode}
+            onValueChange={onLabelModeChange}
+            tone="neutral"
+            size="default"
+            fullWidth
+            options={[
+              { value: 'hue', label: 'Color name' },
+              { value: 'index', label: 'Index' },
+            ]}
+          />
+        </div>
+
+        <button
+          type="button"
+          aria-pressed={autoTune}
+          onClick={onAutoTuneToggle}
+          className={mergeClassNames(
+            'h-8 border px-2 text-xs font-medium',
+            autoTune
+              ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
+              : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
+            focusClass,
+          )}
+        >
+          Auto tune: {autoTune ? 'on' : 'off'}
+        </button>
+
+        <FormulaPanel
+          theme={theme}
+          paletteMaxChroma={paletteMaxChroma}
+          weakMix={tunedWeakMix}
+          darkLiftFraction={darkLiftFraction}
+        />
+      </div>
+    </aside>
   );
 }
 

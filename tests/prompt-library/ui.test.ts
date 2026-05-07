@@ -32,3 +32,16 @@ test('prompt card title button advertises that it opens the full prompt', async 
   assert.match(titleButton, /cursor-pointer/);
   assert.match(titleButton, /active:/);
 });
+
+test('primary search button uses a pointer cursor', async () => {
+  const markup = await renderPromptLibrary();
+  const searchLabelStart = markup.indexOf('aria-label="Search');
+  assert.notEqual(searchLabelStart, -1);
+
+  const buttonEnd = markup.indexOf('</button>', searchLabelStart);
+  assert.notEqual(buttonEnd, -1);
+
+  const searchButton = markup.slice(searchLabelStart, buttonEnd);
+
+  assert.match(searchButton, /cursor-pointer/);
+});

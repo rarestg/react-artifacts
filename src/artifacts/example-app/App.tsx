@@ -244,7 +244,7 @@ export default function ExampleApp() {
                   aria-pressed={view === 'all'}
                   onClick={() => setView('all')}
                   className={mergeClassNames(
-                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
+                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none cursor-pointer',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'all'
@@ -259,7 +259,7 @@ export default function ExampleApp() {
                   aria-pressed={view === 'active'}
                   onClick={() => setView('active')}
                   className={mergeClassNames(
-                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none',
+                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none cursor-pointer',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'active'
@@ -358,7 +358,7 @@ export default function ExampleApp() {
                   }))
                 }
                 className={mergeClassNames(
-                  'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
+                  'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none cursor-pointer',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeSwatches[swatch.id]
                     ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
@@ -410,7 +410,7 @@ export default function ExampleApp() {
                   }))
                 }
                 className={mergeClassNames(
-                  'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none',
+                  'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none cursor-pointer',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                   activeCategorySwatches[swatch.id]
                     ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`

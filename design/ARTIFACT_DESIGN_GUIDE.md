@@ -12,13 +12,8 @@ Most artifacts should start from this shape: artifact theme boundary, stable hea
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 
 export default function Artifact() {
-  const theme = 'base';
-
   return (
-    <ArtifactThemeRoot
-      className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]"
-      data-theme={theme}
-    >
+    <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]">
       <div className="flex min-h-screen flex-col">
         <header className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
           <div className="flex items-center justify-between gap-3">
@@ -62,7 +57,8 @@ export default function Artifact() {
   - Use columns when users compare or transform side by side.
   - Use panels when separate tools or modes need persistent space.
   - Use a grid only when item position is not carrying meaning.
-- Define grid columns at every responsive breakpoint.
+- For breakpoint-driven grids, define columns at every responsive state. For container-driven grids, use explicit
+  `minmax`, `auto-fit`, or measured-width tracks so the layout has a clear rule at each size.
 - Use `min-w-0` wherever text may truncate inside flex or grid.
 - Use one spacing system in a stack: `gap-*` or `space-*`, not scattered margins.
 - Keep governing controls anchored when dependent controls appear, disappear, or disable.
@@ -103,6 +99,8 @@ export default function Artifact() {
   - Segmented controls switch modes among a small fixed set.
   - Menus and listboxes handle larger option sets.
 - Keep control heights consistent within a toolbar or form.
+- Use shared artifact primitives when their semantics fit; keep local controls only when the behavior or domain shape is
+  genuinely artifact-specific.
 - Actions in the same toolbar should usually share one local action class for height, border, background, hover, active, cursor, and focus behavior. Reserve changing labels with an invisible widest label instead of fixed pixel widths.
 - Enabled controls and other click targets should use the pointer cursor. Disabled controls should use a disabled
   cursor such as `cursor-not-allowed` and should not show pointer affordance.
@@ -147,12 +145,14 @@ export default function Artifact() {
 
 - Artifact and shared UI should use CSS tokens, not raw colors.
 - Wrap artifact roots in `ArtifactThemeRoot`.
-- Put `data-theme` on the same element as `ArtifactThemeRoot`.
+- Base-only artifacts may omit `data-theme`; artifacts with palette overrides should put `data-theme` on the same
+  element as `ArtifactThemeRoot`.
 - Keep portals inside the artifact theme boundary.
 - Shared token-based components require the artifact theme boundary.
 - Shell UI stays outside the artifact theme boundary unless intentionally wrapped.
 - Dark mode is controlled by the top-level `.dark` class; theme variants use data attributes.
-- Every theme must define the full token contract in steady state.
+- Partial palette overrides are allowed when the base `.artifact-theme` supplies the full contract; full replacement
+  themes must define the full token contract in steady state.
 - Missing-token fallbacks are temporary and must be documented.
 - Required token groups: surfaces, text, borders, accent, ring, highlight, overlay, primary, semantic status, category, and shared component tokens.
 - If `--accent` changes, also define `--accent-weak` and `--ring`.

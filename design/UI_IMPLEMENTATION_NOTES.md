@@ -14,7 +14,7 @@
 | 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 72-84 |
 | 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 85-121 |
 | 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary | 122-147 |
-| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 148-189 |
+| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 151-192 |
 
 ## Format for new entries
 - Title
@@ -123,11 +123,13 @@ Guidelines
 
 ### When it applies
 - Adding a new artifact root or refactoring an existing artifact container.
-- Using shared components that assume Sharp UI tokens (Checkbox, Toggle, CopyableLabel, ListboxSelect, StatusTag).
+- Using shared components that assume Sharp UI tokens, such as Checkbox, Toggle, SegmentedControl, CopyButton,
+  CopyableLabel, ListboxSelect, StatusTag, and ArtifactDialog.
 - Debugging missing rings, black focus, or token-driven surfaces that look “off.”
 
 ### Recommended pattern
-- Wrap the artifact root with `ArtifactThemeRoot` and pass root classes/`data-theme` there.
+- Wrap the artifact root with `ArtifactThemeRoot` and pass root classes there; add `data-theme` on that same element
+  only when the artifact declares palette overrides.
 - Do **not** add `artifact-theme` manually inside artifacts; the root is the single boundary.
 - If a shared component must render outside the boundary (shell/standalone), wrap that subtree intentionally or expect a dev warning.
 - If you render UI via a portal, mount the portal container inside the artifact root so it inherits tokens.
@@ -138,6 +140,7 @@ Guidelines
 
 ### Notes and pitfalls
 - `data-theme` overrides only work when applied to the same element as `ArtifactThemeRoot`.
+- Base-only artifacts can rely on the `.artifact-theme` token contract without adding `data-theme`.
 - Dev warnings are deduped per component; fix the root cause rather than suppressing logs.
 
 ### Exceptions

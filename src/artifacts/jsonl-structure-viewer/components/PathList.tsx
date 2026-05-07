@@ -12,7 +12,7 @@ import type { PathNode } from '../types';
 import Checkbox from './Checkbox';
 
 const actionButtonBase =
-  'border border-[var(--border)] bg-[var(--surface)] text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]';
+  'cursor-pointer border border-[var(--border)] bg-[var(--surface)] text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]';
 
 const actionButtonCompact = `${actionButtonBase} px-1.5 py-0.5`;
 
@@ -161,7 +161,7 @@ export default function PathList({
                 <button
                   type="button"
                   onClick={() => onToggleExpand(child.key)}
-                  className="border border-[var(--border)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+                  className="cursor-pointer border border-[var(--border)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
                   aria-label={isExpanded ? 'Collapse' : 'Expand'}
                 >
                   {isExpanded ? '-' : '+'}
@@ -291,7 +291,7 @@ export default function PathList({
             <button
               type="button"
               onClick={() => onSearchQueryChange('')}
-              className="absolute right-2 text-xs text-[var(--text-muted)] hover:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+              className="absolute right-2 cursor-pointer text-xs text-[var(--text-muted)] hover:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
               aria-label="Clear search"
             >
               x

@@ -28,7 +28,7 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
         aria-label={`Select ${artifact.name}`}
         onClick={() => onSelect(artifact.id)}
         className={mergeClassNames(
-          'block w-full px-3 pt-2 pr-12 pb-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950',
+          'block w-full cursor-pointer px-3 pt-2 pr-12 pb-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950',
           selected
             ? 'bg-blue-100 font-medium text-blue-800 dark:bg-slate-800 dark:text-slate-100'
             : 'text-gray-700 group-hover:bg-gray-200 dark:text-slate-300 dark:group-hover:bg-slate-800',
@@ -67,7 +67,7 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
         aria-label={`Open ${artifact.name} standalone`}
         title="Open standalone view"
         className={
-          'absolute right-2 bottom-2 z-10 inline-flex h-7 w-7 items-center justify-center border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950'
+          'absolute right-2 bottom-2 z-10 inline-flex h-7 w-7 cursor-pointer items-center justify-center border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950'
         }
       >
         <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden="true" />

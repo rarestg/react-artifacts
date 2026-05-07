@@ -531,7 +531,7 @@ export default function PaletteLab() {
                   onClick={() => toggleIndex(color.index)}
                   style={style}
                   className={mergeClassNames(
-                    'grid min-h-36 grid-rows-[auto_1fr_auto] gap-3 border p-3 text-left transition-[background-color,border-color,color] motion-reduce:transition-none',
+                    'grid min-h-36 cursor-pointer grid-rows-[auto_1fr_auto] gap-3 border p-3 text-left transition-[background-color,border-color,color] motion-reduce:transition-none',
                     selected
                       ? 'border-[color:var(--palette-color)] bg-[var(--palette-color-weak)] text-[var(--text)]'
                       : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)]',
@@ -680,7 +680,7 @@ function PaletteControlsPanel({
           aria-pressed={autoTune}
           onClick={onAutoTuneToggle}
           className={mergeClassNames(
-            'h-8 border px-2 text-xs font-medium',
+            'h-8 cursor-pointer border px-2 text-xs font-medium',
             autoTune
               ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
               : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',

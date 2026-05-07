@@ -466,7 +466,7 @@ export default function JsonlStructureViewer() {
     headerStacked ? 'w-full justify-start' : 'justify-end',
   );
   const headerHelpButtonClass = mergeClassNames(
-    'inline-flex h-8 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
+    'inline-flex h-8 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
     'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
   );
   const headerStatusClass = mergeClassNames(headerActionClass, 'cursor-default', 'hover:bg-[var(--surface)]');
@@ -628,7 +628,9 @@ export default function JsonlStructureViewer() {
       <div ref={inputCardRef} className="min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]">
         <div className={panelHeaderRowClass}>
           <div className={panelHeaderTextClass}>
-            <div className={panelHeaderTitleClass}>Input</div>
+            <div id="jsonl-structure-input-title" className={panelHeaderTitleClass}>
+              Input
+            </div>
             <div className={panelHeaderMetaClass}>
               {parsed.error ? (
                 <span className="border border-[var(--danger)] bg-[var(--danger-weak)] px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--danger)]">
@@ -667,6 +669,7 @@ export default function JsonlStructureViewer() {
               spellCheck={false}
               rows={10}
               onDoubleClick={(event) => handleResizeDoubleClick(event, inputPanelRef.current, inputCardRef.current)}
+              aria-labelledby="jsonl-structure-input-title"
               className={`w-full min-h-[240px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] ${
                 wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'
               }`}
@@ -675,12 +678,16 @@ export default function JsonlStructureViewer() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <div className="flex min-w-0 items-center justify-between gap-3 border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
               <div className="min-w-0">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                <label
+                  htmlFor="jsonl-structure-truncation"
+                  className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]"
+                >
                   Truncation
-                </div>
+                </label>
                 <div className="text-xs text-[var(--text-muted)]">Strings longer than this are shortened.</div>
               </div>
               <input
+                id="jsonl-structure-truncation"
                 type="number"
                 min={0}
                 max={200}

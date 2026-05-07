@@ -33,7 +33,7 @@ A local viewer for developing and refining React artifacts. Drop a folder into `
 ## Invariants
 
 - Artifacts export a React component from `index.tsx`; they do not mount to the DOM.
-- Artifact UI that uses shared tokenized components should be wrapped in `ArtifactThemeRoot`.
+- `ArtifactThemeRoot` is the default artifact root; any artifact using tokens or shared token primitives must use it.
 - Device preview renders inside a fixed-size container; it is not a real browser viewport.
 - Worker binding or `wrangler.jsonc` changes require `npm run generate-types`.
 - Let Biome handle formatting and import organization instead of hand-formatting large edits.
@@ -145,10 +145,9 @@ track the actual browser viewport (or when using DevTools device emulation).
 
 ## Shared Components And Helpers
 
-Tokenized artifact primitives live in `src/components/` and should render under `ArtifactThemeRoot`. This includes
-common artifact UI such as `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `Toggle`, `SegmentedControl`,
-`ListboxSelect`, `CopyButton`, `CopyableLabel`, `StatusTag`, `ArtifactDialog`, and `panelHeaderClasses` for dense tool
-panel headers.
+Tokenized artifact primitives live in `src/components/` and must render under `ArtifactThemeRoot`. This includes common
+artifact UI such as `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `Toggle`, `SegmentedControl`, `ListboxSelect`,
+`CopyButton`, `CopyableLabel`, `StatusTag`, `ArtifactDialog`, and `panelHeaderClasses` for dense tool panel headers.
 
 Not every `src/components/` export is an artifact primitive. Shell UI in `src/App.tsx` is not artifact UI; do not pull
 artifact-token components into shell chrome unless the subtree is intentionally wrapped. Prefer headless hooks and

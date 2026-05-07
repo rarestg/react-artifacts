@@ -1,5 +1,6 @@
-import { type Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { type Ref, useCallback, useImperativeHandle, useMemo } from 'react';
 import { mergeClassNames } from '../../../lib/classNames';
+import { useCopyToClipboard } from '../../../lib/useCopyToClipboard';
 
 type CopyStatus = 'idle' | 'copied' | 'failed';
 
@@ -32,7 +33,7 @@ function CopyButton({
   className,
   disabled,
 }: CopyButtonProps) {
-  const [status, setStatus] = useState<CopyStatus>('idle');
+  const { status, copy, announcement } = useCopyToClipboard();
 
   const labels = useMemo(
     () => ({ idle: idleLabel, copied: successLabel, failed: failureLabel }),
@@ -45,21 +46,10 @@ function CopyButton({
 
   const handleCopy = useCallback(async () => {
     if (disabled) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setStatus('copied');
-    } catch {
-      setStatus('failed');
-    }
-  }, [disabled, text]);
+    await copy(text);
+  }, [copy, disabled, text]);
 
   useImperativeHandle(ref, () => ({ copy: handleCopy }), [handleCopy]);
-
-  useEffect(() => {
-    if (status === 'idle') return;
-    const timeout = window.setTimeout(() => setStatus('idle'), 2000);
-    return () => window.clearTimeout(timeout);
-  }, [status]);
 
   return (
     <button
@@ -69,7 +59,7 @@ function CopyButton({
       className={mergeClassNames(
         'inline-grid items-center border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
         'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-        disabled && 'cursor-not-allowed opacity-60',
+        disabled ? 'cursor-not-allowed opacity-60 disabled:hover:bg-[var(--surface)]' : 'cursor-pointer',
         className,
       )}
     >
@@ -77,8 +67,8 @@ function CopyButton({
         {reserveLabel}
       </span>
       <span className="col-start-1 row-start-1">{labels[status]}</span>
-      <span className="sr-only" aria-live="polite">
-        {status === 'copied' ? 'Copied to clipboard.' : status === 'failed' ? 'Copy failed.' : ''}
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
       </span>
     </button>
   );

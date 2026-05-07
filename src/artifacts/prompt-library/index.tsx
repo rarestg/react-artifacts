@@ -131,7 +131,7 @@ export default function PromptLibrary() {
               aria-keyshortcuts="Meta+K Control+K"
               onClick={openSearchPalette}
               className={mergeClassNames(
-                'inline-flex h-9 items-center gap-2 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)]',
+                'inline-flex h-9 cursor-pointer items-center gap-2 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)]',
                 'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
                 focusClass,
               )}

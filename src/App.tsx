@@ -498,7 +498,7 @@ export default function App() {
           <div className="grid w-full grid-cols-2 gap-1">
             <button
               type="button"
-              aria-pressed={deviceOrientation === 'portrait'}
+              aria-pressed={isDevicePreviewActive && deviceOrientation === 'portrait'}
               onClick={() => setDeviceOrientation('portrait')}
               disabled={!isDevicePreviewActive}
               className={mergeClassNames(
@@ -516,7 +516,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              aria-pressed={deviceOrientation === 'landscape'}
+              aria-pressed={isDevicePreviewActive && deviceOrientation === 'landscape'}
               onClick={() => setDeviceOrientation('landscape')}
               disabled={!isDevicePreviewActive}
               className={mergeClassNames(

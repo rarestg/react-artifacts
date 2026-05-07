@@ -267,7 +267,7 @@ const formatStatsLine = (chars: number, lines: number) =>
 // ---------------------------------------------------------------------------
 
 const headerActionClass =
-  'px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[var(--surface)]';
+  'cursor-pointer px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]';
 
 const panelBodyToolbarClass =
   'flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--border)] px-4 py-2';

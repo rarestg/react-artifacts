@@ -59,10 +59,14 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
           {!config.alwaysLiteral && onToggleRender && (
             <button
               type="button"
+              aria-pressed={!isLiteral}
               onClick={onToggleRender}
-              className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)] cursor-pointer transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
+              className="inline-grid cursor-pointer px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-strong)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
             >
-              {isLiteral ? 'Raw' : 'Rendered'}
+              <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
+                Rendered
+              </span>
+              <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
             </button>
           )}
           <CopyButton text={content} className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5" />

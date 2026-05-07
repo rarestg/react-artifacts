@@ -25,9 +25,13 @@ export function ConversationTurn({
   visibleTypes,
 }: ConversationTurnProps) {
   // Filter items based on visible types
-  const filteredItems = items
-    .map((item, originalIndex) => ({ item, originalIndex }))
-    .filter(({ item }) => visibleTypes?.[getTurnItemVisibleType(item)] ?? true);
+  const filteredItems: Array<{ item: TurnItem; originalIndex: number }> = [];
+
+  for (const [originalIndex, item] of items.entries()) {
+    if (visibleTypes?.[getTurnItemVisibleType(item)] ?? true) {
+      filteredItems.push({ item, originalIndex });
+    }
+  }
 
   if (filteredItems.length === 0) return null;
 

@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react';
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
@@ -678,14 +678,21 @@ function PaletteHelpDialog({
 }
 
 function RangeControl({ label, value, min, max, step, displayValue, onChange }: RangeControlProps) {
+  const inputId = useId();
+  const labelId = `${inputId}-label`;
+
   return (
-    <label className="grid gap-2">
+    <label htmlFor={inputId} className="grid gap-2">
       <span className="flex items-baseline justify-between gap-3">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
+        <span id={labelId} className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+          {label}
+        </span>
         <span className="font-mono text-[11px] text-[var(--text)]">{displayValue}</span>
       </span>
       <input
+        id={inputId}
         type="range"
+        aria-labelledby={labelId}
         min={min}
         max={max}
         step={step}

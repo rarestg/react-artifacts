@@ -332,8 +332,8 @@ export default function App() {
     };
 
     document.addEventListener('touchmove', handleMove, { passive: false });
-    document.addEventListener('touchend', handleUp);
-    document.addEventListener('touchcancel', handleUp);
+    document.addEventListener('touchend', handleUp, { passive: true });
+    document.addEventListener('touchcancel', handleUp, { passive: true });
     dragCleanupRef.current = () => {
       document.removeEventListener('touchmove', handleMove);
       document.removeEventListener('touchend', handleUp);

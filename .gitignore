@@ -17,6 +17,10 @@ pnpm-debug.log*
 .vscode/
 .claude/
 
+# Local agent artifacts
+.agents/
+GitHub Reviews/
+
 # Env files
 .env
 .env.*

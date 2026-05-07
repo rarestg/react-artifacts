@@ -21,7 +21,7 @@ export type SearchResult = {
 type SearchInputProps = {
   ariaLabel?: string;
   placeholder?: string;
-  results?: SearchResult[];
+  results?: readonly SearchResult[];
   onSelect?: (result: SearchResult) => void;
   onSearch?: (value: string) => void;
   showResults?: boolean;
@@ -31,6 +31,8 @@ type SearchInputProps = {
   onChange?: ChangeEventHandler<HTMLInputElement>;
 };
 
+const EMPTY_SEARCH_RESULTS: readonly SearchResult[] = [];
+
 const getSearchResultKey = (result: SearchResult) => {
   if (result.id) return result.id;
   return [result.title, result.subtitle, result.meta].filter(Boolean).join('::');
@@ -39,7 +41,7 @@ const getSearchResultKey = (result: SearchResult) => {
 export function SearchInput({
   ariaLabel = 'Search',
   placeholder = 'Search...',
-  results = [],
+  results = EMPTY_SEARCH_RESULTS,
   onSelect,
   onSearch, // Intentionally unused; reserved for future wiring.
   showResults,

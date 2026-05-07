@@ -25,6 +25,30 @@ test('Palette Lab header includes an accessible help button', async () => {
   assert.match(markup, /aria-label="Open palette lab help"/);
 });
 
+test('Palette Lab range controls explicitly associate labels with inputs', async () => {
+  const markup = await renderPaletteLab();
+  const labelTextIndex = markup.indexOf('>Color count</span>');
+
+  assert.notEqual(labelTextIndex, -1);
+
+  const labelStart = markup.lastIndexOf('<label', labelTextIndex);
+  const labelEnd = markup.indexOf('</label>', labelTextIndex);
+
+  assert.notEqual(labelStart, -1);
+  assert.notEqual(labelEnd, -1);
+
+  const labelMarkup = markup.slice(labelStart, labelEnd);
+  const labelFor = /<label[^>]*for="([^"]+)"/.exec(labelMarkup)?.[1];
+  const visibleLabelId = /<span id="([^"]+)"[^>]*>Color count<\/span>/.exec(labelMarkup)?.[1];
+  const inputId = /<input[^>]*id="([^"]+)"/.exec(labelMarkup)?.[1];
+  const labelledBy = /<input[^>]*aria-labelledby="([^"]+)"/.exec(labelMarkup)?.[1];
+
+  assert.ok(labelFor);
+  assert.equal(inputId, labelFor);
+  assert.equal(labelledBy, visibleLabelId);
+  assert.notEqual(visibleLabelId, labelFor);
+});
+
 test('Palette Lab defaults to color names before index labels', async () => {
   const markup = await renderPaletteLab();
   const hueIndex = markup.indexOf('>Color name</span>');

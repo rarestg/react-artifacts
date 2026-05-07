@@ -39,6 +39,9 @@ const commandGlyphClass = 'text-[13px]';
 
 type HighlightIndices = readonly (readonly [number, number])[];
 
+const EMPTY_HIGHLIGHTED_TAG_IDS: readonly PromptTagId[] = [];
+const EMPTY_HIGHLIGHT_INDICES: HighlightIndices = [];
+
 type PromptTagColorStyle = CSSProperties & {
   '--prompt-tag-color': string;
   '--prompt-tag-color-weak': string;
@@ -356,7 +359,7 @@ function PromptSearchResultItem({ result, query }: { result: PromptSearchResult;
 
 function PromptTags({
   prompt,
-  highlightedTagIds = [],
+  highlightedTagIds = EMPTY_HIGHLIGHTED_TAG_IDS,
 }: {
   prompt: PromptEntry;
   highlightedTagIds?: readonly PromptTagId[];
@@ -403,7 +406,7 @@ function ResultSnippet({ result, query }: { result: PromptSearchResult; query: s
   );
 }
 
-function HighlightedText({ text, indices = [] }: { text: string; indices?: HighlightIndices }) {
+function HighlightedText({ text, indices = EMPTY_HIGHLIGHT_INDICES }: { text: string; indices?: HighlightIndices }) {
   const segments = getHighlightedSegments(text, indices);
   let cursor = 0;
   const keyedSegments = segments.map((segment) => {
@@ -432,14 +435,18 @@ function HighlightedText({ text, indices = [] }: { text: string; indices?: Highl
 
 function getMatchedTagIds(result: PromptSearchResult): PromptTagId[] {
   const tagIds = new Set<PromptTagId>();
+  const promptTagIds = new Set(result.prompt.tags);
 
   for (const match of result.matches) {
     if (match.key !== 'tags') continue;
 
+    const matchedValue = match.value;
     const tagId =
       typeof match.refIndex === 'number'
         ? result.prompt.tags[match.refIndex]
-        : result.prompt.tags.find((promptTagId) => promptTagId === match.value);
+        : typeof matchedValue === 'string' && promptTagIds.has(matchedValue as PromptTagId)
+          ? (matchedValue as PromptTagId)
+          : undefined;
 
     if (tagId) {
       tagIds.add(tagId);
@@ -487,7 +494,7 @@ function PromptDetailDialog({
   const summaryIndices = summaryDisplayMatch?.indices;
   const contextIndices = contextDisplayMatch?.indices;
   const promptIndices = promptDisplayMatch?.indices;
-  const highlightedTagIds = matchingSearchResult ? getMatchedTagIds(matchingSearchResult) : [];
+  const highlightedTagIds = matchingSearchResult ? getMatchedTagIds(matchingSearchResult) : EMPTY_HIGHLIGHTED_TAG_IDS;
 
   return (
     <ArtifactDialog

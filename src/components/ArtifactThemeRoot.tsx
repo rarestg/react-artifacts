@@ -1,4 +1,4 @@
-import { createContext, type HTMLAttributes, type Ref, useContext, useEffect } from 'react';
+import { createContext, type HTMLAttributes, type Ref, use, useEffect } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 
 const ArtifactThemeContext = createContext(false);
@@ -19,7 +19,7 @@ export function ArtifactThemeRoot({ ref, className, ...props }: ArtifactThemeRoo
 type ThemeRootRef = { current: HTMLElement | null } | null | undefined;
 
 export function useArtifactThemeGuard(componentName = 'Component', ref?: ThemeRootRef) {
-  const inTheme = useContext(ArtifactThemeContext);
+  const inTheme = use(ArtifactThemeContext);
 
   useEffect(() => {
     if (!import.meta.env?.DEV) return;

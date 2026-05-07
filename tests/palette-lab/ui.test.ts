@@ -39,11 +39,14 @@ test('Palette Lab range controls explicitly associate labels with inputs', async
 
   const labelMarkup = markup.slice(labelStart, labelEnd);
   const labelFor = /<label[^>]*for="([^"]+)"/.exec(labelMarkup)?.[1];
-  const visibleLabelId = /<span id="([^"]+)"[^>]*>Color count<\/span>/.exec(labelMarkup)?.[1];
+  const visibleLabelId = /<span(?=[^>]*\bid="([^"]+)")[^>]*>Color count<\/span>/.exec(labelMarkup)?.[1];
   const inputId = /<input[^>]*id="([^"]+)"/.exec(labelMarkup)?.[1];
   const labelledBy = /<input[^>]*aria-labelledby="([^"]+)"/.exec(labelMarkup)?.[1];
 
   assert.ok(labelFor);
+  assert.ok(visibleLabelId);
+  assert.ok(inputId);
+  assert.ok(labelledBy);
   assert.equal(inputId, labelFor);
   assert.equal(labelledBy, visibleLabelId);
   assert.notEqual(visibleLabelId, labelFor);

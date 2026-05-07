@@ -1,5 +1,16 @@
 # React 19 Ref Prop Migration Plan
 
+## Status
+
+**Last updated:** `2026-05-06 22:56:56 EDT`
+
+This migration plan is complete across the stacked PRs:
+
+- PR #58 migrates `Button`, `Panel`, `Input`, `ArtifactThemeRoot`, shared `CopyButton`, and the JSONL local `CopyButton` from `forwardRef` to React 19 regular `ref` props.
+- PR #62 completes the separate context-read step by replacing `useContext(ArtifactThemeContext)` with `use(ArtifactThemeContext)`.
+
+The stack adds type-level ref contract tests and `happy-dom` runtime ref tests. At the current stack tip, `rg -n "forwardRef|useContext\\(" src` returns no matches, `npm run check` passes, and full React Doctor reports `93 / 100` with no React 19 API warning.
+
 > **For agentic workers:** This is a focused follow-up to the React Doctor triage plan. Do not mix this migration into small lint/accessibility cleanup work. Implement in batches, update checkboxes as work completes, and run tests after each batch.
 
 **Goal:** Migrate shared and artifact-local React components from `forwardRef` to React 19 regular `ref` props where it improves long-term alignment, while preserving existing component contracts.
@@ -17,7 +28,7 @@ React Doctor reports:
 - Rule: `react-doctor/no-react19-deprecated-apis`
 - Message: `forwardRef is no longer needed on React 19+`
 
-Current flagged files:
+Original flagged files:
 
 - `src/components/CopyButton.tsx`
 - `src/components/Input.tsx`
@@ -38,7 +49,7 @@ Refresh the inventory before editing:
 rg -n "forwardRef|useContext\\(" src
 ```
 
-Expected current hits:
+Original expected hits before migration:
 
 - `src/components/CopyButton.tsx`
 - `src/components/Input.tsx`
@@ -47,6 +58,14 @@ Expected current hits:
 - `src/components/Panel.tsx`
 - `src/artifacts/jsonl-structure-viewer/components/CopyButton.tsx`
 - `src/components/ArtifactThemeRoot.tsx` also uses `useContext`
+
+Completion inventory:
+
+```bash
+rg -n "forwardRef|useContext\\(" src
+```
+
+At the stack tip this returns no matches.
 
 Also inspect:
 
@@ -304,22 +323,22 @@ Treat the existing static markup tests as regression coverage for rendered attri
 
 ## Rollout Order
 
-- [ ] Refresh inventory with `rg -n "forwardRef|useContext\\(" src`.
-- [ ] Choose and document the ref validation strategy: DOM-capable tests, type-level assertions plus smoke checks, or a smaller migration batch with explicit gaps.
-- [ ] Migrate `Panel`.
-- [ ] Run targeted component tests and typecheck.
-- [ ] Migrate `Input`.
-- [ ] Run targeted component tests and typecheck.
-- [ ] Migrate `Button`.
-- [ ] Run targeted component tests and typecheck.
-- [ ] Migrate `ArtifactThemeRoot`.
-- [ ] Run theme-boundary and component tests.
-- [ ] Evaluate `useContext` to `use` separately.
-- [ ] Migrate shared `CopyButton`.
-- [ ] Run shared primitive tests and typecheck.
-- [ ] Migrate JSONL artifact-local `CopyButton`.
-- [ ] Run JSONL tests and typecheck.
-- [ ] Run full validation.
+- [x] Refresh inventory with `rg -n "forwardRef|useContext\\(" src`.
+- [x] Choose and document the ref validation strategy: DOM-capable tests plus type-level assertions.
+- [x] Migrate `Panel`.
+- [x] Run targeted component tests and typecheck.
+- [x] Migrate `Input`.
+- [x] Run targeted component tests and typecheck.
+- [x] Migrate `Button`.
+- [x] Run targeted component tests and typecheck.
+- [x] Migrate `ArtifactThemeRoot`.
+- [x] Run theme-boundary and component tests.
+- [x] Evaluate `useContext` to `use` separately.
+- [x] Migrate shared `CopyButton`.
+- [x] Run shared primitive tests and typecheck.
+- [x] Migrate JSONL artifact-local `CopyButton`.
+- [x] Run JSONL tests and typecheck.
+- [x] Run full validation.
 
 ## Validation
 

@@ -1,5 +1,20 @@
 # React Doctor Triage And Cleanup Plan
 
+## Status
+
+**Last updated:** `2026-05-06 22:56:56 EDT`
+
+The actionable plan work is complete across the stacked PR series:
+
+- PR #57: first React Doctor cleanup batch.
+- PR #58: React 19 ref-prop migration.
+- PR #59: `StatusTag` named-export normalization.
+- PR #60: one focused large-component split, extracting the Palette Lab controls panel.
+- PR #61: one focused reducer refactor for Prompt Library interaction state.
+- PR #62: React 19 `use(...)` context-read follow-up.
+
+Follow-Up 5, ES2023 `toSorted()` adoption, was completed as a deliberate no-code deferral because the app still targets `ES2022` and the repo has no ES2023 browser/runtime baseline or polyfill policy. At the current stack tip, full React Doctor reports `93 / 100` with `28 warnings`; the remaining warnings map to the false-positive, intentional-behavior, or future one-at-a-time backlog decisions below.
+
 > **For agentic workers:** Implement this plan in small, reviewable batches. Update checkbox statuses as work completes. Do not treat React Doctor warnings as mandatory edits; inspect the cited code first and only change code when the recommendation improves correctness, accessibility, performance, or long-term maintainability in this repo.
 
 **Goal:** Triage the React Doctor v0.0.47 warnings from the 2026-05-06 full-codebase scan, fix the low-risk/high-signal issues, document false positives and intentional exceptions, and defer larger architectural work into focused follow-up tasks.
@@ -630,13 +645,13 @@ The duplicate export warning is valid only if the repo wants named-only shared p
 
 **Clean future approach:**
 
-- [ ] Decide convention: shared primitives should use named exports only.
-- [ ] Change default import call sites to named imports.
-- [ ] Update tests to remove the default import contract.
-- [ ] Remove `export default StatusTag`.
-- [ ] Run `npm run knip`, shared primitive tests, and `npm run typecheck`.
+- [x] Decide convention: shared primitives should use named exports only.
+- [x] Change default import call sites to named imports.
+- [x] Update tests to remove the default import contract.
+- [x] Remove `export default StatusTag`.
+- [x] Run `npm run knip`, shared primitive tests, and `npm run typecheck`.
 
-This should be a tiny PR if the convention decision is already made.
+Completed in PR #59.
 
 ### Follow-Up 3: Component Splitting For Large Artifacts
 
@@ -648,14 +663,16 @@ Line-count warnings identify possible maintenance pain, but the fix requires und
 
 Pick one large component at a time. Do not split all flagged components in one PR.
 
-For each target:
+For the completed `PaletteLab` target in PR #60:
 
-- [ ] Identify stable visual sections and state ownership.
-- [ ] Extract pure helper functions first if they are mixed into render code.
-- [ ] Extract presentational subcomponents only when props are simple and names match domain concepts.
-- [ ] Keep state near the owner unless multiple children need the same transition contract.
-- [ ] Add tests around behavior before moving code.
-- [ ] Verify light/dark theme and device preview behavior.
+- [x] Identify stable visual sections and state ownership.
+- [x] Confirm pure helper extraction was not needed for the chosen controls-panel split.
+- [x] Extract presentational subcomponents only when props are simple and names match domain concepts.
+- [x] Keep state near the owner unless multiple children need the same transition contract.
+- [x] Run existing Palette Lab behavior tests after moving code.
+- [ ] Verify light/dark theme and device preview behavior in a browser before merging if visual confidence is required.
+
+Remaining large-component warnings are future one-at-a-time backlog, not part of the completed stack.
 
 Good first candidates:
 
@@ -671,16 +688,17 @@ Reducers are useful when transitions are coupled. They are noise when state valu
 
 **Clean future approach:**
 
-For a candidate component:
+For the completed Prompt Library candidate in PR #61:
 
-- [ ] List state fields and mark which ones change together.
-- [ ] Identify invariants that must always hold.
-- [ ] Write action names before writing reducer code.
-- [ ] Keep reducer local unless another component needs it.
-- [ ] Avoid one giant reducer for unrelated settings.
+- [x] List state fields and mark which ones change together.
+- [x] Identify invariants that must always hold.
+- [x] Write action names before writing reducer code.
+- [x] Keep reducer local unless another component needs it.
+- [x] Avoid one giant reducer for unrelated settings.
 
 Potential reducer candidates:
 
+- `PromptLibrary` interaction state: completed in PR #61.
 - `PaletteLab` generated settings if reset/randomize/apply operations grow.
 - `JsonlStructureViewer` selection/expanded state after tree changes, but only with behavior tests.
 - `App` sidebar drag state only if migrating to Pointer Events introduces more gesture state.
@@ -693,28 +711,28 @@ Current app config targets `ES2022`. `toSorted()` needs `ES2023` library support
 
 **Clean future approach:**
 
-- [ ] Decide browser/runtime baseline and TypeScript lib change.
-- [ ] Update `tsconfig.app.json` intentionally.
-- [ ] Search immutable sort patterns:
+- [x] Decide browser/runtime baseline and TypeScript lib change. Decision: keep the current `ES2022` app baseline.
+- [ ] Update `tsconfig.app.json` intentionally. Deferred until the repo adopts an ES2023 baseline or polyfill policy.
+- [x] Search immutable sort patterns:
 
 ```bash
 rg -n "\\[\\.\\.\\w+\\]\\.sort|\\.slice\\(\\)\\.sort" src tests
 ```
 
-- [ ] Replace with `toSorted()` where supported.
-- [ ] Run typecheck and browser smoke tests.
+- [ ] Replace with `toSorted()` where supported. Deferred because `toSorted()` is not part of the current app baseline.
+- [x] Run typecheck/check validation for the no-code deferral.
 
 ---
 
 ## Implementation Checklist For The First PR
 
-- [ ] Refresh React Doctor diagnostics with `npx -y react-doctor@latest . --verbose`.
-- [ ] Fix Palette Lab range input label association.
-- [ ] Add stable empty array constants for SearchInput and prompt-library render helpers.
-- [ ] Replace prompt-library tag `find()` inside loop with a local `Set`.
-- [ ] Add passive options to non-canceling `touchend`/`touchcancel` cleanup listeners in `App`.
-- [ ] Optional: combine `ConversationTurn` `map().filter()` into one pass if it stays low-churn.
-- [ ] Run targeted tests:
+- [x] Refresh React Doctor diagnostics with `npx -y react-doctor@latest . --verbose`.
+- [x] Fix Palette Lab range input label association.
+- [x] Add stable empty array constants for SearchInput and prompt-library render helpers.
+- [x] Replace prompt-library tag `find()` inside loop with a local `Set`.
+- [x] Add passive options to non-canceling `touchend`/`touchcancel` cleanup listeners in `App`.
+- [x] Optional: combine `ConversationTurn` `map().filter()` into one pass if it stays low-churn.
+- [x] Run targeted tests:
 
 ```bash
 node --import tsx --test tests/palette-lab/*.test.ts
@@ -722,7 +740,7 @@ node --import tsx --test tests/prompt-library/*.test.ts
 node --import tsx --test tests/sharp2/*.test.ts
 ```
 
-- [ ] Run full checks:
+- [x] Run full checks:
 
 ```bash
 npm run check
@@ -730,8 +748,8 @@ npx -y react-doctor@latest . --verbose --diff
 npx -y react-doctor@latest . --verbose
 ```
 
-- [ ] Record whether React Doctor score/warning count improved.
-- [ ] In the PR description, explicitly list the warnings intentionally left alone.
+- [x] Record whether React Doctor score/warning count improved.
+- [x] In the PR description, explicitly list the warnings intentionally left alone.
 
 ## Expected Outcome
 

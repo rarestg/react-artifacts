@@ -161,7 +161,7 @@ export default function PathList({
                 <button
                   type="button"
                   onClick={() => onToggleExpand(child.key)}
-                  className="cursor-pointer border border-[var(--border)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+                  className="cursor-pointer border border-[var(--border)] bg-[var(--surface)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
                   aria-label={isExpanded ? 'Collapse' : 'Expand'}
                 >
                   {isExpanded ? '-' : '+'}

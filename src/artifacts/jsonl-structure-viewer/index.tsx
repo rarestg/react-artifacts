@@ -2,7 +2,7 @@ import JsonView from '@uiw/react-json-view';
 import { darkTheme } from '@uiw/react-json-view/dark';
 import { lightTheme } from '@uiw/react-json-view/light';
 import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
-import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { SegmentedControl } from '../../components/SegmentedControl';
@@ -184,6 +184,8 @@ const expandHeightWithoutScroll = (
 };
 
 export default function JsonlStructureViewer() {
+  const inputTitleId = useId();
+  const truncationInputId = useId();
   const [input, setInput] = useState(sampleInput);
   const [truncateAt, setTruncateAt] = useLocalStorageState(`${STORAGE_PREFIX}-truncate-at`, defaultTruncation);
   const [wrapOutput, setWrapOutput] = useLocalStorageState(`${STORAGE_PREFIX}-wrap-output`, false);
@@ -628,7 +630,7 @@ export default function JsonlStructureViewer() {
       <div ref={inputCardRef} className="min-w-0 flex flex-col border border-[var(--border)] bg-[var(--surface)]">
         <div className={panelHeaderRowClass}>
           <div className={panelHeaderTextClass}>
-            <div id="jsonl-structure-input-title" className={panelHeaderTitleClass}>
+            <div id={inputTitleId} className={panelHeaderTitleClass}>
               Input
             </div>
             <div className={panelHeaderMetaClass}>
@@ -669,7 +671,7 @@ export default function JsonlStructureViewer() {
               spellCheck={false}
               rows={10}
               onDoubleClick={(event) => handleResizeDoubleClick(event, inputPanelRef.current, inputCardRef.current)}
-              aria-labelledby="jsonl-structure-input-title"
+              aria-labelledby={inputTitleId}
               className={`w-full min-h-[240px] resize-y overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] ${
                 wrapOutput ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'
               }`}
@@ -679,7 +681,7 @@ export default function JsonlStructureViewer() {
             <div className="flex min-w-0 items-center justify-between gap-3 border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
               <div className="min-w-0">
                 <label
-                  htmlFor="jsonl-structure-truncation"
+                  htmlFor={truncationInputId}
                   className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]"
                 >
                   Truncation
@@ -687,7 +689,7 @@ export default function JsonlStructureViewer() {
                 <div className="text-xs text-[var(--text-muted)]">Strings longer than this are shortened.</div>
               </div>
               <input
-                id="jsonl-structure-truncation"
+                id={truncationInputId}
                 type="number"
                 min={0}
                 max={200}

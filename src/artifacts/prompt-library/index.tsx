@@ -1,7 +1,7 @@
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
 import { Search } from 'lucide-react';
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
@@ -9,6 +9,7 @@ import { Checkbox } from '../../components/Checkbox';
 import { CopyButton } from '../../components/CopyButton';
 import { mergeClassNames } from '../../lib/classNames';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
+import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
 import {
   getPromptTag,
   type PromptEntry,
@@ -64,11 +65,11 @@ function getPromptTagColorStyle(color: PromptTagColorId): PromptTagColorStyle {
 
 export default function PromptLibrary() {
   const [selectedTags, setSelectedTags] = useState<PromptTagId[]>([]);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activePrompt, setActivePrompt] = useState<PromptEntry | null>(null);
-  const [activeSearchResult, setActiveSearchResult] = useState<PromptSearchResult | null>(null);
-  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [{ searchOpen, activePrompt, activeSearchResult, activeSearchQuery }, dispatchInteraction] = useReducer(
+    promptLibraryInteractionReducer,
+    initialPromptLibraryInteractionState,
+  );
   const detailReturnFocusRef = useRef<HTMLElement | null>(null);
   const themePortalRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
@@ -79,27 +80,20 @@ export default function PromptLibrary() {
 
   const openPromptDetail = (prompt: PromptEntry, opener: HTMLElement | null) => {
     detailReturnFocusRef.current = opener;
-    setActiveSearchResult(null);
-    setActiveSearchQuery('');
-    setActivePrompt(prompt);
+    dispatchInteraction({ type: 'open-prompt-detail', prompt });
   };
 
   const closePromptDetail = () => {
-    setActivePrompt(null);
-    setActiveSearchResult(null);
-    setActiveSearchQuery('');
+    dispatchInteraction({ type: 'close-prompt-detail' });
   };
 
   const openSearchPalette = () => {
-    setSearchOpen(true);
+    dispatchInteraction({ type: 'set-search-open', open: true });
   };
 
   const selectSearchResult = (result: PromptSearchResult) => {
     detailReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setActiveSearchResult(result);
-    setActiveSearchQuery(searchQuery);
-    setActivePrompt(result.prompt);
-    setSearchOpen(false);
+    dispatchInteraction({ type: 'select-search-result', result, query: searchQuery });
   };
 
   const toggleTag = (tag: PromptTagId, checked: boolean) => {
@@ -112,7 +106,7 @@ export default function PromptLibrary() {
       if (event.key.toLowerCase() !== 'k') return;
 
       event.preventDefault();
-      setSearchOpen((current) => !current);
+      dispatchInteraction({ type: 'toggle-search-open' });
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -239,7 +233,7 @@ export default function PromptLibrary() {
       <div ref={themePortalRef} className="pointer-events-none absolute inset-0" />
       <PromptCommandPalette
         open={searchOpen}
-        onOpenChange={setSearchOpen}
+        onOpenChange={(open) => dispatchInteraction({ type: 'set-search-open', open })}
         query={searchQuery}
         onQueryChange={setSearchQuery}
         results={searchResults}

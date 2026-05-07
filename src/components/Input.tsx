@@ -1,4 +1,4 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode, useId, useMemo, useRef } from 'react';
+import { type InputHTMLAttributes, type ReactNode, type Ref, useId, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
@@ -20,6 +20,7 @@ type InputLabelTypeRegression = [
 declare const _inputLabelTypeRegression: InputLabelTypeRegression;
 
 export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'aria-label' | 'aria-labelledby'> & {
+  ref?: Ref<HTMLInputElement>;
   helperText?: ReactNode;
   error?: ReactNode;
   className?: string;
@@ -27,23 +28,21 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'a
   labelClassName?: string;
 } & InputAccessibleName;
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  {
-    id,
-    label,
-    helperText,
-    error,
-    className,
-    inputClassName,
-    labelClassName,
-    'aria-describedby': ariaDescribedBy,
-    'aria-invalid': ariaInvalid,
-    'aria-label': ariaLabel,
-    'aria-labelledby': ariaLabelledBy,
-    ...props
-  },
+export function Input({
   ref,
-) {
+  id,
+  label,
+  helperText,
+  error,
+  className,
+  inputClassName,
+  labelClassName,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  ...props
+}: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -99,4 +98,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       )}
     </div>
   );
-});
+}

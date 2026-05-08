@@ -393,17 +393,17 @@ export default function App() {
   }, [copyCanvasSize, hasCanvasSize, sizeLabel]);
 
   return (
-    <div ref={layoutRef} className="flex min-h-screen bg-white text-gray-900 dark:bg-slate-950 dark:text-slate-100">
+    <div ref={layoutRef} className="flex min-h-screen bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <nav
         ref={sidebarRef}
         style={{ width: sidebarWidth }}
-        className="shrink-0 border-r border-gray-200 bg-gray-50 p-4 max-h-screen overflow-y-auto sticky top-0 dark:border-slate-800 dark:bg-slate-900"
+        className="shrink-0 border-r border-zinc-200 bg-zinc-50 p-4 max-h-screen overflow-y-auto sticky top-0 dark:border-zinc-800 dark:bg-zinc-900"
       >
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2 dark:text-slate-400">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 mb-2 dark:text-zinc-400">
           Controls
         </div>
         <div className="mb-4 space-y-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Theme
           </div>
           <div className="grid w-full grid-cols-3 gap-1">
@@ -414,8 +414,8 @@ export default function App() {
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 theme === 'light'
-                  ? 'border-gray-900 bg-white text-gray-900'
-                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                  ? 'border-zinc-900 bg-white text-zinc-900'
+                  : 'border-transparent text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -430,8 +430,8 @@ export default function App() {
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 theme === 'system'
-                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
-                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                  ? 'border-zinc-900 bg-white text-zinc-900 dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-100'
+                  : 'border-transparent text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -446,8 +446,8 @@ export default function App() {
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 theme === 'dark'
-                  ? 'border-slate-100 bg-slate-800 text-slate-100'
-                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                  ? 'border-zinc-100 bg-zinc-800 text-zinc-100'
+                  : 'border-transparent text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -458,7 +458,7 @@ export default function App() {
           </div>
         </div>
         <div className="mb-4 space-y-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Device Preview
           </div>
           <div className="grid w-full grid-cols-2 gap-1">
@@ -469,8 +469,8 @@ export default function App() {
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 devicePreview === 'iphone'
-                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
-                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                  ? 'border-zinc-900 bg-white text-zinc-900 dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-100'
+                  : 'border-transparent text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -485,8 +485,8 @@ export default function App() {
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 devicePreview === 'ipad'
-                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
-                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                  ? 'border-zinc-900 bg-white text-zinc-900 dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-100'
+                  : 'border-transparent text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -504,8 +504,8 @@ export default function App() {
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 deviceOrientation === 'portrait' && isDevicePreviewActive
-                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
-                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                  ? 'border-zinc-900 bg-white text-zinc-900 dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-100'
+                  : 'border-transparent text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
                 !isDevicePreviewActive && 'cursor-not-allowed opacity-50',
               )}
             >
@@ -522,8 +522,8 @@ export default function App() {
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
                 deviceOrientation === 'landscape' && isDevicePreviewActive
-                  ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
-                  : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                  ? 'border-zinc-900 bg-white text-zinc-900 dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-100'
+                  : 'border-transparent text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
                 !isDevicePreviewActive && 'cursor-not-allowed opacity-50',
               )}
             >
@@ -535,7 +535,7 @@ export default function App() {
           </div>
         </div>
         <div className="mb-4 space-y-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Canvas Size
           </div>
           <button
@@ -544,15 +544,15 @@ export default function App() {
             disabled={!hasCanvasSize}
             className={mergeClassNames(
               'group flex w-full flex-col items-center justify-center rounded-md border px-3 py-2.5 text-center transition-colors',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-50',
-              'dark:focus-visible:ring-offset-slate-900',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-50',
+              'dark:focus-visible:ring-offset-zinc-900',
               sizeCopied
                 ? 'cursor-pointer border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-950/40 dark:text-emerald-300'
                 : sizeCopyFailed
                   ? 'cursor-pointer border-red-300 bg-red-50 text-red-700 dark:border-red-500/60 dark:bg-red-950/40 dark:text-red-300'
                   : hasCanvasSize
-                    ? 'cursor-pointer border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800'
-                    : 'cursor-not-allowed border-gray-200 bg-white text-gray-400 opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500',
+                    ? 'cursor-pointer border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-800'
+                    : 'cursor-not-allowed border-zinc-200 bg-white text-zinc-400 opacity-70 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-500',
             )}
             aria-label={hasCanvasSize ? `Copy canvas size: ${sizeLabel}` : 'Canvas size unavailable'}
             title={hasCanvasSize ? 'Copy canvas size' : 'Canvas size unavailable'}
@@ -576,7 +576,7 @@ export default function App() {
                       ? 'text-emerald-700 opacity-100 dark:text-emerald-300'
                       : sizeCopyFailed
                         ? 'text-red-700 opacity-100 dark:text-red-300'
-                        : 'text-gray-500 group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-slate-300',
+                        : 'text-zinc-500 group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-zinc-300',
                   )}
                   aria-hidden="true"
                 >
@@ -589,8 +589,8 @@ export default function App() {
             </span>
           </button>
         </div>
-        <div className="my-3 h-px w-full bg-gray-200 dark:bg-slate-800" />
-        <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+        <div className="my-3 h-px w-full bg-zinc-200 dark:bg-zinc-800" />
+        <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           Artifacts
         </h2>
         <ul className="space-y-1">
@@ -611,10 +611,10 @@ export default function App() {
         onDoubleClick={handleResetWidth}
         onKeyDown={handleHandleKeyDown}
         className={mergeClassNames(
-          'm-0 h-auto w-2 self-stretch cursor-col-resize border-0 border-r border-gray-200 bg-gray-50 touch-none',
-          'hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
-          'dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-700 dark:focus-visible:ring-offset-slate-950',
-          isDragging && 'bg-gray-300 dark:bg-slate-700',
+          'm-0 h-auto w-2 self-stretch cursor-col-resize border-0 border-r border-zinc-200 bg-zinc-50 touch-none',
+          'hover:bg-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
+          'dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-700 dark:focus-visible:ring-offset-zinc-950',
+          isDragging && 'bg-zinc-300 dark:bg-zinc-700',
         )}
       />
       <main
@@ -628,20 +628,20 @@ export default function App() {
           isDevicePreviewActive ? (
             <div
               ref={previewRef}
-              className="overflow-auto rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950"
+              className="overflow-auto rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
               style={{ width: previewWidth, height: previewHeight }}
             >
-              <Suspense fallback={<div className="p-4 text-gray-400">Loading…</div>}>
+              <Suspense fallback={<div className="p-4 text-zinc-400">Loading…</div>}>
                 <current.Component />
               </Suspense>
             </div>
           ) : (
-            <Suspense fallback={<div className="text-gray-400">Loading…</div>}>
+            <Suspense fallback={<div className="text-zinc-400">Loading…</div>}>
               <current.Component />
             </Suspense>
           )
         ) : (
-          <div className="text-gray-400">Select an artifact</div>
+          <div className="text-zinc-400">Select an artifact</div>
         )}
       </main>
     </div>

@@ -67,10 +67,10 @@ test('MessageCard hides render mode toggle when no toggle handler is provided', 
     }),
   );
 
-  assert.doesNotMatch(markup, />Rendered<\/button>/);
+  assert.doesNotMatch(markup, /aria-pressed/);
 });
 
-test('MessageCard shows render mode toggle when a toggle handler is provided', () => {
+test('MessageCard shows render mode toggle state when a toggle handler is provided', () => {
   const markup = renderToStaticMarkup(
     createElement(MessageCard, {
       role: 'assistant',
@@ -79,7 +79,24 @@ test('MessageCard shows render mode toggle when a toggle handler is provided', (
     }),
   );
 
-  assert.match(markup, />Rendered<\/button>/);
+  assert.match(markup, /aria-pressed="true"/);
+  assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
+  assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Rendered\s*<\/span>/);
+});
+
+test('MessageCard render mode toggle marks raw mode unpressed while reserving rendered width', () => {
+  const markup = renderToStaticMarkup(
+    createElement(MessageCard, {
+      role: 'assistant',
+      content: 'Plain assistant message',
+      renderMode: 'literal',
+      onToggleRender: () => {},
+    }),
+  );
+
+  assert.match(markup, /aria-pressed="false"/);
+  assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
+  assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Raw\s*<\/span>/);
 });
 
 test('conversation key helpers prefer supplied ids', () => {
@@ -249,7 +266,7 @@ test('ConversationTurn omits render mode toggles when no toggle handler is provi
     }),
   );
 
-  assert.doesNotMatch(markup, />Rendered<\/button>/);
+  assert.doesNotMatch(markup, /aria-pressed/);
 });
 
 test('ConversationTurn preserves original indexes for duplicate item references', () => {

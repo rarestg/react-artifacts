@@ -59,7 +59,8 @@ function CopyButton({
       className={mergeClassNames(
         'inline-grid items-center border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]',
         'hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
-        disabled ? 'cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]' : 'cursor-pointer',
+        'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]',
+        !disabled && 'cursor-pointer',
         className,
       )}
     >

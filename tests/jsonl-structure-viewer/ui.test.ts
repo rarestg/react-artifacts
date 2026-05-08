@@ -68,12 +68,12 @@ test('JSONL Structure Viewer local buttons follow cursor affordance contract', a
   const indexSource = await readFile('src/artifacts/jsonl-structure-viewer/index.tsx', 'utf8');
   const pathListSource = await readFile('src/artifacts/jsonl-structure-viewer/components/PathList.tsx', 'utf8');
 
-  assert.match(indexSource, /const headerHelpButtonClass = mergeClassNames\([\s\S]*cursor-pointer/);
-  assert.match(pathListSource, /const actionButtonBase =[\s\S]*cursor-pointer[\s\S]*disabled:cursor-not-allowed/);
+  assert.match(indexSource, /const headerHelpButtonClass = mergeClassNames\([\s\S]*?cursor-pointer/);
+  assert.match(pathListSource, /const actionButtonBase =[\s\S]*?cursor-pointer[\s\S]*?disabled:cursor-not-allowed/);
   assert.match(
     pathListSource,
-    /const actionButtonBase =[\s\S]*disabled:opacity-40[\s\S]*disabled:hover:bg-\[var\(--surface\)\]/,
+    /const actionButtonBase =[\s\S]*?disabled:opacity-40[\s\S]*?disabled:hover:bg-\[var\(--surface\)\]/,
   );
-  assert.match(pathListSource, /className="cursor-pointer[\s\S]*aria-label=\{isExpanded \? 'Collapse' : 'Expand'\}/);
-  assert.match(pathListSource, /className="absolute right-2 cursor-pointer[\s\S]*aria-label="Clear search"/);
+  assert.match(pathListSource, /className="cursor-pointer[\s\S]*?aria-label=\{isExpanded \? 'Collapse' : 'Expand'\}/);
+  assert.match(pathListSource, /className="absolute right-2 cursor-pointer[\s\S]*?aria-label="Clear search"/);
 });

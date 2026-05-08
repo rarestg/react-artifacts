@@ -167,7 +167,7 @@ export function ListboxSelect<T extends string>({
         aria-expanded={open}
         aria-controls={listboxId}
         className={mergeClassNames(
-          'flex h-9 w-full cursor-pointer items-center justify-between gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)]',
+          'flex h-9 w-full cursor-pointer items-center justify-between gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] hover:border-(--border-strong) hover:bg-(--surface-muted)',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]',
           triggerClassName,
         )}

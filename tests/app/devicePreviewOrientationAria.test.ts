@@ -5,6 +5,12 @@ import test from 'node:test';
 const appSource = readFileSync(new URL('../../src/App.tsx', import.meta.url), 'utf8');
 
 test('device orientation aria-pressed is false while device preview is inactive', () => {
-  assert.match(appSource, /aria-pressed=\{isDevicePreviewActive && deviceOrientation === 'portrait'\}/);
-  assert.match(appSource, /aria-pressed=\{isDevicePreviewActive && deviceOrientation === 'landscape'\}/);
+  assert.match(
+    appSource,
+    /aria-pressed=\{\s*isDevicePreviewActive\s*&&\s*deviceOrientation\s*===\s*['"]portrait['"]\s*\}/,
+  );
+  assert.match(
+    appSource,
+    /aria-pressed=\{\s*isDevicePreviewActive\s*&&\s*deviceOrientation\s*===\s*['"]landscape['"]\s*\}/,
+  );
 });

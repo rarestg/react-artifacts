@@ -501,7 +501,7 @@ export default function PaletteLab() {
                 onClick={() => setHelpOpen(true)}
                 className={headerIconActionClass}
               >
-                <Info className="h-4 w-4" aria-hidden="true" />
+                <Info className="size-4" aria-hidden="true" />
               </button>
             </div>
           </section>
@@ -543,7 +543,7 @@ export default function PaletteLab() {
                       {label}
                     </span>
                     <span
-                      className="h-4 w-4 shrink-0 border border-[color:var(--palette-color)] bg-[var(--palette-color)]"
+                      className="size-4 shrink-0 border border-[color:var(--palette-color)] bg-[var(--palette-color)]"
                       aria-hidden="true"
                     />
                   </div>

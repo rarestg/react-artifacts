@@ -55,7 +55,7 @@ export default function Checkbox({
           !checked && !disabled && 'hover:border-[var(--border-strong)]',
         )}
       >
-        {checked && <CheckIcon className="h-3 w-3 text-white" />}
+        {checked && <CheckIcon className="size-3 text-white" />}
         <input
           type="checkbox"
           checked={checked}

@@ -325,7 +325,7 @@ export default function ExampleApp() {
             label={capsLockActive ? 'Caps Lock on' : 'Caps Lock off'}
             reserveLabel="Caps Lock off"
             active={capsLockActive}
-            icon={<CapsLockIcon className="h-3.5 w-3.5" />}
+            icon={<CapsLockIcon className="size-3.5" />}
           />
           <div className="text-xs text-[var(--text-muted)]">
             {capsLockSeen ? 'Caps Lock state detected.' : 'Press any key to detect state.'}

@@ -159,7 +159,7 @@ export function SearchInput({
               </div>
             ))
           ) : (
-            <div className="border-t border-[var(--border)] px-3 py-3 text-xs text-[var(--text-muted)]">
+            <div className="border-t border-[var(--border)] p-3 text-xs text-[var(--text-muted)]">
               No results for "{value}".
             </div>
           )}

@@ -464,7 +464,7 @@ export default function MessageUnescaper() {
                 />
               </div>
             </div>
-            <div className="px-4 py-4">
+            <div className="p-4">
               <textarea
                 aria-labelledby={inputLabelId}
                 value={input}
@@ -525,7 +525,7 @@ export default function MessageUnescaper() {
                 </span>
               </div>
             </div>
-            <div className="px-4 py-4">
+            <div className="p-4">
               <div className="w-full min-h-[320px] max-h-[80vh] overflow-auto border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
                 {output ? (
                   <pre

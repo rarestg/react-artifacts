@@ -106,6 +106,8 @@ Include enough context for an engineer to understand the problem area without re
 
 Cover the important implementation details, tradeoffs, risks, assumptions, and pitfalls that would be easy to miss. Include documentation or test updates when they matter.
 
+For complex work, break the plan into independently verifiable milestones. Include concrete repo-relative paths, commands, expected observations, feasibility checks for major unknowns, and recovery notes for risky or hard-to-reverse steps when they matter.
+
 Add a "What Done Looks Like" section that describes the expected end state in concrete terms.
 
 Use the structure that best fits this work. Do not force a rigid template if another organization would be clearer.`,

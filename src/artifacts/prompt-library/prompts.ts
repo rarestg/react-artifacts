@@ -1,4 +1,4 @@
-export type PromptTagId = 'review' | 'implementation' | 'subagents' | 'risk' | 'architecture';
+export type PromptTagId = 'review' | 'implementation' | 'planning' | 'subagents' | 'risk' | 'architecture';
 
 const promptTagColorIdValues = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime'] as const;
 
@@ -30,8 +30,14 @@ export const promptTags = [
   {
     id: 'implementation',
     label: 'Implementation',
-    description: 'Prompts used while planning, executing, or changing implementation work.',
+    description: 'Prompts used while executing or changing implementation work.',
     color: 'green',
+  },
+  {
+    id: 'planning',
+    label: 'Planning',
+    description: 'Prompts that create plans, milestones, execution docs, or handoffs before implementation.',
+    color: 'amber',
   },
   {
     id: 'subagents',
@@ -55,7 +61,7 @@ export const promptTags = [
 
 const promptTagColorIds = new Set<PromptTagColorId>(promptTagColorIdValues);
 
-const workflowTagIds = new Set<PromptTagId>(['review', 'implementation']);
+const workflowTagIds = new Set<PromptTagId>(['review', 'implementation', 'planning']);
 
 export const prompts = [
   {
@@ -97,7 +103,7 @@ After they report back, compare their view with yours. Synthesize the strongest 
     id: 'self-contained-execution-plan',
     title: 'Self-Contained Execution Plan',
     summary: 'Write a standalone implementation plan for a design, refactor, or architecture change.',
-    tags: ['implementation', 'architecture', 'risk'],
+    tags: ['implementation', 'planning', 'architecture'],
     context:
       'Use after agreeing on a direction and before implementation, especially when another engineer or future session needs enough context to execute without the prior conversation.',
     prompt: `Please write a self-contained execution plan for the change we just discussed.

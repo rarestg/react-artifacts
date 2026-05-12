@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { type PromptEntry, type PromptTag, validatePrompts } from '../../src/artifacts/prompt-library/prompts';
+import {
+  getPromptTag,
+  type PromptEntry,
+  type PromptTag,
+  prompts,
+  validatePrompts,
+} from '../../src/artifacts/prompt-library/prompts';
 
 const validTags = [
   {
@@ -53,4 +59,12 @@ test('validatePrompts rejects prompt tag metadata with duplicate tag ids', () =>
   ] as const satisfies readonly PromptTag[];
 
   assert.throws(() => validatePrompts([validEntry], duplicateTags), /Duplicate prompt tag id/);
+});
+
+test('self-contained execution plan uses planning instead of risk', () => {
+  const prompt = prompts.find((entry) => entry.id === 'self-contained-execution-plan');
+
+  assert.ok(prompt);
+  assert.deepEqual(prompt.tags, ['implementation', 'planning', 'architecture']);
+  assert.equal(getPromptTag('planning').color, 'amber');
 });

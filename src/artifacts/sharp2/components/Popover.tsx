@@ -6,12 +6,17 @@ import {
   type MouseEventHandler,
   type ReactElement,
   type ReactNode,
+  type Ref,
+  useCallback,
   useEffect,
+  useEffectEvent,
   useId,
   useRef,
 } from 'react';
+import { assignRef } from '../../../lib/refs';
 
 type PopoverTriggerProps = {
+  ref?: Ref<HTMLElement>;
   onClick?: MouseEventHandler<HTMLElement>;
   onKeyDown?: KeyboardEventHandler<HTMLElement>;
 } & AriaAttributes;
@@ -20,17 +25,33 @@ type PopoverProps = {
   trigger: ReactElement<PopoverTriggerProps>;
   children: ReactNode;
   open: boolean;
-  onToggle?: () => void;
+  onOpenChange: (nextOpen: boolean) => void;
 };
 
 export const popoverActionClass =
   'w-full cursor-pointer px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] focus:outline-none focus-visible:bg-[var(--surface-muted)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]';
 
-export function Popover({ trigger, children, open, onToggle }: PopoverProps) {
+export function Popover({ trigger, children, open, onOpenChange }: PopoverProps) {
   const popoverId = useId();
   const popoverRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  const triggerRefProp = isValidElement(trigger) ? trigger.props.ref : undefined;
+
+  const setTriggerRef = useCallback(
+    (node: HTMLElement | null) => {
+      triggerRef.current = node;
+      assignRef(triggerRefProp, node);
+    },
+    [triggerRefProp],
+  );
+
+  const closePopover = useEffectEvent((restoreFocus: boolean) => {
+    onOpenChange(false);
+    if (restoreFocus) {
+      triggerRef.current?.focus();
+    }
+  });
 
   const handleTriggerKeyDown: KeyboardEventHandler<HTMLElement> = (event) => {
     if (event.currentTarget instanceof HTMLButtonElement) {
@@ -38,19 +59,17 @@ export function Popover({ trigger, children, open, onToggle }: PopoverProps) {
     }
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      onToggle?.();
+      onOpenChange(!open);
     }
   };
 
   const triggerNode = isValidElement(trigger)
     ? cloneElement(trigger, {
-        ref: (node: HTMLElement | null) => {
-          triggerRef.current = node;
-        },
+        ref: setTriggerRef,
         onClick: (event) => {
           trigger.props.onClick?.(event);
           if (!event.defaultPrevented) {
-            onToggle?.();
+            onOpenChange(!open);
           }
         },
         onKeyDown: (event) => {
@@ -73,14 +92,13 @@ export function Popover({ trigger, children, open, onToggle }: PopoverProps) {
     if (!open) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        onToggle?.();
+        closePopover(false);
       }
     };
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onToggle?.();
-        triggerRef.current?.focus();
+        closePopover(true);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -89,7 +107,7 @@ export function Popover({ trigger, children, open, onToggle }: PopoverProps) {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [open, onToggle]);
+  }, [open]);
 
   return (
     <div ref={popoverRef} className="relative inline-block">

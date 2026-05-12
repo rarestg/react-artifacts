@@ -79,7 +79,7 @@ After they report back, compare their findings with your own view and recommend 
   {
     id: 'proposal-review-subagent',
     title: 'Proposal Review Subagent',
-    summary: 'Ask a fresh subagent to critique a proposal or written plan before acting on it.',
+    summary: 'Ask a fresh subagent to review or validate a proposal or written plan before acting on it.',
     tags: ['review', 'implementation', 'subagents', 'architecture'],
     context:
       'Use after an agent proposes a solution, design, or implementation plan, especially before implementation or when design tradeoffs are subtle.',

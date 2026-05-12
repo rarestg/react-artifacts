@@ -159,10 +159,10 @@ test('searchPrompts returns an empty list when nothing matches', () => {
 
 test('searchPrompts keeps the proposal result first while completing a multi-token query', () => {
   for (const query of [
-    'subagent critique propos',
-    'subagent critique proposal',
-    'subagent critique proposal plan',
-    'subagent critique written plan',
+    'subagent review propos',
+    'subagent review proposal',
+    'subagent validate proposal plan',
+    'subagent validate written plan',
   ]) {
     const [result] = searchPrompts(prompts, query);
 
@@ -454,7 +454,7 @@ test('pickResultSnippet anchors manufacture search on the exact prompt-body word
 });
 
 test('pickResultSnippet highlights multi-token literal search evidence', () => {
-  const query = 'subagent critique proposal';
+  const query = 'subagent validate proposal';
   const [result] = searchPrompts(prompts, query);
   const snippet = pickResultSnippet(result, 80, query);
 
@@ -462,7 +462,7 @@ test('pickResultSnippet highlights multi-token literal search evidence', () => {
   assert.equal(snippet.field, 'summary');
   assert.deepEqual(
     snippet.indices.map(([start, end]) => snippet.text.slice(start, end + 1).toLowerCase()),
-    ['subagent', 'critique', 'proposal'],
+    ['subagent', 'validate', 'proposal'],
   );
 });
 

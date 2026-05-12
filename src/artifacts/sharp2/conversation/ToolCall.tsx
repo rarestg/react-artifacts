@@ -18,12 +18,15 @@ export function ToolCall({ tool, input, output, timestamp, status = 'success' }:
   const statusConfig: Record<ToolCallStatus, { label: string; color: string }> = {
     success: {
       label: 'Success',
-      color: 'text-[var(--success)] bg-[var(--success-weak)] border-[color:var(--success)]',
+      color: 'text-[var(--success-text)] bg-[var(--success-weak)] border-[color:var(--success)]',
     },
-    error: { label: 'Error', color: 'text-[var(--danger)] bg-[var(--danger-weak)] border-[color:var(--danger)]' },
+    error: {
+      label: 'Error',
+      color: 'text-[var(--danger-text)] bg-[var(--danger-weak)] border-[color:var(--danger)]',
+    },
     pending: {
       label: 'Running',
-      color: 'text-[var(--warning)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
+      color: 'text-[var(--warning-text)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
     },
   };
 

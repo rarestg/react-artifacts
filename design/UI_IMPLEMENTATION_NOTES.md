@@ -93,6 +93,7 @@ Guidelines
 - Check `@supports (color: color-mix(...))` blocks: they override token values at runtime.
 - If two token groups should match, **alias one to the other** instead of duplicating `color-mix()` formulas.
 - Keep weak variants consistent: either all are derived via `color-mix()` or all are literal values.
+- Use `*-text` tokens for colored text on matching `*-weak` backgrounds; do not assume the strong color has enough contrast.
 - When debugging, inspect **computed** values in DevTools, not just the source hex.
 
 ```css

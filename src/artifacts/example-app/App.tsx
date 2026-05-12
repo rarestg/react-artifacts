@@ -248,7 +248,7 @@ export default function ExampleApp() {
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'all'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                      ? 'bg-[var(--accent-weak)] text-[var(--accent-text)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
                   )}
                 >
@@ -263,7 +263,7 @@ export default function ExampleApp() {
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'active'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                      ? 'bg-[var(--accent-weak)] text-[var(--accent-text)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
                   )}
                 >

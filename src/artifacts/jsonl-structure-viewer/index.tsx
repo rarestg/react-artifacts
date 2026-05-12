@@ -661,7 +661,7 @@ export default function JsonlStructureViewer() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-4 px-4 py-4">
+        <div className="flex flex-col gap-4 p-4">
           <div className="min-w-0">
             <textarea
               ref={inputRef}
@@ -730,7 +730,7 @@ export default function JsonlStructureViewer() {
             </div>
             <CopyButton text={errorsReport} idleLabel="Copy Report" className={headerActionClass} />
           </div>
-          <div className="flex flex-col gap-2 px-4 py-4 text-xs text-[var(--text-muted)]">
+          <div className="flex flex-col gap-2 p-4 text-xs text-[var(--text-muted)]">
             {parsed.errors.map((error) => (
               <div
                 key={`${error.line}-${error.message}`}
@@ -814,7 +814,7 @@ export default function JsonlStructureViewer() {
             />
           </div>
         </div>
-        <div className="flex flex-col gap-4 px-4 py-4">
+        <div className="flex flex-col gap-4 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">

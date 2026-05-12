@@ -85,7 +85,7 @@ After they report back, compare their findings with your own view and recommend 
       'Use after an agent proposes a solution, design, or implementation plan, especially before implementation or when design tradeoffs are subtle.',
     prompt: `Please dispatch a fresh subagent to review the current proposal or plan before we act on it.
 
-Give them enough context to understand the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed. If there is a written plan or document, point them to it; otherwise summarize the proposal and assumptions clearly. Make clear that the proposal is context, not a conclusion.
+Give them enough context to understand the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed. If there is a written plan or document, point them to it; otherwise summarize the proposal and assumptions clearly. Make clear that the proposal or plan is context, not a conclusion.
 
 Ask them to evaluate from first principles whether this is the best path. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons no change is needed.
 
@@ -102,7 +102,7 @@ After they report back, compare their view with yours. Synthesize the strongest 
       'Use after agreeing on a direction and before implementation, especially when another engineer or future session needs enough context to execute without the prior conversation.',
     prompt: `Please write a self-contained execution plan for the change we just discussed.
 
-Include enough context for an engineer to understand the problem area without relying on this conversation: what prompted the work, the real goal, the relevant files or systems, the proposed direction, and why that direction is preferable.
+Include enough context for an engineer to understand the problem area without relying on this conversation: what prompted the work, the real goal, the relevant files or systems, the proposed direction, and why that direction is preferable. Distinguish confirmed decisions from provisional recommendations or open questions.
 
 Cover the important implementation details, tradeoffs, risks, assumptions, and pitfalls that would be easy to miss. Include documentation or test updates when they matter.
 

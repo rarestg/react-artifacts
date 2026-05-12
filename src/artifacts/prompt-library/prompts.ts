@@ -79,19 +79,38 @@ After they report back, compare their findings with your own view and recommend 
   {
     id: 'proposal-review-subagent',
     title: 'Proposal Review Subagent',
-    summary: 'Ask a fresh subagent to validate or improve a proposed solution before acting on it.',
+    summary: 'Ask a fresh subagent to review or validate a proposal or written plan before acting on it.',
     tags: ['review', 'implementation', 'subagents', 'architecture'],
     context:
-      'Use after an agent has assessed feedback, explored the codebase, or proposed a solution or change plan, especially before implementation or when design tradeoffs are subtle.',
-    prompt: `Please dispatch a fresh subagent to review the proposed solution before acting on it.
+      'Use after an agent proposes a solution, design, or implementation plan, especially before implementation or when design tradeoffs are subtle.',
+    prompt: `Please dispatch a fresh subagent to review the current proposal or plan before we act on it.
 
-Give them enough context to understand the goal, the original feedback or concern if any, the relevant code or architecture area, why the issue matters, the current proposal, and the tradeoffs, constraints, or assumptions behind it. Make clear that the proposal is context, not a conclusion.
+Give them enough context to understand the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed. If there is a written plan or document, point them to it; otherwise summarize the proposal and assumptions clearly. Make clear that the proposal or plan is context, not a conclusion.
 
 Ask them to evaluate from first principles whether this is the best path. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons no change is needed.
 
 They should not manufacture objections. "The proposal is solid," "a smaller change is enough," and "no change is needed" are valid answers if the evidence supports them.
 
-After they report back, compare their view with yours. Synthesize, adapt, or combine ideas from their analysis with your own. The final recommendation should reflect the strongest overall path, not merely choose between the original proposal and the subagent's view.`,
+After they report back, compare their view with yours. Synthesize the strongest overall path, not merely a choice between the original proposal and the subagent's view.`,
+  },
+  {
+    id: 'self-contained-execution-plan',
+    title: 'Self-Contained Execution Plan',
+    summary: 'Write a standalone implementation plan for a design, refactor, or architecture change.',
+    tags: ['implementation', 'architecture', 'risk'],
+    context:
+      'Use after agreeing on a direction and before implementation, especially when another engineer or future session needs enough context to execute without the prior conversation.',
+    prompt: `Please write a self-contained execution plan for the change we just discussed.
+
+Include enough context for an engineer to understand the problem area without relying on this conversation: what prompted the work, the real goal, the relevant files or systems, the proposed direction, and why that direction is preferable. Distinguish confirmed decisions from provisional recommendations or open questions.
+
+Cover the important implementation details, tradeoffs, risks, assumptions, and pitfalls that would be easy to miss. Include documentation or test updates when they matter.
+
+For complex work, break the plan into independently verifiable milestones. Include concrete repo-relative paths, commands, expected observations, feasibility checks for major unknowns, and recovery notes for risky or hard-to-reverse steps when they matter.
+
+Add a "What Done Looks Like" section that describes the expected end state in concrete terms.
+
+Use the structure that best fits this work. Do not force a rigid template if another organization would be clearer.`,
   },
   {
     id: 'fresh-session-handoff',

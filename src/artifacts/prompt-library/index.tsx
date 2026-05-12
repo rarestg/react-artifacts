@@ -136,7 +136,7 @@ export default function PromptLibrary() {
                 focusClass,
               )}
             >
-              <Search className="h-4 w-4" aria-hidden="true" />
+              <Search className="size-4" aria-hidden="true" />
               Search
               <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-muted)]" aria-hidden="true">
                 {searchShortcutHint.modifier === 'command' ? (
@@ -303,7 +303,7 @@ function PromptCommandPalette({
         Search the curated prompt library and open a prompt to copy or review.
       </DialogDescription>
       <div className="flex items-center gap-2 border-b border-[var(--border)] px-3">
-        <Search className="h-4 w-4 shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
+        <Search className="size-4 shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
         <Command.Input
           value={query}
           onValueChange={onQueryChange}
@@ -376,7 +376,7 @@ function PromptTags({
                 : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
             )}
           >
-            <span className="h-1.5 w-1.5 shrink-0 rounded-none bg-[var(--prompt-tag-color)]" aria-hidden="true" />
+            <span className="size-1.5 shrink-0 rounded-none bg-[var(--prompt-tag-color)]" aria-hidden="true" />
             {tag.label}
           </span>
         );

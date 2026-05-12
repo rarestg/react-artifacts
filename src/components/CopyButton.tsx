@@ -95,7 +95,7 @@ export function CopyButton({
         className,
       )}
     >
-      {showIcon && <Copy className="w-3 h-3 shrink-0" />}
+      {showIcon && <Copy className="size-3 shrink-0" />}
       {idleLabel && (
         <span className="relative inline-grid min-w-0">
           <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">

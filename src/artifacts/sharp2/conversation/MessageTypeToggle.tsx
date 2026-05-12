@@ -24,7 +24,7 @@ export function MessageTypeToggle({ label, count, checked, onChange, color }: Me
           checked ? `${color} border-current` : 'bg-[var(--surface)] border-[var(--border-strong)]',
         )}
       >
-        {checked && <Check className="w-2.5 h-2.5 text-[var(--surface)]" />}
+        {checked && <Check className="size-2.5 text-[var(--surface)]" />}
       </span>
       <span className="text-xs text-[var(--text-muted)]">{label}</span>
       <span className="text-[10px] font-medium text-[var(--text-subtle)] bg-[var(--surface-strong)] px-1.5 py-0.5 tabular-nums">

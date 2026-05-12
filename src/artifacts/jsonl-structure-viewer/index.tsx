@@ -942,14 +942,14 @@ export default function JsonlStructureViewer() {
                       label: '1',
                       ariaLabel: 'One column layout',
                       reserveLabel: '3',
-                      icon: <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />,
+                      icon: <RectangleVertical className="size-3.5" aria-hidden="true" />,
                     },
                     {
                       value: 'two-column',
                       label: '2',
                       ariaLabel: 'Two column layout',
                       reserveLabel: '3',
-                      icon: <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />,
+                      icon: <Columns2 className="size-3.5" aria-hidden="true" />,
                     },
                     ...(canUseThreeColumns
                       ? [
@@ -958,7 +958,7 @@ export default function JsonlStructureViewer() {
                             label: '3',
                             ariaLabel: 'Three column layout',
                             reserveLabel: '3',
-                            icon: <Columns3 className="h-3.5 w-3.5" aria-hidden="true" />,
+                            icon: <Columns3 className="size-3.5" aria-hidden="true" />,
                           },
                         ]
                       : []),

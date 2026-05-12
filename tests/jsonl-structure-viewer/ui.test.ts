@@ -41,9 +41,9 @@ test('JSONL Structure Viewer layout buttons expose descriptive accessible names'
   assert.match(source, /ariaLabel: 'One column layout'/);
   assert.match(source, /ariaLabel: 'Two column layout'/);
   assert.match(source, /ariaLabel: 'Three column layout'/);
-  assert.match(source, /<RectangleVertical className="h-3\.5 w-3\.5" aria-hidden="true" \/>/);
-  assert.match(source, /<Columns2 className="h-3\.5 w-3\.5" aria-hidden="true" \/>/);
-  assert.match(source, /<Columns3 className="h-3\.5 w-3\.5" aria-hidden="true" \/>/);
+  assert.match(source, /<RectangleVertical className="size-3\.5" aria-hidden="true" \/>/);
+  assert.match(source, /<Columns2 className="size-3\.5" aria-hidden="true" \/>/);
+  assert.match(source, /<Columns3 className="size-3\.5" aria-hidden="true" \/>/);
 });
 
 test('JSONL Structure Viewer input controls have explicit accessible labels', async () => {

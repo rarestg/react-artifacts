@@ -285,7 +285,7 @@ function ToolCallToggleCompare({ variant }: { variant: 'current' | 'compliant' }
             buttonFocus,
           )}
         >
-          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          <ChevronRight className="size-3.5" aria-hidden="true" />
         </button>
       </div>
       <div className="px-3 py-2 text-xs text-[var(--text-muted)]">Details panel…</div>
@@ -454,7 +454,7 @@ function RingColorCompare({ variant }: { variant: 'current' | 'compliant' }) {
           ringClasses,
         )}
       >
-        <span className="w-2 h-2 border border-[var(--border-strong)] bg-[var(--surface)]" aria-hidden="true" />
+        <span className="size-2 border border-[var(--border-strong)] bg-[var(--surface)]" aria-hidden="true" />
         Selected
       </button>
       <span className="text-xs text-[var(--text-muted)]">Ring color</span>

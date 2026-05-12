@@ -419,7 +419,7 @@ export default function App() {
               )}
             >
               <span className="inline-flex items-center gap-1.5">
-                <Sun className="h-3.5 w-3.5" aria-hidden="true" />
+                <Sun className="size-3.5" aria-hidden="true" />
                 <span>Light</span>
               </span>
             </button>
@@ -435,7 +435,7 @@ export default function App() {
               )}
             >
               <span className="inline-flex items-center gap-1.5">
-                <Monitor className="h-3.5 w-3.5" aria-hidden="true" />
+                <Monitor className="size-3.5" aria-hidden="true" />
                 <span>System</span>
               </span>
             </button>
@@ -451,7 +451,7 @@ export default function App() {
               )}
             >
               <span className="inline-flex items-center gap-1.5">
-                <Moon className="h-3.5 w-3.5" aria-hidden="true" />
+                <Moon className="size-3.5" aria-hidden="true" />
                 <span>Dark</span>
               </span>
             </button>
@@ -474,7 +474,7 @@ export default function App() {
               )}
             >
               <span className="inline-flex items-center gap-1.5">
-                <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                <Smartphone className="size-3.5" aria-hidden="true" />
                 <span>iPhone</span>
               </span>
             </button>
@@ -490,7 +490,7 @@ export default function App() {
               )}
             >
               <span className="inline-flex items-center gap-1.5">
-                <Tablet className="h-3.5 w-3.5" aria-hidden="true" />
+                <Tablet className="size-3.5" aria-hidden="true" />
                 <span>iPad</span>
               </span>
             </button>
@@ -510,7 +510,7 @@ export default function App() {
               )}
             >
               <span className="inline-flex items-center gap-1.5">
-                <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />
+                <RectangleVertical className="size-3.5" aria-hidden="true" />
                 <span>Portrait</span>
               </span>
             </button>
@@ -528,7 +528,7 @@ export default function App() {
               )}
             >
               <span className="inline-flex items-center gap-1.5">
-                <RectangleHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+                <RectangleHorizontal className="size-3.5" aria-hidden="true" />
                 <span>Landscape</span>
               </span>
             </button>

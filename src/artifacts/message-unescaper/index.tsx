@@ -390,14 +390,14 @@ export default function MessageUnescaper() {
                       label: '1',
                       ariaLabel: 'One column layout',
                       reserveLabel: '2',
-                      icon: <RectangleVertical className="h-3.5 w-3.5" aria-hidden="true" />,
+                      icon: <RectangleVertical className="size-3.5" aria-hidden="true" />,
                     },
                     {
                       value: 'two-column',
                       label: '2',
                       ariaLabel: 'Two column layout',
                       reserveLabel: '2',
-                      icon: <Columns2 className="h-3.5 w-3.5" aria-hidden="true" />,
+                      icon: <Columns2 className="size-3.5" aria-hidden="true" />,
                     },
                   ]}
                 />

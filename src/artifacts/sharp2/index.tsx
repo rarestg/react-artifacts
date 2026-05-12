@@ -202,13 +202,13 @@ export default function DesignSystem() {
                   label="Connected"
                   active={true}
                   reserveLabel="Disconnected"
-                  icon={<PlugIcon className="h-3.5 w-3.5" />}
+                  icon={<PlugIcon className="size-3.5" />}
                 />
                 <StatusTag
                   label="Disconnected"
                   active={false}
                   reserveLabel="Disconnected"
-                  icon={<PlugIcon className="h-3.5 w-3.5" />}
+                  icon={<PlugIcon className="size-3.5" />}
                 />
                 <StatusTag label="Indexed" active={true} />
                 <StatusTag label="Offline" active={false} />
@@ -266,15 +266,15 @@ export default function DesignSystem() {
             <SubSection label="With icons">
               <div className="flex flex-wrap gap-3">
                 <Button variant="default">
-                  <SearchIcon className="w-4 h-4" />
+                  <SearchIcon className="size-4" />
                   Search
                 </Button>
                 <Button variant="primary">
-                  <MessageIcon className="w-4 h-4" />
+                  <MessageIcon className="size-4" />
                   New Chat
                 </Button>
                 <Button variant="ghost" size="sm" aria-label="Copy example">
-                  <CopyIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                  <CopyIcon className="size-3.5" aria-hidden="true" />
                 </Button>
               </div>
             </SubSection>
@@ -292,12 +292,9 @@ export default function DesignSystem() {
           <div className="space-y-6">
             <SubSection label="Session metadata (hover to see copy affordance)">
               <div className="flex flex-wrap gap-2">
-                <CopyableLabel
-                  value="/users/rares/projects/codex-manager"
-                  icon={<FolderIcon className="w-3.5 h-3.5" />}
-                />
-                <CopyableLabel value="rarestg/codex-manager" icon={<GitRepoIcon className="w-3.5 h-3.5" />} />
-                <CopyableLabel value="(feat) integrate-waves" icon={<GitBranchIcon className="w-3.5 h-3.5" />} />
+                <CopyableLabel value="/users/rares/projects/codex-manager" icon={<FolderIcon className="size-3.5" />} />
+                <CopyableLabel value="rarestg/codex-manager" icon={<GitRepoIcon className="size-3.5" />} />
+                <CopyableLabel value="(feat) integrate-waves" icon={<GitBranchIcon className="size-3.5" />} />
               </div>
             </SubSection>
             <SubSection label="Behavior">
@@ -333,8 +330,8 @@ export default function DesignSystem() {
                     <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">10:42:15</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CopyableLabel value="~/projects/app" icon={<FolderIcon className="w-3 h-3" />} />
-                    <CopyableLabel value="main" icon={<GitBranchIcon className="w-3 h-3" />} />
+                    <CopyableLabel value="~/projects/app" icon={<FolderIcon className="size-3" />} />
+                    <CopyableLabel value="main" icon={<GitBranchIcon className="size-3" />} />
                     <Tag variant="muted" className="tabular-nums">
                       2.3s
                     </Tag>
@@ -473,13 +470,13 @@ export default function DesignSystem() {
                   { id: 3, title: 'Code Review', meta: '6 messages', time: 'Yesterday' },
                 ].map((item) => (
                   <Row key={item.id} selected={selectedRow === item.id} onClick={() => setSelectedRow(item.id)}>
-                    <MessageIcon className="w-4 h-4 text-[var(--text-subtle)] shrink-0" />
+                    <MessageIcon className="size-4 text-[var(--text-subtle)] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-[var(--text)] truncate">{item.title}</div>
                       <div className="text-xs text-[var(--text-subtle)]">{item.meta}</div>
                     </div>
                     <div className="text-xs text-[var(--text-subtle)] tabular-nums">{item.time}</div>
-                    <ChevronIcon className="w-4 h-4 text-[var(--text-subtle)]" />
+                    <ChevronIcon className="size-4 text-[var(--text-subtle)]" />
                   </Row>
                 ))}
               </Panel>
@@ -492,7 +489,7 @@ export default function DesignSystem() {
                   { name: 'documentation', count: 7 },
                 ].map((ws) => (
                   <div key={ws.name} className="px-3 py-2.5 flex items-center gap-3">
-                    <FolderIcon className="w-4 h-4 text-[var(--text-subtle)]" />
+                    <FolderIcon className="size-4 text-[var(--text-subtle)]" />
                     <span className="flex-1 text-sm text-[var(--text)]">{ws.name}</span>
                     <Tag variant="muted" className="tabular-nums">
                       {ws.count}
@@ -554,23 +551,23 @@ export default function DesignSystem() {
               </p>
               <div className="grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-2 text-[var(--text-subtle)]">
                 <div>
-                  <span className="inline-block w-2 h-2 bg-[var(--category-blue)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--category-blue)] mr-2" />
                   User: literal by default (preserves exact input)
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-[var(--category-green)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--category-green)] mr-2" />
                   Assistant: rendered markdown by default
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-[var(--category-amber)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--category-amber)] mr-2" />
                   Thinking: rendered markdown by default
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-[var(--category-violet)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--category-violet)] mr-2" />
                   Tool Call: input + output (collapsible)
                 </div>
                 <div>
-                  <span className="inline-block w-2 h-2 bg-[var(--text-subtle)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--text-subtle)] mr-2" />
                   Token Counter: context window meter
                 </div>
               </div>
@@ -783,29 +780,29 @@ export default function DesignSystem() {
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6 text-sm">
             <div className="space-y-3">
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">No rounded corners (radius = 0)</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">No translucency / glass / blur</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">No shadows for hierarchy</span>
               </div>
             </div>
             <div className="space-y-3">
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">Border-driven hierarchy</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">Preserve keyboard focus visibility</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-2 h-2 mt-1.5 bg-[var(--success)] shrink-0" />
+                <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">Color is never the only cue</span>
               </div>
             </div>

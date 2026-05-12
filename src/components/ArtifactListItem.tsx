@@ -36,9 +36,9 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
       >
         <div className="flex items-center gap-2">
           {artifact.kind === 'app' ? (
-            <Layers className="h-3.5 w-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
+            <Layers className="size-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
           ) : artifact.kind === 'single' ? (
-            <Square className="h-3.5 w-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
+            <Square className="size-3.5 text-gray-500 dark:text-slate-400" aria-hidden="true" />
           ) : null}
           <span className="truncate">{artifact.name}</span>
         </div>
@@ -67,10 +67,10 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
         aria-label={`Open ${artifact.name} standalone`}
         title="Open standalone view"
         className={
-          'absolute right-2 bottom-2 z-10 inline-flex h-7 w-7 cursor-pointer items-center justify-center border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950'
+          'absolute right-2 bottom-2 z-10 inline-flex size-7 cursor-pointer items-center justify-center border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950'
         }
       >
-        <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+        <SquareArrowOutUpRight className="size-3.5" aria-hidden="true" />
       </a>
     </div>,
   );

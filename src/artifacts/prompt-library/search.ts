@@ -144,17 +144,14 @@ export function getPromptHeaderDisplayMatches(result: PromptSearchResult, query:
 
 export function makeSnippet(text: string, indices: readonly MatchRange[], radius = 80): PromptSnippet {
   if (!indices.length) {
-    const to = Math.min(text.length, radius * 2);
-    return {
-      field: 'prompt',
-      text: text.slice(0, to),
-      indices: [],
-      leadingEllipsis: false,
-      trailingEllipsis: to < text.length,
-    };
+    return makeLeadingSnippet(text, radius);
   }
 
   const mergedIndices = mergeRanges(indices, text.length);
+  if (!mergedIndices.length) {
+    return makeLeadingSnippet(text, radius);
+  }
+
   const [firstStart, firstEnd] = mergedIndices[0] ?? [0, 0];
   const from = Math.max(0, firstStart - radius);
   const to = Math.min(text.length, firstEnd + radius + 1);
@@ -166,6 +163,17 @@ export function makeSnippet(text: string, indices: readonly MatchRange[], radius
       .filter(([start, end]) => end >= from && start < to)
       .map(([start, end]) => [Math.max(0, start - from), Math.min(to - from - 1, end - from)] as MatchRange),
     leadingEllipsis: from > 0,
+    trailingEllipsis: to < text.length,
+  };
+}
+
+function makeLeadingSnippet(text: string, radius: number): PromptSnippet {
+  const to = Math.min(text.length, radius * 2);
+  return {
+    field: 'prompt',
+    text: text.slice(0, to),
+    indices: [],
+    leadingEllipsis: false,
     trailingEllipsis: to < text.length,
   };
 }

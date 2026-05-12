@@ -263,6 +263,15 @@ test('makeSnippet keeps the first matched range visible when the match is longer
   assert.deepEqual(snippet.indices, [[2, 11]]);
 });
 
+test('makeSnippet falls back to a leading snippet when supplied ranges normalize away', () => {
+  const snippet = makeSnippet('0123456789abcdefghij', [[30, 35]], 4);
+
+  assert.equal(snippet.text, '01234567');
+  assert.equal(snippet.leadingEllipsis, false);
+  assert.equal(snippet.trailingEllipsis, true);
+  assert.deepEqual(snippet.indices, []);
+});
+
 test('getDisplayMatchIndices prefers exact phrase matches over earlier fuzzy fragments', () => {
   const text = 'Please dispatch a fresh subagent. They should not manufacture work.';
   const indices = getDisplayMatchIndices(text, 'manufacture', [

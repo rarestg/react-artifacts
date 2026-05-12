@@ -655,7 +655,7 @@ export default function DesignSystem() {
             <SubSection label="Popover">
               <Popover
                 open={popoverOpen}
-                onToggle={() => setPopoverOpen(!popoverOpen)}
+                onOpenChange={(nextOpen) => setPopoverOpen(nextOpen)}
                 trigger={<Button>Open Popover</Button>}
               >
                 <div className="p-2 space-y-1">

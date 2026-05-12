@@ -10,6 +10,14 @@ const themeTokenAliases = [
   ['--category-red', '--danger'],
 ] as const;
 
+const weakThemeTokenAliases = [
+  ['--category-blue-weak', '--accent-weak'],
+  ['--category-green-weak', '--success-weak'],
+  ['--category-amber-weak', '--warning-weak'],
+  ['--category-violet-weak', '--info-weak'],
+  ['--category-red-weak', '--danger-weak'],
+] as const;
+
 function getBlock(source: string, selector: string) {
   const start = source.indexOf(`${selector} {`);
   assert.notEqual(start, -1, `Expected ${selector} block`);
@@ -29,6 +37,22 @@ test('artifact theme aliases first category colors to semantic status colors', a
     assert.match(lightTheme, alias);
     assert.match(darkTheme, alias);
   }
+
+  for (const [categoryToken, semanticToken] of weakThemeTokenAliases) {
+    const alias = new RegExp(`${categoryToken}:\\s*var\\(${semanticToken}\\);`);
+    assert.match(lightTheme, alias);
+    assert.match(darkTheme, alias);
+  }
+});
+
+test('artifact theme keeps selected color weak tokens curated', async () => {
+  const source = await readFile('src/theme/artifact-theme.css', 'utf8');
+  const lightTheme = getBlock(source, '.artifact-theme');
+  const darkTheme = getBlock(source, '.dark .artifact-theme');
+
+  assert.match(lightTheme, /--accent-weak:\s*#dbeafe;/);
+  assert.match(darkTheme, /--accent-weak:\s*#1e3a8a;/);
+  assert.doesNotMatch(source, /--accent-weak:\s*color-mix\(/);
 });
 
 test('example app previews semantic colors in the same order as message colors', async () => {

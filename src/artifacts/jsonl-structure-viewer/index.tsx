@@ -5,7 +5,7 @@ import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
 import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
-import { SegmentedControl } from '../../components/SegmentedControl';
+import { SegmentedControl, type SegmentedControlSize } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
@@ -42,6 +42,8 @@ const RESIZE_MIN_HEIGHT = 240;
 const DEBUG_RESIZE = import.meta.env.DEV;
 
 type OutputView = 'raw' | 'highlighted';
+
+const outputToolbarControlSize: SegmentedControlSize = 'compact';
 
 function formatErrorsReport(errors: { line: number; message: string; preview: string }[]) {
   return errors.map((error) => `Line ${error.line}: ${error.message} | ${error.preview}`).join('\n');
@@ -825,7 +827,7 @@ export default function JsonlStructureViewer() {
                 value={outputView}
                 onValueChange={setOutputView}
                 tone="accent"
-                size="compact"
+                size={outputToolbarControlSize}
                 options={[
                   { value: 'raw', label: 'Raw' },
                   { value: 'highlighted', label: 'Highlighted' },
@@ -842,7 +844,7 @@ export default function JsonlStructureViewer() {
                   value={outputFormat}
                   onValueChange={setOutputFormat}
                   tone="accent"
-                  size="default"
+                  size={outputToolbarControlSize}
                   options={[
                     { value: 'pretty', label: 'Pretty' },
                     { value: 'compact', label: 'Compact' },

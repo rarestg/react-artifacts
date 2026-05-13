@@ -46,6 +46,19 @@ test('JSONL Structure Viewer layout buttons expose descriptive accessible names'
   assert.match(source, /<Columns3 className="size-3\.5" aria-hidden="true" \/>/);
 });
 
+test('JSONL Structure Viewer output toolbar controls share explicit density', async () => {
+  const source = await readFile('src/artifacts/jsonl-structure-viewer/index.tsx', 'utf8');
+
+  assert.match(source, /const outputToolbarControlSize: SegmentedControlSize = 'compact';/);
+
+  const outputViewControl = findSelfClosingElement(source, 'SegmentedControl', 'ariaLabel="Output view"');
+  const outputFormatControl = findSelfClosingElement(source, 'SegmentedControl', 'ariaLabel="Output format"');
+
+  assert.match(outputViewControl, /size=\{outputToolbarControlSize\}/);
+  assert.match(outputFormatControl, /size=\{outputToolbarControlSize\}/);
+  assert.doesNotMatch(outputFormatControl, /size="default"/);
+});
+
 test('JSONL Structure Viewer input controls have explicit accessible labels', async () => {
   const source = await readFile('src/artifacts/jsonl-structure-viewer/index.tsx', 'utf8');
 

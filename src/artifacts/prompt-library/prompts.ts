@@ -119,6 +119,27 @@ Add a "What Done Looks Like" section that describes the expected end state in co
 Use the structure that best fits this work. Do not force a rigid template if another organization would be clearer.`,
   },
   {
+    id: 'goal-statement-writer',
+    title: 'Goal Statement Writer',
+    summary: 'Distill a plan or recent change discussion into a concise objective and done condition.',
+    tags: ['implementation', 'planning'],
+    context:
+      'Use after a plan has been written or a change has been discussed, when you want a short goal statement for an autonomous coding session.',
+    prompt: `Please distill the plan or change we just discussed into a concise goal statement for an autonomous coding session.
+
+The goal statement must be brief: under 3000 characters, ideally much shorter. It should name one objective and one stopping condition: what we are trying to accomplish and how we know the work is done.
+
+Use the current conversation, any referenced plan document or file path, and the plan's "What Done Looks Like" section if one exists. Do not restate the whole plan. Distill the real objective, what to read first, important context, constraints, non-goals, risks, and verification signals an agent would need to execute autonomously.
+
+Make the objective concrete: name the plan path or relevant files when useful, describe the user-visible or repo-visible outcome, and include required checks, tests, docs, review readiness, deployment steps, checkpointing, or short progress-log expectations only when they are truly part of done.
+
+For the done condition, prefer observable criteria over feelings: implementation complete, relevant checks passing, docs updated when needed, no known regressions, and the work ready for rigorous senior-engineer review. It is fine to include a quality bar like being comfortable defending the implementation in review, but anchor it in concrete verification.
+
+If the plan contains open questions or risky assumptions, include them as work to resolve before or during implementation. If the plan is too vague to define a safe stopping condition, say what is missing instead of inventing certainty.
+
+Return only the goal statement unless I ask for explanation.`,
+  },
+  {
     id: 'fresh-session-handoff',
     title: 'Fresh Session Handoff',
     summary: 'Prepare a concise handoff for continuing work in a new session.',

@@ -13,9 +13,9 @@
 | 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 57-72 |
 | 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 73-85 |
 | 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 86-123 |
-| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary | 124-152 |
-| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 153-197 |
-| 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 198-258 |
+| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary, focus ring | 124-156 |
+| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 157-201 |
+| 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 202-262 |
 
 ## Format for new entries
 - Title
@@ -143,6 +143,10 @@ Guidelines
 ### Notes and pitfalls
 - `data-theme` overrides only work when applied to the same element as `ArtifactThemeRoot`.
 - Base-only artifacts can rely on the `.artifact-theme` token contract without adding `data-theme`.
+- If a sharp control shows a browser-colored rounded outline, native outline or radius is leaking. Only suppress it when
+  a visible token focus state replaces it.
+- If a ring is black, currentColor, or otherwise unexpected, inspect computed `--ring`, confirm the subtree is inside
+  `ArtifactThemeRoot`, and confirm the active theme defines `--ring`.
 - Dev warnings are deduped per component; fix the root cause rather than suppressing logs.
 
 ### Exceptions

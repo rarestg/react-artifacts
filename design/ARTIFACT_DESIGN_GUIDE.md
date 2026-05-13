@@ -113,6 +113,11 @@ export default function Artifact() {
   not natively disabled.
 - Use icon buttons for common tool actions when the icon is familiar.
 - Give unfamiliar icon buttons a tooltip or accessible label.
+- Icon-only buttons should keep a stable square hit target, center the icon, use a native `<button>` when possible, and
+  provide one accessible-name method such as `aria-label` or `sr-only` text.
+- In compact desktop toolbars, `size-7` can be acceptable and `size-8` is preferred when space allows; use larger
+  targets for touch-first surfaces.
+- Add `aria-pressed` for toggle buttons and `aria-expanded` for disclosure buttons.
 - Passive icons should stay neutral.
 - Disabled controls must show why they are disabled through adjacent context or tooltip copy.
 - Tooltip copy should describe the next action when state can change.
@@ -135,10 +140,17 @@ export default function Artifact() {
 - Design these states before polishing visuals: default, hover, active, focus-visible, selected, disabled, loading, success, error, empty.
 - Focus is not selection. Selection is not hover. Active is not success.
 - The focus ring is reserved for keyboard focus.
+- Standard artifact controls should default to tokenized keyboard focus:
+  `focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1`, with the
+  offset color matching the surrounding surface. Use another visible focus treatment only when a ring would be clipped
+  or visually wrong for that surface.
 - Use `focus-visible` for keyboard focus; do not clip focus rings.
 - Selection should use its own channel: bar, marker, explicit label, or checked state.
 - A background shift may support selection, but must not be the only selected-state cue.
 - Feedback states may override hover and focus styling, but must not hide focus.
+- For composite rows and menu items, define hover, focus-visible, active, and selected separately. Hover should stay
+  quiet, focus-visible must remain visible when the item is also hovered, active is pressed feedback only, and selected
+  is persistent. Compose hover+focus rules intentionally so hover does not weaken keyboard focus.
 - Counts, highlights, enabled state, and actions should come from the same eligibility predicate.
 
 ## Tokens And Themes

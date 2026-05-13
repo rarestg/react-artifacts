@@ -63,14 +63,6 @@
     --decision-text: var(--text-muted);
   }
 
-  .focus-compare-theme {
-    --overlay-legacy: rgba(15, 23, 42, 0.5);
-  }
-
-  .dark .focus-compare-theme {
-    --overlay-legacy: rgba(2, 6, 23, 0.6);
-  }
-
   .sharp-toggle {
     --toggle-track-w: 32px;
     --toggle-track-h: 16px;

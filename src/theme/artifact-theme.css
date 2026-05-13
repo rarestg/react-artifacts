@@ -1,51 +1,66 @@
 .artifact-theme {
+  /* Base surfaces, text, and borders. */
   --surface: #ffffff;
   --surface-muted: #f8fafc;
+  --surface-strong: #f1f5f9;
   --surface-pressed: #eaf0f3;
   --text: #0f172a;
   --text-muted: #64748b;
   --text-subtle: #94a3b8;
   --border: #e2e8f0;
-  --accent: #2563eb;
-  --success: #059669;
-  --warning: #d97706;
-  --danger: #dc2626;
-  --info: #7c3aed;
-
-  --surface-strong: #f1f5f9;
   --border-strong: #cbd5e1;
-  --accent-weak: #dbeafe;
   --ring: #94a3b8;
   --highlight: #dbeafe;
   --overlay: rgba(15, 23, 42, 0.5);
 
+  /* Semantic role colors. */
+  --accent: #2563eb;
+  --accent-text: #1d4ed8;
+  --accent-weak: #dbeafe;
+  --success: #059669;
+  --success-text: #047857;
+  --success-weak: #d1fae5;
+  --warning: #d97706;
+  --warning-text: #92400e;
+  --warning-weak: #fef3c7;
+  --info: #7c3aed;
+  --info-text: #6d28d9;
+  --info-weak: #ede9fe;
+  --danger: #dc2626;
+  --danger-text: #b91c1c;
+  --danger-weak: #fee2e2;
+
+  /* Category palette for grouping and recognition. */
+  --category-blue: var(--accent);
+  --category-blue-text: var(--accent-text);
+  --category-blue-weak: var(--accent-weak);
+  --category-green: var(--success);
+  --category-green-text: var(--success-text);
+  --category-green-weak: var(--success-weak);
+  --category-amber: var(--warning);
+  --category-amber-text: var(--warning-text);
+  --category-amber-weak: var(--warning-weak);
+  --category-violet: var(--info);
+  --category-violet-text: var(--info-text);
+  --category-violet-weak: var(--info-weak);
+  --category-red: var(--danger);
+  --category-red-text: var(--danger-text);
+  --category-red-weak: var(--danger-weak);
+  --category-cyan: #0891b2;
+  --category-cyan-text: #0e7490;
+  --category-cyan-weak: #cffafe;
+  --category-pink: #db2777;
+  --category-pink-text: #be185d;
+  --category-pink-weak: #fce7f3;
+  --category-lime: #65a30d;
+  --category-lime-text: #3f6212;
+  --category-lime-weak: #ecfccb;
+
+  /* Component tokens. */
   --primary: var(--text);
   --primary-contrast: var(--surface);
   --primary-hover: #1e293b;
   --primary-active: #020617;
-
-  --success-weak: #d1fae5;
-  --warning-weak: #fef3c7;
-  --danger-weak: #fee2e2;
-  --info-weak: #ede9fe;
-
-  --category-blue: var(--accent);
-  --category-green: var(--success);
-  --category-amber: var(--warning);
-  --category-violet: var(--info);
-  --category-red: var(--danger);
-  --category-cyan: #0891b2;
-  --category-pink: #db2777;
-  --category-lime: #65a30d;
-
-  --category-blue-weak: var(--accent-weak);
-  --category-green-weak: var(--success-weak);
-  --category-amber-weak: var(--warning-weak);
-  --category-violet-weak: var(--info-weak);
-  --category-red-weak: var(--danger-weak);
-  --category-cyan-weak: #cffafe;
-  --category-pink-weak: #fce7f3;
-  --category-lime-weak: #ecfccb;
 
   --toggle-track-on-bg: var(--primary);
   --toggle-track-on-border: var(--primary);
@@ -67,71 +82,86 @@
   --copy-hover-text: var(--text);
   --copy-success-border: #6ee7b7;
   --copy-success-bg: var(--success-weak);
-  --copy-success-text: var(--success);
+  --copy-success-text: var(--success-text);
   --copy-fail-border: #fca5a5;
   --copy-fail-bg: var(--danger-weak);
-  --copy-fail-text: var(--danger);
+  --copy-fail-text: var(--danger-text);
 }
 
 .dark .artifact-theme {
+  /* Base surfaces, text, and borders. */
   --surface: #0b1120;
   --surface-muted: #0f172a;
+  --surface-strong: #1e293b;
   --surface-pressed: #1b2435;
   --text: #e2e8f0;
   --text-muted: #94a3b8;
   --text-subtle: #64748b;
   --border: #1f2937;
-  --accent: #60a5fa;
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #fda4af;
-  --info: #d8b4fe;
-
-  --surface-strong: #1e293b;
   --border-strong: #334155;
-  --accent-weak: #1e3a8a;
   --ring: #94a3b8;
   --highlight: #1e3a8a;
   --overlay: rgba(2, 6, 23, 0.6);
 
+  /* Semantic role colors. */
+  --accent: #60a5fa;
+  --accent-text: #bfdbfe;
+  --accent-weak: #1e3a8a;
+  --success: #34d399;
+  --success-text: #a7f3d0;
+  --success-weak: #064e3b;
+  --warning: #fbbf24;
+  --warning-text: #fde68a;
+  --warning-weak: #78350f;
+  --info: #c084fc;
+  --info-text: #ddd6fe;
+  --info-weak: #3b166e;
+  --danger: #fb7185;
+  --danger-text: #fecdd3;
+  --danger-weak: #6b1024;
+
+  /* Category palette for grouping and recognition. */
+  --category-blue: var(--accent);
+  --category-blue-text: var(--accent-text);
+  --category-blue-weak: var(--accent-weak);
+  --category-green: var(--success);
+  --category-green-text: var(--success-text);
+  --category-green-weak: var(--success-weak);
+  --category-amber: var(--warning);
+  --category-amber-text: var(--warning-text);
+  --category-amber-weak: var(--warning-weak);
+  --category-violet: var(--info);
+  --category-violet-text: var(--info-text);
+  --category-violet-weak: var(--info-weak);
+  --category-red: var(--danger);
+  --category-red-text: var(--danger-text);
+  --category-red-weak: var(--danger-weak);
+  --category-cyan: #22d3ee;
+  --category-cyan-text: #a5f3fc;
+  --category-cyan-weak: #164e63;
+  --category-pink: #f472b6;
+  --category-pink-text: #fbcfe8;
+  --category-pink-weak: #831843;
+  --category-lime: #a3e635;
+  --category-lime-text: #d9f99d;
+  --category-lime-weak: #365314;
+
+  /* Component tokens. */
   --primary: var(--text);
   --primary-contrast: var(--surface);
   --primary-hover: #cbd5e1;
   --primary-active: #94a3b8;
 
-  --success-weak: #064e3b;
-  --warning-weak: #78350f;
-  --danger-weak: #881337;
-  --info-weak: #4c1d95;
-
-  --category-blue: #60a5fa;
-  --category-green: #34d399;
-  --category-amber: #fbbf24;
-  --category-violet: #c084fc;
-  --category-red: #fb7185;
-  --category-cyan: #22d3ee;
-  --category-pink: #f472b6;
-  --category-lime: #a3e635;
-
-  --category-blue-weak: #1e3a8a;
-  --category-green-weak: #064e3b;
-  --category-amber-weak: #78350f;
-  --category-violet-weak: #4c1d95;
-  --category-red-weak: #881337;
-  --category-cyan-weak: #164e63;
-  --category-pink-weak: #831843;
-  --category-lime-weak: #365314;
-
   --copy-success-border: var(--success);
   --copy-fail-border: var(--danger);
 }
 
+/* Derived neutral and component states. */
 @supports (color: color-mix(in srgb, #000 50%, #fff 50%)) {
   .artifact-theme {
     --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
     --surface-pressed: color-mix(in srgb, var(--surface) 60%, var(--border-strong) 40%);
     --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
-    --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
     --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);
     --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
     --primary-hover: color-mix(in srgb, var(--primary) 92%, var(--surface) 8%);
@@ -144,7 +174,6 @@
     --surface-strong: color-mix(in srgb, var(--surface) 75%, var(--border) 25%);
     --surface-pressed: color-mix(in srgb, var(--surface) 60%, var(--border-strong) 40%);
     --border-strong: color-mix(in srgb, var(--border) 80%, var(--text-muted) 20%);
-    --accent-weak: color-mix(in srgb, var(--accent) 20%, var(--surface) 80%);
     --ring: color-mix(in srgb, var(--text-muted) 80%, var(--accent) 20%);
     --highlight: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
     --primary-hover: color-mix(in srgb, var(--primary) 92%, var(--surface) 8%);

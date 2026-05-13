@@ -57,7 +57,7 @@ export function SegmentedControl<TValue extends string = string>({
   };
   const selectedTone: Record<SegmentedControlTone, string> = {
     neutral: 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]',
-    accent: 'border-[color:var(--accent)] bg-[var(--accent-weak)] text-[var(--accent)]',
+    accent: 'border-[color:var(--accent)] bg-[var(--accent-weak)] text-[var(--accent-text)]',
   };
   const inactiveTone: Record<SegmentedControlTone, string> = {
     neutral: 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',

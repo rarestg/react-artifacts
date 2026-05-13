@@ -40,18 +40,18 @@ const themeSwatches = [
     border: 'border-[color:var(--warning)]',
   },
   {
-    id: 'danger',
-    label: 'Danger',
-    weakBg: 'bg-[var(--danger-weak)]',
-    strongBg: 'bg-[var(--danger)]',
-    border: 'border-[color:var(--danger)]',
-  },
-  {
     id: 'info',
     label: 'Info',
     weakBg: 'bg-[var(--info-weak)]',
     strongBg: 'bg-[var(--info)]',
     border: 'border-[color:var(--info)]',
+  },
+  {
+    id: 'danger',
+    label: 'Danger',
+    weakBg: 'bg-[var(--danger-weak)]',
+    strongBg: 'bg-[var(--danger)]',
+    border: 'border-[color:var(--danger)]',
   },
 ] as const;
 
@@ -125,8 +125,8 @@ export default function ExampleApp() {
     accent: true,
     success: true,
     warning: false,
-    danger: false,
     info: false,
+    danger: false,
   });
   const [activeCategorySwatches, setActiveCategorySwatches] = useState<Record<CategorySwatchId, boolean>>({
     user: true,
@@ -215,7 +215,7 @@ export default function ExampleApp() {
   };
 
   return (
-    <ArtifactThemeRoot className="min-h-screen border border-[var(--border)] bg-[var(--surface)] text-[var(--text)]">
+    <ArtifactThemeRoot className="min-h-screen border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text)]">
       <AppHeader
         title="Example App Artifact"
         subtitle="A multi-file artifact (App.tsx + components/) rendered by the shell"
@@ -248,7 +248,7 @@ export default function ExampleApp() {
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'all'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                      ? 'bg-[var(--accent-weak)] text-[var(--accent-text)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
                   )}
                 >
@@ -263,7 +263,7 @@ export default function ExampleApp() {
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
                     'relative focus-visible:z-10',
                     view === 'active'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent)]'
+                      ? 'bg-[var(--accent-weak)] text-[var(--accent-text)]'
                       : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
                   )}
                 >

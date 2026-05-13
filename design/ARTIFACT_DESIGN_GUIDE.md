@@ -154,8 +154,9 @@ export default function Artifact() {
 - Partial palette overrides are allowed when the base `.artifact-theme` supplies the full contract; full replacement
   themes must define the full token contract in steady state.
 - Missing-token fallbacks are temporary and must be documented.
-- Required token groups: surfaces, text, borders, accent, ring, highlight, overlay, primary, semantic status, category, and shared component tokens.
-- If `--accent` changes, also define `--accent-weak` and `--ring`.
+- Required token groups: surfaces, text, borders, accent, ring, highlight, overlay, primary, semantic status, semantic text, category, category text, and shared component tokens.
+- If `--accent` changes, also define `--accent-text`, `--accent-weak`, and `--ring`.
+- If semantic or category colors change, also define the matching `*-text` and `*-weak` tokens.
 - If `--surface` or `--border` changes, also define derived surface and border tokens.
 - Verify themes in light and dark mode.
 - Light and dark modes should preserve the same spacing, border weight, geometry, and state behavior.
@@ -175,6 +176,7 @@ export default function Artifact() {
 - Use surface shifts before accent fills.
 - Pair color with text, icon, position, border, fill, or shape.
 - Keep labels readable by using normal text tokens instead of colored text when possible.
+- Use `*-text` tokens when colored text sits on a matching `*-weak` background.
 - Use small square indicators for status marks unless another explicit indicator is already present.
 
 ## Typography And Data

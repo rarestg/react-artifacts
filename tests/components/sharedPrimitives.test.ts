@@ -152,6 +152,7 @@ test('SegmentedControl renders pressed buttons with child-owned borders', () => 
   assert.doesNotMatch(selectedClass, /font-mono|uppercase|tracking-\[/);
   assert.match(selectedClass, /border-\[color:var\(--accent\)\]/);
   assert.match(selectedClass, /bg-\[var\(--accent-weak\)\]/);
+  assert.match(selectedClass, /text-\[var\(--accent-text\)\]/);
   assert.match(markup, /aria-pressed="false"/);
   assert.match(markup, /aria-pressed="true"/);
 });

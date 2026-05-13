@@ -93,9 +93,14 @@ export function Checkbox({
           boxClassName,
         )}
       >
-        {checked && (
-          <Check className={mergeClassNames(checkClassName ?? 'text-[var(--primary-contrast)]', checkSize)} />
-        )}
+        <Check
+          aria-hidden="true"
+          className={mergeClassNames(
+            checkClassName ?? 'text-[var(--primary-contrast)]',
+            !checked && 'text-[var(--checkbox-off-bg)]',
+            checkSize,
+          )}
+        />
       </span>
       <span className={mergeClassNames('relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName)}>
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">

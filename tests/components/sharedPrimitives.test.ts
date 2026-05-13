@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Checkbox } from '../../src/components/Checkbox';
 import { CopyableLabel } from '../../src/components/CopyableLabel';
 import { CopyButton } from '../../src/components/CopyButton';
+import { FilterCheckbox } from '../../src/components/FilterCheckbox';
 import { SegmentedControl } from '../../src/components/SegmentedControl';
 import { StatusTag } from '../../src/components/StatusTag';
 import { Toggle } from '../../src/components/Toggle';
@@ -101,6 +102,106 @@ test('shared toggle and checkbox include active-state parity classes', () => {
   assert.match(toggleOff, /hover:border-\[color:var\(--border-strong\)\]/);
   assert.match(toggleOff, /active:bg-\[var\(--surface-pressed\)\]/);
   assert.match(toggleOn, /active:bg-\[var\(--primary-active\)\]/);
+});
+
+test('shared checkbox keeps the check icon mounted when unchecked to avoid color-transition flicker', () => {
+  const unchecked = renderToStaticMarkup(
+    createElement(Checkbox, {
+      label: 'Checkbox',
+      checked: false,
+      onCheckedChange: () => undefined,
+    }),
+  );
+  const checked = renderToStaticMarkup(
+    createElement(Checkbox, {
+      label: 'Checkbox',
+      checked: true,
+      onCheckedChange: () => undefined,
+    }),
+  );
+
+  assert.match(unchecked, /<svg\b/);
+  assert.match(unchecked, /aria-hidden="true"/);
+  assert.match(unchecked, /text-\[var\(--checkbox-off-bg\)\]/);
+  assert.match(checked, /<svg\b/);
+  assert.doesNotMatch(checked, /text-\[var\(--checkbox-off-bg\)\]/);
+});
+
+test('FilterCheckbox exposes category tones, selected chip color, and a stable count badge', () => {
+  const categoryTones = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime'] as const;
+
+  for (const tone of categoryTones) {
+    const checkedMarkup = renderToStaticMarkup(
+      createElement(FilterCheckbox, {
+        label: tone,
+        count: 7,
+        checked: true,
+        onCheckedChange: () => undefined,
+        tone,
+      }),
+    );
+    const uncheckedMarkup = renderToStaticMarkup(
+      createElement(FilterCheckbox, {
+        label: tone,
+        count: 7,
+        checked: false,
+        onCheckedChange: () => undefined,
+        tone,
+      }),
+    );
+
+    assert.match(checkedMarkup, new RegExp(`--filter-checkbox-color:var\\(--category-${tone}\\)`));
+    assert.match(checkedMarkup, new RegExp(`--filter-checkbox-color-weak:var\\(--category-${tone}-weak\\)`));
+    assert.match(checkedMarkup, /bg-\[var\(--filter-checkbox-color-weak\)\]/);
+    assert.match(checkedMarkup, /border-\[color:var\(--filter-checkbox-color\)\]/);
+    assert.match(checkedMarkup, /\[stroke-width:4\]/);
+    assert.match(checkedMarkup, /min-w-4/);
+    assert.match(checkedMarkup, />7</);
+
+    assert.match(uncheckedMarkup, new RegExp(`--checkbox-off-border:var\\(--category-${tone}\\)`));
+    assert.match(uncheckedMarkup, /bg-\[var\(--surface\)\]/);
+    assert.match(uncheckedMarkup, /border-\[var\(--border\)\]/);
+    assert.match(uncheckedMarkup, /border-\[color:var\(--checkbox-off-border\)\]/);
+  }
+});
+
+test('FilterCheckbox metadata tone stays neutral instead of using category color', () => {
+  const markup = renderToStaticMarkup(
+    createElement(FilterCheckbox, {
+      label: 'Token Counters',
+      count: 3,
+      checked: true,
+      onCheckedChange: () => undefined,
+      tone: 'metadata',
+    }),
+  );
+
+  assert.match(markup, /--filter-checkbox-color:var\(--text-muted\)/);
+  assert.match(
+    markup,
+    /--filter-checkbox-color-weak:color-mix\(in srgb, var\(--text-muted\) 22%, var\(--surface\) 78%\)/,
+  );
+  assert.match(markup, /bg-\[var\(--filter-checkbox-color-weak\)\]/);
+  assert.match(markup, />Token Counters</);
+  assert.match(markup, />3</);
+});
+
+test('FilterCheckbox can mute the selected outer border while preserving the colored checkbox', () => {
+  const markup = renderToStaticMarkup(
+    createElement(FilterCheckbox, {
+      label: 'User',
+      count: 2,
+      checked: true,
+      onCheckedChange: () => undefined,
+      tone: 'blue',
+      borderStyle: 'neutral',
+    }),
+  );
+
+  assert.match(markup, /border-transparent/);
+  assert.match(markup, /bg-\[var\(--filter-checkbox-color-weak\)\]/);
+  assert.match(markup, /--checkbox-on-bg:var\(--category-blue\)/);
+  assert.doesNotMatch(markup, /border-\[color:var\(--filter-checkbox-color\)\]/);
 });
 
 test('shared toggle passes through title and described-by metadata', () => {

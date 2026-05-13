@@ -5,8 +5,8 @@ import { type CSSProperties, useEffect, useMemo, useReducer, useRef, useState } 
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
-import { Checkbox } from '../../components/Checkbox';
 import { CopyButton } from '../../components/CopyButton';
+import { FilterCheckbox } from '../../components/FilterCheckbox';
 import { mergeClassNames } from '../../lib/classNames';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
@@ -45,10 +45,6 @@ const EMPTY_HIGHLIGHT_INDICES: HighlightIndices = [];
 
 type PromptTagColorStyle = CSSProperties & {
   '--prompt-tag-color': string;
-  '--prompt-tag-color-weak': string;
-  '--checkbox-on-bg': string;
-  '--checkbox-on-border': string;
-  '--checkbox-off-border': string;
 };
 
 function getPromptTagColorStyle(color: PromptTagColorId): PromptTagColorStyle {
@@ -56,10 +52,6 @@ function getPromptTagColorStyle(color: PromptTagColorId): PromptTagColorStyle {
 
   return {
     '--prompt-tag-color': colorToken,
-    '--prompt-tag-color-weak': `var(--category-${color}-weak)`,
-    '--checkbox-on-bg': colorToken,
-    '--checkbox-on-border': colorToken,
-    '--checkbox-off-border': colorToken,
   };
 }
 
@@ -166,39 +158,19 @@ export default function PromptLibrary() {
           >
             {promptTags.map((tag) => {
               const checked = selectedTags.includes(tag.id);
-              const tagColorStyle = getPromptTagColorStyle(tag.color);
               const count = filterPromptsByTags(prompts, [
                 ...selectedTags.filter((selected) => selected !== tag.id),
                 tag.id,
               ]).length;
 
               return (
-                <Checkbox
+                <FilterCheckbox
                   key={tag.id}
-                  size="sm"
-                  focusTarget="container"
                   checked={checked}
                   onCheckedChange={(nextChecked) => toggleTag(tag.id, nextChecked)}
                   label={tag.label}
-                  suffix={
-                    <span
-                      className={mergeClassNames(
-                        'font-mono text-[10px] tabular-nums',
-                        checked ? 'text-[var(--text)]' : 'text-[var(--text-muted)]',
-                      )}
-                    >
-                      {count}
-                    </span>
-                  }
-                  style={tagColorStyle}
-                  className={mergeClassNames(
-                    'border px-2 text-xs',
-                    checked
-                      ? 'border-[color:var(--prompt-tag-color)] bg-[var(--prompt-tag-color-weak)]'
-                      : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-muted)]',
-                  )}
-                  labelClassName="text-xs"
-                  checkClassName="text-[var(--surface)]"
+                  count={count}
+                  tone={tag.color}
                 />
               );
             })}

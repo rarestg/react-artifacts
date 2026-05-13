@@ -1,5 +1,3 @@
-import { ChevronRight } from 'lucide-react';
-import { useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
 import { Tag } from '../../../components/Tag';
 import type { ToolCallStatus } from './types';
@@ -10,11 +8,10 @@ export type ToolCallProps = {
   output: string;
   timestamp?: string;
   status?: ToolCallStatus;
+  showDetails?: boolean;
 };
 
-export function ToolCall({ tool, input, output, timestamp, status = 'success' }: ToolCallProps) {
-  const [expanded, setExpanded] = useState(true);
-
+export function ToolCall({ tool, input, output, timestamp, status = 'success', showDetails = true }: ToolCallProps) {
   const statusConfig: Record<ToolCallStatus, { label: string; color: string }> = {
     success: {
       label: 'Success',
@@ -33,21 +30,10 @@ export function ToolCall({ tool, input, output, timestamp, status = 'success' }:
   const config = statusConfig[status] || statusConfig.success;
 
   return (
-    <div className="border border-[var(--border)] border-l-2 border-l-[var(--category-violet)] bg-[var(--surface)]">
+    <div className="border-l-2 border-l-[var(--category-violet)] bg-[var(--surface)] p-3">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[color:var(--border)] bg-[var(--surface-muted)]">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setExpanded(!expanded)}
-            aria-label={expanded ? 'Collapse tool call details' : 'Expand tool call details'}
-            aria-expanded={expanded}
-            className="text-[var(--text-subtle)] hover:text-[var(--text-muted)] active:text-[var(--text)] cursor-pointer p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
-          >
-            <ChevronRight
-              className={`w-3.5 h-3.5 transition-transform motion-reduce:transition-none ${expanded ? 'rotate-90' : ''}`}
-            />
-          </button>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
           <span className="text-xs font-semibold text-[var(--text)]">Tool Call</span>
           <Tag variant="muted" className="font-mono">
             {tool}
@@ -58,17 +44,25 @@ export function ToolCall({ tool, input, output, timestamp, status = 'success' }:
           <span className={`text-[10px] font-medium px-1.5 py-0.5 border ${config.color}`}>{config.label}</span>
           <CopyButton
             text={`Tool: ${tool}\nInput: ${input}\nOutput: ${output}`}
+            ariaLabel="Copy tool input and output"
             className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5"
           />
         </div>
       </div>
 
-      {expanded && (
-        <div className="divide-y divide-[color:var(--border)]">
+      {showDetails && (
+        <div className="mt-3 space-y-2">
           {/* Input */}
-          <div className="px-3 py-2">
-            <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--category-violet)] mb-1">
-              Input
+          <div>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--category-violet)]">Input</div>
+              <CopyButton
+                text={input}
+                idleLabel="Copy input"
+                reserveLabel="Copy output"
+                ariaLabel="Copy tool input"
+                className="border-0 bg-transparent px-1.5 py-0.5 hover:bg-[var(--surface-strong)]"
+              />
             </div>
             <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5">
               {input}
@@ -76,8 +70,17 @@ export function ToolCall({ tool, input, output, timestamp, status = 'success' }:
           </div>
 
           {/* Output */}
-          <div className="px-3 py-2">
-            <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)] mb-1">Output</div>
+          <div>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">Output</div>
+              <CopyButton
+                text={output}
+                idleLabel="Copy output"
+                reserveLabel="Copy output"
+                ariaLabel="Copy tool output"
+                className="border-0 bg-transparent px-1.5 py-0.5 hover:bg-[var(--surface-strong)]"
+              />
+            </div>
             <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5 max-h-48 overflow-y-auto">
               {output}
             </pre>

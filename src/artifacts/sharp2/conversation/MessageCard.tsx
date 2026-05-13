@@ -47,9 +47,9 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
     (renderMode === 'default' && getDefaultRenderMode(role) === 'literal');
 
   return (
-    <div className={mergeClassNames('border border-[var(--border)] border-l-2', config.borderColor, config.bgColor)}>
+    <div className={mergeClassNames('border-l-2 px-3 py-3', config.borderColor, config.bgColor)}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[color:var(--border)] bg-[var(--surface-muted)]">
+      <div className="mb-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-[var(--text)]">{config.label}</span>
           {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
@@ -74,7 +74,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
       </div>
 
       {/* Content */}
-      <div className="p-3">
+      <div>
         {isLiteral ? (
           // Literal rendering (pre-wrap, monospace, exact text)
           <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words leading-relaxed">

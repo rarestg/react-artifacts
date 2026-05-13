@@ -30,7 +30,12 @@ import { Section } from './components/Section';
 import { SubSection } from './components/SubSection';
 import { ConversationTurn } from './conversation/ConversationTurn';
 import { getTurnKey } from './conversation/keys';
-import { getTurnItemVisibleType, type RenderMode, type VisibleTypes } from './conversation/types';
+import {
+  type ConversationDetailVisibility,
+  getTurnItemVisibleType,
+  type RenderMode,
+  type VisibleTypes,
+} from './conversation/types';
 import { allSearchResults, sampleConversation } from './fixtures';
 
 // ============================================
@@ -95,6 +100,12 @@ export default function DesignSystem() {
     toolCalls: false,
     tokenCounters: false,
   });
+  const [detailVisibility, setDetailVisibility] = useState<
+    Pick<ConversationDetailVisibility, 'showToolDetails' | 'showIntermediateTokenCounters'>
+  >({
+    showToolDetails: false,
+    showIntermediateTokenCounters: false,
+  });
 
   const toggleMessageRender = (turnIndex: number, messageIndex: number) => {
     const key = `${turnIndex}-${messageIndex}`;
@@ -114,6 +125,11 @@ export default function DesignSystem() {
     },
     { user: 0, assistant: 0, thinking: 0, toolCalls: 0, tokenCounters: 0 },
   );
+  const finalTokenCounterCount = sampleConversation.reduce(
+    (count, turn) => count + (turn.items.some((item) => item.type === 'token_counter') ? 1 : 0),
+    0,
+  );
+  const intermediateTokenCounterCount = Math.max(0, itemCounts.tokenCounters - finalTokenCounterCount);
 
   return (
     <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-strong)] p-8 text-[var(--text)]">
@@ -532,7 +548,7 @@ export default function DesignSystem() {
                   borderStyle="neutral"
                 />
                 <FilterCheckbox
-                  label="Tool Calls"
+                  label="Tools"
                   count={itemCounts.toolCalls}
                   checked={visibleTypes.toolCalls ?? false}
                   onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, toolCalls: checked }))}
@@ -540,12 +556,39 @@ export default function DesignSystem() {
                   borderStyle="neutral"
                 />
                 <FilterCheckbox
+                  label="Tool Details"
+                  count={itemCounts.toolCalls}
+                  checked={detailVisibility.showToolDetails}
+                  onCheckedChange={(checked) =>
+                    setDetailVisibility((visibility) => ({ ...visibility, showToolDetails: checked }))
+                  }
+                  tone="violet"
+                  borderStyle="neutral"
+                  disabled={!visibleTypes.toolCalls}
+                  className={!visibleTypes.toolCalls ? 'opacity-50' : undefined}
+                />
+                <FilterCheckbox
                   label="Token Counters"
-                  count={itemCounts.tokenCounters}
+                  count={finalTokenCounterCount}
                   checked={visibleTypes.tokenCounters ?? false}
                   onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, tokenCounters: checked }))}
                   tone="metadata"
                   borderStyle="neutral"
+                />
+                <FilterCheckbox
+                  label="Intermediate Tokens"
+                  count={intermediateTokenCounterCount}
+                  checked={detailVisibility.showIntermediateTokenCounters}
+                  onCheckedChange={(checked) =>
+                    setDetailVisibility((visibility) => ({
+                      ...visibility,
+                      showIntermediateTokenCounters: checked,
+                    }))
+                  }
+                  tone="metadata"
+                  borderStyle="neutral"
+                  disabled={!visibleTypes.tokenCounters}
+                  className={!visibleTypes.tokenCounters ? 'opacity-50' : undefined}
                 />
               </div>
             </SubSection>
@@ -569,15 +612,16 @@ export default function DesignSystem() {
                 </div>
                 <div>
                   <span className="inline-block size-2 bg-[var(--category-violet)] mr-2" />
-                  Tool Call: input + output (collapsible)
+                  Tool Call: summary first, details optional
                 </div>
                 <div>
                   <span className="inline-block size-2 bg-[var(--text-muted)] mr-2" />
-                  Token Counter: context window meter
+                  Token Counter: final context row by default
                 </div>
               </div>
               <p className="text-[var(--text-subtle)]">
-                Toggle message types above. Thinking, Tool Calls, and Token Counters are hidden by default.
+                Toggle message types above. Thinking, tools, and token counters are hidden by default; tool details and
+                intermediate token counters are explicit detail modes.
               </p>
             </div>
 
@@ -590,6 +634,13 @@ export default function DesignSystem() {
                   duration={turn.duration}
                   items={turn.items}
                   visibleTypes={visibleTypes}
+                  detailVisibility={{
+                    showToolSummaries: visibleTypes.toolCalls,
+                    showToolDetails: visibleTypes.toolCalls && detailVisibility.showToolDetails,
+                    showTokenCounters: visibleTypes.tokenCounters,
+                    showIntermediateTokenCounters:
+                      visibleTypes.tokenCounters && detailVisibility.showIntermediateTokenCounters,
+                  }}
                   renderModes={turn.items.map(
                     (_, msgIndex) => conversationRenderModes[`${turnIndex}-${msgIndex}`] || 'default',
                   )}

@@ -9,7 +9,11 @@ import { ConversationTurn } from '../../src/artifacts/sharp2/conversation/Conver
 import { getTurnItemKey, getTurnKey } from '../../src/artifacts/sharp2/conversation/keys';
 import { MessageCard } from '../../src/artifacts/sharp2/conversation/MessageCard';
 import { getDefaultRenderMode, splitMessageContent } from '../../src/artifacts/sharp2/conversation/markdown';
-import { getTokenUsageSummary, TokenCounter } from '../../src/artifacts/sharp2/conversation/TokenCounter';
+import {
+  getTokenUsageSummary,
+  TokenCounter,
+  tokenCounterPropsFromTelemetry,
+} from '../../src/artifacts/sharp2/conversation/TokenCounter';
 import { ToolCall } from '../../src/artifacts/sharp2/conversation/ToolCall';
 import type { ConversationTurnData } from '../../src/artifacts/sharp2/conversation/types';
 
@@ -114,13 +118,17 @@ test('TokenCounter shows invalid limits explicitly in visible and copied summari
 
   assert.deepEqual(summary, {
     usageText: '75 / invalid limit',
+    usedText: '75',
+    limitText: 'invalid limit',
     percentageText: 'percentage unavailable',
     copyText: 'Budget: 75 / invalid limit (percentage unavailable)',
     percentage: null,
     filledBlocks: 0,
     emptyBlocks: 20,
+    cachedText: null,
   });
-  assert.match(markup, /75 \/ invalid limit/);
+  assert.match(markup, /Used: 75/);
+  assert.match(markup, /Limit: invalid limit/);
   assert.match(markup, /percentage unavailable/);
   assert.doesNotMatch(markup, /75 \/ 0 tokens/);
   assert.doesNotMatch(markup, /75 \/ 1 tokens/);
@@ -132,12 +140,15 @@ test('TokenCounter marks invalid used values unavailable in visible and copied s
 
   for (const used of invalidUsedValues) {
     assert.deepEqual(getTokenUsageSummary({ used, limit: 200000, label: 'Budget' }), {
-      usageText: 'invalid usage / 200.0k tokens',
+      usageText: 'invalid usage / 200,000',
+      usedText: 'invalid usage',
+      limitText: '200,000',
       percentageText: 'percentage unavailable',
       copyText: 'Budget: invalid usage / 200000 tokens (percentage unavailable)',
       percentage: null,
       filledBlocks: 0,
       emptyBlocks: 20,
+      cachedText: null,
     });
   }
 
@@ -149,7 +160,8 @@ test('TokenCounter marks invalid used values unavailable in visible and copied s
     }),
   );
 
-  assert.match(markup, /invalid usage \/ 200\.0k tokens/);
+  assert.match(markup, /Used: invalid usage/);
+  assert.match(markup, /Limit: 200,000/);
   assert.match(markup, /percentage unavailable/);
   assert.doesNotMatch(markup, /NaN/);
 });
@@ -157,8 +169,73 @@ test('TokenCounter marks invalid used values unavailable in visible and copied s
 test('TokenCounter keeps copied valid token counts exact', () => {
   assert.equal(
     getTokenUsageSummary({ used: 1240, limit: 200000, label: 'Budget' }).copyText,
-    'Budget: 1240 / 200000 tokens (1% Used)',
+    'Budget: 1240 / 200000 tokens (0.6%)',
   );
+});
+
+test('TokenCounter displays prototype-style meter glyphs and copies cached counts when explicitly provided', () => {
+  const summary = getTokenUsageSummary({ used: 6500, limit: 8096, cached: 0, label: 'Context Window' });
+  const markup = renderToStaticMarkup(
+    createElement(TokenCounter, {
+      used: 6500,
+      limit: 8096,
+      cached: 0,
+      label: 'Context Window',
+    }),
+  );
+
+  assert.equal(summary.cachedText, '0');
+  assert.equal(summary.usedText, '6,500');
+  assert.equal(summary.limitText, '8,096');
+  assert.equal(summary.percentageText, '80.3%');
+  assert.equal(summary.copyText, 'Context Window: 6500 / 8096 tokens | 0 cached (80.3%)');
+  assert.match(markup, /▮/);
+  assert.match(markup, /---/);
+  assert.doesNotMatch(markup, /░/);
+  assert.match(markup, /Used: 6,500/);
+  assert.match(markup, /Limit: 8,096/);
+  assert.match(markup, /Cached: 0/);
+});
+
+test('tokenCounterPropsFromTelemetry maps context usage without rate-limit percentages', () => {
+  const props = tokenCounterPropsFromTelemetry({
+    info: {
+      total_token_usage: {
+        input_tokens: 3000,
+        cached_input_tokens: 1200,
+        output_tokens: 900,
+        reasoning_output_tokens: 400,
+        total_tokens: 6500,
+      },
+      last_token_usage: {
+        input_tokens: 100,
+        cached_input_tokens: 0,
+        output_tokens: 25,
+        reasoning_output_tokens: 5,
+        total_tokens: 130,
+      },
+      model_context_window: 8096,
+    },
+    rate_limits: {
+      primary: { used_percent: 99 },
+      secondary: { used_percent: 88 },
+    },
+  });
+
+  assert.equal(props.used, 6500);
+  assert.equal(props.limit, 8096);
+  assert.equal(props.cached, 1200);
+  assert.equal(props.inputTokens, 3000);
+  assert.equal(props.outputTokens, 900);
+  assert.equal(props.reasoningOutputTokens, 400);
+  assert.deepEqual(props.lastUsage, {
+    inputTokens: 100,
+    cachedInputTokens: 0,
+    outputTokens: 25,
+    reasoningOutputTokens: 5,
+    totalTokens: 130,
+  });
+  assert.equal(getTokenUsageSummary(props).percentageText, '80.3%');
 });
 
 test('conversation fallback keys distinguish same-length semantic content', () => {
@@ -288,17 +365,123 @@ test('ConversationTurn preserves original indexes for duplicate item references'
   assert.equal(markup.match(/<strong\b[^>]*>this<\/strong>/g)?.length ?? 0, 1);
 });
 
-test('ToolCall collapse button has an accessible name, expanded state, and visible focus', () => {
+test('ConversationTurn shows only the final token counter unless intermediate counters are enabled', () => {
+  const items: ConversationTurnData['items'] = [
+    { id: 'user', role: 'user', content: 'Question' },
+    { id: 'token-1', type: 'token_counter', used: 100, limit: 1000, label: 'Context Window' },
+    { id: 'assistant', role: 'assistant', content: 'Answer' },
+    { id: 'token-2', type: 'token_counter', used: 200, limit: 1000, label: 'Context Window' },
+  ];
+
+  const summaryOnlyMarkup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items,
+      visibleTypes: {
+        user: true,
+        assistant: true,
+        thinking: true,
+        toolCalls: true,
+        tokenCounters: true,
+      },
+      detailVisibility: {
+        showTokenCounters: true,
+        showIntermediateTokenCounters: false,
+      },
+    }),
+  );
+  const intermediateMarkup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items,
+      visibleTypes: {
+        user: true,
+        assistant: true,
+        thinking: true,
+        toolCalls: true,
+        tokenCounters: true,
+      },
+      detailVisibility: {
+        showTokenCounters: true,
+        showIntermediateTokenCounters: true,
+      },
+    }),
+  );
+
+  assert.doesNotMatch(summaryOnlyMarkup, /Used: 100/);
+  assert.match(summaryOnlyMarkup, /Used: 200/);
+  assert.match(summaryOnlyMarkup, /Limit: 1,000/);
+  assert.match(summaryOnlyMarkup, />3 items</);
+  assert.match(intermediateMarkup, /Used: 100/);
+  assert.match(intermediateMarkup, /Used: 200/);
+  assert.match(intermediateMarkup, />4 items</);
+});
+
+test('ConversationTurn renders tool summaries without details when detail mode is off', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items: [
+        { id: 'user', role: 'user', content: 'Run tests' },
+        { id: 'tool', type: 'tool_call', tool: 'bash', input: 'npm test', output: 'PASS', status: 'success' },
+        { id: 'assistant', role: 'assistant', content: 'Done' },
+      ],
+      visibleTypes: {
+        user: true,
+        assistant: true,
+        thinking: true,
+        toolCalls: true,
+        tokenCounters: false,
+      },
+      detailVisibility: {
+        showToolSummaries: true,
+        showToolDetails: false,
+      },
+    }),
+  );
+
+  assert.match(markup, /Tool Call/);
+  assert.match(markup, /bash/);
+  assert.match(markup, /Success/);
+  assert.match(markup, /aria-label="Copy tool input and output"/);
+  assert.doesNotMatch(markup, />Input</);
+  assert.doesNotMatch(markup, /npm test/);
+  assert.doesNotMatch(markup, />Output</);
+  assert.doesNotMatch(markup, /PASS/);
+  assert.match(markup, />3 items</);
+});
+
+test('ToolCall supports summary-only and detail rendering without expandable affordances', () => {
+  const summaryMarkup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      input: 'npm test',
+      output: 'PASS',
+      status: 'success',
+      showDetails: false,
+    }),
+  );
   const markup = renderToStaticMarkup(
     createElement(ToolCall, {
       tool: 'bash',
       input: 'npm test',
       output: 'PASS',
       status: 'success',
+      showDetails: true,
     }),
   );
 
-  assert.match(markup, /aria-label="Collapse tool call details"/);
-  assert.match(markup, /aria-expanded="true"/);
+  assert.match(summaryMarkup, /Tool Call/);
+  assert.match(summaryMarkup, /bash/);
+  assert.match(summaryMarkup, /Success/);
+  assert.doesNotMatch(summaryMarkup, /aria-expanded/);
+  assert.doesNotMatch(summaryMarkup, /npm test/);
+  assert.doesNotMatch(summaryMarkup, /PASS/);
+  assert.match(markup, />Input</);
+  assert.match(markup, /npm test/);
+  assert.match(markup, />Output</);
+  assert.match(markup, /PASS/);
+  assert.match(markup, /aria-label="Copy tool input"/);
+  assert.match(markup, /aria-label="Copy tool output"/);
   assert.match(markup, /focus-visible:ring-2/);
 });

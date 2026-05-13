@@ -89,6 +89,7 @@ turn semantics are not shared APIs.
 | `conversation/markdown.tsx` | Local lightweight markdown splitting/rendering helpers and render fallback boundary. |
 | `conversation/keys.ts` | Stable key helpers for turns and turn items. |
 | `conversation/types.ts` | Local conversation data and visibility types. |
+| `conversation-rendering-execution-plan.md` | Implementation plan for reducing nested-card conversation rendering and improving tool/token detail controls. |
 
 ## Patterns To Preserve
 

@@ -9,12 +9,13 @@
 
 | ID | Title | When to read | Keywords | Lines |
 | --- | --- | --- | --- | --- |
-| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 28-55 |
-| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 56-71 |
-| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 72-84 |
-| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 85-121 |
-| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary | 122-147 |
-| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 151-192 |
+| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 29-56 |
+| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 57-72 |
+| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 73-85 |
+| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 86-123 |
+| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary | 124-152 |
+| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 153-197 |
+| 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 198-258 |
 
 ## Format for new entries
 - Title
@@ -191,3 +192,67 @@ const actionTooltip = !hasInput
 
 ### Exceptions
 - If the control truly represents a persisted preference, a switch/toggle is appropriate.
+
+---
+
+## 007 — Stable Visual State Transitions
+
+### When it applies
+- Controls, rows, chips, badges, or repeated items whose selected, checked, active, or expanded state changes multiple visual parts at once.
+- UI where icons, indicators, counts, backgrounds, borders, or label tones transition between states.
+- Compact controls that use category colors, metadata tones, weak selected backgrounds, or animated state feedback.
+
+### Recommended pattern
+- Treat the state change as one coordinated visual transition: container, indicator, icon, label, badge, and border should derive from the same semantic state or eligibility predicate.
+- Keep stateful visual children mounted while colors transition. Hide an inactive icon by fading it, matching it to the background, or using visibility/opacity; avoid unmounting it mid-transition.
+- Preserve layout slots for labels, icons, badges, and counts. Use reserved labels, fixed icon slots, `tabular-nums`, and minimum count widths where values change.
+- Prefer surface or weak background shifts for selected state support, plus an explicit selected cue such as a checkbox, marker, bar, or icon. Do not rely on color alone.
+- Use the quietest sufficient color channel:
+  - strong tone for small indicators, checkbox fills, or outlines
+  - weak tone for selected row or chip backgrounds
+  - neutral or transparent outer borders when colored borders become too loud
+- Keep tone APIs typed and token-backed. Prefer CSS variables over arbitrary caller-provided color class strings.
+- Inspect computed colors in light and dark mode. `color-mix()` can make source-token intent misleading.
+- Treat metadata as a neutral tone distinct from category or semantic colors.
+
+### Code hint
+
+```tsx
+<Check
+  aria-hidden="true"
+  className={mergeClassNames(
+    checkClassName ?? 'text-[var(--primary-contrast)]',
+    !checked && 'text-[var(--checkbox-off-bg)]',
+    'h-2.5 w-2.5',
+  )}
+/>
+```
+
+```tsx
+<FilterCheckbox
+  label="Token Counters"
+  count={tokenCounterCount}
+  checked={visibleTypes.tokenCounters}
+  onCheckedChange={setTokenCountersVisible}
+  tone="metadata"
+  borderStyle="neutral"
+/>
+```
+
+### Why it matters
+- Conditional icon rendering can flicker when the icon unmounts before the square background finishes transitioning.
+- Layout movement during state changes makes dense tools harder to scan and easier to mis-click.
+- Bright borders can overpower compact controls; a weak selected background plus a small colored indicator is often enough.
+- Metadata needs visible affordance without reading as category, warning, success, or primary action.
+- Stable count and icon areas preserve scanability across controls with different labels and changing values.
+
+### Notes and pitfalls
+- Inspect computed colors in light and dark mode. A neutral weak tone such as `--surface-strong` may be almost indistinguishable from the canvas after `color-mix()` overrides.
+- If a neutral selected background needs more presence, mix from text over surface, for example `color-mix(in srgb, var(--text-muted) 22%, var(--surface) 78%)`.
+- Align transition properties and timing across the parts that change together; avoid transitioning layout dimensions for state feedback.
+- Always include `motion-reduce:transition-none` where animated transitions are used.
+- For checkbox-style multi-select filters, keep checkbox semantics. Do not rename or rebuild them as toggles unless they represent a persisted binary preference.
+
+### Exceptions
+- If the checked mark represents expensive DOM or animation work, a stable placeholder with hidden visibility can still preserve layout and timing.
+- If a filter has no count, omit the badge area rather than rendering an empty decorative box.

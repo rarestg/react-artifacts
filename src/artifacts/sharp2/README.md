@@ -51,6 +51,7 @@ table when the showcase starts or stops demonstrating one.
 | `Tag` | Demonstrated as metadata/status labels and used inside conversation examples. |
 | `Panel` | Demonstrated as default, muted, dashed, list, and layout surfaces. |
 | `Checkbox` | Demonstrated with enabled, disabled, and focus examples. |
+| `FilterCheckbox` | Demonstrated in conversation filters with count badges and category tones. |
 | `Toggle` | Demonstrated as a shared on/off primitive. |
 | `SegmentedControl` | Demonstrated with neutral and accent tones. |
 | `ListboxSelect` | Shared but not currently demonstrated here. |
@@ -84,7 +85,6 @@ turn semantics are not shared APIs.
 | `conversation/MessageCard.tsx` | Renders one user, assistant, thinking, or tool message with literal/rendered modes. |
 | `conversation/ToolCall.tsx` | Renders collapsible tool input/output with status and copy behavior. |
 | `conversation/ConversationTurn.tsx` | Groups turn items with a stable header and filters visible item types. |
-| `conversation/MessageTypeToggle.tsx` | Filters message categories with visible checkbox state and counts. |
 | `conversation/TokenCounter.tsx` | Displays context-window usage with copyable raw summary text. |
 | `conversation/markdown.tsx` | Local lightweight markdown splitting/rendering helpers and render fallback boundary. |
 | `conversation/keys.ts` | Stable key helpers for turns and turn items. |

@@ -15,6 +15,7 @@ import { Button } from '../../components/Button';
 import { Checkbox } from '../../components/Checkbox';
 import { CopyableLabel } from '../../components/CopyableLabel';
 import { CopyButton } from '../../components/CopyButton';
+import { FilterCheckbox } from '../../components/FilterCheckbox';
 import { Input } from '../../components/Input';
 import { Panel } from '../../components/Panel';
 import { SegmentedControl } from '../../components/SegmentedControl';
@@ -29,7 +30,6 @@ import { Section } from './components/Section';
 import { SubSection } from './components/SubSection';
 import { ConversationTurn } from './conversation/ConversationTurn';
 import { getTurnKey } from './conversation/keys';
-import { MessageTypeToggle } from './conversation/MessageTypeToggle';
 import { getTurnItemVisibleType, type RenderMode, type VisibleTypes } from './conversation/types';
 import { allSearchResults, sampleConversation } from './fixtures';
 
@@ -507,40 +507,45 @@ export default function DesignSystem() {
             {/* Message type filter toggles */}
             <SubSection label="Message type filters">
               <div className="flex flex-wrap gap-1 border border-[var(--border)] bg-[var(--surface)] p-2">
-                <MessageTypeToggle
+                <FilterCheckbox
                   label="User"
                   count={itemCounts.user}
                   checked={visibleTypes.user ?? false}
-                  onChange={(e) => setVisibleTypes((v) => ({ ...v, user: e.target.checked }))}
-                  color="bg-[var(--category-blue)] text-[var(--category-blue)]"
+                  onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, user: checked }))}
+                  tone="blue"
+                  borderStyle="neutral"
                 />
-                <MessageTypeToggle
+                <FilterCheckbox
                   label="Assistant"
                   count={itemCounts.assistant}
                   checked={visibleTypes.assistant ?? false}
-                  onChange={(e) => setVisibleTypes((v) => ({ ...v, assistant: e.target.checked }))}
-                  color="bg-[var(--category-green)] text-[var(--category-green)]"
+                  onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, assistant: checked }))}
+                  tone="green"
+                  borderStyle="neutral"
                 />
-                <MessageTypeToggle
+                <FilterCheckbox
                   label="Thinking"
                   count={itemCounts.thinking}
                   checked={visibleTypes.thinking ?? false}
-                  onChange={(e) => setVisibleTypes((v) => ({ ...v, thinking: e.target.checked }))}
-                  color="bg-[var(--category-amber)] text-[var(--category-amber)]"
+                  onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, thinking: checked }))}
+                  tone="amber"
+                  borderStyle="neutral"
                 />
-                <MessageTypeToggle
+                <FilterCheckbox
                   label="Tool Calls"
                   count={itemCounts.toolCalls}
                   checked={visibleTypes.toolCalls ?? false}
-                  onChange={(e) => setVisibleTypes((v) => ({ ...v, toolCalls: e.target.checked }))}
-                  color="bg-[var(--category-violet)] text-[var(--category-violet)]"
+                  onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, toolCalls: checked }))}
+                  tone="violet"
+                  borderStyle="neutral"
                 />
-                <MessageTypeToggle
+                <FilterCheckbox
                   label="Token Counters"
                   count={itemCounts.tokenCounters}
                   checked={visibleTypes.tokenCounters ?? false}
-                  onChange={(e) => setVisibleTypes((v) => ({ ...v, tokenCounters: e.target.checked }))}
-                  color="bg-[var(--text-subtle)] text-[var(--text-subtle)]"
+                  onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, tokenCounters: checked }))}
+                  tone="metadata"
+                  borderStyle="neutral"
                 />
               </div>
             </SubSection>
@@ -567,7 +572,7 @@ export default function DesignSystem() {
                   Tool Call: input + output (collapsible)
                 </div>
                 <div>
-                  <span className="inline-block size-2 bg-[var(--text-subtle)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--text-muted)] mr-2" />
                   Token Counter: context window meter
                 </div>
               </div>

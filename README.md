@@ -146,8 +146,9 @@ track the actual browser viewport (or when using DevTools device emulation).
 ## Shared Components And Helpers
 
 Tokenized artifact primitives live in `src/components/` and must render under `ArtifactThemeRoot`. This includes common
-artifact UI such as `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `Toggle`, `SegmentedControl`, `ListboxSelect`,
-`CopyButton`, `CopyableLabel`, `StatusTag`, `ArtifactDialog`, and `panelHeaderClasses` for dense tool panel headers.
+artifact UI such as `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `FilterCheckbox`, `Toggle`, `SegmentedControl`,
+`ListboxSelect`, `CopyButton`, `CopyableLabel`, `StatusTag`, `ArtifactDialog`, and `panelHeaderClasses` for dense tool
+panel headers.
 
 Not every `src/components/` export is an artifact primitive. Shell UI in `src/App.tsx` is not artifact UI; do not pull
 artifact-token components into shell chrome unless the subtree is intentionally wrapped. Prefer headless hooks and

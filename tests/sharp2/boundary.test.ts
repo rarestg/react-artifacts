@@ -7,6 +7,7 @@ const sharp2Dir = 'src/artifacts/sharp2';
 const sharp2ReadmePath = `${sharp2Dir}/README.md`;
 const sharedPrimitiveNames = [
   'Checkbox',
+  'FilterCheckbox',
   'Toggle',
   'SegmentedControl',
   'CopyButton',
@@ -66,6 +67,7 @@ test('sharp2 imports shared primitives from src/components at usage sites', asyn
     'Tag',
     'Panel',
     'Checkbox',
+    'FilterCheckbox',
     'Toggle',
     'SegmentedControl',
     'CopyButton',
@@ -128,6 +130,16 @@ test('sharp2 keeps Panel structural instead of adding interactive affordances to
       `${file} should not pass interactive affordance classes to shared Panel`,
     );
   }
+});
+
+test('sharp2 message filters use the shared FilterCheckbox primitive directly', async () => {
+  const source = await readFile(`${sharp2Dir}/index.tsx`, 'utf8');
+
+  assert.match(source, /import \{ FilterCheckbox \} from ['"](?:\.\.\/)+components\/FilterCheckbox['"]/);
+  assert.match(source, /<FilterCheckbox\b/);
+  assert.match(source, /borderStyle="neutral"/);
+  await assert.rejects(readFile(`${sharp2Dir}/conversation/MessageTypeFilter.tsx`, 'utf8'), /ENOENT/);
+  await assert.rejects(readFile(`${sharp2Dir}/conversation/MessageTypeToggle.tsx`, 'utf8'), /ENOENT/);
 });
 
 test('sharp2 avoids viewport breakpoints in preview-sensitive showcase layout', async () => {

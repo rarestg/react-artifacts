@@ -174,7 +174,7 @@ function SwatchToggle<TId extends string>({ swatch, active, onToggle }: SwatchTo
           : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
       )}
     >
-      <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden />
+      <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden="true" />
       {swatch.label}
     </button>
   );
@@ -190,7 +190,7 @@ function SwatchStateChip<TId extends string>({ swatch, suffix }: SwatchStateChip
     <div
       className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
     >
-      <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
+      <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden="true" />
       {swatch.label} {suffix}
     </div>
   );

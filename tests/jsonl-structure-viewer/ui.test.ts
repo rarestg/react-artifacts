@@ -46,6 +46,19 @@ test('JSONL Structure Viewer layout buttons expose descriptive accessible names'
   assert.match(source, /<Columns3 className="size-3\.5" aria-hidden="true" \/>/);
 });
 
+test('JSONL Structure Viewer output toolbar controls share explicit density', async () => {
+  const source = await readFile('src/artifacts/jsonl-structure-viewer/index.tsx', 'utf8');
+
+  assert.match(source, /const outputToolbarControlSize: SegmentedControlSize = 'compact';/);
+
+  const outputViewControl = findSelfClosingElement(source, 'SegmentedControl', 'ariaLabel="Output view"');
+  const outputFormatControl = findSelfClosingElement(source, 'SegmentedControl', 'ariaLabel="Output format"');
+
+  assert.match(outputViewControl, /size=\{outputToolbarControlSize\}/);
+  assert.match(outputFormatControl, /size=\{outputToolbarControlSize\}/);
+  assert.doesNotMatch(outputFormatControl, /size="default"/);
+});
+
 test('JSONL Structure Viewer input controls have explicit accessible labels', async () => {
   const source = await readFile('src/artifacts/jsonl-structure-viewer/index.tsx', 'utf8');
 
@@ -76,4 +89,15 @@ test('JSONL Structure Viewer local buttons follow cursor affordance contract', a
   );
   assert.match(pathListSource, /className="cursor-pointer[\s\S]*?aria-label=\{isExpanded \? 'Collapse' : 'Expand'\}/);
   assert.match(pathListSource, /className="absolute right-2 cursor-pointer[\s\S]*?aria-label="Clear search"/);
+});
+
+test('JSONL Structure Viewer checkboxes keep stateful visuals stable', async () => {
+  const checkboxSource = await readFile('src/artifacts/jsonl-structure-viewer/components/Checkbox.tsx', 'utf8');
+  const pathListSource = await readFile('src/artifacts/jsonl-structure-viewer/components/PathList.tsx', 'utf8');
+
+  assert.doesNotMatch(checkboxSource, /\{checked && <CheckIcon/);
+  assert.match(checkboxSource, /<CheckIcon[\s\S]*aria-hidden="true"/);
+  assert.match(checkboxSource, /checked \? 'text-white' : 'text-\[var\(--surface\)\]'/);
+  assert.match(pathListSource, /const actionButtonCompact = `\$\{actionButtonBase\}[\s\S]*min-w-10/);
+  assert.match(pathListSource, /const actionButtonCompact = `\$\{actionButtonBase\}[\s\S]*tabular-nums/);
 });

@@ -55,7 +55,13 @@ export default function Checkbox({
           !checked && !disabled && 'hover:border-[var(--border-strong)]',
         )}
       >
-        {checked && <CheckIcon className="size-3 text-white" />}
+        <CheckIcon
+          aria-hidden="true"
+          className={mergeClassNames(
+            'size-3 transition-colors motion-reduce:transition-none',
+            checked ? 'text-white' : 'text-[var(--surface)]',
+          )}
+        />
         <input
           type="checkbox"
           checked={checked}

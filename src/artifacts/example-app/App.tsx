@@ -17,6 +17,17 @@ type SessionRow = {
   status: SessionStatus;
 };
 
+type TokenBackgroundClass = `bg-[var(--${string})]`;
+type TokenBorderClass = `border-[color:var(--${string})]`;
+
+type ColorSwatchDescriptor<TId extends string = string> = {
+  id: TId;
+  label: string;
+  weakBg: TokenBackgroundClass;
+  strongBg: TokenBackgroundClass;
+  border: TokenBorderClass;
+};
+
 const themeSwatches = [
   {
     id: 'accent',
@@ -53,7 +64,7 @@ const themeSwatches = [
     strongBg: 'bg-[var(--danger)]',
     border: 'border-[color:var(--danger)]',
   },
-] as const;
+] as const satisfies readonly ColorSwatchDescriptor[];
 
 type ThemeSwatchId = (typeof themeSwatches)[number]['id'];
 
@@ -114,21 +125,24 @@ const categorySwatches = [
     strongBg: 'bg-[var(--category-lime)]',
     border: 'border-[color:var(--category-lime)]',
   },
-] as const;
+] as const satisfies readonly ColorSwatchDescriptor[];
 
 type CategorySwatchId = (typeof categorySwatches)[number]['id'];
 
-export default function ExampleApp() {
-  const [activeRow, setActiveRow] = useState<string>('session-01');
-  const [view, setView] = useState<'all' | 'active'>('all');
-  const [activeSwatches, setActiveSwatches] = useState<Record<ThemeSwatchId, boolean>>({
+type ActivePreviewSwatches = {
+  theme: Record<ThemeSwatchId, boolean>;
+  category: Record<CategorySwatchId, boolean>;
+};
+
+const initialActivePreviewSwatches: ActivePreviewSwatches = {
+  theme: {
     accent: true,
     success: true,
     warning: false,
     info: false,
     danger: false,
-  });
-  const [activeCategorySwatches, setActiveCategorySwatches] = useState<Record<CategorySwatchId, boolean>>({
+  },
+  category: {
     user: true,
     assistant: true,
     thinking: false,
@@ -137,7 +151,86 @@ export default function ExampleApp() {
     system: true,
     note: false,
     marker: false,
-  });
+  },
+};
+
+type SwatchToggleProps<TId extends string> = {
+  swatch: ColorSwatchDescriptor<TId>;
+  active: boolean;
+  onToggle: (id: TId) => void;
+};
+
+function SwatchToggle<TId extends string>({ swatch, active, onToggle }: SwatchToggleProps<TId>) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={() => onToggle(swatch.id)}
+      className={mergeClassNames(
+        'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none cursor-pointer',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+        active
+          ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
+          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+      )}
+    >
+      <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden />
+      {swatch.label}
+    </button>
+  );
+}
+
+type SwatchStateChipProps<TId extends string> = {
+  swatch: ColorSwatchDescriptor<TId>;
+  suffix: string;
+};
+
+function SwatchStateChip<TId extends string>({ swatch, suffix }: SwatchStateChipProps<TId>) {
+  return (
+    <div
+      className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
+    >
+      <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
+      {swatch.label} {suffix}
+    </div>
+  );
+}
+
+type SwatchPreviewGroupProps<TId extends string> = {
+  swatches: readonly ColorSwatchDescriptor<TId>[];
+  activeSwatches: Record<TId, boolean>;
+  onToggleSwatch: (id: TId) => void;
+  chipSuffix: string;
+};
+
+function SwatchPreviewGroup<TId extends string>({
+  swatches,
+  activeSwatches,
+  onToggleSwatch,
+  chipSuffix,
+}: SwatchPreviewGroupProps<TId>) {
+  return (
+    <>
+      <div className="flex flex-wrap gap-2">
+        {swatches.map((swatch) => (
+          <SwatchToggle key={swatch.id} swatch={swatch} active={activeSwatches[swatch.id]} onToggle={onToggleSwatch} />
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {swatches.map((swatch) => (
+          <SwatchStateChip key={`${swatch.id}-chip`} swatch={swatch} suffix={chipSuffix} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+export default function ExampleApp() {
+  const [activeRow, setActiveRow] = useState<string>('session-01');
+  const [view, setView] = useState<'all' | 'active'>('all');
+  const [activePreviewSwatches, setActivePreviewSwatches] =
+    useState<ActivePreviewSwatches>(initialActivePreviewSwatches);
   const [capsLockActive, setCapsLockActive] = useState(false);
   const [capsLockSeen, setCapsLockSeen] = useState(false);
   const rowRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -153,6 +246,24 @@ export default function ExampleApp() {
 
   const visibleSessions = view === 'active' ? sessions.filter((row) => row.status === 'active') : sessions;
   const lastVisibleIndex = visibleSessions.length - 1;
+  const handleThemeSwatchToggle = (id: ThemeSwatchId) => {
+    setActivePreviewSwatches((prev) => ({
+      ...prev,
+      theme: {
+        ...prev.theme,
+        [id]: !prev.theme[id],
+      },
+    }));
+  };
+  const handleCategorySwatchToggle = (id: CategorySwatchId) => {
+    setActivePreviewSwatches((prev) => ({
+      ...prev,
+      category: {
+        ...prev.category,
+        [id]: !prev.category[id],
+      },
+    }));
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -345,43 +456,12 @@ export default function ExampleApp() {
             </Tag>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {themeSwatches.map((swatch) => (
-              <button
-                key={swatch.id}
-                type="button"
-                aria-pressed={activeSwatches[swatch.id]}
-                onClick={() =>
-                  setActiveSwatches((prev) => ({
-                    ...prev,
-                    [swatch.id]: !prev[swatch.id],
-                  }))
-                }
-                className={mergeClassNames(
-                  'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none cursor-pointer',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-                  activeSwatches[swatch.id]
-                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
-                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-                )}
-              >
-                <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden />
-                {swatch.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {themeSwatches.map((swatch) => (
-              <div
-                key={`${swatch.id}-chip`}
-                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
-              >
-                <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
-                {swatch.label} state
-              </div>
-            ))}
-          </div>
+          <SwatchPreviewGroup
+            swatches={themeSwatches}
+            activeSwatches={activePreviewSwatches.theme}
+            onToggleSwatch={handleThemeSwatchToggle}
+            chipSuffix="state"
+          />
         </Panel>
 
         <Panel className="p-4 space-y-4">
@@ -397,43 +477,12 @@ export default function ExampleApp() {
             </Tag>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {categorySwatches.map((swatch) => (
-              <button
-                key={swatch.id}
-                type="button"
-                aria-pressed={activeCategorySwatches[swatch.id]}
-                onClick={() =>
-                  setActiveCategorySwatches((prev) => ({
-                    ...prev,
-                    [swatch.id]: !prev[swatch.id],
-                  }))
-                }
-                className={mergeClassNames(
-                  'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none cursor-pointer',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-                  activeCategorySwatches[swatch.id]
-                    ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
-                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-                )}
-              >
-                <span className={`h-2 w-2 border ${swatch.border} ${swatch.strongBg}`} aria-hidden />
-                {swatch.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {categorySwatches.map((swatch) => (
-              <div
-                key={`${swatch.id}-chip`}
-                className={`inline-flex items-center gap-2 border ${swatch.border} ${swatch.weakBg} px-2 py-1 text-xs font-medium text-[var(--text)]`}
-              >
-                <span className={`h-2 w-2 ${swatch.strongBg}`} aria-hidden />
-                {swatch.label} type
-              </div>
-            ))}
-          </div>
+          <SwatchPreviewGroup
+            swatches={categorySwatches}
+            activeSwatches={activePreviewSwatches.category}
+            onToggleSwatch={handleCategorySwatchToggle}
+            chipSuffix="type"
+          />
         </Panel>
       </div>
     </ArtifactThemeRoot>

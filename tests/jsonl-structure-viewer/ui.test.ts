@@ -77,3 +77,14 @@ test('JSONL Structure Viewer local buttons follow cursor affordance contract', a
   assert.match(pathListSource, /className="cursor-pointer[\s\S]*?aria-label=\{isExpanded \? 'Collapse' : 'Expand'\}/);
   assert.match(pathListSource, /className="absolute right-2 cursor-pointer[\s\S]*?aria-label="Clear search"/);
 });
+
+test('JSONL Structure Viewer checkboxes keep stateful visuals stable', async () => {
+  const checkboxSource = await readFile('src/artifacts/jsonl-structure-viewer/components/Checkbox.tsx', 'utf8');
+  const pathListSource = await readFile('src/artifacts/jsonl-structure-viewer/components/PathList.tsx', 'utf8');
+
+  assert.doesNotMatch(checkboxSource, /\{checked && <CheckIcon/);
+  assert.match(checkboxSource, /<CheckIcon[\s\S]*aria-hidden="true"/);
+  assert.match(checkboxSource, /checked \? 'text-white' : 'text-\[var\(--surface\)\]'/);
+  assert.match(pathListSource, /const actionButtonCompact = `\$\{actionButtonBase\}[\s\S]*min-w-10/);
+  assert.match(pathListSource, /const actionButtonCompact = `\$\{actionButtonBase\}[\s\S]*tabular-nums/);
+});

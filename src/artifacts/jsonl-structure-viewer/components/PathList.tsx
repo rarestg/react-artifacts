@@ -14,7 +14,7 @@ import Checkbox from './Checkbox';
 const actionButtonBase =
   'cursor-pointer border border-[var(--border)] bg-[var(--surface)] text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]';
 
-const actionButtonCompact = `${actionButtonBase} px-1.5 py-0.5`;
+const actionButtonCompact = `${actionButtonBase} min-w-10 px-1.5 py-0.5 text-center tabular-nums`;
 
 type PathListProps = {
   tree: PathNode | null;

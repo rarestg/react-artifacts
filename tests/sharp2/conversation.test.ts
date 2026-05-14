@@ -6,6 +6,11 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { ConversationTurn } from '../../src/artifacts/sharp2/conversation/ConversationTurn';
+import {
+  AgentIdentityTags,
+  EventDescriptor,
+  getAgentIdentityToneName,
+} from '../../src/artifacts/sharp2/conversation/EventRowParts';
 import { getTurnItemKey, getTurnKey } from '../../src/artifacts/sharp2/conversation/keys';
 import { MessageCard } from '../../src/artifacts/sharp2/conversation/MessageCard';
 import { getDefaultRenderMode, splitMessageContent } from '../../src/artifacts/sharp2/conversation/markdown';
@@ -706,6 +711,85 @@ test('conversation event rows use the shared TranscriptRow accent and inset shel
   assert.doesNotMatch(notificationMarkup, /gap-3 px-4 py-3/);
 });
 
+test('EventDescriptor reserves subagent action width without widening ordinary tools', () => {
+  const subagentActions = ['Spawn', 'Wait', 'Close', 'Notification'];
+
+  for (const action of subagentActions) {
+    const markup = renderToStaticMarkup(
+      createElement(EventDescriptor, {
+        category: 'SUBAGENT',
+        colorClassName: 'text-[var(--category-cyan)]',
+        sections: [{ value: action, width: 'subagentAction' }],
+      }),
+    );
+
+    assert.match(markup, />SUBAGENT</);
+    assert.match(markup, new RegExp(`>${action}<`));
+    assert.match(markup, /data-section-width="subagentAction"/);
+    assert.match(markup, /min-w-\[12ch\]/);
+    assert.match(markup, /shrink-0/);
+  }
+
+  const ordinaryToolMarkup = renderToStaticMarkup(
+    createElement(EventDescriptor, {
+      category: 'TOOL',
+      colorClassName: 'text-[var(--category-violet)]',
+      sections: [{ value: 'bash' }],
+    }),
+  );
+
+  assert.match(ordinaryToolMarkup, />TOOL</);
+  assert.match(ordinaryToolMarkup, />bash</);
+  assert.doesNotMatch(ordinaryToolMarkup, /data-section-width="subagentAction"/);
+  assert.doesNotMatch(ordinaryToolMarkup, /min-w-\[12ch\]/);
+});
+
+test('AgentIdentityTags renders nickname and short id as separate deterministic-tone tags', () => {
+  const firstTone = getAgentIdentityToneName('child-thread-123');
+  const secondTone = getAgentIdentityToneName('child-thread-123');
+  const distributedTones = new Set(
+    Array.from({ length: 8 }, (_, index) => getAgentIdentityToneName(`child-thread-${index}`)),
+  );
+  const markup = renderToStaticMarkup(
+    createElement(AgentIdentityTags, {
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      agentRole: 'worker',
+    }),
+  );
+
+  assert.equal(firstTone, secondTone);
+  assert.notEqual(firstTone, 'metadata');
+  assert.ok(distributedTones.size > 1);
+  assert.match(markup, new RegExp(`data-agent-tone="${firstTone}"`));
+  assert.match(markup, /--agent-tag-color:var\(--category-/);
+  assert.match(markup, /data-agent-identity-tag="nickname"/);
+  assert.match(markup, />Ada</);
+  assert.match(markup, /data-agent-identity-tag="id"/);
+  assert.match(markup, />ad-123</);
+  assert.doesNotMatch(markup, /Ada \/ ad-123/);
+  assert.doesNotMatch(markup, /<button/);
+});
+
+test('AgentIdentityTags copy mode exposes separate nickname and full-id copy targets', () => {
+  const markup = renderToStaticMarkup(
+    createElement(AgentIdentityTags, {
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      agentRole: 'worker',
+      mode: 'copy',
+    }),
+  );
+
+  assert.match(markup, /<button/);
+  assert.match(markup, /data-agent-identity-tag="nickname"/);
+  assert.match(markup, /aria-label="Copy agent nickname Ada"/);
+  assert.match(markup, /data-copy-value="Ada"/);
+  assert.match(markup, /data-agent-identity-tag="id"/);
+  assert.match(markup, /aria-label="Copy full agent ID child-thread-123"/);
+  assert.match(markup, /data-copy-value="child-thread-123"/);
+});
+
 test('ConversationTurn filters subagent lifecycle activity independently from ordinary tools', () => {
   const items: ConversationTurnData['items'] = [
     { id: 'tool', type: 'tool_call', tool: 'bash', input: 'npm test', output: 'PASS' },
@@ -778,7 +862,10 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
   assert.match(onlySubagentMarkup, />Spawn</);
   assert.match(onlySubagentMarkup, /spawn_agent &gt; Ada/);
   assert.match(onlySubagentMarkup, /wait_agent &gt; Ada/);
-  assert.match(onlySubagentMarkup, /Ada \/ ad-123/);
+  assert.match(onlySubagentMarkup, /data-agent-identity-tag="nickname"/);
+  assert.match(onlySubagentMarkup, />Ada</);
+  assert.match(onlySubagentMarkup, /data-agent-identity-tag="id"/);
+  assert.match(onlySubagentMarkup, />ad-123</);
   assert.match(onlySubagentMarkup, />Notification</);
   assert.match(onlySubagentMarkup, /The parser is treating inherited metadata/);
   assert.doesNotMatch(onlySubagentMarkup, /Completed/);
@@ -814,6 +901,8 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(summaryMarkup, />TOOL</);
   assert.match(summaryMarkup, /npm test/);
   assert.match(summaryMarkup, />bash</);
+  assert.doesNotMatch(summaryMarkup, /data-section-width="subagentAction"/);
+  assert.doesNotMatch(summaryMarkup, /min-w-\[12ch\]/);
   assert.doesNotMatch(summaryMarkup, /Success/);
   assert.doesNotMatch(summaryMarkup, /success-weak/);
   assert.match(summaryMarkup, /title="10:44:30 AM local time"/);
@@ -861,13 +950,45 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
 
     assert.match(markup, />SUBAGENT</);
     assert.match(markup, new RegExp(label));
-    assert.match(markup, /Ada \/ ad-123/);
+    assert.match(markup, /data-section-width="subagentAction"/);
+    assert.match(markup, /min-w-\[12ch\]/);
+    assert.match(markup, /data-agent-identity-tag="nickname"/);
+    assert.match(markup, />Ada</);
+    assert.match(markup, /data-agent-identity-tag="id"/);
+    assert.match(markup, />ad-123</);
     assert.match(markup, new RegExp(`${tool} &gt; Ada`));
     assert.match(markup, /--transcript-row-accent:var\(--category-cyan\)/);
     assert.match(markup, /Running/);
     assert.match(markup, new RegExp(`aria-label="Expand ${tool} tool details"`));
     assert.doesNotMatch(markup, />TOOL</);
+    assert.doesNotMatch(markup, /data-copy-value="Ada"/);
+    assert.doesNotMatch(markup, /data-copy-value="child-thread-123"/);
+    assert.equal(markup.match(/<button/g)?.length ?? 0, 1);
   }
+});
+
+test('expanded subagent tool details include copyable agent identity tags', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'spawn_agent',
+      toolKind: 'subagent_spawn',
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      agentRole: 'worker',
+      summary: 'spawn_agent -> Ada',
+      input: 'agent operation',
+      output: 'done',
+      defaultExpanded: true,
+    }),
+  );
+
+  assert.match(markup, />Agent</);
+  assert.match(markup, /aria-label="Copy agent nickname Ada"/);
+  assert.match(markup, /data-copy-value="Ada"/);
+  assert.match(markup, /aria-label="Copy full agent ID child-thread-123"/);
+  assert.match(markup, /data-copy-value="child-thread-123"/);
+  assert.match(markup, />Input</);
+  assert.match(markup, />Output</);
 });
 
 test('SubagentNotification renders machine-delivered results outside ordinary user messages', () => {
@@ -886,11 +1007,18 @@ test('SubagentNotification renders machine-delivered results outside ordinary us
 
   assert.match(markup, />SUBAGENT</);
   assert.match(markup, />Notification</);
+  assert.match(markup, /data-section-width="subagentAction"/);
+  assert.match(markup, /min-w-\[12ch\]/);
   assert.doesNotMatch(markup, /Completed/);
   assert.doesNotMatch(markup, /success-weak/);
-  assert.match(markup, /Ada \/ ad-123/);
+  assert.match(markup, /data-agent-identity-tag="nickname"/);
+  assert.match(markup, /aria-label="Copy agent nickname Ada"/);
+  assert.match(markup, /data-copy-value="Ada"/);
+  assert.match(markup, /data-agent-identity-tag="id"/);
+  assert.match(markup, /aria-label="Copy full agent ID child-thread-123"/);
+  assert.match(markup, /data-copy-value="child-thread-123"/);
   assert.match(markup, /The parser is treating inherited metadata/);
-  assert.match(markup, /aria-label="Copy subagent notification for Ada \/ ad-123"/);
+  assert.match(markup, /aria-label="Copy subagent notification for Ada \(ad-123\)"/);
   assert.match(markup, /title="10:46:29 AM local time"/);
   assert.doesNotMatch(markup, />User</);
 });

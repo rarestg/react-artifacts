@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useId, useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
-import { AgentTag, EventLabel, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
+import { AgentIdentityTags, EventDescriptor, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
 import { ExpandableTranscriptRow } from './TranscriptRow';
 import type { ToolCallKind, ToolCallStatus } from './types';
@@ -84,6 +84,7 @@ export function ToolCall({
     isSubagent && agentLabel ? `${tool} > ${agentLabel}` : (summary ?? getCommandPreview(input, tool));
   const commandTitle = (summary ?? input.trim()) || tool;
   const actionLabel = kindConfig.action || tool;
+  const hasAgentIdentity = Boolean(agentNickname?.trim() || agentId?.trim());
 
   return (
     <ExpandableTranscriptRow
@@ -94,12 +95,14 @@ export function ToolCall({
       onToggle={() => setIsExpanded((expanded) => !expanded)}
       left={
         <>
-          <EventLabel
+          <EventDescriptor
             category={kindConfig.category}
-            action={actionLabel}
             colorClassName="text-[color:var(--transcript-row-accent)]"
+            sections={[{ value: actionLabel, width: isSubagent ? 'subagentAction' : undefined }]}
           />
-          {isSubagent && <AgentTag agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} />}
+          {isSubagent && (
+            <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="display" />
+          )}
           <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill>
         </>
       }
@@ -115,6 +118,15 @@ export function ToolCall({
         </>
       }
     >
+      {isSubagent && hasAgentIdentity && (
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]">
+            Agent
+          </div>
+          <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
+        </div>
+      )}
+
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]">

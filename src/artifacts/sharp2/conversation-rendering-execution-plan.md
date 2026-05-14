@@ -98,10 +98,8 @@ Intermediate token counters should be an explicit detail mode for the per-messag
 
 - Tool details should likely be collapsed by default when tool summaries are enabled. This matches the cleaner prototype
   transcript behavior and keeps long command output from dominating the first scan.
-- The current `ToolCall` component owns its expanded state internally. That may need to become a prop such as
-  `showDetails` or `detailsMode` so the toolbar can control whether details are shown globally.
-- It is open whether a user can still expand one specific tool row when global tool details are off. A simple first pass
-  can make global detail visibility authoritative. A richer pass can support per-row expansion later.
+- `ToolCall` should own row-level expansion so users can inspect one specific tool without adding a global detail
+  toolbar control.
 - Token counters can be derived in `ConversationTurn` without changing the data format. If the data model later exposes
   explicit counter scope metadata, prefer that over positional inference.
 - The current "items" count in the turn header should probably count visible rows, not raw items, after token/tool
@@ -218,7 +216,6 @@ Suggested state shape:
 ```ts
 type ConversationDetailVisibility = {
   showToolSummaries: boolean;
-  showToolDetails: boolean;
   showTokenCounters: boolean;
   showIntermediateTokenCounters: boolean;
 };
@@ -325,7 +322,7 @@ export type ToolCallProps = {
   output: string;
   timestamp?: string;
   status?: ToolCallStatus;
-  showDetails?: boolean;
+  defaultExpanded?: boolean;
 };
 ```
 
@@ -335,24 +332,21 @@ Behavior:
 - The summary copy action must have an explicit accessible label that matches what is copied. If it copies hidden
   input/output, label it like `Copy tool input and output`; if it copies only visible metadata, label it like
   `Copy tool summary`.
-- Detail mode should keep separate input and output copy actions so users can copy only the source segment they need.
-- Input/output sections render only when `showDetails` is true.
+- Tool rows should expand at the row level so users can inspect a specific tool without enabling a global detail mode.
+- Expanded details should keep separate input and output copy actions so users can copy only the source segment they need.
+- Input/output sections render only when the row is expanded.
 - Keep literal `<pre>` rendering for input and output.
-- Keep status color tokenization and accessible expand/collapse affordances if row-level expansion remains.
-- If global `showDetails` is authoritative, remove row click, chevron, and `aria-expanded` affordances entirely so the
-  row does not look independently expandable.
+- Keep status color tokenization and accessible expand/collapse affordances.
 
 Expected tests:
 
 - A summary-only tool row should include the tool name and status.
 - Summary-only mode should not include input/output content.
 - Detail mode should include input/output content.
-- The collapse/expand button must retain an accessible name if it remains interactive.
+- The collapse/expand button must retain an accessible name.
 
 Pitfall:
 
-- If global `showDetails` replaces local expansion entirely, update the existing collapse-button test accordingly rather
-  than leaving stale assertions.
 - Avoid a mixed state where the toolbar controls details but individual rows still look clickable or expandable.
 
 ### Milestone 6 - Flatten Token Counter Rows

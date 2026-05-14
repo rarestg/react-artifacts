@@ -109,8 +109,8 @@ turn semantics are not shared APIs.
   assistant/thinking output should use the local renderer and fall back to literal text if rendering fails.
 - Keep conversation turns as transcript groups: one compact turn header and one contiguous row stack with row separators,
   not nested message/tool/token cards.
-- Keep tool rows summary-first. Tool details are controlled separately and should not imply row-level expansion when the
-  global detail control is authoritative.
+- Keep tool rows summary-first. Structured tool calls reveal input/output through row-level expansion so the transcript
+  stays scan-friendly until a specific tool needs inspection.
 - Token counters should show the final end-of-turn context-window row by default. Intermediate counters are an explicit
   diagnostic detail mode. When normalizing real telemetry, use total token usage against the model context window, not
   account rate-limit percentages.

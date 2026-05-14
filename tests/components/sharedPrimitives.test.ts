@@ -337,6 +337,15 @@ test('disabled shared copy button preserves disabled cursor without pointer-even
   assert.doesNotMatch(rootClass, /hover:bg|active:bg/);
 });
 
+test('shared copy button defaults title to its accessible label', () => {
+  const markup = renderToStaticMarkup(
+    createElement(CopyButton, { text: 'value', idleLabel: '', ariaLabel: 'Copy value' }),
+  );
+
+  assert.match(markup, /aria-label="Copy value"/);
+  assert.match(markup, /title="Copy value"/);
+});
+
 test('copyable label keeps a stable accessible name for the copied value', () => {
   const markup = renderToStaticMarkup(createElement(CopyableLabel, { value: '~/projects/app' }));
   const rootClass = firstElementClass(markup);

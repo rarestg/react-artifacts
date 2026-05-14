@@ -1,5 +1,5 @@
 export type ToolCallStatus = 'success' | 'error' | 'pending';
-export type MessageRole = 'user' | 'assistant' | 'thinking' | 'tool';
+export type MessageRole = 'user' | 'assistant' | 'thinking';
 export type RenderMode = 'default' | 'literal' | 'rendered';
 
 export type VisibleTypes = {
@@ -13,7 +13,6 @@ export type VisibleType = keyof VisibleTypes;
 
 export type ConversationDetailVisibility = {
   showToolSummaries: boolean;
-  showToolDetails: boolean;
   showTokenCounters: boolean;
   showIntermediateTokenCounters: boolean;
 };
@@ -61,7 +60,6 @@ export type TurnItem = MessageItem | TokenCounterItem | ToolCallItem;
 export function getTurnItemVisibleType(item: TurnItem): VisibleType {
   if (item.type === 'token_counter') return 'tokenCounters';
   if (item.type === 'tool_call') return 'toolCalls';
-  if (item.role === 'tool') return 'toolCalls';
   return item.role;
 }
 

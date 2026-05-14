@@ -1,4 +1,4 @@
-import { Copy } from 'lucide-react';
+import { Check, Copy, X } from 'lucide-react';
 import { type Ref, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { type CopyStatus, useCopyToClipboard } from '../lib/useCopyToClipboard';
@@ -14,10 +14,11 @@ export type CopyButtonProps = {
   idleLabel?: string;
   reserveLabel?: string;
   ariaLabel?: string;
+  title?: string;
   showIcon?: boolean;
   className?: string;
   disabled?: boolean;
-  variant?: 'default' | 'headerAction';
+  variant?: 'default' | 'headerAction' | 'icon';
 };
 
 const COPIED_LABEL = 'Copied \u2713';
@@ -29,6 +30,7 @@ export function CopyButton({
   idleLabel = 'Copy',
   reserveLabel: reserveLabelOverride,
   ariaLabel,
+  title,
   showIcon = true,
   className,
   disabled,
@@ -37,6 +39,7 @@ export function CopyButton({
   const { status, copy, announcement } = useCopyToClipboard();
   const rootRef = useRef<HTMLButtonElement>(null);
   const resolvedAriaLabel = ariaLabel?.trim() || idleLabel.trim() || 'Copy';
+  const resolvedTitle = title?.trim() || resolvedAriaLabel;
 
   useArtifactThemeGuard('CopyButton', rootRef);
 
@@ -63,20 +66,36 @@ export function CopyButton({
       ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
       : status === 'failed'
         ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
-        : variant === 'headerAction'
+        : variant === 'icon'
           ? mergeClassNames(
-              'border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]',
+              'border-[var(--border)] bg-[var(--surface)] text-[var(--text-subtle)]',
               !disabled &&
                 'hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
             )
-          : mergeClassNames(
-              'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]',
-              !disabled &&
-                'hover:border-[color:var(--copy-hover-border)] hover:bg-[var(--copy-hover-bg)] hover:text-[var(--copy-hover-text)]',
-            );
-  const sizeClass = variant === 'headerAction' ? 'h-9 px-3 text-sm font-medium' : 'px-2 py-1 text-[11px] font-medium';
+          : variant === 'headerAction'
+            ? mergeClassNames(
+                'border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]',
+                !disabled &&
+                  'hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
+              )
+            : mergeClassNames(
+                'border-[color:var(--copy-idle-border)] bg-[var(--copy-idle-bg)] text-[var(--copy-idle-text)]',
+                !disabled &&
+                  'hover:border-[color:var(--copy-hover-border)] hover:bg-[var(--copy-hover-bg)] hover:text-[var(--copy-hover-text)]',
+              );
+  const sizeClass =
+    variant === 'headerAction'
+      ? 'h-9 px-3 text-sm font-medium'
+      : variant === 'icon'
+        ? 'size-6 justify-center p-0 text-[11px] font-medium'
+        : 'px-2 py-1 text-[11px] font-medium';
   const activeClass =
-    variant === 'headerAction' ? 'active:bg-[var(--surface-strong)]' : 'active:bg-[var(--copy-hover-bg)]';
+    variant === 'headerAction'
+      ? 'active:bg-[var(--surface-strong)]'
+      : variant === 'icon'
+        ? 'active:bg-[var(--surface-pressed)]'
+        : 'active:bg-[var(--copy-hover-bg)]';
+  const StatusIcon = status === 'copied' ? Check : status === 'failed' ? X : Copy;
 
   return (
     <button
@@ -85,6 +104,7 @@ export function CopyButton({
       onClick={handleCopy}
       disabled={disabled}
       aria-label={resolvedAriaLabel}
+      title={resolvedTitle}
       className={mergeClassNames(
         'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border transition-colors motion-reduce:transition-none',
         'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
@@ -95,7 +115,7 @@ export function CopyButton({
         className,
       )}
     >
-      {showIcon && <Copy className="size-3 shrink-0" />}
+      {showIcon && <StatusIcon className="size-3 shrink-0" />}
       {idleLabel && (
         <span className="relative inline-grid min-w-0">
           <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">

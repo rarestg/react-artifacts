@@ -27,7 +27,7 @@ type FilterCheckboxStyle = CSSProperties & {
 export type FilterCheckboxProps = {
   label: string;
   reserveLabel?: string;
-  count: ReactNode;
+  count?: ReactNode;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   tone: FilterCheckboxTone;
@@ -89,16 +89,19 @@ export function FilterCheckbox({
         labelClassName,
       )}
       checkClassName={mergeClassNames('text-[var(--surface)] [stroke-width:4]', checkClassName)}
+      // Dependent filters can omit counts when a parent chip already carries the same count.
       suffix={
-        <span
-          className={mergeClassNames(
-            'min-w-4 bg-[var(--surface-strong)] px-1.5 py-0.5 text-center text-[10px] font-medium tabular-nums',
-            checked ? 'text-[var(--text)]' : 'text-[var(--text-muted)]',
-            countClassName,
-          )}
-        >
-          {count}
-        </span>
+        count === undefined || count === null ? undefined : (
+          <span
+            className={mergeClassNames(
+              'min-w-4 bg-[var(--surface-strong)] px-1.5 py-0.5 text-center text-[10px] font-medium tabular-nums',
+              checked ? 'text-[var(--text)]' : 'text-[var(--text-muted)]',
+              countClassName,
+            )}
+          >
+            {count}
+          </span>
+        )
       }
     />
   );

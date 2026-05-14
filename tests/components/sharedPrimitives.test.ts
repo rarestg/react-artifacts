@@ -346,6 +346,12 @@ test('shared copy button defaults title to its accessible label', () => {
   assert.match(markup, /title="Copy value"/);
 });
 
+test('shared copy button status labels do not duplicate icon glyphs', () => {
+  const markup = renderToStaticMarkup(createElement(CopyButton, { text: 'value' }));
+
+  assert.doesNotMatch(markup, /Copied \u2713|Failed \u2717|\u2713|\u2717/);
+});
+
 test('copyable label keeps a stable accessible name for the copied value', () => {
   const markup = renderToStaticMarkup(createElement(CopyableLabel, { value: '~/projects/app' }));
   const rootClass = firstElementClass(markup);

@@ -18,11 +18,11 @@ export type CopyButtonProps = {
   showIcon?: boolean;
   className?: string;
   disabled?: boolean;
-  variant?: 'default' | 'headerAction' | 'icon';
+  variant?: 'default' | 'headerAction' | 'icon' | 'headerText';
 };
 
-const COPIED_LABEL = 'Copied \u2713';
-const FAILED_LABEL = 'Failed \u2717';
+const COPIED_LABEL = 'Copied';
+const FAILED_LABEL = 'Failed';
 
 export function CopyButton({
   ref,
@@ -66,9 +66,9 @@ export function CopyButton({
       ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
       : status === 'failed'
         ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
-        : variant === 'icon'
+        : variant === 'icon' || variant === 'headerText'
           ? mergeClassNames(
-              'border-[var(--border)] bg-[var(--surface)] text-[var(--text-subtle)]',
+              'border-transparent bg-transparent text-[var(--text-subtle)]',
               !disabled &&
                 'hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]',
             )
@@ -88,11 +88,13 @@ export function CopyButton({
       ? 'h-9 px-3 text-sm font-medium'
       : variant === 'icon'
         ? 'size-6 justify-center p-0 text-[11px] font-medium'
-        : 'px-2 py-1 text-[11px] font-medium';
+        : variant === 'headerText'
+          ? 'h-6 justify-center px-1.5 py-0 text-[10px] font-semibold normal-case'
+          : 'px-2 py-1 text-[11px] font-medium';
   const activeClass =
     variant === 'headerAction'
       ? 'active:bg-[var(--surface-strong)]'
-      : variant === 'icon'
+      : variant === 'icon' || variant === 'headerText'
         ? 'active:bg-[var(--surface-pressed)]'
         : 'active:bg-[var(--copy-hover-bg)]';
   const StatusIcon = status === 'copied' ? Check : status === 'failed' ? X : Copy;

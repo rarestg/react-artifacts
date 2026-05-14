@@ -3,6 +3,7 @@ import { getTurnItemKey } from './keys';
 import { MessageCard } from './MessageCard';
 import { TokenCounter } from './TokenCounter';
 import { ToolCall } from './ToolCall';
+import { formatConversationTimestamp, formatConversationTimestampTitle } from './time';
 import {
   type ConversationDetailVisibility,
   getTurnItemVisibleType,
@@ -11,11 +12,21 @@ import {
   type VisibleTypes,
 } from './types';
 
-function TurnMetaBadge({ children, title }: { children: ReactNode; title?: string }) {
+function TurnMetaBadge({
+  children,
+  title,
+  uppercase = true,
+}: {
+  children: ReactNode;
+  title?: string;
+  uppercase?: boolean;
+}) {
   return (
     <span
       title={title}
-      className="inline-flex h-6 items-center border border-[var(--border)] bg-[var(--surface)] px-2 text-[10px] font-semibold uppercase text-[var(--text-muted)] tabular-nums"
+      className={`inline-flex h-6 items-center border border-[var(--border)] bg-[var(--surface)] px-1.5 text-[10px] font-semibold ${
+        uppercase ? 'uppercase' : 'normal-case'
+      } text-[var(--text-muted)] tabular-nums`}
     >
       {children}
     </span>
@@ -88,6 +99,8 @@ export function ConversationTurn({
   if (filteredItems.length === 0) return null;
 
   const itemCountTitle = `${filteredItems.length} of ${availableItemCount} transcript rows visible for Turn ${turnNumber}`;
+  const formattedTimestamp = formatConversationTimestamp(timestamp);
+  const timestampTitle = formatConversationTimestampTitle(timestamp);
 
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)]">
@@ -95,10 +108,21 @@ export function ConversationTurn({
       <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-[var(--text)]">Turn {turnNumber}</span>
-          {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
+          {formattedTimestamp && (
+            <span
+              title={timestampTitle ? `${timestampTitle} local time` : undefined}
+              className="border-l border-[var(--border)] pl-3 text-[10px] text-[var(--text-subtle)] tabular-nums"
+            >
+              {formattedTimestamp}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          {duration && <TurnMetaBadge>{duration}</TurnMetaBadge>}
+        <div className="flex items-center gap-1.5">
+          {duration && (
+            <TurnMetaBadge title={`${duration} elapsed in Turn ${turnNumber}`} uppercase={false}>
+              {duration}
+            </TurnMetaBadge>
+          )}
           <TurnMetaBadge title={itemCountTitle}>
             {filteredItems.length} / {availableItemCount} visible
           </TurnMetaBadge>
@@ -152,8 +176,10 @@ export function ConversationTurn({
                 role={item.role}
                 content={item.content}
                 timestamp={item.timestamp}
-                renderMode={renderModes?.[originalIndex] || 'default'}
-                onToggleRender={onToggleRender ? () => onToggleRender(originalIndex) : undefined}
+                renderMode={item.role === 'assistant' ? renderModes?.[originalIndex] || 'default' : 'default'}
+                onToggleRender={
+                  item.role === 'assistant' && onToggleRender ? () => onToggleRender(originalIndex) : undefined
+                }
               />
             </div>
           );

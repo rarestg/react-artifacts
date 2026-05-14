@@ -1,10 +1,12 @@
 import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
 import { getDefaultRenderMode, RenderErrorBoundary, renderInlineMarkdown, splitMessageContent } from './markdown';
+import { TimestampBadge } from './TimestampBadge';
 import type { MessageRole, RenderMode } from './types';
 
 const headerActionClasses =
-  'h-6 place-items-center border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0 text-[10px] font-semibold uppercase leading-none text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+  'h-6 place-items-center border border-transparent bg-transparent px-1.5 py-0 text-[10px] font-semibold uppercase leading-none text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+const renderToggleSlotClasses = 'w-[4.75rem]';
 
 export type MessageCardProps = {
   role: MessageRole;
@@ -38,7 +40,11 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
   };
 
   const config = roleConfig[role] || roleConfig.assistant;
-  const isLiteral = renderMode === 'literal' || (renderMode === 'default' && getDefaultRenderMode(role) === 'literal');
+  const effectiveRenderMode = role === 'assistant' ? renderMode : 'default';
+  const isLiteral =
+    effectiveRenderMode === 'literal' ||
+    (effectiveRenderMode === 'default' && getDefaultRenderMode(role) === 'literal');
+  const canToggleRender = role === 'assistant' && onToggleRender;
 
   return (
     <div className={mergeClassNames('border-l-2 px-3 py-3', config.borderColor, config.bgColor)}>
@@ -47,23 +53,27 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
         <div className="flex items-center gap-2">
           <span className={mergeClassNames('text-xs font-semibold uppercase', config.labelColor)}>{config.label}</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
-          {onToggleRender && (
-            <button
-              type="button"
-              aria-pressed={!isLiteral}
-              title="Switch between raw text and rendered Markdown output"
-              onClick={onToggleRender}
-              className={mergeClassNames('inline-grid cursor-pointer', headerActionClasses)}
-            >
-              <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
-                Rendered
-              </span>
-              <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
-            </button>
-          )}
-          <CopyButton text={content} idleLabel="" ariaLabel="Copy message source" variant="icon" />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className="grid grid-cols-[4.75rem_auto_1.5rem] items-center gap-1.5">
+            {canToggleRender ? (
+              <button
+                type="button"
+                aria-pressed={!isLiteral}
+                title="Switch between raw text and rendered Markdown output"
+                onClick={canToggleRender}
+                className={mergeClassNames('inline-grid cursor-pointer', renderToggleSlotClasses, headerActionClasses)}
+              >
+                <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
+                  Rendered
+                </span>
+                <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
+              </button>
+            ) : (
+              <span className={renderToggleSlotClasses} aria-hidden="true" />
+            )}
+            <TimestampBadge timestamp={timestamp} />
+            <CopyButton text={content} idleLabel="" ariaLabel="Copy message source" variant="icon" />
+          </div>
         </div>
       </div>
 

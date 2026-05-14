@@ -2,6 +2,7 @@ import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
 import { getDefaultRenderMode, RenderErrorBoundary, renderInlineMarkdown, splitMessageContent } from './markdown';
 import { TimestampBadge } from './TimestampBadge';
+import { TranscriptRow } from './TranscriptRow';
 import type { MessageRole, RenderMode } from './types';
 
 const headerActionClasses =
@@ -18,24 +19,21 @@ export type MessageCardProps = {
 
 export function MessageCard({ role, content, timestamp, renderMode = 'default', onToggleRender }: MessageCardProps) {
   // Keep message row surfaces neutral; role color belongs in the left accent only.
-  const roleConfig: Record<MessageRole, { label: string; borderColor: string; labelColor: string; bgColor: string }> = {
+  const roleConfig: Record<MessageRole, { label: string; accentColor: string; labelColor: string }> = {
     user: {
       label: 'User',
-      borderColor: 'border-l-[var(--category-green)]',
+      accentColor: 'var(--category-green)',
       labelColor: 'text-[var(--category-green)]',
-      bgColor: 'bg-[var(--surface)]',
     },
     assistant: {
       label: 'Assistant',
-      borderColor: 'border-l-[var(--category-blue)]',
+      accentColor: 'var(--category-blue)',
       labelColor: 'text-[var(--category-blue)]',
-      bgColor: 'bg-[var(--surface)]',
     },
     thinking: {
       label: 'Thinking',
-      borderColor: 'border-l-[var(--category-amber)]',
+      accentColor: 'var(--category-amber)',
       labelColor: 'text-[var(--category-amber)]',
-      bgColor: 'bg-[var(--surface)]',
     },
   };
 
@@ -47,37 +45,34 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
   const canToggleRender = role === 'assistant' && onToggleRender;
 
   return (
-    <div className={mergeClassNames('border-l-2 px-3 py-3', config.borderColor, config.bgColor)}>
-      {/* Header */}
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className={mergeClassNames('text-xs font-semibold uppercase', config.labelColor)}>{config.label}</span>
+    <TranscriptRow
+      accentColor={config.accentColor}
+      left={
+        <span className={mergeClassNames('text-xs font-semibold uppercase', config.labelColor)}>{config.label}</span>
+      }
+      right={
+        <div className="grid grid-cols-[4.75rem_auto_1.5rem] items-center gap-1.5">
+          {canToggleRender ? (
+            <button
+              type="button"
+              aria-pressed={!isLiteral}
+              title="Switch between raw text and rendered Markdown output"
+              onClick={canToggleRender}
+              className={mergeClassNames('inline-grid cursor-pointer', renderToggleSlotClasses, headerActionClasses)}
+            >
+              <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
+                Rendered
+              </span>
+              <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
+            </button>
+          ) : (
+            <span className={renderToggleSlotClasses} aria-hidden="true" />
+          )}
+          <TimestampBadge timestamp={timestamp} />
+          <CopyButton text={content} idleLabel="" ariaLabel="Copy message source" variant="icon" />
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <div className="grid grid-cols-[4.75rem_auto_1.5rem] items-center gap-1.5">
-            {canToggleRender ? (
-              <button
-                type="button"
-                aria-pressed={!isLiteral}
-                title="Switch between raw text and rendered Markdown output"
-                onClick={canToggleRender}
-                className={mergeClassNames('inline-grid cursor-pointer', renderToggleSlotClasses, headerActionClasses)}
-              >
-                <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
-                  Rendered
-                </span>
-                <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
-              </button>
-            ) : (
-              <span className={renderToggleSlotClasses} aria-hidden="true" />
-            )}
-            <TimestampBadge timestamp={timestamp} />
-            <CopyButton text={content} idleLabel="" ariaLabel="Copy message source" variant="icon" />
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
+      }
+    >
       <div>
         {isLiteral ? (
           // Literal rendering (pre-wrap, monospace, exact text)
@@ -169,6 +164,6 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
           </RenderErrorBoundary>
         )}
       </div>
-    </div>
+    </TranscriptRow>
   );
 }

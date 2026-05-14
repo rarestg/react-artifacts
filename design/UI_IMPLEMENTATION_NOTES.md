@@ -208,7 +208,8 @@ const actionTooltip = !hasInput
 
 ### Recommended pattern
 - Treat the state change as one coordinated visual transition: container, indicator, icon, label, badge, and border should derive from the same semantic state or eligibility predicate.
-- Keep stateful visual children mounted while colors transition. Hide an inactive icon by fading it, matching it to the background, or using visibility/opacity; avoid unmounting it mid-transition.
+- Keep stateful visual children mounted while colors transition. Hide an inactive icon by fading it or using
+  visibility/opacity; avoid unmounting it mid-transition.
 - Preserve layout slots for labels, icons, badges, and counts. Use reserved labels, fixed icon slots, `tabular-nums`, and minimum count widths where values change.
 - Prefer surface or weak background shifts for selected state support, plus an explicit selected cue such as a checkbox, marker, bar, or icon. Do not rely on color alone.
 - Use the quietest sufficient color channel:
@@ -226,7 +227,8 @@ const actionTooltip = !hasInput
   aria-hidden="true"
   className={mergeClassNames(
     checkClassName ?? 'text-[var(--primary-contrast)]',
-    !checked && 'text-[var(--checkbox-off-bg)]',
+    checked ? 'opacity-100' : 'opacity-0',
+    'transition-opacity motion-reduce:transition-none',
     'h-2.5 w-2.5',
   )}
 />
@@ -245,6 +247,8 @@ const actionTooltip = !hasInput
 
 ### Why it matters
 - Conditional icon rendering can flicker when the icon unmounts before the square background finishes transitioning.
+- Color-matching an icon to the unchecked background can also flash when the parent background is still transitioning
+  from a checked tone back to the unchecked surface. Use opacity when the parent background color transitions.
 - Layout movement during state changes makes dense tools harder to scan and easier to mis-click.
 - Bright borders can overpower compact controls; a weak selected background plus a small colored indicator is often enough.
 - Metadata needs visible affordance without reading as category, warning, success, or primary action.

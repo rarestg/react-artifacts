@@ -92,12 +92,13 @@ export default function DesignSystem() {
   const [conversationRenderModes, setConversationRenderModes] = useState<Record<string, RenderMode>>({});
   const [demoCheckbox, setDemoCheckbox] = useState(false);
 
-  // Message type visibility (thinking, tool calls, token counters off by default)
+  // Message type visibility (thinking, tool calls, subagent events, token counters off by default)
   const [visibleTypes, setVisibleTypes] = useState<VisibleTypes>({
     user: true,
     assistant: true,
     thinking: false,
     toolCalls: false,
+    subagentActivity: false,
     tokenCounters: false,
   });
   const [detailVisibility, setDetailVisibility] = useState<
@@ -122,7 +123,7 @@ export default function DesignSystem() {
       });
       return acc;
     },
-    { user: 0, assistant: 0, thinking: 0, toolCalls: 0, tokenCounters: 0 },
+    { user: 0, assistant: 0, thinking: 0, toolCalls: 0, subagentActivity: 0, tokenCounters: 0 },
   );
   const finalTokenCounterCount = sampleConversation.reduce(
     (count, turn) => count + (turn.items.some((item) => item.type === 'token_counter') ? 1 : 0),
@@ -525,7 +526,7 @@ export default function DesignSystem() {
                   count={itemCounts.user}
                   checked={visibleTypes.user ?? false}
                   onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, user: checked }))}
-                  tone="blue"
+                  tone="green"
                   borderStyle="neutral"
                 />
                 <FilterCheckbox
@@ -533,7 +534,15 @@ export default function DesignSystem() {
                   count={itemCounts.assistant}
                   checked={visibleTypes.assistant ?? false}
                   onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, assistant: checked }))}
-                  tone="green"
+                  tone="blue"
+                  borderStyle="neutral"
+                />
+                <FilterCheckbox
+                  label="Subagents"
+                  count={itemCounts.subagentActivity}
+                  checked={visibleTypes.subagentActivity ?? false}
+                  onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, subagentActivity: checked }))}
+                  tone="cyan"
                   borderStyle="neutral"
                 />
                 <FilterCheckbox
@@ -553,7 +562,7 @@ export default function DesignSystem() {
                   borderStyle="neutral"
                 />
                 <FilterCheckbox
-                  label="Context Usage"
+                  label="Context Window"
                   count={finalTokenCounterCount}
                   checked={visibleTypes.tokenCounters ?? false}
                   onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, tokenCounters: checked }))}
@@ -562,7 +571,7 @@ export default function DesignSystem() {
                 />
                 <FilterCheckbox
                   label="All"
-                  // All is a dependent control for Context Usage, so avoid repeating that count here.
+                  // All is a dependent control for Context Window, so avoid repeating that count here.
                   checked={detailVisibility.showIntermediateTokenCounters}
                   onCheckedChange={(checked) =>
                     setDetailVisibility((visibility) => ({
@@ -584,11 +593,11 @@ export default function DesignSystem() {
               </p>
               <div className="grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-2 text-[var(--text-subtle)]">
                 <div>
-                  <span className="inline-block size-2 bg-[var(--category-blue)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--category-green)] mr-2" />
                   User: literal by default (preserves exact input)
                 </div>
                 <div>
-                  <span className="inline-block size-2 bg-[var(--category-green)] mr-2" />
+                  <span className="inline-block size-2 bg-[var(--category-blue)] mr-2" />
                   Assistant: rendered markdown by default
                 </div>
                 <div>
@@ -600,13 +609,17 @@ export default function DesignSystem() {
                   Tool Call: summary first, click to show details
                 </div>
                 <div>
+                  <span className="inline-block size-2 bg-[var(--category-cyan)] mr-2" />
+                  Subagents: spawn, wait, follow-up, notification, close
+                </div>
+                <div>
                   <span className="inline-block size-2 bg-[var(--text-muted)] mr-2" />
                   Token Counter: final context row by default
                 </div>
               </div>
               <p className="text-[var(--text-subtle)]">
-                Toggle message types above. Thinking, tools, and token counters are hidden by default; tool rows reveal
-                their own details, and intermediate token counters are an explicit detail mode.
+                Toggle message types above. Thinking, subagents, tools, and token counters are hidden by default; tool
+                rows reveal their own details, and intermediate token counters are an explicit detail mode.
               </p>
             </div>
 
@@ -620,7 +633,6 @@ export default function DesignSystem() {
                   items={turn.items}
                   visibleTypes={visibleTypes}
                   detailVisibility={{
-                    showToolSummaries: visibleTypes.toolCalls,
                     showTokenCounters: visibleTypes.tokenCounters,
                     showIntermediateTokenCounters:
                       visibleTypes.tokenCounters && detailVisibility.showIntermediateTokenCounters,

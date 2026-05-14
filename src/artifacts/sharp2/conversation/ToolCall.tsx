@@ -1,17 +1,24 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { useId, useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
 import { TimestampBadge } from './TimestampBadge';
-import type { ToolCallStatus } from './types';
+import type { ToolCallKind, ToolCallStatus } from './types';
 
 export type ToolCallProps = {
   tool: string;
+  toolKind?: ToolCallKind;
+  summary?: string;
   input: string;
   output: string;
   timestamp?: string;
   status?: ToolCallStatus;
   defaultExpanded?: boolean;
+};
+
+type ToolCallToneStyle = CSSProperties & {
+  '--tool-call-color': string;
 };
 
 function getCommandPreview(input: string, fallback: string) {
@@ -23,8 +30,37 @@ function getCommandPreview(input: string, fallback: string) {
   );
 }
 
+const toolCallKindConfig: Record<ToolCallKind, { label: string; color: string }> = {
+  standard: {
+    label: 'Tool Call',
+    color: 'var(--category-violet)',
+  },
+  subagent_spawn: {
+    label: 'Spawn Agent',
+    color: 'var(--category-cyan)',
+  },
+  subagent_wait: {
+    label: 'Wait Agent',
+    color: 'var(--category-cyan)',
+  },
+  subagent_send_input: {
+    label: 'Send Input',
+    color: 'var(--category-cyan)',
+  },
+  subagent_resume: {
+    label: 'Resume Agent',
+    color: 'var(--category-cyan)',
+  },
+  subagent_close: {
+    label: 'Close Agent',
+    color: 'var(--category-cyan)',
+  },
+};
+
 export function ToolCall({
   tool,
+  toolKind = 'standard',
+  summary,
   input,
   output,
   timestamp,
@@ -49,11 +85,15 @@ export function ToolCall({
   };
 
   const config = statusConfig[status] || statusConfig.success;
-  const commandPreview = getCommandPreview(input, tool);
-  const commandTitle = input.trim() || tool;
+  const kindConfig = toolCallKindConfig[toolKind] || toolCallKindConfig.standard;
+  const toneStyle: ToolCallToneStyle = {
+    '--tool-call-color': kindConfig.color,
+  };
+  const commandPreview = summary ?? getCommandPreview(input, tool);
+  const commandTitle = (summary ?? input.trim()) || tool;
 
   return (
-    <div className="border-l-2 border-l-[var(--category-violet)] bg-[var(--surface)]">
+    <div style={toneStyle} className="border-l-2 border-l-[color:var(--tool-call-color)] bg-[var(--surface)]">
       <button
         type="button"
         aria-expanded={isExpanded}
@@ -68,7 +108,9 @@ export function ToolCall({
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 text-xs font-semibold uppercase text-[var(--category-violet)]">Tool Call</span>
+          <span className="shrink-0 text-xs font-semibold uppercase text-[color:var(--tool-call-color)]">
+            {kindConfig.label}
+          </span>
           <span className="min-w-0 truncate font-mono text-xs font-semibold text-[var(--text)]" title={commandTitle}>
             {commandPreview}
           </span>
@@ -90,7 +132,7 @@ export function ToolCall({
         <div id={detailsId} className="space-y-3 px-4 pb-3">
           <div>
             <div className="mb-1 flex items-center justify-between gap-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--category-violet)]">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--tool-call-color)]">
                 Input
               </div>
               <CopyButton

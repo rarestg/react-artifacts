@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { getTurnItemKey } from './keys';
 import { MessageCard } from './MessageCard';
+import { SubagentNotification } from './SubagentNotification';
 import { TokenCounter } from './TokenCounter';
 import { ToolCall } from './ToolCall';
 import { formatConversationTimestamp, formatConversationTimestampTitle } from './time';
@@ -54,7 +55,7 @@ export function ConversationTurn({
   visibleTypes,
   detailVisibility,
 }: ConversationTurnProps) {
-  const showToolSummaries = detailVisibility?.showToolSummaries ?? visibleTypes?.toolCalls ?? true;
+  const showToolSummaries = detailVisibility?.showToolSummaries ?? true;
   const showTokenCounters = detailVisibility?.showTokenCounters ?? visibleTypes?.tokenCounters ?? true;
   const showIntermediateTokenCounters = detailVisibility?.showIntermediateTokenCounters ?? false;
   let finalTokenCounterIndex = -1;
@@ -74,7 +75,7 @@ export function ConversationTurn({
 
     if (item.type === 'tool_call') {
       availableItemCount += 1;
-      if (showToolSummaries) {
+      if (showToolSummaries && (visibleTypes?.[visibleType] ?? true)) {
         filteredItems.push({ item, originalIndex });
       }
       continue;
@@ -161,10 +162,31 @@ export function ConversationTurn({
               >
                 <ToolCall
                   tool={item.tool}
+                  toolKind={item.toolKind}
+                  summary={item.summary}
                   input={item.input}
                   output={item.output}
                   timestamp={item.timestamp}
                   status={item.status}
+                />
+              </div>
+            );
+          }
+
+          if (item.type === 'subagent_notification') {
+            return (
+              <div
+                key={getTurnItemKey(item, originalIndex)}
+                className="border-b border-[var(--border)] last:border-b-0"
+              >
+                <SubagentNotification
+                  agentId={item.agentId}
+                  agentNickname={item.agentNickname}
+                  agentRole={item.agentRole}
+                  status={item.status}
+                  summary={item.summary}
+                  rawPayload={item.rawPayload}
+                  timestamp={item.timestamp}
                 />
               </div>
             );

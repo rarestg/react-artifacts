@@ -9,13 +9,14 @@ import { ConversationTurn } from '../../src/artifacts/sharp2/conversation/Conver
 import { getTurnItemKey, getTurnKey } from '../../src/artifacts/sharp2/conversation/keys';
 import { MessageCard } from '../../src/artifacts/sharp2/conversation/MessageCard';
 import { getDefaultRenderMode, splitMessageContent } from '../../src/artifacts/sharp2/conversation/markdown';
+import { SubagentNotification } from '../../src/artifacts/sharp2/conversation/SubagentNotification';
 import {
   getTokenUsageSummary,
   TokenCounter,
   tokenCounterPropsFromTelemetry,
 } from '../../src/artifacts/sharp2/conversation/TokenCounter';
 import { ToolCall } from '../../src/artifacts/sharp2/conversation/ToolCall';
-import type { ConversationTurnData } from '../../src/artifacts/sharp2/conversation/types';
+import { type ConversationTurnData, getTurnItemVisibleType } from '../../src/artifacts/sharp2/conversation/types';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
@@ -59,6 +60,21 @@ test('MessageCard follows role defaults for real rendering', () => {
       assert.match(markup, />bold<\/strong>/);
     }
   }
+});
+
+test('MessageCard uses the intended role accent color mapping', () => {
+  const userMarkup = renderToStaticMarkup(createElement(MessageCard, { role: 'user', content: 'User text' }));
+  const assistantMarkup = renderToStaticMarkup(
+    createElement(MessageCard, { role: 'assistant', content: 'Assistant text' }),
+  );
+  const thinkingMarkup = renderToStaticMarkup(createElement(MessageCard, { role: 'thinking', content: 'Thinking' }));
+
+  assert.match(userMarkup, /border-l-\[var\(--category-green\)\]/);
+  assert.match(userMarkup, /text-\[var\(--category-green\)\]/);
+  assert.match(assistantMarkup, /border-l-\[var\(--category-blue\)\]/);
+  assert.match(assistantMarkup, /text-\[var\(--category-blue\)\]/);
+  assert.match(thinkingMarkup, /border-l-\[var\(--category-amber\)\]/);
+  assert.match(thinkingMarkup, /text-\[var\(--category-amber\)\]/);
 });
 
 test('MessageCard hides render mode toggle when no toggle handler is provided', () => {
@@ -285,6 +301,76 @@ test('conversation fallback keys distinguish same-length semantic content', () =
       output: 'zw',
     }),
   );
+
+  assert.notEqual(
+    getTurnItemKey({
+      type: 'tool_call',
+      tool: 'functions.spawn_agent',
+      timestamp: '10:00',
+      input: 'spawn worker',
+      output: 'running',
+    }),
+    getTurnItemKey({
+      type: 'tool_call',
+      toolKind: 'subagent_spawn',
+      tool: 'functions.spawn_agent',
+      timestamp: '10:00',
+      input: 'spawn worker',
+      output: 'running',
+    }),
+  );
+
+  assert.notEqual(
+    getTurnItemKey({
+      type: 'subagent_notification',
+      agentId: 'child-thread-123',
+      status: 'completed',
+      summary: 'first result',
+    }),
+    getTurnItemKey({
+      type: 'subagent_notification',
+      agentId: 'child-thread-123',
+      status: 'completed',
+      summary: 'second result',
+    }),
+  );
+});
+
+test('getTurnItemVisibleType categorizes subagent lifecycle activity separately', () => {
+  const subagentToolKinds = [
+    'subagent_spawn',
+    'subagent_wait',
+    'subagent_send_input',
+    'subagent_resume',
+    'subagent_close',
+  ] as const;
+
+  for (const toolKind of subagentToolKinds) {
+    assert.equal(
+      getTurnItemVisibleType({
+        type: 'tool_call',
+        toolKind,
+        tool: toolKind,
+        input: 'agent operation',
+        output: 'done',
+      }),
+      'subagentActivity',
+    );
+  }
+
+  assert.equal(
+    getTurnItemVisibleType({
+      type: 'subagent_notification',
+      agentId: 'child-thread-123',
+      status: 'completed',
+      summary: 'done',
+    }),
+    'subagentActivity',
+  );
+  assert.equal(
+    getTurnItemVisibleType({ type: 'tool_call', tool: 'bash', input: 'npm test', output: 'PASS' }),
+    'toolCalls',
+  );
 });
 
 test('conversation fallback keys use original indexes to distinguish identical siblings', () => {
@@ -325,6 +411,7 @@ test('ConversationTurn filters hidden item types', () => {
         assistant: true,
         thinking: false,
         toolCalls: false,
+        subagentActivity: false,
         tokenCounters: true,
       },
     }),
@@ -350,6 +437,7 @@ test('ConversationTurn shows visible and available item counts when filters hide
         assistant: true,
         thinking: false,
         toolCalls: false,
+        subagentActivity: false,
         tokenCounters: false,
       },
     }),
@@ -465,6 +553,7 @@ test('ConversationTurn shows only the final token counter unless intermediate co
         assistant: true,
         thinking: true,
         toolCalls: true,
+        subagentActivity: true,
         tokenCounters: true,
       },
       detailVisibility: {
@@ -482,6 +571,7 @@ test('ConversationTurn shows only the final token counter unless intermediate co
         assistant: true,
         thinking: true,
         toolCalls: true,
+        subagentActivity: true,
         tokenCounters: true,
       },
       detailVisibility: {
@@ -514,6 +604,7 @@ test('ConversationTurn renders collapsed tool summaries by default', () => {
         assistant: true,
         thinking: true,
         toolCalls: true,
+        subagentActivity: true,
         tokenCounters: false,
       },
     }),
@@ -531,6 +622,82 @@ test('ConversationTurn renders collapsed tool summaries by default', () => {
   assert.doesNotMatch(markup, />Output</);
   assert.doesNotMatch(markup, /PASS/);
   assert.match(markup, />3 \/ 3 visible</);
+});
+
+test('ConversationTurn filters subagent lifecycle activity independently from ordinary tools', () => {
+  const items: ConversationTurnData['items'] = [
+    { id: 'tool', type: 'tool_call', tool: 'bash', input: 'npm test', output: 'PASS' },
+    {
+      id: 'spawn',
+      type: 'tool_call',
+      toolKind: 'subagent_spawn',
+      tool: 'spawn_agent',
+      summary: 'spawn_agent -> Ada',
+      input: 'spawn worker',
+      output: 'running',
+      status: 'pending',
+    },
+    {
+      id: 'wait',
+      type: 'tool_call',
+      toolKind: 'subagent_wait',
+      tool: 'wait_agent',
+      summary: 'wait_agent -> Ada',
+      input: 'wait for worker',
+      output: 'completed',
+      status: 'success',
+    },
+    {
+      id: 'notification',
+      type: 'subagent_notification',
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      status: 'completed',
+      summary: 'The parser is treating inherited metadata as current-session metadata.',
+    },
+  ];
+
+  const onlySubagentMarkup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items,
+      visibleTypes: {
+        user: false,
+        assistant: false,
+        thinking: false,
+        toolCalls: false,
+        subagentActivity: true,
+        tokenCounters: false,
+      },
+    }),
+  );
+  const onlyOrdinaryToolMarkup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items,
+      visibleTypes: {
+        user: false,
+        assistant: false,
+        thinking: false,
+        toolCalls: true,
+        subagentActivity: false,
+        tokenCounters: false,
+      },
+    }),
+  );
+
+  assert.match(onlySubagentMarkup, /Spawn Agent/);
+  assert.match(onlySubagentMarkup, /spawn_agent -&gt; Ada/);
+  assert.match(onlySubagentMarkup, /wait_agent -&gt; Ada/);
+  assert.match(onlySubagentMarkup, /Subagent Notification/);
+  assert.match(onlySubagentMarkup, /The parser is treating inherited metadata/);
+  assert.match(onlySubagentMarkup, />3 \/ 4 visible</);
+  assert.doesNotMatch(onlySubagentMarkup, /npm test/);
+  assert.match(onlyOrdinaryToolMarkup, /Tool Call/);
+  assert.match(onlyOrdinaryToolMarkup, /npm test/);
+  assert.match(onlyOrdinaryToolMarkup, />1 \/ 4 visible</);
+  assert.doesNotMatch(onlyOrdinaryToolMarkup, /Spawn Agent/);
+  assert.doesNotMatch(onlyOrdinaryToolMarkup, /Subagent Notification/);
 });
 
 test('ToolCall supports row-level expansion for input and output details', () => {
@@ -574,4 +741,56 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.doesNotMatch(markup, />Copy output</);
   assert.equal(markup.match(/>Copy<\/span>/g)?.length ?? 0, 2);
   assert.match(markup, /focus-visible:ring-2/);
+});
+
+test('ToolCall gives subagent lifecycle rows their own labels and category color', () => {
+  const cases = [
+    ['subagent_spawn', 'spawn_agent', 'Spawn Agent', 'spawn_agent -> Ada'],
+    ['subagent_wait', 'wait_agent', 'Wait Agent', 'wait_agent -> Ada'],
+    ['subagent_send_input', 'send_input', 'Send Input', 'send_input -> Ada follow-up'],
+    ['subagent_resume', 'resume_agent', 'Resume Agent', 'resume_agent -> Ada'],
+    ['subagent_close', 'close_agent', 'Close Agent', 'close_agent -> Ada'],
+  ] as const;
+
+  for (const [toolKind, tool, label, summary] of cases) {
+    const markup = renderToStaticMarkup(
+      createElement(ToolCall, {
+        tool,
+        toolKind,
+        summary,
+        input: 'agent operation',
+        output: 'done',
+        status: 'pending',
+      }),
+    );
+
+    assert.match(markup, new RegExp(label));
+    assert.match(markup, /--tool-call-color:var\(--category-cyan\)/);
+    assert.match(markup, /Running/);
+    assert.match(markup, new RegExp(`aria-label="Expand ${tool} tool details"`));
+    assert.doesNotMatch(markup, />Tool Call</);
+  }
+});
+
+test('SubagentNotification renders machine-delivered results outside ordinary user messages', () => {
+  const markup = renderToStaticMarkup(
+    createElement(SubagentNotification, {
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      agentRole: 'worker',
+      status: 'completed',
+      summary: 'The parser is treating inherited metadata as current-session metadata.',
+      rawPayload:
+        '<subagent_notification>\n{"agent_path":"child-thread-123","status":{"completed":"done"}}\n</subagent_notification>',
+      timestamp: '10:46:29',
+    }),
+  );
+
+  assert.match(markup, /Subagent Notification/);
+  assert.match(markup, /Completed/);
+  assert.match(markup, /Ada \/ worker/);
+  assert.match(markup, /The parser is treating inherited metadata/);
+  assert.match(markup, /aria-label="Copy subagent notification for Ada"/);
+  assert.match(markup, /title="10:46:29 AM local time"/);
+  assert.doesNotMatch(markup, />User</);
 });

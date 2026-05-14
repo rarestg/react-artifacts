@@ -104,7 +104,7 @@ test('artifact theme keeps selected color weak tokens curated', async () => {
   assert.doesNotMatch(source, /--accent-weak:\s*color-mix\(/);
 });
 
-test('example app previews semantic colors in the same order as message colors', async () => {
+test('example app previews message colors in transcript role order', async () => {
   const source = await readFile(exampleAppUrl, 'utf8');
   const themeSwatchStart = source.indexOf('const themeSwatches = [');
   const categorySwatchStart = source.indexOf('const categorySwatches = [');
@@ -113,7 +113,7 @@ test('example app previews semantic colors in the same order as message colors',
 
   const themeSwatches = source.slice(themeSwatchStart, categorySwatchStart);
   const themeOrder = ['accent', 'success', 'warning', 'info', 'danger'];
-  const categoryOrder = ['category-blue', 'category-green', 'category-amber', 'category-violet', 'category-red'];
+  const categoryOrder = ['category-green', 'category-blue', 'category-amber', 'category-violet', 'category-red'];
 
   let previousIndex = -1;
   for (const swatchId of themeOrder) {

@@ -72,16 +72,16 @@ const categorySwatches = [
   {
     id: 'user',
     label: 'User',
-    weakBg: 'bg-[var(--category-blue-weak)]',
-    strongBg: 'bg-[var(--category-blue)]',
-    border: 'border-[color:var(--category-blue)]',
+    weakBg: 'bg-[var(--category-green-weak)]',
+    strongBg: 'bg-[var(--category-green)]',
+    border: 'border-[color:var(--category-green)]',
   },
   {
     id: 'assistant',
     label: 'Assistant',
-    weakBg: 'bg-[var(--category-green-weak)]',
-    strongBg: 'bg-[var(--category-green)]',
-    border: 'border-[color:var(--category-green)]',
+    weakBg: 'bg-[var(--category-blue-weak)]',
+    strongBg: 'bg-[var(--category-blue)]',
+    border: 'border-[color:var(--category-blue)]',
   },
   {
     id: 'thinking',

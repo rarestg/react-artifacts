@@ -198,7 +198,7 @@ const SearchInput = () => {
         id: 'turn-3-user',
         role: 'user',
         content:
-          'Run the tests for this component and keep the command output literal, including the long workspace selector: src/components/SearchInput.test.tsx --testNamePattern="debounces search calls and preserves typed whitespace".',
+          'Run the tests for this component and keep the command output literal, including the long workspace selector: --test-name-pattern="debounces search calls and preserves typed whitespace" src/components/SearchInput.test.tsx.',
         timestamp: '10:44:30',
       },
       {
@@ -219,7 +219,7 @@ const SearchInput = () => {
         type: 'tool_call',
         tool: 'bash',
         input:
-          'npm test -- src/components/SearchInput.test.tsx --testNamePattern="debounces search calls and preserves typed whitespace"',
+          'node --import tsx --test --test-name-pattern="debounces search calls and preserves typed whitespace" src/components/SearchInput.test.tsx',
         output: `PASS  src/components/SearchInput.test.tsx
   SearchInput
     ✓ renders without crashing (23ms)
@@ -230,7 +230,7 @@ const SearchInput = () => {
 Test Suites: 1 passed, 1 total
 Tests:       4 passed, 4 total
 Time:        1.847s
-Command:     npm test -- src/components/SearchInput.test.tsx --testNamePattern="debounces search calls and preserves typed whitespace"`,
+Command:     node --import tsx --test --test-name-pattern="debounces search calls and preserves typed whitespace" src/components/SearchInput.test.tsx`,
         timestamp: '10:44:32',
         status: 'success',
       },

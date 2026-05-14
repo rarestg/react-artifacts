@@ -102,7 +102,7 @@ export function ToolCall({
         aria-label={isExpanded ? `Collapse ${tool} tool details` : `Expand ${tool} tool details`}
         onClick={() => setIsExpanded((expanded) => !expanded)}
         className={mergeClassNames(
-          'flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition-colors',
+          'flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3 text-left transition-colors',
           'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
           'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
@@ -129,7 +129,7 @@ export function ToolCall({
       </button>
 
       {isExpanded && (
-        <div id={detailsId} className="space-y-3 px-4 pb-3">
+        <div id={detailsId} className="space-y-3 px-3 pb-3">
           <div>
             <div className="mb-1 flex items-center justify-between gap-2">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--tool-call-color)]">

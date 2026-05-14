@@ -625,6 +625,31 @@ test('ConversationTurn renders collapsed tool summaries by default', () => {
   assert.match(markup, />3 \/ 3 visible</);
 });
 
+test('conversation event rows share the message row left inset', () => {
+  const messageMarkup = renderToStaticMarkup(createElement(MessageCard, { role: 'user', content: 'Question' }));
+  const toolMarkup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      input: 'npm test',
+      output: 'PASS',
+    }),
+  );
+  const notificationMarkup = renderToStaticMarkup(
+    createElement(SubagentNotification, {
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      status: 'completed',
+      summary: 'Done',
+    }),
+  );
+
+  assert.match(messageMarkup, /border-l-2 px-3 py-3/);
+  assert.match(toolMarkup, /gap-3 p-3/);
+  assert.match(notificationMarkup, /gap-3 p-3/);
+  assert.doesNotMatch(toolMarkup, /gap-3 px-4 py-3/);
+  assert.doesNotMatch(notificationMarkup, /gap-3 px-4 py-3/);
+});
+
 test('ConversationTurn filters subagent lifecycle activity independently from ordinary tools', () => {
   const items: ConversationTurnData['items'] = [
     { id: 'tool', type: 'tool_call', tool: 'bash', input: 'npm test', output: 'PASS' },

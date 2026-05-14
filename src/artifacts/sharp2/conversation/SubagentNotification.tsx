@@ -40,7 +40,7 @@ export function SubagentNotification({
 
   return (
     <div className="border-l-2 border-l-[var(--category-cyan)] bg-[var(--surface)]">
-      <div className="flex min-w-0 items-center justify-between gap-3 px-4 py-3">
+      <div className="flex min-w-0 items-center justify-between gap-3 p-3">
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <EventLabel category="SUBAGENT" action="Notification" colorClassName="text-[var(--category-cyan)]" />
           <AgentTag agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} />

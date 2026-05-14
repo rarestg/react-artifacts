@@ -163,6 +163,9 @@ export function ConversationTurn({
                 <ToolCall
                   tool={item.tool}
                   toolKind={item.toolKind}
+                  agentId={item.agentId}
+                  agentNickname={item.agentNickname}
+                  agentRole={item.agentRole}
                   summary={item.summary}
                   input={item.input}
                   output={item.output}

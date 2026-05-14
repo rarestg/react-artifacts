@@ -3,12 +3,16 @@ import type { CSSProperties } from 'react';
 import { useId, useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
+import { AgentTag, EventLabel, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
 import type { ToolCallKind, ToolCallStatus } from './types';
 
 export type ToolCallProps = {
   tool: string;
   toolKind?: ToolCallKind;
+  agentId?: string;
+  agentNickname?: string;
+  agentRole?: string;
   summary?: string;
   input: string;
   output: string;
@@ -30,29 +34,35 @@ function getCommandPreview(input: string, fallback: string) {
   );
 }
 
-const toolCallKindConfig: Record<ToolCallKind, { label: string; color: string }> = {
+const toolCallKindConfig: Record<ToolCallKind, { category: string; action: string; color: string }> = {
   standard: {
-    label: 'Tool Call',
+    category: 'TOOL',
+    action: '',
     color: 'var(--category-violet)',
   },
   subagent_spawn: {
-    label: 'Spawn Agent',
+    category: 'SUBAGENT',
+    action: 'Spawn',
     color: 'var(--category-cyan)',
   },
   subagent_wait: {
-    label: 'Wait Agent',
+    category: 'SUBAGENT',
+    action: 'Wait',
     color: 'var(--category-cyan)',
   },
   subagent_send_input: {
-    label: 'Send Input',
+    category: 'SUBAGENT',
+    action: 'Input',
     color: 'var(--category-cyan)',
   },
   subagent_resume: {
-    label: 'Resume Agent',
+    category: 'SUBAGENT',
+    action: 'Resume',
     color: 'var(--category-cyan)',
   },
   subagent_close: {
-    label: 'Close Agent',
+    category: 'SUBAGENT',
+    action: 'Close',
     color: 'var(--category-cyan)',
   },
 };
@@ -60,6 +70,9 @@ const toolCallKindConfig: Record<ToolCallKind, { label: string; color: string }>
 export function ToolCall({
   tool,
   toolKind = 'standard',
+  agentId,
+  agentNickname,
+  agentRole,
   summary,
   input,
   output,
@@ -69,28 +82,16 @@ export function ToolCall({
 }: ToolCallProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const detailsId = useId();
-  const statusConfig: Record<ToolCallStatus, { label: string; color: string }> = {
-    success: {
-      label: 'Success',
-      color: 'text-[var(--success-text)] bg-[var(--success-weak)] border-[color:var(--success)]',
-    },
-    error: {
-      label: 'Error',
-      color: 'text-[var(--danger-text)] bg-[var(--danger-weak)] border-[color:var(--danger)]',
-    },
-    pending: {
-      label: 'Running',
-      color: 'text-[var(--warning-text)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
-    },
-  };
-
-  const config = statusConfig[status] || statusConfig.success;
   const kindConfig = toolCallKindConfig[toolKind] || toolCallKindConfig.standard;
   const toneStyle: ToolCallToneStyle = {
     '--tool-call-color': kindConfig.color,
   };
-  const commandPreview = summary ?? getCommandPreview(input, tool);
+  const isSubagent = toolKind !== 'standard';
+  const agentLabel = agentNickname?.trim() || agentId?.trim();
+  const commandPreview =
+    isSubagent && agentLabel ? `${tool} > ${agentLabel}` : (summary ?? getCommandPreview(input, tool));
   const commandTitle = (summary ?? input.trim()) || tool;
+  const actionLabel = kindConfig.action || tool;
 
   return (
     <div style={toneStyle} className="border-l-2 border-l-[color:var(--tool-call-color)] bg-[var(--surface)]">
@@ -107,18 +108,17 @@ export function ToolCall({
           'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         )}
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 text-xs font-semibold uppercase text-[color:var(--tool-call-color)]">
-            {kindConfig.label}
-          </span>
-          <span className="min-w-0 truncate font-mono text-xs font-semibold text-[var(--text)]" title={commandTitle}>
-            {commandPreview}
-          </span>
-          <span className={`shrink-0 border px-1.5 py-0.5 text-[10px] font-medium ${config.color}`}>
-            {config.label}
-          </span>
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <EventLabel
+            category={kindConfig.category}
+            action={actionLabel}
+            colorClassName="text-[color:var(--tool-call-color)]"
+          />
+          {isSubagent && <AgentTag agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} />}
+          <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
+          <ToolStatusBadge status={status} />
           <TimestampBadge timestamp={timestamp} interactive={false} />
           {isExpanded ? (
             <ChevronDown className="size-4 text-[var(--text-subtle)]" aria-hidden="true" />

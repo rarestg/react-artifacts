@@ -610,10 +610,11 @@ test('ConversationTurn renders collapsed tool summaries by default', () => {
     }),
   );
 
-  assert.match(markup, /Tool Call/);
+  assert.match(markup, />TOOL</);
   assert.match(markup, /npm test/);
-  assert.doesNotMatch(markup, />bash</);
-  assert.match(markup, /Success/);
+  assert.match(markup, />bash</);
+  assert.doesNotMatch(markup, /Success/);
+  assert.doesNotMatch(markup, /success-weak/);
   assert.match(markup, /aria-expanded="false"/);
   assert.match(markup, /aria-label="Expand bash tool details"/);
   assert.doesNotMatch(markup, /aria-label="Copy tool input and output"/);
@@ -632,6 +633,9 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
       type: 'tool_call',
       toolKind: 'subagent_spawn',
       tool: 'spawn_agent',
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      agentRole: 'worker',
       summary: 'spawn_agent -> Ada',
       input: 'spawn worker',
       output: 'running',
@@ -642,6 +646,9 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
       type: 'tool_call',
       toolKind: 'subagent_wait',
       tool: 'wait_agent',
+      agentId: 'child-thread-123',
+      agentNickname: 'Ada',
+      agentRole: 'worker',
       summary: 'wait_agent -> Ada',
       input: 'wait for worker',
       output: 'completed',
@@ -686,18 +693,21 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
     }),
   );
 
-  assert.match(onlySubagentMarkup, /Spawn Agent/);
-  assert.match(onlySubagentMarkup, /spawn_agent -&gt; Ada/);
-  assert.match(onlySubagentMarkup, /wait_agent -&gt; Ada/);
-  assert.match(onlySubagentMarkup, /Subagent Notification/);
+  assert.match(onlySubagentMarkup, />SUBAGENT</);
+  assert.match(onlySubagentMarkup, />Spawn</);
+  assert.match(onlySubagentMarkup, /spawn_agent &gt; Ada/);
+  assert.match(onlySubagentMarkup, /wait_agent &gt; Ada/);
+  assert.match(onlySubagentMarkup, /Ada \/ ad-123/);
+  assert.match(onlySubagentMarkup, />Notification</);
   assert.match(onlySubagentMarkup, /The parser is treating inherited metadata/);
+  assert.doesNotMatch(onlySubagentMarkup, /Completed/);
   assert.match(onlySubagentMarkup, />3 \/ 4 visible</);
   assert.doesNotMatch(onlySubagentMarkup, /npm test/);
-  assert.match(onlyOrdinaryToolMarkup, /Tool Call/);
+  assert.match(onlyOrdinaryToolMarkup, />TOOL</);
   assert.match(onlyOrdinaryToolMarkup, /npm test/);
   assert.match(onlyOrdinaryToolMarkup, />1 \/ 4 visible</);
-  assert.doesNotMatch(onlyOrdinaryToolMarkup, /Spawn Agent/);
-  assert.doesNotMatch(onlyOrdinaryToolMarkup, /Subagent Notification/);
+  assert.doesNotMatch(onlyOrdinaryToolMarkup, />SUBAGENT</);
+  assert.doesNotMatch(onlyOrdinaryToolMarkup, />Notification</);
 });
 
 test('ToolCall supports row-level expansion for input and output details', () => {
@@ -720,10 +730,11 @@ test('ToolCall supports row-level expansion for input and output details', () =>
     }),
   );
 
-  assert.match(summaryMarkup, /Tool Call/);
+  assert.match(summaryMarkup, />TOOL</);
   assert.match(summaryMarkup, /npm test/);
-  assert.doesNotMatch(summaryMarkup, />bash</);
-  assert.match(summaryMarkup, /Success/);
+  assert.match(summaryMarkup, />bash</);
+  assert.doesNotMatch(summaryMarkup, /Success/);
+  assert.doesNotMatch(summaryMarkup, /success-weak/);
   assert.match(summaryMarkup, /title="10:44:30 AM local time"/);
   assert.doesNotMatch(summaryMarkup, /Copy UTC timestamp/);
   assert.match(summaryMarkup, /aria-expanded="false"/);
@@ -743,32 +754,38 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(markup, /focus-visible:ring-2/);
 });
 
-test('ToolCall gives subagent lifecycle rows their own labels and category color', () => {
+test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar', () => {
   const cases = [
-    ['subagent_spawn', 'spawn_agent', 'Spawn Agent', 'spawn_agent -> Ada'],
-    ['subagent_wait', 'wait_agent', 'Wait Agent', 'wait_agent -> Ada'],
-    ['subagent_send_input', 'send_input', 'Send Input', 'send_input -> Ada follow-up'],
-    ['subagent_resume', 'resume_agent', 'Resume Agent', 'resume_agent -> Ada'],
-    ['subagent_close', 'close_agent', 'Close Agent', 'close_agent -> Ada'],
+    ['subagent_spawn', 'spawn_agent', 'Spawn'],
+    ['subagent_wait', 'wait_agent', 'Wait'],
+    ['subagent_send_input', 'send_input', 'Input'],
+    ['subagent_resume', 'resume_agent', 'Resume'],
+    ['subagent_close', 'close_agent', 'Close'],
   ] as const;
 
-  for (const [toolKind, tool, label, summary] of cases) {
+  for (const [toolKind, tool, label] of cases) {
     const markup = renderToStaticMarkup(
       createElement(ToolCall, {
         tool,
         toolKind,
-        summary,
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        summary: `${tool} -> Ada`,
         input: 'agent operation',
         output: 'done',
         status: 'pending',
       }),
     );
 
+    assert.match(markup, />SUBAGENT</);
     assert.match(markup, new RegExp(label));
+    assert.match(markup, /Ada \/ ad-123/);
+    assert.match(markup, new RegExp(`${tool} &gt; Ada`));
     assert.match(markup, /--tool-call-color:var\(--category-cyan\)/);
     assert.match(markup, /Running/);
     assert.match(markup, new RegExp(`aria-label="Expand ${tool} tool details"`));
-    assert.doesNotMatch(markup, />Tool Call</);
+    assert.doesNotMatch(markup, />TOOL</);
   }
 });
 
@@ -786,11 +803,13 @@ test('SubagentNotification renders machine-delivered results outside ordinary us
     }),
   );
 
-  assert.match(markup, /Subagent Notification/);
-  assert.match(markup, /Completed/);
-  assert.match(markup, /Ada \/ worker/);
+  assert.match(markup, />SUBAGENT</);
+  assert.match(markup, />Notification</);
+  assert.doesNotMatch(markup, /Completed/);
+  assert.doesNotMatch(markup, /success-weak/);
+  assert.match(markup, /Ada \/ ad-123/);
   assert.match(markup, /The parser is treating inherited metadata/);
-  assert.match(markup, /aria-label="Copy subagent notification for Ada"/);
+  assert.match(markup, /aria-label="Copy subagent notification for Ada \/ ad-123"/);
   assert.match(markup, /title="10:46:29 AM local time"/);
   assert.doesNotMatch(markup, />User</);
 });

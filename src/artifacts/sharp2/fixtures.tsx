@@ -316,6 +316,9 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_spawn',
         tool: 'spawn_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
         summary: 'spawn_agent -> Ada / worker',
         input: `{
   "agent_type": "worker",
@@ -340,6 +343,9 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_wait',
         tool: 'wait_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
         summary: 'wait_agent -> Ada',
         input: `{
   "targets": ["child-thread-123"],
@@ -381,6 +387,9 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_send_input',
         tool: 'send_input',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
         summary: 'send_input -> Ada follow-up',
         input: `{
   "target": "child-thread-123",
@@ -397,6 +406,9 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_wait',
         tool: 'wait_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
         summary: 'wait_agent -> Ada follow-up result',
         input: `{
   "targets": ["child-thread-123"],
@@ -431,6 +443,9 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_close',
         tool: 'close_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
         summary: 'close_agent -> Ada',
         input: `{
   "target": "child-thread-123"

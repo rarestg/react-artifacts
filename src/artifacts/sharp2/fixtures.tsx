@@ -218,7 +218,8 @@ const SearchInput = () => {
         id: 'turn-3-tool-call',
         type: 'tool_call',
         tool: 'bash',
-        input: 'npm test -- SearchInput.test.tsx',
+        input:
+          'npm test -- src/components/SearchInput.test.tsx --testNamePattern="debounces search calls and preserves typed whitespace"',
         output: `PASS  src/components/SearchInput.test.tsx
   SearchInput
     ✓ renders without crashing (23ms)

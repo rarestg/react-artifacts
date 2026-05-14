@@ -312,7 +312,7 @@ test('ConversationTurn filters hidden item types', () => {
 });
 
 test('ConversationTurn filters tool-role messages with the toolCalls bucket', () => {
-  const markup = renderToStaticMarkup(
+  const hiddenMarkup = renderToStaticMarkup(
     createElement(ConversationTurn, {
       turnNumber: 1,
       items: [
@@ -330,9 +330,59 @@ test('ConversationTurn filters tool-role messages with the toolCalls bucket', ()
     }),
   );
 
-  assert.match(markup, /Question/);
-  assert.match(markup, /Answer/);
-  assert.doesNotMatch(markup, /Raw tool transcript output/);
+  assert.match(hiddenMarkup, /Question/);
+  assert.match(hiddenMarkup, /Answer/);
+  assert.doesNotMatch(hiddenMarkup, /Raw tool transcript output/);
+});
+
+test('ConversationTurn hides tool-role detail rows when tool details are disabled', () => {
+  const items: ConversationTurnData['items'] = [
+    { id: 'user', role: 'user', content: 'Question' },
+    { id: 'tool-role', role: 'tool', content: 'Raw tool transcript output' },
+    { id: 'assistant', role: 'assistant', content: 'Answer' },
+  ];
+
+  const summaryOnlyMarkup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items,
+      visibleTypes: {
+        user: true,
+        assistant: true,
+        thinking: true,
+        toolCalls: true,
+        tokenCounters: true,
+      },
+      detailVisibility: {
+        showToolSummaries: true,
+        showToolDetails: false,
+      },
+    }),
+  );
+  const detailMarkup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items,
+      visibleTypes: {
+        user: true,
+        assistant: true,
+        thinking: true,
+        toolCalls: true,
+        tokenCounters: true,
+      },
+      detailVisibility: {
+        showToolSummaries: true,
+        showToolDetails: true,
+      },
+    }),
+  );
+
+  assert.match(summaryOnlyMarkup, /Question/);
+  assert.match(summaryOnlyMarkup, /Answer/);
+  assert.doesNotMatch(summaryOnlyMarkup, /Raw tool transcript output/);
+  assert.match(summaryOnlyMarkup, />2 items</);
+  assert.match(detailMarkup, /Raw tool transcript output/);
+  assert.match(detailMarkup, />3 items</);
 });
 
 test('ConversationTurn omits render mode toggles when no toggle handler is provided', () => {

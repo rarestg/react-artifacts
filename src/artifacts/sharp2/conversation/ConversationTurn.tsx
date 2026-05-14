@@ -65,7 +65,7 @@ export function ConversationTurn({
     }
 
     if (item.role === 'tool') {
-      if (showToolSummaries) {
+      if (showToolSummaries && showToolDetails) {
         filteredItems.push({ item, originalIndex });
       }
       continue;

@@ -319,6 +319,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
+        preview: 'Inspect the failing parser case and report the root cause. Do not edit files.',
         summary: 'spawn_agent -> Ada / worker',
         input: `{
   "agent_type": "worker",
@@ -346,6 +347,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
+        preview: 'Completed within 10m',
         summary: 'wait_agent -> Ada',
         input: `{
   "targets": ["019e27af-615f-7bf0-a26a-ee42ecd83783"],
@@ -390,6 +392,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
+        preview: 'Follow up: explain why this happens and suggest the smallest safe fix.',
         summary: 'send_input -> Ada follow-up',
         input: `{
   "target": "019e27af-615f-7bf0-a26a-ee42ecd83783",
@@ -409,6 +412,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
+        preview: 'Completed within 10m',
         summary: 'wait_agent -> Ada follow-up result',
         input: `{
   "targets": ["019e27af-615f-7bf0-a26a-ee42ecd83783"],
@@ -446,6 +450,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
+        preview: 'Previous status: completed',
         summary: 'close_agent -> Ada',
         input: `{
   "target": "019e27af-615f-7bf0-a26a-ee42ecd83783"

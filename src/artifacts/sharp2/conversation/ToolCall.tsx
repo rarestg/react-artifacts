@@ -11,6 +11,7 @@ export type ToolCallProps = {
   agentId?: string;
   agentNickname?: string;
   agentRole?: string;
+  preview?: string;
   summary?: string;
   input: string;
   output: string;
@@ -26,6 +27,21 @@ function getCommandPreview(input: string, fallback: string) {
       .map((line) => line.trim())
       .find(Boolean) ?? fallback
   );
+}
+
+const subagentPreviewFallbacks: Partial<Record<ToolCallKind, string>> = {
+  subagent_spawn: 'Spawn request',
+  subagent_wait: 'Wait request',
+  subagent_send_input: 'Follow-up submitted',
+  subagent_resume: 'Resume requested',
+  subagent_close: 'Close requested',
+};
+
+function getSubagentPreview(preview: string | undefined, toolKind: ToolCallKind) {
+  const trimmedPreview = preview?.trim();
+  if (trimmedPreview) return trimmedPreview;
+
+  return subagentPreviewFallbacks[toolKind] ?? 'Subagent event';
 }
 
 const toolCallKindConfig: Record<ToolCallKind, { category: string; action: string; color: string }> = {
@@ -67,6 +83,7 @@ export function ToolCall({
   agentId,
   agentNickname,
   agentRole,
+  preview,
   summary,
   input,
   output,
@@ -78,10 +95,10 @@ export function ToolCall({
   const detailsId = useId();
   const kindConfig = toolCallKindConfig[toolKind] || toolCallKindConfig.standard;
   const isSubagent = toolKind !== 'standard';
-  const agentLabel = agentNickname?.trim() || agentId?.trim();
-  const commandPreview =
-    isSubagent && agentLabel ? `${tool} > ${agentLabel}` : (summary ?? getCommandPreview(input, tool));
-  const commandTitle = (summary ?? input.trim()) || tool;
+  const commandPreview = isSubagent
+    ? getSubagentPreview(preview, toolKind)
+    : (summary ?? getCommandPreview(input, tool));
+  const commandTitle = (isSubagent && preview?.trim() ? preview.trim() : (summary ?? input.trim())) || tool;
   const actionLabel = kindConfig.action || tool;
   const disclosureLabel = isExpanded ? `Collapse ${tool} tool details` : `Expand ${tool} tool details`;
 

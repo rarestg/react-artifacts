@@ -166,6 +166,7 @@ export function ConversationTurn({
                   agentId={item.agentId}
                   agentNickname={item.agentNickname}
                   agentRole={item.agentRole}
+                  preview={item.preview}
                   summary={item.summary}
                   input={item.input}
                   output={item.output}

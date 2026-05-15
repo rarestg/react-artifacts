@@ -678,7 +678,9 @@ test('TranscriptRow owns the shared transcript row shell contract', () => {
   assert.match(rowMarkup, /<div class="p-3"><div class="flex min-w-0 items-center justify-between gap-3">/);
   assert.match(expandableMarkup, /style="--transcript-row-accent:var\(--category-violet\)"/);
   assert.match(expandableMarkup, /flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3/);
-  assert.match(expandableMarkup, /class="min-w-0 flex-1 cursor-pointer text-left/);
+  assert.match(expandableMarkup, /absolute inset-0 z-0 cursor-pointer bg-transparent/);
+  assert.match(expandableMarkup, /pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-1\.5/);
+  assert.doesNotMatch(expandableMarkup, /class="min-w-0 flex-1 cursor-pointer text-left/);
   assert.match(expandableMarkup, /hover:bg-\[var\(--surface-muted\)\]/);
   assert.match(expandableMarkup, /focus-visible:ring-2/);
   assert.match(expandableMarkup, /id="tool-details" class="space-y-3 px-3 pb-3"/);
@@ -897,6 +899,7 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
       agentId: SUBAGENT_ID,
       agentNickname: 'Ada',
       agentRole: 'worker',
+      preview: 'Inspect the parser identity bug',
       summary: 'spawn_agent -> Ada',
       input: 'spawn worker',
       output: 'running',
@@ -910,6 +913,7 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
       agentId: SUBAGENT_ID,
       agentNickname: 'Ada',
       agentRole: 'worker',
+      preview: 'Completed within 10m',
       summary: 'wait_agent -> Ada',
       input: 'wait for worker',
       output: 'completed',
@@ -956,15 +960,17 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
 
   assert.match(onlySubagentMarkup, />SUBAGENT</);
   assert.match(onlySubagentMarkup, />Spawn</);
-  assert.match(onlySubagentMarkup, /spawn_agent &gt; Ada/);
-  assert.match(onlySubagentMarkup, /wait_agent &gt; Ada/);
+  assert.match(onlySubagentMarkup, /Inspect the parser identity bug/);
+  assert.match(onlySubagentMarkup, /Completed within 10m/);
+  assert.doesNotMatch(onlySubagentMarkup, /spawn_agent &gt; Ada/);
+  assert.doesNotMatch(onlySubagentMarkup, /wait_agent &gt; Ada/);
   assert.match(onlySubagentMarkup, /data-agent-identity-tag="nickname"/);
   assert.match(onlySubagentMarkup, />Ada</);
   assert.match(onlySubagentMarkup, /data-agent-identity-tag="id"/);
   assert.match(onlySubagentMarkup, />d83783</);
   assert.match(onlySubagentMarkup, />Notification</);
   assert.match(onlySubagentMarkup, /The parser is treating inherited metadata/);
-  assert.doesNotMatch(onlySubagentMarkup, /Completed/);
+  assert.doesNotMatch(onlySubagentMarkup, />Completed</);
   assert.match(onlySubagentMarkup, />3 \/ 4 visible</);
   assert.doesNotMatch(onlySubagentMarkup, /npm test/);
   assert.match(onlyOrdinaryToolMarkup, />TOOL</);
@@ -1005,6 +1011,7 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(summaryMarkup, /title="10:44:30 AM local time; click to copy UTC timestamp 10:44:30"/);
   assert.match(summaryMarkup, /aria-expanded="false"/);
   assert.match(summaryMarkup, /aria-label="Expand bash tool details"/);
+  assert.match(summaryMarkup, /absolute inset-0 z-0 cursor-pointer bg-transparent/);
   assert.match(summaryMarkup, /lucide-chevron-right/);
   assert.doesNotMatch(summaryMarkup, /PASS/);
   assert.match(markup, /aria-expanded="true"/);
@@ -1023,16 +1030,38 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(markup, /focus-visible:ring-2/);
 });
 
+test('ordinary ToolCall collapsed previews keep summary and input fallback behavior', () => {
+  const summaryMarkup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      summary: 'Run focused tests',
+      input: 'npm test',
+      output: 'PASS',
+    }),
+  );
+  const inputFallbackMarkup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      input: '\n  npm run check\n',
+      output: 'PASS',
+    }),
+  );
+
+  assert.match(summaryMarkup, /Run focused tests/);
+  assert.doesNotMatch(summaryMarkup, /npm test/);
+  assert.match(inputFallbackMarkup, /npm run check/);
+});
+
 test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar', () => {
   const cases = [
-    ['subagent_spawn', 'spawn_agent', 'Spawn'],
-    ['subagent_wait', 'wait_agent', 'Wait'],
-    ['subagent_send_input', 'send_input', 'Input'],
-    ['subagent_resume', 'resume_agent', 'Resume'],
-    ['subagent_close', 'close_agent', 'Close'],
+    ['subagent_spawn', 'spawn_agent', 'Spawn', 'Inspect the failing parser case.'],
+    ['subagent_wait', 'wait_agent', 'Wait', 'Completed within 10m'],
+    ['subagent_send_input', 'send_input', 'Input', 'Follow up with the smallest fix.'],
+    ['subagent_resume', 'resume_agent', 'Resume', 'Pending init'],
+    ['subagent_close', 'close_agent', 'Close', 'Previous status: completed'],
   ] as const;
 
-  for (const [toolKind, tool, label] of cases) {
+  for (const [toolKind, tool, label, preview] of cases) {
     const markup = renderToStaticMarkup(
       createElement(ToolCall, {
         tool,
@@ -1040,6 +1069,7 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
         agentId: SUBAGENT_ID,
         agentNickname: 'Ada',
         agentRole: 'worker',
+        preview,
         summary: `${tool} -> Ada`,
         input: 'agent operation',
         output: 'done',
@@ -1055,7 +1085,8 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
     assert.match(markup, />Ada</);
     assert.match(markup, /data-agent-identity-tag="id"/);
     assert.match(markup, />d83783</);
-    assert.match(markup, new RegExp(`${tool} &gt; Ada`));
+    assert.match(markup, new RegExp(preview.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.doesNotMatch(markup, new RegExp(`${tool} &gt; Ada`));
     assert.match(markup, /--transcript-row-accent:var\(--category-cyan\)/);
     assert.match(markup, /Running/);
     assert.match(markup, new RegExp(`aria-label="Expand ${tool} tool details"`));
@@ -1066,6 +1097,39 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
     assert.match(markup, /aria-label="Copy full agent ID 019e27af-615f-7bf0-a26a-ee42ecd83783"/);
     assert.match(markup, /data-copy-value="019e27af-615f-7bf0-a26a-ee42ecd83783"/);
     assert.equal(markup.match(/<button/g)?.length ?? 0, 4);
+  }
+});
+
+test('ToolCall uses nonredundant subagent fallback previews without preview data', () => {
+  const cases = [
+    ['subagent_spawn', 'spawn_agent', 'Spawn request', false],
+    ['subagent_wait', 'wait_agent', 'Wait request', true],
+    ['subagent_send_input', 'send_input', 'Follow-up submitted', true],
+    ['subagent_resume', 'resume_agent', 'Resume requested', true],
+    ['subagent_close', 'close_agent', 'Close requested', true],
+  ] as const;
+
+  for (const [toolKind, tool, fallback, includeAgentMetadata] of cases) {
+    const markup = renderToStaticMarkup(
+      createElement(ToolCall, {
+        tool,
+        toolKind,
+        agentId: includeAgentMetadata ? SUBAGENT_ID : undefined,
+        agentNickname: includeAgentMetadata ? 'Ada' : undefined,
+        agentRole: includeAgentMetadata ? 'worker' : undefined,
+        summary: `${tool} -> Ada`,
+        input: 'agent operation',
+        output: 'done',
+      }),
+    );
+
+    assert.match(markup, new RegExp(`>${fallback}<`));
+    assert.doesNotMatch(markup, new RegExp(`${tool} &gt; Ada`));
+    if (includeAgentMetadata) {
+      assert.match(markup, /data-agent-identity-tag="nickname"/);
+    } else {
+      assert.doesNotMatch(markup, /data-agent-identity-tag=/);
+    }
   }
 });
 

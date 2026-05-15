@@ -106,7 +106,9 @@ export function ToolCall({
               colorClassName="text-[color:var(--transcript-row-accent)]"
               sections={[{ value: actionLabel, width: 'action' }]}
             />
-            <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill>
+            <EventPreviewPill title={commandTitle} className="flex-1">
+              {commandPreview}
+            </EventPreviewPill>
           </>
         )
       }
@@ -115,7 +117,13 @@ export function ToolCall({
           <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
         ) : undefined
       }
-      leftTrailing={isSubagent ? <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill> : undefined}
+      leftTrailing={
+        isSubagent ? (
+          <EventPreviewPill title={commandTitle} className="flex-1">
+            {commandPreview}
+          </EventPreviewPill>
+        ) : undefined
+      }
       right={
         <TranscriptRowActionCluster
           leading={<ToolStatusBadge status={status} />}

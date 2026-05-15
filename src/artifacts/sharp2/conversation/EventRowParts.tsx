@@ -267,11 +267,22 @@ export function AgentIdentityTags({
   );
 }
 
-export function EventPreviewPill({ children, title }: { children: ReactNode; title?: string }) {
+export function EventPreviewPill({
+  children,
+  title,
+  className,
+}: {
+  children: ReactNode;
+  title?: string;
+  className?: string;
+}) {
   return (
     <span
       title={title}
-      className="inline-flex h-6 min-w-0 max-w-[24rem] flex-[1_1_10rem] items-center border border-[var(--border)] bg-[var(--surface-muted)] px-1.5 font-mono text-xs font-medium text-[var(--text)]"
+      className={mergeClassNames(
+        'inline-flex h-6 min-w-0 items-center border border-[var(--border)] bg-[var(--surface-muted)] px-1.5 font-mono text-xs font-medium text-[var(--text)]',
+        className,
+      )}
     >
       <span className="min-w-0 truncate">{children}</span>
     </span>

@@ -10,6 +10,7 @@ import {
   AgentIdentityTags,
   agentIdentityToneNames,
   EventDescriptor,
+  EventPreviewPill,
   getAgentIdentityToneName,
   getAgentIdSuffix,
 } from '../../src/artifacts/sharp2/conversation/EventRowParts';
@@ -749,6 +750,51 @@ test('EventDescriptor reserves event action width for rows with previews', () =>
   assert.match(ordinaryToolMarkup, />bash</);
   assert.doesNotMatch(ordinaryToolMarkup, /data-section-width="action"/);
   assert.doesNotMatch(ordinaryToolMarkup, /min-w-\[12ch\]/);
+});
+
+test('EventPreviewPill leaves width policy to row callers', () => {
+  const baseMarkup = renderToStaticMarkup(createElement(EventPreviewPill, { title: 'Preview title' }, 'Preview text'));
+  const fillMarkup = renderToStaticMarkup(
+    createElement(EventPreviewPill, { title: 'Preview title', className: 'flex-1' }, 'Preview text'),
+  );
+
+  assert.match(baseMarkup, /inline-flex h-6 min-w-0 items-center/);
+  assert.doesNotMatch(baseMarkup, /max-w-\[24rem\]/);
+  assert.doesNotMatch(baseMarkup, /flex-\[1_1_10rem\]/);
+  assert.match(fillMarkup, /inline-flex h-6 min-w-0 items-center/);
+  assert.match(fillMarkup, /flex-1/);
+  assert.doesNotMatch(fillMarkup, /max-w-\[24rem\]/);
+});
+
+test('transcript event previews fill available row space without a fixed cap', () => {
+  const longCommand = 'node --import tsx --test --test-name-pattern="debounced transcript preview layout"';
+  const markups = [
+    renderToStaticMarkup(createElement(ToolCall, { tool: 'bash', input: longCommand, output: 'PASS' })),
+    renderToStaticMarkup(
+      createElement(ToolCall, {
+        tool: 'wait_agent',
+        toolKind: 'subagent_wait',
+        agentId: SUBAGENT_ID,
+        agentNickname: 'Ada',
+        input: longCommand,
+        output: 'done',
+      }),
+    ),
+    renderToStaticMarkup(
+      createElement(SubagentNotification, {
+        agentId: SUBAGENT_ID,
+        agentNickname: 'Ada',
+        status: 'completed',
+        summary: longCommand,
+      }),
+    ),
+  ];
+
+  for (const markup of markups) {
+    assert.match(markup, /inline-flex h-6 min-w-0 items-center[^"]*flex-1/);
+    assert.doesNotMatch(markup, /max-w-\[24rem\]/);
+    assert.doesNotMatch(markup, /flex-\[1_1_10rem\]/);
+  }
 });
 
 test('getAgentIdSuffix handles UUID-like ids and preserves non-UUID fallback behavior', () => {

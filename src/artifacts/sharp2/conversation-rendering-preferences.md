@@ -16,6 +16,8 @@ policy, but future edits should preserve them unless the user explicitly changes
 - Event rows should use compact descriptors with category plus pipe-separated sections, such as `SUBAGENT | Wait`.
 - Reserve aligned action-section widths when a descriptor is followed by preview content, including subagent actions and
   ordinary tool names such as `TOOL | bash`, so previews start on a shared throughline with enough breathing room.
+- Row preview pills should let the row layout own truncation width. In transcript event rows, previews fill the remaining
+  summary space and truncate only when they reach the sibling right action cluster, with row gaps providing breathing room.
 - Subagent identity should render as separate nickname and short-id tags, not a combined `nickname / id` label.
 - Subagent identity tags may use deterministic per-agent color for recognition, while the row accent remains the row
   category color.

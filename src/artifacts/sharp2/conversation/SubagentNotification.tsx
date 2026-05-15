@@ -61,7 +61,11 @@ export function SubagentNotification({
       leftControls={
         <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
       }
-      leftTrailing={<EventPreviewPill title={summary}>{summary}</EventPreviewPill>}
+      leftTrailing={
+        <EventPreviewPill title={summary} className="flex-1">
+          {summary}
+        </EventPreviewPill>
+      }
       right={
         <TranscriptRowActionCluster
           leading={<SubagentNotificationStatusBadge status={status} />}

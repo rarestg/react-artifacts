@@ -1,5 +1,9 @@
 # Sharp2 Conversation Rendering Execution Plan
 
+> Historical note: this plan documents the completed flattening pass that moved conversation rendering away from
+> nested cards. It is useful implementation context, not the current backlog. For current preferences and export
+> boundary guidance, use `conversation-rendering-preferences.md` and `README.md`.
+
 ## Context
 
 `sharp2` is the repo-local reference showcase for sharp minimal artifact UI. Its conversation rendering example lives under

@@ -132,7 +132,7 @@ export function CopyButton({
       style={style}
       {...dataAttributes}
       className={mergeClassNames(
-        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border transition-colors motion-reduce:transition-none',
+        'pointer-events-auto inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border transition-colors motion-reduce:transition-none',
         'rounded-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
         'focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
         sizeClass,

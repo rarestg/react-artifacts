@@ -142,6 +142,57 @@ test('sharp2 message filters use the shared FilterCheckbox primitive directly', 
   await assert.rejects(readFile(`${sharp2Dir}/conversation/MessageTypeToggle.tsx`, 'utf8'), /ENOENT/);
 });
 
+test('sharp2 conversation exposes a narrow local public barrel', async () => {
+  const source = await readFile(`${sharp2Dir}/conversation/index.ts`, 'utf8');
+
+  for (const name of [
+    'ConversationTurn',
+    'ConversationTurnProps',
+    'ConversationTurnData',
+    'ConversationVisibilityOptions',
+    'ConversationDetailVisibility',
+    'RenderMode',
+    'VisibleTypes',
+    'getTurnKey',
+    'getTurnItemVisibleType',
+    'tokenCounterPropsFromTelemetry',
+    'TokenTelemetryPayload',
+    'TokenUsageViewModel',
+  ]) {
+    assert.match(source, new RegExp(`\\b${name}\\b`), `${name} should be exported from the conversation barrel`);
+  }
+
+  for (const privateName of [
+    'MessageCard',
+    'ToolCall',
+    'SubagentNotification',
+    'TranscriptRow',
+    'EventDescriptor',
+    'AgentIdentityTags',
+    'TimestampBadge',
+    'RenderErrorBoundary',
+    'splitMessageContent',
+  ]) {
+    assert.doesNotMatch(
+      source,
+      new RegExp(`\\b${privateName}\\b`),
+      `${privateName} should stay private to conversation internals`,
+    );
+  }
+});
+
+test('sharp2 production code imports conversation through the public barrel', async () => {
+  const sources = [
+    await readFile(`${sharp2Dir}/index.tsx`, 'utf8'),
+    await readFile(`${sharp2Dir}/fixtures.tsx`, 'utf8'),
+  ];
+
+  for (const source of sources) {
+    assert.match(source, /from ['"]\.\/conversation['"]/);
+    assert.doesNotMatch(source, /from ['"]\.\/conversation\//);
+  }
+});
+
 test('sharp2 avoids viewport breakpoints in preview-sensitive showcase layout', async () => {
   const files = await readSharp2SourceFiles();
   const joined = files.map(({ file, source }) => `\n// ${file}\n${source}`).join('\n');

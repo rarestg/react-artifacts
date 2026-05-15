@@ -2,15 +2,15 @@ import type { ReactNode } from 'react';
 import { getTurnItemKey } from './keys';
 import { MessageCard } from './MessageCard';
 import { SubagentNotification } from './SubagentNotification';
+import { TimestampBadge } from './TimestampBadge';
 import { TokenCounter } from './TokenCounter';
 import { ToolCall } from './ToolCall';
-import { formatConversationTimestamp, formatConversationTimestampTitle } from './time';
 import {
   type ConversationDetailVisibility,
+  type ConversationVisibilityOptions,
   getTurnItemVisibleType,
   type RenderMode,
   type TurnItem,
-  type VisibleTypes,
 } from './types';
 
 function TurnMetaBadge({
@@ -39,24 +39,27 @@ export type ConversationTurnProps = {
   timestamp?: string;
   duration?: string;
   items: TurnItem[];
-  renderModes?: RenderMode[];
-  onToggleRender?: (messageIndex: number) => void;
-  visibleTypes?: Partial<VisibleTypes>;
+  renderModesByItemIndex?: RenderMode[];
+  onToggleRenderMode?: (originalItemIndex: number) => void;
+  visibleTypes?: ConversationVisibilityOptions;
   detailVisibility?: Partial<ConversationDetailVisibility>;
 };
+
+function TranscriptRowStackItem({ children }: { children: ReactNode }) {
+  return <div className="border-b border-[var(--border)] last:border-b-0">{children}</div>;
+}
 
 export function ConversationTurn({
   turnNumber,
   timestamp,
   duration,
   items,
-  renderModes,
-  onToggleRender,
+  renderModesByItemIndex,
+  onToggleRenderMode,
   visibleTypes,
   detailVisibility,
 }: ConversationTurnProps) {
-  const showToolSummaries = detailVisibility?.showToolSummaries ?? true;
-  const showTokenCounters = detailVisibility?.showTokenCounters ?? visibleTypes?.tokenCounters ?? true;
+  const showTokenCounters = visibleTypes?.tokenCounters ?? true;
   const showIntermediateTokenCounters = detailVisibility?.showIntermediateTokenCounters ?? false;
   let finalTokenCounterIndex = -1;
 
@@ -75,7 +78,7 @@ export function ConversationTurn({
 
     if (item.type === 'tool_call') {
       availableItemCount += 1;
-      if (showToolSummaries && (visibleTypes?.[visibleType] ?? true)) {
+      if (visibleTypes?.[visibleType] ?? true) {
         filteredItems.push({ item, originalIndex });
       }
       continue;
@@ -100,8 +103,6 @@ export function ConversationTurn({
   if (filteredItems.length === 0) return null;
 
   const itemCountTitle = `${filteredItems.length} of ${availableItemCount} transcript rows visible for Turn ${turnNumber}`;
-  const formattedTimestamp = formatConversationTimestamp(timestamp);
-  const timestampTitle = formatConversationTimestampTitle(timestamp);
 
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)]">
@@ -109,12 +110,9 @@ export function ConversationTurn({
       <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-[var(--text)]">Turn {turnNumber}</span>
-          {formattedTimestamp && (
-            <span
-              title={timestampTitle ? `${timestampTitle} local time` : undefined}
-              className="border-l border-[var(--border)] pl-3 text-[10px] text-[var(--text-subtle)] tabular-nums"
-            >
-              {formattedTimestamp}
+          {timestamp?.trim() && (
+            <span className="border-l border-[var(--border)] pl-3">
+              <TimestampBadge timestamp={timestamp} />
             </span>
           )}
         </div>
@@ -135,10 +133,7 @@ export function ConversationTurn({
         {filteredItems.map(({ item, originalIndex }) => {
           if (item.type === 'token_counter') {
             return (
-              <div
-                key={getTurnItemKey(item, originalIndex)}
-                className="border-b border-[var(--border)] last:border-b-0"
-              >
+              <TranscriptRowStackItem key={getTurnItemKey(item, originalIndex)}>
                 <TokenCounter
                   used={item.used}
                   limit={item.limit}
@@ -150,16 +145,13 @@ export function ConversationTurn({
                   lastUsage={item.lastUsage}
                   rateLimits={item.rateLimits}
                 />
-              </div>
+              </TranscriptRowStackItem>
             );
           }
 
           if (item.type === 'tool_call') {
             return (
-              <div
-                key={getTurnItemKey(item, originalIndex)}
-                className="border-b border-[var(--border)] last:border-b-0"
-              >
+              <TranscriptRowStackItem key={getTurnItemKey(item, originalIndex)}>
                 <ToolCall
                   tool={item.tool}
                   toolKind={item.toolKind}
@@ -173,16 +165,13 @@ export function ConversationTurn({
                   timestamp={item.timestamp}
                   status={item.status}
                 />
-              </div>
+              </TranscriptRowStackItem>
             );
           }
 
           if (item.type === 'subagent_notification') {
             return (
-              <div
-                key={getTurnItemKey(item, originalIndex)}
-                className="border-b border-[var(--border)] last:border-b-0"
-              >
+              <TranscriptRowStackItem key={getTurnItemKey(item, originalIndex)}>
                 <SubagentNotification
                   agentId={item.agentId}
                   agentNickname={item.agentNickname}
@@ -192,22 +181,24 @@ export function ConversationTurn({
                   rawPayload={item.rawPayload}
                   timestamp={item.timestamp}
                 />
-              </div>
+              </TranscriptRowStackItem>
             );
           }
 
           return (
-            <div key={getTurnItemKey(item, originalIndex)} className="border-b border-[var(--border)] last:border-b-0">
+            <TranscriptRowStackItem key={getTurnItemKey(item, originalIndex)}>
               <MessageCard
                 role={item.role}
                 content={item.content}
                 timestamp={item.timestamp}
-                renderMode={item.role === 'assistant' ? renderModes?.[originalIndex] || 'default' : 'default'}
+                renderMode={
+                  item.role === 'assistant' ? renderModesByItemIndex?.[originalIndex] || 'default' : 'default'
+                }
                 onToggleRender={
-                  item.role === 'assistant' && onToggleRender ? () => onToggleRender(originalIndex) : undefined
+                  item.role === 'assistant' && onToggleRenderMode ? () => onToggleRenderMode(originalIndex) : undefined
                 }
               />
-            </div>
+            </TranscriptRowStackItem>
           );
         })}
       </div>

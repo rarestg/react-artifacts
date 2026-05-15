@@ -1,7 +1,7 @@
 import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
 
-export type TokenCounterProps = {
+export type TokenUsageViewModel = {
   used: number;
   limit: number;
   label?: string;
@@ -18,6 +18,8 @@ export type TokenCounterProps = {
   };
   rateLimits?: unknown;
 };
+
+export type TokenCounterProps = TokenUsageViewModel;
 
 export type TokenTelemetryPayload = {
   info?: {
@@ -49,7 +51,7 @@ const formatTokens = (n: number) => new Intl.NumberFormat('en-US').format(n);
 export function tokenCounterPropsFromTelemetry(
   payload: TokenTelemetryPayload,
   label = 'Context Window',
-): TokenCounterProps {
+): TokenUsageViewModel {
   const totalUsage = payload.info?.total_token_usage;
   const lastUsage = payload.info?.last_token_usage;
 

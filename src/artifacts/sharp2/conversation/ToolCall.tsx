@@ -108,6 +108,7 @@ export function ToolCall({
       expanded={isExpanded}
       controlsId={detailsId}
       summaryAriaLabel={disclosureLabel}
+      summaryTitle={commandTitle}
       onToggle={() => setIsExpanded((expanded) => !expanded)}
       left={
         isSubagent ? (

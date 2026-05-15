@@ -56,6 +56,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
             canToggleRender ? (
               <button
                 type="button"
+                aria-label="Rendered Markdown output"
                 aria-pressed={!isLiteral}
                 title="Switch between raw text and rendered Markdown output"
                 onClick={canToggleRender}

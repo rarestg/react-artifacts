@@ -1,3 +1,4 @@
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 
 type TranscriptRowStyle = CSSProperties & {
@@ -19,7 +20,22 @@ export type ExpandableTranscriptRowProps = TranscriptRowSummarySlots & {
   controlsId: string;
   summaryAriaLabel: string;
   onToggle: () => void;
+  leftControls?: ReactNode;
+  leftTrailing?: ReactNode;
   children?: ReactNode;
+};
+
+export type TranscriptRowActionClusterProps = {
+  leading?: ReactNode;
+  timestamp?: ReactNode;
+  action?: ReactNode;
+};
+
+export type TranscriptRowDisclosureButtonProps = {
+  expanded: boolean;
+  controlsId: string;
+  ariaLabel: string;
+  onToggle: () => void;
 };
 
 function getTranscriptRowStyle(accentColor: string): TranscriptRowStyle {
@@ -48,6 +64,68 @@ function TranscriptRowSummary({ left, right }: Pick<TranscriptRowSummarySlots, '
   );
 }
 
+function DisclosureSummaryButton({
+  expanded,
+  controlsId,
+  summaryAriaLabel,
+  onToggle,
+  children,
+  className = 'min-w-0 flex-1',
+}: {
+  expanded: boolean;
+  controlsId: string;
+  summaryAriaLabel: string;
+  onToggle: () => void;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      aria-controls={controlsId}
+      aria-label={summaryAriaLabel}
+      onClick={onToggle}
+      className={`${className} cursor-pointer text-left active:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]`}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">{children}</div>
+    </button>
+  );
+}
+
+export function TranscriptRowActionCluster({ leading, timestamp, action }: TranscriptRowActionClusterProps) {
+  return (
+    <div className="grid grid-cols-[4.75rem_auto_1.5rem] items-center gap-1.5">
+      <div className="flex min-w-0 justify-end">{leading}</div>
+      <div className="flex justify-end">{timestamp}</div>
+      <div className="flex justify-end">{action}</div>
+    </div>
+  );
+}
+
+export function TranscriptRowDisclosureButton({
+  expanded,
+  controlsId,
+  ariaLabel,
+  onToggle,
+}: TranscriptRowDisclosureButtonProps) {
+  const Icon = expanded ? ChevronDown : ChevronRight;
+
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      aria-controls={controlsId}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      onClick={onToggle}
+      className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
+    >
+      <Icon className="size-4" aria-hidden="true" />
+    </button>
+  );
+}
+
 export function TranscriptRow({ accentColor, left, right, children }: TranscriptRowProps) {
   return (
     <TranscriptRowShell accentColor={accentColor}>
@@ -66,22 +144,57 @@ export function ExpandableTranscriptRow({
   summaryAriaLabel,
   onToggle,
   left,
+  leftControls,
+  leftTrailing,
   right,
   children,
 }: ExpandableTranscriptRowProps) {
+  const hasSplitLeftControls = leftControls !== undefined || leftTrailing !== undefined;
+
   return (
     <TranscriptRowShell accentColor={accentColor}>
-      <button
-        type="button"
-        aria-expanded={expanded}
-        aria-controls={controlsId}
-        aria-label={summaryAriaLabel}
-        onClick={onToggle}
-        className="flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3 text-left transition-colors hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
-      >
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">{left}</div>
+      <div className="flex w-full min-w-0 items-center justify-between gap-3 p-3 transition-colors hover:bg-[var(--surface-muted)] motion-reduce:transition-none">
+        {hasSplitLeftControls ? (
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {leftTrailing !== undefined && leftTrailing !== null ? (
+              <div className="flex shrink-0 items-center gap-1.5">{left}</div>
+            ) : (
+              <DisclosureSummaryButton
+                expanded={expanded}
+                controlsId={controlsId}
+                summaryAriaLabel={summaryAriaLabel}
+                onToggle={onToggle}
+                className="shrink-0"
+              >
+                {left}
+              </DisclosureSummaryButton>
+            )}
+            {leftControls !== undefined && leftControls !== null && (
+              <div className="flex shrink-0 items-center gap-1.5">{leftControls}</div>
+            )}
+            {leftTrailing !== undefined && leftTrailing !== null && (
+              <DisclosureSummaryButton
+                expanded={expanded}
+                controlsId={controlsId}
+                summaryAriaLabel={summaryAriaLabel}
+                onToggle={onToggle}
+              >
+                {leftTrailing}
+              </DisclosureSummaryButton>
+            )}
+          </div>
+        ) : (
+          <DisclosureSummaryButton
+            expanded={expanded}
+            controlsId={controlsId}
+            summaryAriaLabel={summaryAriaLabel}
+            onToggle={onToggle}
+          >
+            {left}
+          </DisclosureSummaryButton>
+        )}
         {right !== undefined && right !== null && <div className="flex shrink-0 items-center gap-1.5">{right}</div>}
-      </button>
+      </div>
 
       {expanded && children && (
         <div id={controlsId} className="space-y-3 px-3 pb-3">

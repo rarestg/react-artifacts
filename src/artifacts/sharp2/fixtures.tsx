@@ -316,7 +316,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_spawn',
         tool: 'spawn_agent',
-        agentId: 'child-thread-123',
+        agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
         summary: 'spawn_agent -> Ada / worker',
@@ -326,7 +326,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
   "reasoning_effort": "xhigh"
 }`,
         output: `{
-  "agent_id": "child-thread-123",
+  "agent_id": "019e27af-615f-7bf0-a26a-ee42ecd83783",
   "nickname": "Ada"
 }`,
         timestamp: '10:46:15',
@@ -343,17 +343,17 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_wait',
         tool: 'wait_agent',
-        agentId: 'child-thread-123',
+        agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
         summary: 'wait_agent -> Ada',
         input: `{
-  "targets": ["child-thread-123"],
+  "targets": ["019e27af-615f-7bf0-a26a-ee42ecd83783"],
   "timeout_ms": 600000
 }`,
         output: `{
   "status": {
-    "child-thread-123": {
+    "019e27af-615f-7bf0-a26a-ee42ecd83783": {
       "completed": "The parser is treating inherited metadata as current-session metadata."
     }
   },
@@ -365,13 +365,13 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
       {
         id: 'turn-4-notification-1',
         type: 'subagent_notification',
-        agentId: 'child-thread-123',
+        agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
         status: 'completed',
         summary: 'The parser is treating inherited metadata as current-session metadata.',
         rawPayload: `<subagent_notification>
-{"agent_path":"child-thread-123","status":{"completed":"The parser is treating inherited metadata as current-session metadata."}}
+{"agent_path":"019e27af-615f-7bf0-a26a-ee42ecd83783","status":{"completed":"The parser is treating inherited metadata as current-session metadata."}}
 </subagent_notification>`,
         timestamp: '10:46:29',
       },
@@ -387,12 +387,12 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_send_input',
         tool: 'send_input',
-        agentId: 'child-thread-123',
+        agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
         summary: 'send_input -> Ada follow-up',
         input: `{
-  "target": "child-thread-123",
+  "target": "019e27af-615f-7bf0-a26a-ee42ecd83783",
   "message": "Follow up: explain why this happens and suggest the smallest safe fix."
 }`,
         output: `{
@@ -406,17 +406,17 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_wait',
         tool: 'wait_agent',
-        agentId: 'child-thread-123',
+        agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
         summary: 'wait_agent -> Ada follow-up result',
         input: `{
-  "targets": ["child-thread-123"],
+  "targets": ["019e27af-615f-7bf0-a26a-ee42ecd83783"],
   "timeout_ms": 600000
 }`,
         output: `{
   "status": {
-    "child-thread-123": {
+    "019e27af-615f-7bf0-a26a-ee42ecd83783": {
       "completed": "The smallest fix is to lock session identity from the first session_meta row only."
     }
   },
@@ -428,13 +428,13 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
       {
         id: 'turn-4-notification-2',
         type: 'subagent_notification',
-        agentId: 'child-thread-123',
+        agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
         status: 'completed',
         summary: 'The smallest fix is to lock session identity from the first session_meta row only.',
         rawPayload: `<subagent_notification>
-{"agent_path":"child-thread-123","status":{"completed":"The smallest fix is to lock session identity from the first session_meta row only."}}
+{"agent_path":"019e27af-615f-7bf0-a26a-ee42ecd83783","status":{"completed":"The smallest fix is to lock session identity from the first session_meta row only."}}
 </subagent_notification>`,
         timestamp: '10:46:40',
       },
@@ -443,12 +443,12 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         type: 'tool_call',
         toolKind: 'subagent_close',
         tool: 'close_agent',
-        agentId: 'child-thread-123',
+        agentId: '019e27af-615f-7bf0-a26a-ee42ecd83783',
         agentNickname: 'Ada',
         agentRole: 'worker',
         summary: 'close_agent -> Ada',
         input: `{
-  "target": "child-thread-123"
+  "target": "019e27af-615f-7bf0-a26a-ee42ecd83783"
 }`,
         output: `{
   "previous_status": {

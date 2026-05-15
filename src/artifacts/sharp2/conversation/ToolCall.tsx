@@ -1,9 +1,8 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useId, useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
 import { AgentIdentityTags, EventDescriptor, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
-import { ExpandableTranscriptRow } from './TranscriptRow';
+import { ExpandableTranscriptRow, TranscriptRowActionCluster, TranscriptRowDisclosureButton } from './TranscriptRow';
 import type { ToolCallKind, ToolCallStatus } from './types';
 
 export type ToolCallProps = {
@@ -85,37 +84,52 @@ export function ToolCall({
   const commandTitle = (summary ?? input.trim()) || tool;
   const actionLabel = kindConfig.action || tool;
   const hasAgentIdentity = Boolean(agentNickname?.trim() || agentId?.trim());
+  const disclosureLabel = isExpanded ? `Collapse ${tool} tool details` : `Expand ${tool} tool details`;
 
   return (
     <ExpandableTranscriptRow
       accentColor={kindConfig.color}
       expanded={isExpanded}
       controlsId={detailsId}
-      summaryAriaLabel={isExpanded ? `Collapse ${tool} tool details` : `Expand ${tool} tool details`}
+      summaryAriaLabel={disclosureLabel}
       onToggle={() => setIsExpanded((expanded) => !expanded)}
       left={
-        <>
+        isSubagent ? (
           <EventDescriptor
             category={kindConfig.category}
             colorClassName="text-[color:var(--transcript-row-accent)]"
             sections={[{ value: actionLabel, width: isSubagent ? 'subagentAction' : undefined }]}
           />
-          {isSubagent && (
-            <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="display" />
-          )}
-          <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill>
-        </>
+        ) : (
+          <>
+            <EventDescriptor
+              category={kindConfig.category}
+              colorClassName="text-[color:var(--transcript-row-accent)]"
+              sections={[{ value: actionLabel }]}
+            />
+            <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill>
+          </>
+        )
       }
+      leftControls={
+        isSubagent ? (
+          <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
+        ) : undefined
+      }
+      leftTrailing={isSubagent ? <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill> : undefined}
       right={
-        <>
-          <ToolStatusBadge status={status} />
-          <TimestampBadge timestamp={timestamp} interactive={false} />
-          {isExpanded ? (
-            <ChevronDown className="size-4 text-[var(--text-subtle)]" aria-hidden="true" />
-          ) : (
-            <ChevronRight className="size-4 text-[var(--text-subtle)]" aria-hidden="true" />
-          )}
-        </>
+        <TranscriptRowActionCluster
+          leading={<ToolStatusBadge status={status} />}
+          timestamp={<TimestampBadge timestamp={timestamp} />}
+          action={
+            <TranscriptRowDisclosureButton
+              expanded={isExpanded}
+              controlsId={detailsId}
+              ariaLabel={disclosureLabel}
+              onToggle={() => setIsExpanded((expanded) => !expanded)}
+            />
+          }
+        />
       }
     >
       {isSubagent && hasAgentIdentity && (

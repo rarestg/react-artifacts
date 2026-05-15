@@ -32,28 +32,10 @@ const agentIdentityTonePalette = [
     weak: 'var(--category-blue-weak)',
   },
   {
-    name: 'green',
-    color: 'var(--category-green)',
-    text: 'var(--category-green-text)',
-    weak: 'var(--category-green-weak)',
-  },
-  {
-    name: 'amber',
-    color: 'var(--category-amber)',
-    text: 'var(--category-amber-text)',
-    weak: 'var(--category-amber-weak)',
-  },
-  {
     name: 'violet',
     color: 'var(--category-violet)',
     text: 'var(--category-violet-text)',
     weak: 'var(--category-violet-weak)',
-  },
-  {
-    name: 'red',
-    color: 'var(--category-red)',
-    text: 'var(--category-red-text)',
-    weak: 'var(--category-red-weak)',
   },
   {
     name: 'pink',
@@ -62,10 +44,10 @@ const agentIdentityTonePalette = [
     weak: 'var(--category-pink-weak)',
   },
   {
-    name: 'lime',
-    color: 'var(--category-lime)',
-    text: 'var(--category-lime-text)',
-    weak: 'var(--category-lime-weak)',
+    name: 'cyan',
+    color: 'var(--category-cyan)',
+    text: 'var(--category-cyan-text)',
+    weak: 'var(--category-cyan-weak)',
   },
 ] as const;
 
@@ -77,6 +59,8 @@ const metadataAgentTone = {
 } as const;
 
 type AgentIdentityTone = (typeof agentIdentityTonePalette)[number] | typeof metadataAgentTone;
+
+export const agentIdentityToneNames = agentIdentityTonePalette.map((tone) => tone.name);
 
 const hashString = (value: string) => {
   let hash = 0x811c9dc5;
@@ -92,6 +76,10 @@ const hashString = (value: string) => {
 export function getAgentIdSuffix(agentId?: string) {
   const trimmedId = agentId?.trim();
   if (!trimmedId) return undefined;
+
+  const compact = trimmedId.replace(/-/g, '');
+  if (/^[0-9a-f]{32}$/i.test(compact)) return compact.slice(-6).toLowerCase();
+
   return trimmedId.slice(-6);
 }
 
@@ -184,9 +172,10 @@ function getAgentIdentityTagStyle(tone: AgentIdentityTone): AgentIdentityTagStyl
 }
 
 const agentIdentityTagBaseClasses =
-  'inline-flex h-6 min-w-0 shrink-0 items-center border px-1.5 font-mono text-[10px] font-semibold';
-const agentIdentityTagToneClasses =
-  'border-[color:var(--agent-tag-color)] bg-[var(--agent-tag-bg)] text-[var(--agent-tag-text)]';
+  'inline-flex h-6 min-w-0 shrink-0 items-center border border-transparent px-1.5 font-mono text-[10px] font-semibold';
+const agentIdentityTagToneClasses = 'bg-[var(--agent-tag-bg)] text-[var(--agent-tag-text)]';
+const copySuccessLabel = 'Copied';
+const copyFailedLabel = 'Failed';
 
 function AgentIdentityDisplayTag({ tag, tone }: { tag: AgentIdentityTagModel; tone: AgentIdentityTone }) {
   return (
@@ -203,13 +192,18 @@ function AgentIdentityDisplayTag({ tag, tone }: { tag: AgentIdentityTagModel; to
 
 function AgentIdentityCopyTag({ tag, tone }: { tag: AgentIdentityTagModel; tone: AgentIdentityTone }) {
   const { status, copy, announcement } = useCopyToClipboard();
+  const displayLabel = status === 'copied' ? copySuccessLabel : status === 'failed' ? copyFailedLabel : tag.label;
+  const reserveLabel =
+    tag.label.length >= copySuccessLabel.length && tag.label.length >= copyFailedLabel.length
+      ? tag.label
+      : copySuccessLabel;
   const statusClass =
     status === 'copied'
-      ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
+      ? 'border-transparent bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
       : status === 'failed'
-        ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
+        ? 'border-transparent bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
         : mergeClassNames(agentIdentityTagToneClasses, 'hover:bg-[var(--surface)] active:bg-[var(--surface-pressed)]');
-  const title = tag.title ? `${tag.title}; click to copy ${tag.copyValue}` : `Click to copy ${tag.copyValue}`;
+  const title = tag.key === 'nickname' ? 'Copy nickname' : 'Copy full agent ID';
 
   return (
     <button
@@ -229,7 +223,12 @@ function AgentIdentityCopyTag({ tag, tone }: { tag: AgentIdentityTagModel; tone:
         tag.maxWidthClassName,
       )}
     >
-      <span className="truncate">{tag.label}</span>
+      <span className="relative inline-grid min-w-0">
+        <span aria-hidden="true" className="col-start-1 row-start-1 truncate opacity-0 pointer-events-none">
+          {reserveLabel}
+        </span>
+        <span className="col-start-1 row-start-1 truncate">{displayLabel}</span>
+      </span>
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </span>

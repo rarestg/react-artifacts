@@ -9,13 +9,14 @@
 
 | ID | Title | When to read | Keywords | Lines |
 | --- | --- | --- | --- | --- |
-| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 29-56 |
-| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 57-72 |
-| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 73-85 |
-| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 86-123 |
-| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary, focus ring | 124-156 |
-| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 157-201 |
-| 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 202-262 |
+| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 30-57 |
+| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 58-73 |
+| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 74-86 |
+| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 87-124 |
+| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary, focus ring | 125-157 |
+| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 158-202 |
+| 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 203-270 |
+| 008 | Composite Expandable Rows | When a disclosure row also needs copy, metadata, timestamp, or detail actions. | disclosure rows, nested buttons, copy controls, timestamps, expandable rows, accessibility | 271-290 |
 
 ## Format for new entries
 - Title
@@ -264,3 +265,27 @@ const actionTooltip = !hasInput
 ### Exceptions
 - If the checked mark represents expensive DOM or animation work, a stable placeholder with hidden visibility can still preserve layout and timing.
 - If a filter has no count, omit the badge area rather than rendering an empty decorative box.
+
+---
+
+## 008 — Composite Expandable Rows
+
+### When it applies
+- Expandable rows, log rows, transcript events, or disclosure headers that also need copy, metadata, timestamp, or detail actions.
+- Any composite row where the collapsed header is intended to be one large click target.
+
+### Recommended pattern
+- Keep the collapsed summary as a native button with `aria-expanded` and `aria-controls`.
+- If the collapsed row needs timestamp, copy, status, or chevron controls, render those controls as siblings outside the summary button in a stable action cluster.
+- Keep metadata inside the collapsed summary inert: badges, labels, preview text, and tags may display there, but copyable source metadata should move into the expanded details or into sibling controls outside the summary button.
+- Reuse shared copy, timestamp, and icon-button control families for sibling row actions and expanded detail actions instead of creating row-specific controls.
+
+### Why it matters
+- Buttons inside buttons are invalid and produce confusing pointer, focus, and screen-reader behavior.
+- `stopPropagation` patches hide the structural problem while leaving keyboard and accessibility edge cases behind.
+- Splitting the summary button from sibling actions preserves a predictable expansion target while allowing legitimate row-level controls.
+
+### Notes and pitfalls
+- Do not add bespoke collapsed-row copy buttons to work around the disclosure structure.
+- If a collapsed row needs one-click copying more than disclosure, it should not be modeled as a row-level disclosure.
+- Do not use `stopPropagation` to make nested interactive controls appear to work; fix the structure by making controls siblings.

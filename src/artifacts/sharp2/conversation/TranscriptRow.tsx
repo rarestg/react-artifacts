@@ -153,36 +153,27 @@ export function ExpandableTranscriptRow({
 
   return (
     <TranscriptRowShell accentColor={accentColor}>
-      <div className="flex w-full min-w-0 items-center justify-between gap-3 p-3 transition-colors hover:bg-[var(--surface-muted)] motion-reduce:transition-none">
+      <div className="relative flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3 transition-colors hover:bg-[var(--surface-muted)] motion-reduce:transition-none">
         {hasSplitLeftControls ? (
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            {leftTrailing !== undefined && leftTrailing !== null ? (
+          <>
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-controls={controlsId}
+              aria-label={summaryAriaLabel}
+              onClick={onToggle}
+              className="absolute inset-0 z-0 cursor-pointer bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
+            />
+            <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-1.5">
               <div className="flex shrink-0 items-center gap-1.5">{left}</div>
-            ) : (
-              <DisclosureSummaryButton
-                expanded={expanded}
-                controlsId={controlsId}
-                summaryAriaLabel={summaryAriaLabel}
-                onToggle={onToggle}
-                className="shrink-0"
-              >
-                {left}
-              </DisclosureSummaryButton>
-            )}
-            {leftControls !== undefined && leftControls !== null && (
-              <div className="flex shrink-0 items-center gap-1.5">{leftControls}</div>
-            )}
-            {leftTrailing !== undefined && leftTrailing !== null && (
-              <DisclosureSummaryButton
-                expanded={expanded}
-                controlsId={controlsId}
-                summaryAriaLabel={summaryAriaLabel}
-                onToggle={onToggle}
-              >
-                {leftTrailing}
-              </DisclosureSummaryButton>
-            )}
-          </div>
+              {leftControls !== undefined && leftControls !== null && (
+                <div className="pointer-events-auto flex shrink-0 items-center gap-1.5">{leftControls}</div>
+              )}
+              {leftTrailing !== undefined && leftTrailing !== null && (
+                <div className="flex min-w-0 flex-1 items-center gap-1.5">{leftTrailing}</div>
+              )}
+            </div>
+          </>
         ) : (
           <DisclosureSummaryButton
             expanded={expanded}
@@ -193,7 +184,17 @@ export function ExpandableTranscriptRow({
             {left}
           </DisclosureSummaryButton>
         )}
-        {right !== undefined && right !== null && <div className="flex shrink-0 items-center gap-1.5">{right}</div>}
+        {right !== undefined && right !== null && (
+          <div
+            className={
+              hasSplitLeftControls
+                ? 'pointer-events-auto relative z-10 flex shrink-0 items-center gap-1.5'
+                : 'flex shrink-0 items-center gap-1.5'
+            }
+          >
+            {right}
+          </div>
+        )}
       </div>
 
       {expanded && children && (

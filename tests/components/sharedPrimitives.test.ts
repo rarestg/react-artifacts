@@ -354,6 +354,51 @@ test('shared copy button status labels do not duplicate icon glyphs', () => {
   assert.doesNotMatch(markup, /Copied \u2713|Failed \u2717|\u2713|\u2717/);
 });
 
+test('shared copy button tag variant supports copyable chip styling without local copy state', () => {
+  const markup = renderToStaticMarkup(
+    createElement(CopyButton, {
+      text: 'Ada',
+      idleLabel: 'Ada',
+      ariaLabel: 'Copy agent nickname Ada',
+      title: 'Copy nickname',
+      showIcon: false,
+      variant: 'tag',
+      dataAttributes: {
+        'data-agent-identity-tag': 'nickname',
+        'data-copy-value': 'Ada',
+      },
+      style: {
+        '--copy-button-tag-bg': 'var(--category-cyan-weak)',
+        '--copy-button-tag-text': 'var(--category-cyan-text)',
+        '--copy-button-tag-hover-bg': 'var(--surface)',
+      } as React.CSSProperties & {
+        '--copy-button-tag-bg': string;
+        '--copy-button-tag-text': string;
+        '--copy-button-tag-hover-bg': string;
+      },
+      className: 'max-w-28',
+    }),
+  );
+  const rootClass = firstElementClass(markup);
+
+  assert.match(markup, /data-agent-identity-tag="nickname"/);
+  assert.match(markup, /data-copy-value="Ada"/);
+  assert.match(markup, /--copy-button-tag-bg:var\(--category-cyan-weak\)/);
+  assert.match(markup, /--copy-button-tag-text:var\(--category-cyan-text\)/);
+  assert.match(markup, /--copy-button-tag-hover-bg:var\(--surface\)/);
+  assert.match(rootClass, /h-6/);
+  assert.match(rootClass, /px-2/);
+  assert.match(rootClass, /border-transparent/);
+  assert.match(rootClass, /bg-\[var\(--copy-button-tag-bg,var\(--surface-muted\)\)\]/);
+  assert.match(rootClass, /text-\[var\(--copy-button-tag-text,var\(--text\)\)\]/);
+  assert.match(rootClass, /hover:bg-\[var\(--copy-button-tag-hover-bg,var\(--surface\)\)\]/);
+  assert.match(rootClass, /max-w-28/);
+  assert.match(markup, /aria-hidden="true" class="[^"]*opacity-0 pointer-events-none">\s*Copied/);
+  assert.match(markup, /class="[^"]*truncate[^"]*">\s*Ada/);
+  assert.doesNotMatch(markup, /lucide-copy|lucide-check|lucide-x/);
+  assert.doesNotMatch(markup, /Copied \u2713|Failed \u2717|\u2713|\u2717/);
+});
+
 test('copyable label keeps a stable accessible name for the copied value', () => {
   const markup = renderToStaticMarkup(createElement(CopyableLabel, { value: '~/projects/app' }));
   const rootClass = firstElementClass(markup);

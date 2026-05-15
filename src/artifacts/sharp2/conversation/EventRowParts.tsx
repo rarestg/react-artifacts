@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
-import { useCopyToClipboard } from '../../../lib/useCopyToClipboard';
 import type { SubagentNotificationStatus, ToolCallStatus } from './types';
 
-type EventDescriptorSectionWidth = 'subagentAction';
+type EventDescriptorSectionWidth = 'action';
 
 export type EventDescriptorSection = {
   value: string;
@@ -18,10 +18,13 @@ type AgentIdentityTagStyle = CSSProperties & {
   '--agent-tag-color': string;
   '--agent-tag-text': string;
   '--agent-tag-bg': string;
+  '--copy-button-tag-bg': string;
+  '--copy-button-tag-text': string;
+  '--copy-button-tag-hover-bg': string;
 };
 
 const eventDescriptorSectionWidthClasses: Record<EventDescriptorSectionWidth, string> = {
-  subagentAction: 'min-w-[12ch] shrink-0',
+  action: 'min-w-[12ch] shrink-0',
 };
 
 const agentIdentityTonePalette = [
@@ -168,14 +171,15 @@ function getAgentIdentityTagStyle(tone: AgentIdentityTone): AgentIdentityTagStyl
     '--agent-tag-color': tone.color,
     '--agent-tag-text': tone.text,
     '--agent-tag-bg': tone.weak,
+    '--copy-button-tag-bg': tone.weak,
+    '--copy-button-tag-text': tone.text,
+    '--copy-button-tag-hover-bg': 'var(--surface)',
   };
 }
 
 const agentIdentityTagBaseClasses =
   'inline-flex h-6 min-w-0 shrink-0 items-center border border-transparent px-1.5 font-mono text-[10px] font-semibold';
 const agentIdentityTagToneClasses = 'bg-[var(--agent-tag-bg)] text-[var(--agent-tag-text)]';
-const copySuccessLabel = 'Copied';
-const copyFailedLabel = 'Failed';
 
 function AgentIdentityDisplayTag({ tag, tone }: { tag: AgentIdentityTagModel; tone: AgentIdentityTone }) {
   return (
@@ -191,48 +195,23 @@ function AgentIdentityDisplayTag({ tag, tone }: { tag: AgentIdentityTagModel; to
 }
 
 function AgentIdentityCopyTag({ tag, tone }: { tag: AgentIdentityTagModel; tone: AgentIdentityTone }) {
-  const { status, copy, announcement } = useCopyToClipboard();
-  const displayLabel = status === 'copied' ? copySuccessLabel : status === 'failed' ? copyFailedLabel : tag.label;
-  const reserveLabel =
-    tag.label.length >= copySuccessLabel.length && tag.label.length >= copyFailedLabel.length
-      ? tag.label
-      : copySuccessLabel;
-  const statusClass =
-    status === 'copied'
-      ? 'border-transparent bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
-      : status === 'failed'
-        ? 'border-transparent bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
-        : mergeClassNames(agentIdentityTagToneClasses, 'hover:bg-[var(--surface)] active:bg-[var(--surface-pressed)]');
   const title = tag.key === 'nickname' ? 'Copy nickname' : 'Copy full agent ID';
 
   return (
-    <button
-      type="button"
+    <CopyButton
+      text={tag.copyValue}
+      idleLabel={tag.label}
+      ariaLabel={tag.ariaLabel}
       title={title}
-      aria-label={tag.ariaLabel}
-      data-agent-identity-tag={tag.key}
-      data-copy-value={tag.copyValue}
-      style={getAgentIdentityTagStyle(tone)}
-      onClick={() => {
-        void copy(tag.copyValue);
+      showIcon={false}
+      variant="tag"
+      dataAttributes={{
+        'data-agent-identity-tag': tag.key,
+        'data-copy-value': tag.copyValue,
       }}
-      className={mergeClassNames(
-        agentIdentityTagBaseClasses,
-        'cursor-pointer transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        statusClass,
-        tag.maxWidthClassName,
-      )}
-    >
-      <span className="relative inline-grid min-w-0">
-        <span aria-hidden="true" className="col-start-1 row-start-1 truncate opacity-0 pointer-events-none">
-          {reserveLabel}
-        </span>
-        <span className="col-start-1 row-start-1 truncate">{displayLabel}</span>
-      </span>
-      <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {announcement}
-      </span>
-    </button>
+      style={getAgentIdentityTagStyle(tone)}
+      className={tag.maxWidthClassName}
+    />
   );
 }
 
@@ -280,7 +259,7 @@ export function AgentIdentityTags({
   const TagComponent = mode === 'copy' ? AgentIdentityCopyTag : AgentIdentityDisplayTag;
 
   return (
-    <span className="inline-flex min-w-0 shrink-0 items-center gap-1" data-agent-tone={tone.name}>
+    <span className="inline-flex min-w-0 shrink-0 items-center gap-1.5" data-agent-tone={tone.name}>
       {tags.map((tag) => (
         <TagComponent key={tag.key} tag={tag} tone={tone} />
       ))}

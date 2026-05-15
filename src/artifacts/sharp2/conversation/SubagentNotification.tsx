@@ -24,8 +24,6 @@ export type SubagentNotificationProps = {
 
 const detailLabelClasses =
   'text-[10px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]';
-const detailCopyButtonClasses =
-  'border-0 bg-transparent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider hover:bg-[var(--surface-strong)]';
 const detailPreClasses =
   'font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5';
 
@@ -42,7 +40,6 @@ export function SubagentNotification({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const detailsId = useId();
   const agentLabel = getAgentSummaryLabel({ agentId, agentNickname }) ?? agentId;
-  const hasAgentIdentity = Boolean(agentNickname?.trim() || agentId?.trim());
   const disclosureLabel = isExpanded
     ? `Collapse subagent notification details for ${agentLabel}`
     : `Expand subagent notification details for ${agentLabel}`;
@@ -58,7 +55,7 @@ export function SubagentNotification({
         <EventDescriptor
           category="SUBAGENT"
           colorClassName="text-[color:var(--transcript-row-accent)]"
-          sections={[{ value: 'Notification', width: 'subagentAction' }]}
+          sections={[{ value: 'Notification', width: 'action' }]}
         />
       }
       leftControls={
@@ -80,21 +77,14 @@ export function SubagentNotification({
         />
       }
     >
-      {hasAgentIdentity && (
-        <div className="flex min-w-0 items-center gap-2">
-          <div className={detailLabelClasses}>Agent</div>
-          <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
-        </div>
-      )}
-
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">
           <div className={detailLabelClasses}>Result</div>
           <CopyButton
             text={summary}
-            idleLabel="Copy"
+            idleLabel=""
             ariaLabel={`Copy subagent notification result for ${agentLabel}`}
-            className={detailCopyButtonClasses}
+            variant="icon"
           />
         </div>
         <pre className={detailPreClasses}>{summary}</pre>
@@ -108,9 +98,9 @@ export function SubagentNotification({
             </div>
             <CopyButton
               text={rawPayload}
-              idleLabel="Copy"
+              idleLabel=""
               ariaLabel={`Copy raw subagent notification payload for ${agentLabel}`}
-              className={detailCopyButtonClasses}
+              variant="icon"
             />
           </div>
           <pre className={`${detailPreClasses} max-h-48 overflow-y-auto`}>{rawPayload}</pre>

@@ -676,7 +676,7 @@ test('TranscriptRow owns the shared transcript row shell contract', () => {
   assert.match(rowMarkup, /style="--transcript-row-accent:var\(--category-blue\)"/);
   assert.match(rowMarkup, /<div class="p-3"><div class="flex min-w-0 items-center justify-between gap-3">/);
   assert.match(expandableMarkup, /style="--transcript-row-accent:var\(--category-violet\)"/);
-  assert.match(expandableMarkup, /flex w-full min-w-0 items-center justify-between gap-3 p-3/);
+  assert.match(expandableMarkup, /flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3/);
   assert.match(expandableMarkup, /class="min-w-0 flex-1 cursor-pointer text-left/);
   assert.match(expandableMarkup, /hover:bg-\[var\(--surface-muted\)\]/);
   assert.match(expandableMarkup, /focus-visible:ring-2/);
@@ -710,29 +710,29 @@ test('conversation event rows use the shared TranscriptRow accent and inset shel
   assert.match(toolMarkup, /style="--transcript-row-accent:var\(--category-violet\)"/);
   assert.match(notificationMarkup, /style="--transcript-row-accent:var\(--category-cyan\)"/);
   assert.match(messageMarkup, /<div class="p-3"><div class="flex min-w-0 items-center justify-between gap-3">/);
-  assert.match(toolMarkup, /flex w-full min-w-0 items-center justify-between gap-3 p-3/);
-  assert.match(notificationMarkup, /flex w-full min-w-0 items-center justify-between gap-3 p-3/);
+  assert.match(toolMarkup, /flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3/);
+  assert.match(notificationMarkup, /flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3/);
   assert.match(toolMarkup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
   assert.match(notificationMarkup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
   assert.doesNotMatch(toolMarkup, /gap-3 px-4 py-3/);
   assert.doesNotMatch(notificationMarkup, /gap-3 px-4 py-3/);
 });
 
-test('EventDescriptor reserves subagent action width without widening ordinary tools', () => {
-  const subagentActions = ['Spawn', 'Wait', 'Close', 'Notification'];
+test('EventDescriptor reserves event action width for rows with previews', () => {
+  const rowActions = ['bash', 'Spawn', 'Wait', 'Close', 'Notification'];
 
-  for (const action of subagentActions) {
+  for (const action of rowActions) {
     const markup = renderToStaticMarkup(
       createElement(EventDescriptor, {
-        category: 'SUBAGENT',
-        colorClassName: 'text-[var(--category-cyan)]',
-        sections: [{ value: action, width: 'subagentAction' }],
+        category: action === 'bash' ? 'TOOL' : 'SUBAGENT',
+        colorClassName: action === 'bash' ? 'text-[var(--category-violet)]' : 'text-[var(--category-cyan)]',
+        sections: [{ value: action, width: 'action' }],
       }),
     );
 
-    assert.match(markup, />SUBAGENT</);
+    assert.match(markup, action === 'bash' ? />TOOL</ : />SUBAGENT</);
     assert.match(markup, new RegExp(`>${action}<`));
-    assert.match(markup, /data-section-width="subagentAction"/);
+    assert.match(markup, /data-section-width="action"/);
     assert.match(markup, /min-w-\[12ch\]/);
     assert.match(markup, /shrink-0/);
   }
@@ -747,7 +747,7 @@ test('EventDescriptor reserves subagent action width without widening ordinary t
 
   assert.match(ordinaryToolMarkup, />TOOL</);
   assert.match(ordinaryToolMarkup, />bash</);
-  assert.doesNotMatch(ordinaryToolMarkup, /data-section-width="subagentAction"/);
+  assert.doesNotMatch(ordinaryToolMarkup, /data-section-width="action"/);
   assert.doesNotMatch(ordinaryToolMarkup, /min-w-\[12ch\]/);
 });
 
@@ -777,6 +777,7 @@ test('AgentIdentityTags renders nickname and short id as separate deterministic-
   assert.notEqual(firstTone, 'metadata');
   assert.ok(distributedTones.size > 1);
   assert.match(markup, new RegExp(`data-agent-tone="${firstTone}"`));
+  assert.match(markup, /inline-flex min-w-0 shrink-0 items-center gap-1\.5/);
   assert.match(markup, /--agent-tag-color:var\(--category-/);
   assert.match(markup, /data-agent-identity-tag="nickname"/);
   assert.match(markup, /border-transparent/);
@@ -823,9 +824,14 @@ test('AgentIdentityTags copy mode exposes separate nickname and full-id copy tar
   assert.match(markup, /title="Copy nickname"/);
   assert.match(markup, /aria-label="Copy agent nickname Ada"/);
   assert.match(markup, /data-copy-value="Ada"/);
+  assert.match(markup, /--copy-button-tag-bg:var\(--category-/);
+  assert.match(markup, /--copy-button-tag-text:var\(--category-/);
+  assert.match(markup, /--copy-button-tag-hover-bg:var\(--surface\)/);
   assert.match(markup, /opacity-0 pointer-events-none">\s*Copied/);
+  assert.match(markup, /px-2/);
   assert.match(markup, /border-transparent/);
   assert.doesNotMatch(markup, /border-\[color:var\(--agent-tag-color\)\]/);
+  assert.doesNotMatch(markup, /lucide-copy/);
   assert.match(markup, /data-agent-identity-tag="id"/);
   assert.match(markup, /title="Copy full agent ID"/);
   assert.match(markup, /aria-label="Copy full agent ID 019e27af-615f-7bf0-a26a-ee42ecd83783"/);
@@ -945,8 +951,8 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(summaryMarkup, />TOOL</);
   assert.match(summaryMarkup, /npm test/);
   assert.match(summaryMarkup, />bash</);
-  assert.doesNotMatch(summaryMarkup, /data-section-width="subagentAction"/);
-  assert.doesNotMatch(summaryMarkup, /min-w-\[12ch\]/);
+  assert.match(summaryMarkup, /data-section-width="action"/);
+  assert.match(summaryMarkup, /min-w-\[12ch\]/);
   assert.doesNotMatch(summaryMarkup, /Success/);
   assert.doesNotMatch(summaryMarkup, /success-weak/);
   assert.match(summaryMarkup, /aria-label="Copy UTC timestamp 10:44:30"/);
@@ -965,7 +971,9 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(markup, /aria-label="Copy tool output"/);
   assert.doesNotMatch(markup, />Copy input</);
   assert.doesNotMatch(markup, />Copy output</);
-  assert.equal(markup.match(/>Copy<\/span>/g)?.length ?? 0, 2);
+  assert.doesNotMatch(markup, />Copy<\/span>/);
+  assert.equal(markup.match(/lucide-copy/g)?.length ?? 0, 2);
+  assert.equal(markup.match(/size-6 justify-center p-0/g)?.length ?? 0, 2);
   assert.match(markup, /focus-visible:ring-2/);
 });
 
@@ -995,7 +1003,7 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
 
     assert.match(markup, />SUBAGENT</);
     assert.match(markup, new RegExp(label));
-    assert.match(markup, /data-section-width="subagentAction"/);
+    assert.match(markup, /data-section-width="action"/);
     assert.match(markup, /min-w-\[12ch\]/);
     assert.match(markup, /data-agent-identity-tag="nickname"/);
     assert.match(markup, />Ada</);
@@ -1005,6 +1013,7 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
     assert.match(markup, /--transcript-row-accent:var\(--category-cyan\)/);
     assert.match(markup, /Running/);
     assert.match(markup, new RegExp(`aria-label="Expand ${tool} tool details"`));
+    assert.match(markup, /absolute inset-0 z-0 cursor-pointer bg-transparent/);
     assert.doesNotMatch(markup, />TOOL</);
     assert.match(markup, /aria-label="Copy agent nickname Ada"/);
     assert.match(markup, /data-copy-value="Ada"/);
@@ -1014,7 +1023,7 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
   }
 });
 
-test('expanded subagent tool details include copyable agent identity tags', () => {
+test('expanded subagent tool details do not repeat header agent identity tags', () => {
   const markup = renderToStaticMarkup(
     createElement(ToolCall, {
       tool: 'spawn_agent',
@@ -1029,11 +1038,13 @@ test('expanded subagent tool details include copyable agent identity tags', () =
     }),
   );
 
-  assert.match(markup, />Agent</);
+  assert.doesNotMatch(markup, />Agent</);
   assert.match(markup, /aria-label="Copy agent nickname Ada"/);
   assert.match(markup, /data-copy-value="Ada"/);
   assert.match(markup, /aria-label="Copy full agent ID 019e27af-615f-7bf0-a26a-ee42ecd83783"/);
   assert.match(markup, /data-copy-value="019e27af-615f-7bf0-a26a-ee42ecd83783"/);
+  assert.equal(markup.match(/data-agent-identity-tag="nickname"/g)?.length ?? 0, 1);
+  assert.equal(markup.match(/data-agent-identity-tag="id"/g)?.length ?? 0, 1);
   assert.match(markup, />Input</);
   assert.match(markup, />Output</);
 });
@@ -1055,7 +1066,7 @@ test('SubagentNotification collapsed row keeps inspectable details behind disclo
 
   assert.match(markup, />SUBAGENT</);
   assert.match(markup, />Notification</);
-  assert.match(markup, /data-section-width="subagentAction"/);
+  assert.match(markup, /data-section-width="action"/);
   assert.match(markup, /min-w-\[12ch\]/);
   assert.doesNotMatch(markup, /Completed/);
   assert.doesNotMatch(markup, /success-weak/);
@@ -1079,7 +1090,7 @@ test('SubagentNotification collapsed row keeps inspectable details behind disclo
   assert.doesNotMatch(markup, />User</);
 });
 
-test('expanded SubagentNotification exposes copyable result, source, timestamp, and identity details', () => {
+test('expanded SubagentNotification exposes result and source without repeated identity detail', () => {
   const rawPayload =
     '<subagent_notification>\n{"agent_path":"019e27af-615f-7bf0-a26a-ee42ecd83783","status":{"completed":"done"}}\n</subagent_notification>';
   const markup = renderToStaticMarkup(
@@ -1098,16 +1109,20 @@ test('expanded SubagentNotification exposes copyable result, source, timestamp, 
   assert.match(markup, /aria-expanded="true"/);
   assert.match(markup, /aria-label="Collapse subagent notification details for Ada \(d83783\)"/);
   assert.match(markup, /lucide-chevron-down/);
-  assert.match(markup, />Agent</);
+  assert.doesNotMatch(markup, />Agent</);
   assert.match(markup, /aria-label="Copy agent nickname Ada"/);
   assert.match(markup, /data-copy-value="Ada"/);
   assert.match(markup, /aria-label="Copy full agent ID 019e27af-615f-7bf0-a26a-ee42ecd83783"/);
   assert.match(markup, /data-copy-value="019e27af-615f-7bf0-a26a-ee42ecd83783"/);
+  assert.equal(markup.match(/data-agent-identity-tag="nickname"/g)?.length ?? 0, 1);
+  assert.equal(markup.match(/data-agent-identity-tag="id"/g)?.length ?? 0, 1);
   assert.match(markup, /aria-label="Copy UTC timestamp 10:46:29"/);
   assert.match(markup, />Result</);
   assert.match(markup, /aria-label="Copy subagent notification result for Ada \(d83783\)"/);
   assert.match(markup, />Raw Payload</);
   assert.match(markup, /aria-label="Copy raw subagent notification payload for Ada \(d83783\)"/);
   assert.match(markup, /agent_path/);
-  assert.equal(markup.match(/>Copy<\/span>/g)?.length ?? 0, 2);
+  assert.doesNotMatch(markup, />Copy<\/span>/);
+  assert.equal(markup.match(/lucide-copy/g)?.length ?? 0, 2);
+  assert.equal(markup.match(/size-6 justify-center p-0/g)?.length ?? 0, 2);
 });

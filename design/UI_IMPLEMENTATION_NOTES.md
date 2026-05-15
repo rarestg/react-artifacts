@@ -277,6 +277,7 @@ const actionTooltip = !hasInput
 ### Recommended pattern
 - Keep the collapsed summary as a native button with `aria-expanded` and `aria-controls`.
 - If the collapsed row needs timestamp, copy, status, or chevron controls, render those controls as siblings outside the summary button in a stable action cluster.
+- If the full row receives hover feedback, non-interactive row space should also activate disclosure; use a real full-row disclosure button layer behind sibling controls.
 - Keep metadata inside the collapsed summary inert: badges, labels, preview text, and tags may display there, but copyable source metadata should move into the expanded details or into sibling controls outside the summary button.
 - Reuse shared copy, timestamp, and icon-button control families for sibling row actions and expanded detail actions instead of creating row-specific controls.
 

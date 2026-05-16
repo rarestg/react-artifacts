@@ -115,6 +115,7 @@ test('MessageCard shows render mode toggle state when a toggle handler is provid
   );
 
   assert.match(markup, /aria-pressed="true"/);
+  assert.match(markup, /aria-label="Rendered"/);
   assert.match(markup, /title="Switch between raw text and rendered Markdown output"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Rendered\s*<\/span>/);
@@ -131,6 +132,7 @@ test('MessageCard render mode toggle marks raw mode unpressed while reserving re
   );
 
   assert.match(markup, /aria-pressed="false"/);
+  assert.match(markup, /aria-label="Raw"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Raw\s*<\/span>/);
 });

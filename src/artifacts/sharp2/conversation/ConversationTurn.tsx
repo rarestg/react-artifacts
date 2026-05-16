@@ -5,6 +5,7 @@ import { SubagentNotification } from './SubagentNotification';
 import { TimestampBadge } from './TimestampBadge';
 import { TokenCounter } from './TokenCounter';
 import { ToolCall } from './ToolCall';
+import { formatConversationTimestamp } from './time';
 import {
   type ConversationDetailVisibility,
   type ConversationVisibilityOptions,
@@ -103,6 +104,8 @@ export function ConversationTurn({
   if (filteredItems.length === 0) return null;
 
   const itemCountTitle = `${filteredItems.length} of ${availableItemCount} transcript rows visible for Turn ${turnNumber}`;
+  const turnTimestampBadge =
+    timestamp?.trim() && formatConversationTimestamp(timestamp) ? <TimestampBadge timestamp={timestamp} /> : null;
 
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)]">
@@ -110,11 +113,7 @@ export function ConversationTurn({
       <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-[var(--text)]">Turn {turnNumber}</span>
-          {timestamp?.trim() && (
-            <span className="border-l border-[var(--border)] pl-3">
-              <TimestampBadge timestamp={timestamp} />
-            </span>
-          )}
+          {turnTimestampBadge && <span className="border-l border-[var(--border)] pl-3">{turnTimestampBadge}</span>}
         </div>
         <div className="flex items-center gap-1.5">
           {duration && (

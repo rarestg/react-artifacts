@@ -48,10 +48,14 @@ function getImportSpecifiers(source: string) {
     .filter((specifier): specifier is string => Boolean(specifier));
 }
 
+function toPosixPath(file: string) {
+  return file.replace(/\\/g, '/');
+}
+
 function resolveRelativeImport(file: string, specifier: string) {
   if (!specifier.startsWith('.')) return undefined;
 
-  return path.normalize(path.join(path.dirname(file), specifier)).replaceAll(path.sep, '/');
+  return toPosixPath(path.normalize(path.join(path.dirname(file), specifier)));
 }
 
 test('sharp2 no longer defines primitives that belong to src/components', async () => {
@@ -197,7 +201,9 @@ test('sharp2 conversation exposes a narrow local public barrel', async () => {
 });
 
 test('sharp2 production code avoids deep imports into conversation internals', async () => {
-  const files = (await readSharp2SourceFiles()).filter(({ file }) => !file.startsWith(`${sharp2ConversationDir}/`));
+  const files = (await readSharp2SourceFiles()).filter(
+    ({ file }) => !toPosixPath(file).startsWith(`${sharp2ConversationDir}/`),
+  );
   const violations: string[] = [];
 
   for (const { file, source } of files) {

@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
 import { AgentIdentityTags, EventDescriptor, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
-import { ExpandableTranscriptRow, TranscriptRowActionCluster, TranscriptRowDisclosureButton } from './TranscriptRow';
+import { ExpandableTranscriptRow } from './TranscriptRow';
 import type { ToolCallKind, ToolCallStatus } from './types';
 
 export type ToolCallProps = {
@@ -142,20 +142,8 @@ export function ToolCall({
           </EventPreviewPill>
         ) : undefined
       }
-      right={
-        <TranscriptRowActionCluster
-          leading={<ToolStatusBadge status={status} />}
-          timestamp={<TimestampBadge timestamp={timestamp} />}
-          action={
-            <TranscriptRowDisclosureButton
-              expanded={isExpanded}
-              controlsId={detailsId}
-              ariaLabel={disclosureLabel}
-              onToggle={() => setIsExpanded((expanded) => !expanded)}
-            />
-          }
-        />
-      }
+      rightLeading={<ToolStatusBadge status={status} />}
+      rightTimestamp={<TimestampBadge timestamp={timestamp} />}
     >
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">

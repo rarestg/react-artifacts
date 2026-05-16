@@ -11,11 +11,13 @@ type TranscriptRowSummarySlots = {
   right?: ReactNode;
 };
 
+type TranscriptRowBaseSlots = Omit<TranscriptRowSummarySlots, 'right'>;
+
 export type TranscriptRowProps = TranscriptRowSummarySlots & {
   children?: ReactNode;
 };
 
-export type ExpandableTranscriptRowProps = TranscriptRowSummarySlots & {
+export type ExpandableTranscriptRowProps = TranscriptRowBaseSlots & {
   expanded: boolean;
   controlsId: string;
   summaryAriaLabel: string;
@@ -23,6 +25,8 @@ export type ExpandableTranscriptRowProps = TranscriptRowSummarySlots & {
   onToggle: () => void;
   leftControls?: ReactNode;
   leftTrailing?: ReactNode;
+  rightLeading?: ReactNode;
+  rightTimestamp?: ReactNode;
   children?: ReactNode;
 };
 
@@ -30,13 +34,6 @@ export type TranscriptRowActionClusterProps = {
   leading?: ReactNode;
   timestamp?: ReactNode;
   action?: ReactNode;
-};
-
-export type TranscriptRowDisclosureButtonProps = {
-  expanded: boolean;
-  controlsId: string;
-  ariaLabel: string;
-  onToggle: () => void;
 };
 
 function getTranscriptRowStyle(accentColor: string): TranscriptRowStyle {
@@ -75,26 +72,16 @@ export function TranscriptRowActionCluster({ leading, timestamp, action }: Trans
   );
 }
 
-export function TranscriptRowDisclosureButton({
-  expanded,
-  controlsId,
-  ariaLabel,
-  onToggle,
-}: TranscriptRowDisclosureButtonProps) {
+function TranscriptRowDisclosureIndicator({ expanded }: { expanded: boolean }) {
   const Icon = expanded ? ChevronDown : ChevronRight;
 
   return (
-    <button
-      type="button"
-      aria-expanded={expanded}
-      aria-controls={controlsId}
-      aria-label={ariaLabel}
-      title={ariaLabel}
-      onClick={onToggle}
-      className="pointer-events-auto inline-flex size-6 shrink-0 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
+    <span
+      aria-hidden="true"
+      className="inline-flex size-6 shrink-0 items-center justify-center border border-transparent bg-transparent text-[var(--text-subtle)]"
     >
       <Icon className="size-4" aria-hidden="true" />
-    </button>
+    </span>
   );
 }
 
@@ -119,10 +106,18 @@ export function ExpandableTranscriptRow({
   left,
   leftControls,
   leftTrailing,
-  right,
+  rightLeading,
+  rightTimestamp,
   children,
 }: ExpandableTranscriptRowProps) {
   const hasSplitLeftControls = leftControls !== undefined || leftTrailing !== undefined;
+  const right = (
+    <TranscriptRowActionCluster
+      leading={rightLeading}
+      timestamp={rightTimestamp}
+      action={<TranscriptRowDisclosureIndicator expanded={expanded} />}
+    />
+  );
 
   return (
     <TranscriptRowShell accentColor={accentColor}>
@@ -151,9 +146,7 @@ export function ExpandableTranscriptRow({
             <div className="flex min-w-0 flex-1 items-center gap-1.5">{leftTrailing}</div>
           )}
         </div>
-        {right !== undefined && right !== null && (
-          <div className="pointer-events-none relative z-10 flex shrink-0 items-center gap-1.5">{right}</div>
-        )}
+        <div className="pointer-events-none relative z-10 flex shrink-0 items-center gap-1.5">{right}</div>
       </div>
 
       {expanded && children && (

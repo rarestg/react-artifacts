@@ -4,7 +4,10 @@ import path from 'node:path';
 import { test } from 'node:test';
 
 const sharp2Dir = 'src/artifacts/sharp2';
+const sharp2ConversationDir = `${sharp2Dir}/conversation`;
 const sharp2ReadmePath = `${sharp2Dir}/README.md`;
+const importSpecifierPattern =
+  /\b(?:import|export)\s+(?:type\s+)?(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]|\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
 const sharedPrimitiveNames = [
   'Checkbox',
   'FilterCheckbox',
@@ -37,6 +40,18 @@ async function readSharp2SourceFiles(dir = sharp2Dir): Promise<Array<{ file: str
   }
 
   return files;
+}
+
+function getImportSpecifiers(source: string) {
+  return [...source.matchAll(importSpecifierPattern)]
+    .map((match) => match[1] ?? match[2])
+    .filter((specifier): specifier is string => Boolean(specifier));
+}
+
+function resolveRelativeImport(file: string, specifier: string) {
+  if (!specifier.startsWith('.')) return undefined;
+
+  return path.normalize(path.join(path.dirname(file), specifier)).replaceAll(path.sep, '/');
 }
 
 test('sharp2 no longer defines primitives that belong to src/components', async () => {
@@ -181,16 +196,21 @@ test('sharp2 conversation exposes a narrow local public barrel', async () => {
   }
 });
 
-test('sharp2 production code imports conversation through the public barrel', async () => {
-  const sources = [
-    await readFile(`${sharp2Dir}/index.tsx`, 'utf8'),
-    await readFile(`${sharp2Dir}/fixtures.tsx`, 'utf8'),
-  ];
+test('sharp2 production code avoids deep imports into conversation internals', async () => {
+  const files = (await readSharp2SourceFiles()).filter(({ file }) => !file.startsWith(`${sharp2ConversationDir}/`));
+  const violations: string[] = [];
 
-  for (const source of sources) {
-    assert.match(source, /from ['"]\.\/conversation['"]/);
-    assert.doesNotMatch(source, /from ['"]\.\/conversation\//);
+  for (const { file, source } of files) {
+    for (const specifier of getImportSpecifiers(source)) {
+      const resolvedImport = resolveRelativeImport(file, specifier);
+
+      if (resolvedImport?.startsWith(`${sharp2ConversationDir}/`)) {
+        violations.push(`${file} imports ${specifier}`);
+      }
+    }
   }
+
+  assert.deepEqual(violations, []);
 });
 
 test('sharp2 avoids viewport breakpoints in preview-sensitive showcase layout', async () => {

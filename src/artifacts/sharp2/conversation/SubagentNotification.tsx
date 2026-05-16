@@ -8,7 +8,7 @@ import {
   SubagentNotificationStatusBadge,
 } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
-import { ExpandableTranscriptRow, TranscriptRowActionCluster, TranscriptRowDisclosureButton } from './TranscriptRow';
+import { ExpandableTranscriptRow } from './TranscriptRow';
 import type { SubagentNotificationStatus } from './types';
 
 export type SubagentNotificationProps = {
@@ -67,20 +67,8 @@ export function SubagentNotification({
           {summary}
         </EventPreviewPill>
       }
-      right={
-        <TranscriptRowActionCluster
-          leading={<SubagentNotificationStatusBadge status={status} />}
-          timestamp={<TimestampBadge timestamp={timestamp} />}
-          action={
-            <TranscriptRowDisclosureButton
-              expanded={isExpanded}
-              controlsId={detailsId}
-              ariaLabel={disclosureLabel}
-              onToggle={() => setIsExpanded((expanded) => !expanded)}
-            />
-          }
-        />
-      }
+      rightLeading={<SubagentNotificationStatusBadge status={status} />}
+      rightTimestamp={<TimestampBadge timestamp={timestamp} />}
     >
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">

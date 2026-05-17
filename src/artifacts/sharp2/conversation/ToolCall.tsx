@@ -3,7 +3,13 @@ import { CopyButton } from '../../../components/CopyButton';
 import { AgentIdentityTags, EventDescriptor, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
 import { ExpandableTranscriptRow } from './TranscriptRow';
-import type { ToolCallKind, ToolCallStatus } from './types';
+import {
+  isKnownToolCallKind,
+  isSubagentToolKind,
+  type ToolCallKind,
+  type ToolCallStatus,
+  type ToolDetailStatus,
+} from './types';
 
 export type ToolCallProps = {
   tool: string;
@@ -13,19 +19,86 @@ export type ToolCallProps = {
   agentRole?: string;
   preview?: string;
   summary?: string;
-  input: string;
-  output: string;
+  input?: string;
+  output?: string;
+  detailsAvailable?: boolean;
+  detailsStatus?: ToolDetailStatus;
   timestamp?: string;
   status?: ToolCallStatus;
   defaultExpanded?: boolean;
 };
 
-function getCommandPreview(input: string, fallback: string) {
+function getCommandPreview(input: string | undefined, fallback: string) {
   return (
     input
-      .split(/\r?\n/)
+      ?.split(/\r?\n/)
       .map((line) => line.trim())
       .find(Boolean) ?? fallback
+  );
+}
+
+function hasDetailText(value: string | undefined): value is string {
+  return value !== undefined && value.length > 0;
+}
+
+function getMissingDetailMessage(
+  label: 'Input' | 'Output',
+  detailsStatus: ToolDetailStatus | undefined,
+  detailsAvailable: boolean | undefined,
+) {
+  if (detailsStatus === 'loading') return `${label} loading`;
+  if (detailsStatus === 'pending') return `${label} pending`;
+  if (detailsStatus === 'available_on_demand' || detailsAvailable === true) return `${label} available on demand`;
+  if (detailsStatus === 'unavailable' || detailsAvailable === false) return `${label} unavailable`;
+  return undefined;
+}
+
+const detailLabelClasses = 'text-[10px] font-semibold uppercase tracking-wider';
+const detailPreClasses =
+  'font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5';
+const detailStateClasses =
+  'border border-[var(--border)] bg-[var(--surface-muted)] px-2 py-1.5 text-sm text-[var(--text-muted)]';
+
+function ToolDetailTextBlock({
+  label,
+  text,
+  copyAriaLabel,
+  labelClassName,
+  maxHeightClassName,
+}: {
+  label: 'Input' | 'Output';
+  text: string;
+  copyAriaLabel: string;
+  labelClassName: string;
+  maxHeightClassName?: string;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <div className={`${detailLabelClasses} ${labelClassName}`}>{label}</div>
+        <CopyButton text={text} idleLabel="" ariaLabel={copyAriaLabel} variant="icon" />
+      </div>
+      <pre className={`${detailPreClasses} ${maxHeightClassName ?? ''}`}>{text}</pre>
+    </div>
+  );
+}
+
+function ToolDetailStateBlock({
+  label,
+  message,
+  labelClassName,
+}: {
+  label: 'Input' | 'Output';
+  message: string;
+  labelClassName: string;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <div className={`${detailLabelClasses} ${labelClassName}`}>{label}</div>
+      </div>
+      <div className={detailStateClasses}>{message}</div>
+    </div>
   );
 }
 
@@ -87,20 +160,34 @@ export function ToolCall({
   summary,
   input,
   output,
+  detailsAvailable,
+  detailsStatus,
   timestamp,
   status = 'success',
   defaultExpanded = false,
 }: ToolCallProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const detailsId = useId();
-  const kindConfig = toolCallKindConfig[toolKind] || toolCallKindConfig.standard;
-  const isSubagent = toolKind !== 'standard';
+  const normalizedToolKind = isKnownToolCallKind(toolKind) ? toolKind : 'standard';
+  const kindConfig = toolCallKindConfig[normalizedToolKind];
+  const isSubagent = isSubagentToolKind(toolKind);
   const commandPreview = isSubagent
-    ? getSubagentPreview(preview, toolKind)
+    ? getSubagentPreview(preview, normalizedToolKind)
     : (summary ?? getCommandPreview(input, tool));
-  const commandTitle = (isSubagent && preview?.trim() ? preview.trim() : (summary ?? input.trim())) || tool;
+  const commandTitle = (isSubagent && preview?.trim() ? preview.trim() : summary?.trim() || input?.trim()) || tool;
   const actionLabel = kindConfig.action || tool;
   const disclosureLabel = isExpanded ? `Collapse ${tool} tool details` : `Expand ${tool} tool details`;
+  const inputStateMessage = hasDetailText(input)
+    ? undefined
+    : getMissingDetailMessage('Input', detailsStatus, detailsAvailable);
+  const outputStateMessage = hasDetailText(output)
+    ? undefined
+    : getMissingDetailMessage('Output', detailsStatus, detailsAvailable);
+  const hasVisibleDetails =
+    hasDetailText(input) ||
+    inputStateMessage !== undefined ||
+    hasDetailText(output) ||
+    outputStateMessage !== undefined;
 
   return (
     <ExpandableTranscriptRow
@@ -145,27 +232,42 @@ export function ToolCall({
       rightLeading={<ToolStatusBadge status={status} />}
       rightTimestamp={<TimestampBadge timestamp={timestamp} />}
     >
-      <div>
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]">
-            Input
-          </div>
-          <CopyButton text={input} idleLabel="" ariaLabel="Copy tool input" variant="icon" />
-        </div>
-        <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5">
-          {input}
-        </pre>
-      </div>
+      {hasVisibleDetails && (
+        <>
+          {hasDetailText(input) && (
+            <ToolDetailTextBlock
+              label="Input"
+              text={input}
+              copyAriaLabel="Copy tool input"
+              labelClassName="text-[color:var(--transcript-row-accent)]"
+            />
+          )}
+          {inputStateMessage && (
+            <ToolDetailStateBlock
+              label="Input"
+              message={inputStateMessage}
+              labelClassName="text-[color:var(--transcript-row-accent)]"
+            />
+          )}
 
-      <div>
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Output</div>
-          <CopyButton text={output} idleLabel="" ariaLabel="Copy tool output" variant="icon" />
-        </div>
-        <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5 max-h-48 overflow-y-auto">
-          {output}
-        </pre>
-      </div>
+          {hasDetailText(output) && (
+            <ToolDetailTextBlock
+              label="Output"
+              text={output}
+              copyAriaLabel="Copy tool output"
+              labelClassName="text-[var(--text-subtle)]"
+              maxHeightClassName="max-h-48 overflow-y-auto"
+            />
+          )}
+          {outputStateMessage && (
+            <ToolDetailStateBlock
+              label="Output"
+              message={outputStateMessage}
+              labelClassName="text-[var(--text-subtle)]"
+            />
+          )}
+        </>
+      )}
     </ExpandableTranscriptRow>
   );
 }

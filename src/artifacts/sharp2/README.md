@@ -91,6 +91,8 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
 | `conversation/markdown.tsx` | Local lightweight markdown splitting/rendering helpers and render fallback boundary. |
 | `conversation/keys.ts` | Stable key helpers for turns and turn items. |
 | `conversation/types.ts` | Local conversation data and visibility types. |
+| `conversation/productTypes.ts` | Temporary type-only outline of the target `codexscope.product.v1` transcript/read contract. Replace with generated product DTOs when available. |
+| `conversation-export-readiness.md` | Export-readiness notes for moving the renderer toward a product transcript pane without package extraction yet. |
 | `conversation-rendering-execution-plan.md` | Historical completed implementation plan. Keep it as context only; use this README and `conversation-rendering-preferences.md` for current behavior. |
 
 ## Patterns To Preserve

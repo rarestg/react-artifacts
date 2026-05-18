@@ -27,7 +27,7 @@ const getSummaryTextPart = (value: string | undefined) =>
     ?.slice(0, 120) ?? '';
 
 export const getTurnItemKey = (item: TurnItem, originalIndex?: number) => {
-  if (item.id) return withOriginalIndex(item.id, originalIndex);
+  if (item.id) return item.id;
   if (item.type === 'token_counter') {
     return withOriginalIndex(
       `token-${hashFields(['token_counter', item.label ?? 'context', item.used, item.limit])}`,

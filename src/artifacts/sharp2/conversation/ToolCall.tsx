@@ -1,8 +1,8 @@
-import { useId, useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
 import { AgentIdentityTags, EventDescriptor, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
-import { ExpandableTranscriptRow } from './TranscriptRow';
+import { ExpandableTranscriptRow, TranscriptRow, TranscriptRowActionCluster } from './TranscriptRow';
 import {
   isKnownToolCallKind,
   isSubagentToolKind,
@@ -150,6 +150,83 @@ const toolCallKindConfig: Record<ToolCallKind, { category: string; action: strin
   },
 };
 
+function EmptyDisclosureActionSlot() {
+  return <span aria-hidden="true" className="inline-flex size-6 shrink-0" />;
+}
+
+function getToolCallSummarySlots({
+  isSubagent,
+  category,
+  actionLabel,
+  commandTitle,
+  commandPreview,
+  agentId,
+  agentNickname,
+  agentRole,
+}: {
+  isSubagent: boolean;
+  category: string;
+  actionLabel: string;
+  commandTitle: string;
+  commandPreview: string;
+  agentId?: string;
+  agentNickname?: string;
+  agentRole?: string;
+}): {
+  expandableLeft: ReactNode;
+  expandableLeftControls?: ReactNode;
+  expandableLeftTrailing?: ReactNode;
+  staticLeft: ReactNode;
+} {
+  const descriptor = (
+    <EventDescriptor
+      category={category}
+      colorClassName="text-[color:var(--transcript-row-accent)]"
+      sections={[{ value: actionLabel, width: 'action' }]}
+    />
+  );
+  const previewPill = (
+    <EventPreviewPill title={commandTitle} className="flex-1">
+      {commandPreview}
+    </EventPreviewPill>
+  );
+
+  if (!isSubagent) {
+    return {
+      expandableLeft: (
+        <>
+          {descriptor}
+          {previewPill}
+        </>
+      ),
+      staticLeft: (
+        <>
+          {descriptor}
+          {previewPill}
+        </>
+      ),
+    };
+  }
+
+  const hasAgentIdentity = Boolean(agentId?.trim() || agentNickname?.trim());
+  const agentTags = hasAgentIdentity ? (
+    <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
+  ) : undefined;
+
+  return {
+    expandableLeft: descriptor,
+    expandableLeftControls: agentTags,
+    expandableLeftTrailing: previewPill,
+    staticLeft: (
+      <>
+        {descriptor}
+        {agentTags}
+        {previewPill}
+      </>
+    ),
+  };
+}
+
 export function ToolCall({
   tool,
   toolKind = 'standard',
@@ -188,6 +265,34 @@ export function ToolCall({
     inputStateMessage !== undefined ||
     hasDetailText(output) ||
     outputStateMessage !== undefined;
+  const summarySlots = getToolCallSummarySlots({
+    isSubagent,
+    category: kindConfig.category,
+    actionLabel,
+    commandTitle,
+    commandPreview,
+    agentId,
+    agentNickname,
+    agentRole,
+  });
+  const rightLeading = <ToolStatusBadge status={status} />;
+  const rightTimestamp = <TimestampBadge timestamp={timestamp} />;
+
+  if (!hasVisibleDetails) {
+    return (
+      <TranscriptRow
+        accentColor={kindConfig.color}
+        left={summarySlots.staticLeft}
+        right={
+          <TranscriptRowActionCluster
+            leading={rightLeading}
+            timestamp={rightTimestamp}
+            action={<EmptyDisclosureActionSlot />}
+          />
+        }
+      />
+    );
+  }
 
   return (
     <ExpandableTranscriptRow
@@ -197,40 +302,11 @@ export function ToolCall({
       summaryAriaLabel={disclosureLabel}
       summaryTitle={commandTitle}
       onToggle={() => setIsExpanded((expanded) => !expanded)}
-      left={
-        isSubagent ? (
-          <EventDescriptor
-            category={kindConfig.category}
-            colorClassName="text-[color:var(--transcript-row-accent)]"
-            sections={[{ value: actionLabel, width: 'action' }]}
-          />
-        ) : (
-          <>
-            <EventDescriptor
-              category={kindConfig.category}
-              colorClassName="text-[color:var(--transcript-row-accent)]"
-              sections={[{ value: actionLabel, width: 'action' }]}
-            />
-            <EventPreviewPill title={commandTitle} className="flex-1">
-              {commandPreview}
-            </EventPreviewPill>
-          </>
-        )
-      }
-      leftControls={
-        isSubagent ? (
-          <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
-        ) : undefined
-      }
-      leftTrailing={
-        isSubagent ? (
-          <EventPreviewPill title={commandTitle} className="flex-1">
-            {commandPreview}
-          </EventPreviewPill>
-        ) : undefined
-      }
-      rightLeading={<ToolStatusBadge status={status} />}
-      rightTimestamp={<TimestampBadge timestamp={timestamp} />}
+      left={summarySlots.expandableLeft}
+      leftControls={summarySlots.expandableLeftControls}
+      leftTrailing={summarySlots.expandableLeftTrailing}
+      rightLeading={rightLeading}
+      rightTimestamp={rightTimestamp}
     >
       {hasVisibleDetails && (
         <>

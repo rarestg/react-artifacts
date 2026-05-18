@@ -107,11 +107,10 @@ export default function DesignSystem() {
     showIntermediateTokenCounters: false,
   });
 
-  const toggleMessageRender = (turnIndex: number, messageIndex: number) => {
-    const key = `${turnIndex}-${messageIndex}`;
+  const toggleMessageRender = (itemId: string) => {
     setConversationRenderModes((prev) => ({
       ...prev,
-      [key]: prev[key] === 'literal' ? 'rendered' : 'literal',
+      [itemId]: prev[itemId] === 'literal' ? 'rendered' : 'literal',
     }));
   };
 
@@ -624,7 +623,7 @@ export default function DesignSystem() {
             </div>
 
             <div className="space-y-4">
-              {sampleConversation.map((turn, turnIndex) => (
+              {sampleConversation.map((turn) => (
                 <ConversationTurn
                   key={getTurnKey(turn)}
                   turnNumber={turn.turnNumber}
@@ -636,10 +635,8 @@ export default function DesignSystem() {
                     showIntermediateTokenCounters:
                       visibleTypes.tokenCounters && detailVisibility.showIntermediateTokenCounters,
                   }}
-                  renderModesByItemIndex={turn.items.map(
-                    (_, msgIndex) => conversationRenderModes[`${turnIndex}-${msgIndex}`] || 'default',
-                  )}
-                  onToggleRenderMode={(itemIndex) => toggleMessageRender(turnIndex, itemIndex)}
+                  renderModesByItemId={conversationRenderModes}
+                  onToggleRenderModeForItem={toggleMessageRender}
                 />
               ))}
             </div>

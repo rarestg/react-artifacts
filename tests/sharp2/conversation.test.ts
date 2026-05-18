@@ -30,6 +30,10 @@ import { SubagentNotification } from '../../src/artifacts/sharp2/conversation/Su
 import { getTokenUsageSummary, TokenCounter } from '../../src/artifacts/sharp2/conversation/TokenCounter';
 import { ToolCall } from '../../src/artifacts/sharp2/conversation/ToolCall';
 import { ExpandableTranscriptRow, TranscriptRow } from '../../src/artifacts/sharp2/conversation/TranscriptRow';
+import {
+  formatConversationTimestamp,
+  formatConversationTimestampTitle,
+} from '../../src/artifacts/sharp2/conversation/time';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
@@ -38,6 +42,14 @@ const SUBAGENT_ID_SUFFIX = 'd83783';
 
 function countMatches(source: string, pattern: RegExp) {
   return source.match(pattern)?.length ?? 0;
+}
+
+function expectedTimestampCopyTitle(timestamp: string) {
+  return `${formatConversationTimestampTitle(timestamp)} local time; click to copy UTC timestamp ${timestamp}`;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 test('splitMessageContent keeps fenced code blocks literal', () => {
@@ -97,6 +109,24 @@ test('MessageCard uses the intended role accent color mapping', () => {
   assert.match(thinkingMarkup, /text-\[var\(--category-amber\)\]/);
 });
 
+test('MessageCard renders runtime-unknown roles as neutral literal rows', () => {
+  const markup = renderToStaticMarkup(
+    createElement(MessageCard, {
+      role: 'unknown' as never,
+      content: 'Unknown **source** text',
+      renderMode: 'rendered',
+      onToggleRender: () => {},
+    }),
+  );
+
+  assert.match(markup, />Unknown</);
+  assert.match(markup, /--transcript-row-accent:var\(--border-strong\)/);
+  assert.match(markup, /text-\[var\(--text-muted\)\]/);
+  assert.match(markup, /Unknown \*\*source\*\* text/);
+  assert.doesNotMatch(markup, /<strong/);
+  assert.doesNotMatch(markup, /aria-pressed=/);
+});
+
 test('MessageCard hides render mode toggle when no toggle handler is provided', () => {
   const markup = renderToStaticMarkup(
     createElement(MessageCard, {
@@ -118,8 +148,8 @@ test('MessageCard shows render mode toggle state when a toggle handler is provid
   );
 
   assert.match(markup, /aria-pressed="true"/);
-  assert.match(markup, /aria-label="Rendered"/);
-  assert.match(markup, /title="Switch between raw text and rendered Markdown output"/);
+  assert.match(markup, /aria-label="Rendered Markdown output"/);
+  assert.match(markup, /title="Show raw message source"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Rendered\s*<\/span>/);
 });
@@ -135,7 +165,8 @@ test('MessageCard render mode toggle marks raw mode unpressed while reserving re
   );
 
   assert.match(markup, /aria-pressed="false"/);
-  assert.match(markup, /aria-label="Raw"/);
+  assert.match(markup, /aria-label="Rendered Markdown output"/);
+  assert.match(markup, /title="Show rendered Markdown output"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Raw\s*<\/span>/);
 });
@@ -171,7 +202,7 @@ test('conversation key helpers prefer supplied ids', () => {
 
   assert.equal(getTurnKey(turn), 'turn-id');
   assert.equal(getTurnItemKey({ id: 'message-id', role: 'user', content: 'Hi' }), 'message-id');
-  assert.equal(getTurnItemKey({ id: 'message-id', role: 'user', content: 'Hi' }, 12), 'message-id-12');
+  assert.equal(getTurnItemKey({ id: 'message-id', role: 'user', content: 'Hi' }, 12), 'message-id');
 });
 
 test('TokenCounter shows invalid limits explicitly in visible and copied summaries', () => {
@@ -413,13 +444,17 @@ test('conversation fallback keys use original indexes to distinguish identical s
   assert.notEqual(getTurnItemKey(toolCall, 2), getTurnItemKey(toolCall, 3));
 });
 
-test('conversation explicit item keys use original indexes to distinguish duplicate ids', () => {
+test('conversation explicit item keys preserve supplied ids instead of repairing duplicates', () => {
   const firstMessage = { id: 'shared-message', role: 'assistant', content: 'First message' } as const;
   const secondMessage = { id: 'shared-message', role: 'assistant', content: 'Second message' } as const;
 
-  assert.equal(getTurnItemKey(firstMessage, 0), 'shared-message-0');
-  assert.equal(getTurnItemKey(secondMessage, 1), 'shared-message-1');
-  assert.notEqual(getTurnItemKey(firstMessage, 0), getTurnItemKey(secondMessage, 1));
+  assert.equal(getTurnItemKey(firstMessage, 0), 'shared-message');
+  assert.equal(getTurnItemKey(secondMessage, 1), 'shared-message');
+  assert.equal(
+    getTurnItemKey(firstMessage, 0),
+    getTurnItemKey(secondMessage, 1),
+    'product adapters and fixtures must provide unique stable item ids',
+  );
 });
 
 test('ConversationTurn filters hidden item types', () => {
@@ -480,17 +515,20 @@ test('ConversationTurn shows visible and available item counts when filters hide
 });
 
 test('ConversationTurn keeps timestamp beside the turn label and duration units lowercase', () => {
+  const timestamp = '10:44:30';
+  const timestampTitle = expectedTimestampCopyTitle(timestamp);
+  const timestampDisplay = formatConversationTimestamp(timestamp);
   const markup = renderToStaticMarkup(
     createElement(ConversationTurn, {
       turnNumber: 7,
-      timestamp: '10:44:30',
+      timestamp,
       duration: '3.1s',
       items: [{ id: 'assistant', role: 'assistant', content: 'Done' }],
     }),
   );
   const turnIndex = markup.indexOf('Turn 7');
-  const timestampTitleIndex = markup.indexOf('10:44:30 AM local time');
-  const timestampDisplayIndex = markup.indexOf('10:44 AM');
+  const timestampTitleIndex = markup.indexOf(timestampTitle);
+  const timestampDisplayIndex = markup.indexOf(`>${timestampDisplay}<`);
   const durationIndex = markup.indexOf('3.1s');
   const countIndex = markup.indexOf('1 / 1 visible');
 
@@ -505,17 +543,18 @@ test('ConversationTurn keeps timestamp beside the turn label and duration units 
 });
 
 test('MessageCard renders row timestamps as copyable UTC timestamp buttons', () => {
+  const timestamp = '10:44:30';
   const markup = renderToStaticMarkup(
     createElement(MessageCard, {
       role: 'assistant',
       content: 'Done',
-      timestamp: '10:44:30',
+      timestamp,
     }),
   );
 
-  assert.match(markup, /aria-label="Copy UTC timestamp 10:44:30"/);
-  assert.match(markup, /title="10:44:30 AM local time; click to copy UTC timestamp 10:44:30"/);
-  assert.match(markup, />10:44 AM</);
+  assert.match(markup, new RegExp(`aria-label="Copy UTC timestamp ${escapeRegExp(timestamp)}"`));
+  assert.match(markup, new RegExp(`title="${escapeRegExp(expectedTimestampCopyTitle(timestamp))}"`));
+  assert.match(markup, new RegExp(`>${escapeRegExp(formatConversationTimestamp(timestamp) ?? '')}<`));
 });
 
 test('ConversationTurn omits render mode toggles when no toggle handler is provided', () => {
@@ -529,7 +568,7 @@ test('ConversationTurn omits render mode toggles when no toggle handler is provi
   assert.doesNotMatch(markup, /aria-pressed/);
 });
 
-test('ConversationTurn only applies render toggles and overrides to assistant rows', () => {
+test('ConversationTurn only applies item-id render toggles and overrides to assistant rows', () => {
   const markup = renderToStaticMarkup(
     createElement(ConversationTurn, {
       turnNumber: 1,
@@ -538,8 +577,12 @@ test('ConversationTurn only applies render toggles and overrides to assistant ro
         { id: 'thinking', role: 'thinking', content: 'Thinking **bold** note' },
         { id: 'assistant', role: 'assistant', content: 'Assistant **bold** output' },
       ],
-      renderModesByItemIndex: ['rendered', 'literal', 'literal'],
-      onToggleRenderMode: () => undefined,
+      renderModesByItemId: {
+        user: 'rendered',
+        thinking: 'literal',
+        assistant: 'literal',
+      },
+      onToggleRenderModeForItem: () => undefined,
     }),
   );
 
@@ -549,26 +592,23 @@ test('ConversationTurn only applies render toggles and overrides to assistant ro
   assert.match(markup, /Assistant \*\*bold\*\* output/);
 });
 
-test('ConversationTurn preserves original indexes for duplicate item references', () => {
-  const repeatedMessage = {
-    id: 'shared-assistant-message',
-    role: 'assistant',
-    content: 'Render **this** only for the second entry',
-  } as const;
-
+test('ConversationTurn omits render toggles for assistant rows without stable ids', () => {
   const markup = renderToStaticMarkup(
     createElement(ConversationTurn, {
       turnNumber: 1,
-      items: [repeatedMessage, repeatedMessage],
-      renderModesByItemIndex: ['literal', 'rendered'],
+      items: [{ role: 'assistant', content: 'Assistant **rendered** by default' }],
+      renderModesByItemId: {
+        missing: 'literal',
+      },
+      onToggleRenderModeForItem: () => undefined,
     }),
   );
 
-  assert.equal(markup.match(/\*\*this\*\*/g)?.length ?? 0, 1);
-  assert.equal(markup.match(/<strong\b[^>]*>this<\/strong>/g)?.length ?? 0, 1);
+  assert.doesNotMatch(markup, /aria-pressed=/);
+  assert.match(markup, /Assistant <strong\b[^>]*>rendered<\/strong> by default/);
 });
 
-test('ConversationTurn lets item ids override index render mode state for assistant rows', () => {
+test('ConversationTurn uses item ids for assistant render mode state', () => {
   const markup = renderToStaticMarkup(
     createElement(ConversationTurn, {
       turnNumber: 1,
@@ -576,8 +616,8 @@ test('ConversationTurn lets item ids override index render mode state for assist
         { id: 'assistant-first', role: 'assistant', content: 'First **raw** item' },
         { id: 'assistant-second', role: 'assistant', content: 'Second **rendered** item' },
       ],
-      renderModesByItemIndex: ['literal', 'literal'],
       renderModesByItemId: {
+        'assistant-first': 'literal',
         'assistant-second': 'rendered',
       },
       onToggleRenderModeForItem: () => undefined,
@@ -719,6 +759,31 @@ test('ConversationTurn renders collapsed tool summaries by default', () => {
   assert.doesNotMatch(markup, />Output</);
   assert.doesNotMatch(markup, /PASS/);
   assert.match(markup, />3 \/ 3 visible</);
+});
+
+test('ToolCall renders no-detail summary rows without disclosure affordances', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      summary: 'Run focused tests',
+      status: 'success',
+    }),
+  );
+
+  assert.match(markup, />TOOL</);
+  assert.match(markup, />bash</);
+  assert.match(markup, /Run focused tests/);
+  assert.match(markup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
+  assert.match(markup, /aria-hidden="true" class="inline-flex size-6 shrink-0"/);
+  assert.doesNotMatch(markup, /aria-expanded=/);
+  assert.doesNotMatch(markup, /aria-controls=/);
+  assert.doesNotMatch(markup, /Expand bash tool details/);
+  assert.doesNotMatch(markup, /absolute inset-0 z-0 cursor-pointer/);
+  assert.doesNotMatch(markup, /lucide-chevron/);
+  assert.doesNotMatch(markup, />Input</);
+  assert.doesNotMatch(markup, />Output</);
+  assert.doesNotMatch(markup, /aria-label="Copy tool input"/);
+  assert.doesNotMatch(markup, /aria-label="Copy tool output"/);
 });
 
 test('TranscriptRow owns the shared transcript row shell contract', () => {
@@ -1078,12 +1143,13 @@ test('ConversationTurn filters subagent lifecycle activity independently from or
 });
 
 test('ToolCall supports row-level expansion for input and output details', () => {
+  const timestamp = '10:44:30';
   const summaryMarkup = renderToStaticMarkup(
     createElement(ToolCall, {
       tool: 'bash',
       input: 'npm test',
       output: 'PASS',
-      timestamp: '10:44:30',
+      timestamp,
       status: 'success',
     }),
   );
@@ -1104,8 +1170,8 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(summaryMarkup, /min-w-\[12ch\]/);
   assert.doesNotMatch(summaryMarkup, /Success/);
   assert.doesNotMatch(summaryMarkup, /success-weak/);
-  assert.match(summaryMarkup, /aria-label="Copy UTC timestamp 10:44:30"/);
-  assert.match(summaryMarkup, /title="10:44:30 AM local time; click to copy UTC timestamp 10:44:30"/);
+  assert.match(summaryMarkup, new RegExp(`aria-label="Copy UTC timestamp ${escapeRegExp(timestamp)}"`));
+  assert.match(summaryMarkup, new RegExp(`title="${escapeRegExp(expectedTimestampCopyTitle(timestamp))}"`));
   assert.match(summaryMarkup, /aria-expanded="false"/);
   assert.equal(countMatches(summaryMarkup, /aria-expanded=/g), 1);
   assert.equal(countMatches(summaryMarkup, /<button/g), 2);
@@ -1152,6 +1218,8 @@ test('ToolCall renders missing summary-page details without empty copy targets',
   );
 
   assert.match(summaryMarkup, /Run focused tests/);
+  assert.match(summaryMarkup, /aria-expanded="false"/);
+  assert.match(summaryMarkup, /aria-label="Expand bash tool details"/);
   assert.doesNotMatch(summaryMarkup, />Input</);
   assert.doesNotMatch(summaryMarkup, />Output</);
   assert.doesNotMatch(summaryMarkup, /Output pending/);
@@ -1286,6 +1354,7 @@ test('ToolCall uses nonredundant subagent fallback previews without preview data
       assert.match(markup, /data-agent-identity-tag="nickname"/);
     } else {
       assert.doesNotMatch(markup, /data-agent-identity-tag=/);
+      assert.doesNotMatch(markup, /pointer-events-none flex shrink-0 items-center gap-1\.5"><\/div>/);
     }
   }
 });
@@ -1317,6 +1386,7 @@ test('expanded subagent tool details do not repeat header agent identity tags', 
 });
 
 test('SubagentNotification collapsed row keeps inspectable details behind disclosure', () => {
+  const timestamp = '10:46:29';
   const rawPayload =
     '<subagent_notification>\n{"agent_path":"019e27af-615f-7bf0-a26a-ee42ecd83783","status":{"completed":"done"}}\n</subagent_notification>';
   const markup = renderToStaticMarkup(
@@ -1327,7 +1397,7 @@ test('SubagentNotification collapsed row keeps inspectable details behind disclo
       status: 'completed',
       summary: 'The parser is treating inherited metadata as current-session metadata.',
       rawPayload,
-      timestamp: '10:46:29',
+      timestamp,
     }),
   );
 
@@ -1354,8 +1424,8 @@ test('SubagentNotification collapsed row keeps inspectable details behind disclo
   assert.match(markup, /data-copy-value="019e27af-615f-7bf0-a26a-ee42ecd83783"/);
   assert.doesNotMatch(markup, /Copy subagent notification result/);
   assert.doesNotMatch(markup, /Copy raw subagent notification payload/);
-  assert.match(markup, /aria-label="Copy UTC timestamp 10:46:29"/);
-  assert.match(markup, /title="10:46:29 AM local time; click to copy UTC timestamp 10:46:29"/);
+  assert.match(markup, new RegExp(`aria-label="Copy UTC timestamp ${escapeRegExp(timestamp)}"`));
+  assert.match(markup, new RegExp(`title="${escapeRegExp(expectedTimestampCopyTitle(timestamp))}"`));
   assert.doesNotMatch(markup, /agent_path/);
   assert.doesNotMatch(markup, />User</);
 });
@@ -1375,6 +1445,7 @@ test('SubagentNotification handles unknown status and missing agent identity', (
   assert.match(markup, /aria-label="Expand subagent notification details for Unknown agent"/);
   assert.doesNotMatch(markup, /for "/);
   assert.doesNotMatch(markup, /data-agent-identity-tag=/);
+  assert.doesNotMatch(markup, /pointer-events-none flex shrink-0 items-center gap-1\.5"><\/div>/);
 });
 
 test('expanded SubagentNotification exposes result and hides raw debug by default', () => {

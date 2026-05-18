@@ -17,9 +17,15 @@ export type MessageCardProps = {
   onToggleRender?: () => void;
 };
 
+type MessageRoleConfigKey = MessageRole | 'unknown';
+
+function isKnownMessageRole(role: unknown): role is MessageRole {
+  return role === 'user' || role === 'assistant' || role === 'thinking';
+}
+
 export function MessageCard({ role, content, timestamp, renderMode = 'default', onToggleRender }: MessageCardProps) {
   // Keep message row surfaces neutral; role color belongs in the left accent only.
-  const roleConfig: Record<MessageRole, { label: string; accentColor: string; labelColor: string }> = {
+  const roleConfig: Record<MessageRoleConfigKey, { label: string; accentColor: string; labelColor: string }> = {
     user: {
       label: 'User',
       accentColor: 'var(--category-green)',
@@ -35,15 +41,22 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
       accentColor: 'var(--category-amber)',
       labelColor: 'text-[var(--category-amber)]',
     },
+    unknown: {
+      label: 'Unknown',
+      accentColor: 'var(--border-strong)',
+      labelColor: 'text-[var(--text-muted)]',
+    },
   };
 
-  const config = roleConfig[role] || roleConfig.assistant;
-  const effectiveRenderMode = role === 'assistant' ? renderMode : 'default';
+  const normalizedRole = isKnownMessageRole(role) ? role : 'unknown';
+  const config = roleConfig[normalizedRole];
+  const defaultRenderMode = normalizedRole === 'unknown' ? 'literal' : getDefaultRenderMode(normalizedRole);
+  const effectiveRenderMode = normalizedRole === 'assistant' ? renderMode : 'default';
   const isLiteral =
-    effectiveRenderMode === 'literal' ||
-    (effectiveRenderMode === 'default' && getDefaultRenderMode(role) === 'literal');
-  const canToggleRender = role === 'assistant' && onToggleRender;
+    effectiveRenderMode === 'literal' || (effectiveRenderMode === 'default' && defaultRenderMode === 'literal');
+  const canToggleRender = normalizedRole === 'assistant' && onToggleRender;
   const renderToggleLabel = isLiteral ? 'Raw' : 'Rendered';
+  const renderToggleTitle = isLiteral ? 'Show rendered Markdown output' : 'Show raw message source';
 
   return (
     <TranscriptRow
@@ -57,9 +70,9 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
             canToggleRender ? (
               <button
                 type="button"
-                aria-label={renderToggleLabel}
+                aria-label="Rendered Markdown output"
                 aria-pressed={!isLiteral}
-                title="Switch between raw text and rendered Markdown output"
+                title={renderToggleTitle}
                 onClick={canToggleRender}
                 className={mergeClassNames('inline-grid cursor-pointer', renderToggleSlotClasses, headerActionClasses)}
               >

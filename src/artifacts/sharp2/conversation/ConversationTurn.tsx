@@ -40,9 +40,7 @@ export type ConversationTurnProps = {
   timestamp?: string;
   duration?: string;
   items: TurnItem[];
-  renderModesByItemIndex?: RenderMode[];
   renderModesByItemId?: Record<string, RenderMode>;
-  onToggleRenderMode?: (originalItemIndex: number) => void;
   onToggleRenderModeForItem?: (itemId: string) => void;
   visibleTypes?: ConversationVisibilityOptions;
   detailVisibility?: Partial<ConversationDetailVisibility>;
@@ -57,9 +55,7 @@ export function ConversationTurn({
   timestamp,
   duration,
   items,
-  renderModesByItemIndex,
   renderModesByItemId,
-  onToggleRenderMode,
   onToggleRenderModeForItem,
   visibleTypes,
   detailVisibility,
@@ -89,19 +85,18 @@ export function ConversationTurn({
     return originalIndex === finalTokenCounterIndex;
   };
 
-  const getAssistantRenderMode = (item: TurnItem, originalIndex: number): RenderMode => {
+  const getAssistantRenderMode = (item: TurnItem): RenderMode => {
     if (item.type !== undefined) return 'default';
     if (item.role !== 'assistant') return 'default';
     if (item.id && renderModesByItemId?.[item.id]) return renderModesByItemId[item.id];
-    return renderModesByItemIndex?.[originalIndex] || 'default';
+    return 'default';
   };
 
-  const getAssistantRenderToggle = (item: TurnItem, originalIndex: number) => {
+  const getAssistantRenderToggle = (item: TurnItem) => {
     if (item.type !== undefined) return undefined;
     if (item.role !== 'assistant') return undefined;
     const itemId = item.id;
     if (itemId && onToggleRenderModeForItem) return () => onToggleRenderModeForItem(itemId);
-    if (onToggleRenderMode) return () => onToggleRenderMode(originalIndex);
     return undefined;
   };
 
@@ -227,8 +222,8 @@ export function ConversationTurn({
                 role={item.role}
                 content={item.content}
                 timestamp={item.timestamp}
-                renderMode={getAssistantRenderMode(item, originalIndex)}
-                onToggleRender={getAssistantRenderToggle(item, originalIndex)}
+                renderMode={getAssistantRenderMode(item)}
+                onToggleRender={getAssistantRenderToggle(item)}
               />
             </TranscriptRowStackItem>
           );

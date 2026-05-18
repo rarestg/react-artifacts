@@ -58,8 +58,8 @@ export type TokenCounterItem = {
 };
 
 /**
- * Renderer-level tool-call row data. Raw JSONL parser records should normalize call_id,
- * raw arguments/output, parse state, and multi-agent relationships before mapping here.
+ * Renderer-level tool-call row data. Product or showcase adapters provide normalized
+ * summary/detail fields here; raw parser and debug material stays behind details reads.
  */
 export type ToolCallItem = {
   id?: string;

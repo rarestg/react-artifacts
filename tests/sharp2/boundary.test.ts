@@ -268,6 +268,186 @@ test('sharp2 temporary product types stay type-only and avoid parser contracts',
   }
 });
 
+test('sharp2 product DTO smoke fixtures cover paged rows, details, and family timeline', () => {
+  const apiInfo = {
+    contractVersion: 'codexscope.product.v1',
+    capabilities: ['transcript_page', 'item_details', 'family_timeline'],
+  } as const;
+  const visibility = {
+    thinking: false,
+    tools: true,
+    toolOutput: false,
+    telemetry: false,
+    metadata: false,
+    rolledBack: false,
+  };
+  const productError = {
+    code: 'DETAILS_NOT_INDEXED',
+    message: 'Raw debug details are not available yet.',
+    recoverable: true,
+    recoveryAction: 'reindex',
+    detailsForDebug: 'missing evidence snapshot',
+  } as const;
+
+  const pageRequest = {
+    mode: 'around',
+    sessionId: 'root-thread-001',
+    matchId: 'match-1',
+    limit: 50,
+    visibility,
+    contentMode: 'future_content_mode',
+  } satisfies TranscriptPageRequest;
+
+  const pageResponse = {
+    apiInfo,
+    header: {
+      sessionId: 'root-thread-001',
+      displayTitle: 'Inspect the parser issue',
+      titleSource: 'first_user_message',
+      workspacePath: '/workspace/app',
+      repoIdentity: {
+        repoIdentityId: 'repo-1',
+        label: 'react-artifacts',
+        source: 'git_remote',
+      },
+      startedAt: '2026-04-21T04:40:00.000Z',
+      lastActivityAt: '2026-04-21T04:41:20.201Z',
+    },
+    items: [
+      {
+        transcriptItemId: 'item-message-1',
+        jumpTargetId: 'jump-message-1',
+        sessionId: 'root-thread-001',
+        role: 'assistant',
+        visibility: 'default',
+        category: 'message',
+        defaultVisible: true,
+        forceVisibleReason: 'search_match',
+        rolledBack: false,
+        timestamp: '2026-04-21T04:41:00.000Z',
+        textPreview: 'I will start a worker.',
+        isTruncated: false,
+        detailsAvailable: false,
+        tool: null,
+        agentEvent: null,
+        rawDebugAvailable: false,
+      },
+      {
+        transcriptItemId: 'item-agent-event-1',
+        jumpTargetId: 'jump-agent-event-1',
+        sessionId: 'root-thread-001',
+        role: 'agent',
+        visibility: 'optional',
+        category: 'agent_event',
+        defaultVisible: false,
+        forceVisibleReason: null,
+        rolledBack: false,
+        timestamp: '2026-04-21T04:41:05.100Z',
+        textPreview: 'Inspect the failing parser case and report back.',
+        isTruncated: true,
+        detailsAvailable: true,
+        tool: {
+          name: 'spawn_agent',
+          callId: 'call_spawn_002',
+          status: 'deferred_by_host',
+          targetSessionIds: ['child-thread-123'],
+          argumentsPreview: 'Inspect the failing parser case and report back.',
+        },
+        agentEvent: {
+          eventType: 'handoff',
+          status: 'paused',
+          nickname: 'Ada',
+          role: 'worker',
+          targetSessionId: 'child-thread-123',
+          provisional: true,
+          unresolved: false,
+        },
+        rawDebugAvailable: true,
+      },
+    ],
+    beforeCursor: 'before-cursor',
+    afterCursor: 'after-cursor',
+    targetTranscriptItemId: 'item-message-1',
+    selectedMatchId: 'match-1',
+    highlights: [{ matchId: 'match-1', transcriptItemId: 'item-message-1', startOffset: 0, endOffset: 7 }],
+    error: productError,
+  } satisfies TranscriptPageResponse;
+
+  const detailsResponse = {
+    apiInfo,
+    transcriptItemId: 'item-agent-event-1',
+    fullText: null,
+    tool: {
+      raw: '{"message":"Inspect the failing parser case and report back."}',
+      parsedJson: { message: 'Inspect the failing parser case and report back.' },
+      parseError: null,
+      normalizedStatus: 'deferred_by_host',
+    },
+    rawDebug: {
+      evidenceIds: ['evidence-1'],
+      sourceRefs: [{ line: 42 }],
+      rawJson: '{"type":"response_item"}',
+    },
+    error: productError,
+  } satisfies TranscriptItemDetailsResponse;
+
+  const findResponse = {
+    apiInfo,
+    matches: [
+      {
+        matchId: 'match-1',
+        transcriptItemId: 'item-message-1',
+        sessionId: 'root-thread-001',
+        preview: 'Inspect the parser issue',
+        highlights: [{ matchId: 'match-1', transcriptItemId: 'item-message-1', startOffset: 0, endOffset: 7 }],
+      },
+    ],
+    beforeCursor: null,
+    afterCursor: 'find-after-cursor',
+  } satisfies FindTranscriptResponse;
+
+  const familyResponse = {
+    apiInfo,
+    rootSessionId: 'root-thread-001',
+    nodes: [
+      {
+        sessionId: 'child-thread-123',
+        parentSessionId: 'root-thread-001',
+        depth: 1,
+        nickname: 'Ada',
+        role: 'worker',
+        path: null,
+        workspacePath: '/workspace/app',
+        repoIdentity: null,
+        source: 'subagent',
+        provisional: true,
+        unresolved: true,
+      },
+    ],
+    events: [
+      {
+        eventId: 'event-spawn-1',
+        eventType: 'spawn',
+        status: 'spawned',
+        parentJumpTargetId: 'jump-agent-event-1',
+        childJumpTargetId: null,
+        evidenceIds: ['evidence-1'],
+        groupedWithEventIds: ['event-notification-1'],
+        targetSessionIds: ['child-thread-123'],
+        rawDebugAvailable: true,
+        timestamp: '2026-04-21T04:41:05.100Z',
+      },
+    ],
+  } satisfies SessionFamilyTimelineResponse;
+
+  assert.equal(pageRequest.contentMode, 'future_content_mode');
+  assert.equal(pageResponse.items[1]?.tool?.status, 'deferred_by_host');
+  assert.equal(pageResponse.items[1]?.agentEvent?.eventType, 'handoff');
+  assert.equal(detailsResponse.rawDebug?.rawJson, '{"type":"response_item"}');
+  assert.equal(findResponse.afterCursor, 'find-after-cursor');
+  assert.equal(familyResponse.nodes[0]?.unresolved, true);
+});
+
 test('sharp2 production code avoids deep imports into conversation internals', async () => {
   const files = (await readSharp2SourceFiles()).filter(
     ({ file }) => !toPosixPath(file).startsWith(`${sharp2ConversationDir}/`),

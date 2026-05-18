@@ -11,6 +11,13 @@ export type VisibleTypes = {
 };
 export type VisibleType = keyof VisibleTypes;
 
+export type ConversationDetailVisibility = {
+  showToolSummaries: boolean;
+  showToolDetails: boolean;
+  showTokenCounters: boolean;
+  showIntermediateTokenCounters: boolean;
+};
+
 export type MessageItem = {
   id?: string;
   role: MessageRole;
@@ -25,6 +32,18 @@ export type TokenCounterItem = {
   used: number;
   limit: number;
   label?: string;
+  cached?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  reasoningOutputTokens?: number;
+  lastUsage?: {
+    inputTokens?: number;
+    cachedInputTokens?: number;
+    outputTokens?: number;
+    reasoningOutputTokens?: number;
+    totalTokens?: number;
+  };
+  rateLimits?: unknown;
 };
 
 export type ToolCallItem = {

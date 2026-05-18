@@ -1,5 +1,6 @@
 import { Folder as FolderIcon, MessageSquare as MessageIcon } from 'lucide-react';
 import type { SearchResult } from './components/SearchInput';
+import { tokenCounterPropsFromTelemetry } from './conversation/TokenCounter';
 import type { ConversationTurnData } from './conversation/types';
 
 export const allSearchResults = [
@@ -39,6 +40,30 @@ export const allSearchResults = [
     icon: <FolderIcon className="size-4" />,
   },
 ] satisfies SearchResult[];
+
+const turnThreeFinalTokenUsage = tokenCounterPropsFromTelemetry({
+  info: {
+    total_token_usage: {
+      input_tokens: 3200,
+      cached_input_tokens: 1200,
+      output_tokens: 1750,
+      reasoning_output_tokens: 940,
+      total_tokens: 5890,
+    },
+    last_token_usage: {
+      input_tokens: 300,
+      cached_input_tokens: 0,
+      output_tokens: 180,
+      reasoning_output_tokens: 90,
+      total_tokens: 570,
+    },
+    model_context_window: 200000,
+  },
+  rate_limits: {
+    primary: { used_percent: 93 },
+    secondary: { used_percent: 41 },
+  },
+});
 
 export const sampleConversation = [
   {
@@ -172,7 +197,8 @@ const SearchInput = () => {
       {
         id: 'turn-3-user',
         role: 'user',
-        content: 'Run the tests for this component',
+        content:
+          'Run the tests for this component and keep the command output literal, including the long workspace selector: src/components/SearchInput.test.tsx --testNamePattern="debounces search calls and preserves typed whitespace".',
         timestamp: '10:44:30',
       },
       {
@@ -202,7 +228,8 @@ const SearchInput = () => {
 
 Test Suites: 1 passed, 1 total
 Tests:       4 passed, 4 total
-Time:        1.847s`,
+Time:        1.847s
+Command:     npm test -- src/components/SearchInput.test.tsx --testNamePattern="debounces search calls and preserves typed whitespace"`,
         timestamp: '10:44:32',
         status: 'success',
       },
@@ -222,9 +249,7 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
       {
         id: 'turn-3-token-2',
         type: 'token_counter',
-        used: 5890,
-        limit: 200000,
-        label: 'Context Window',
+        ...turnThreeFinalTokenUsage,
       },
     ],
   },

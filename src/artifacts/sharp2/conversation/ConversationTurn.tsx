@@ -3,7 +3,13 @@ import { getTurnItemKey } from './keys';
 import { MessageCard } from './MessageCard';
 import { TokenCounter } from './TokenCounter';
 import { ToolCall } from './ToolCall';
-import { getTurnItemVisibleType, type RenderMode, type TurnItem, type VisibleTypes } from './types';
+import {
+  type ConversationDetailVisibility,
+  getTurnItemVisibleType,
+  type RenderMode,
+  type TurnItem,
+  type VisibleTypes,
+} from './types';
 
 export type ConversationTurnProps = {
   turnNumber: number;
@@ -13,6 +19,7 @@ export type ConversationTurnProps = {
   renderModes?: RenderMode[];
   onToggleRender?: (messageIndex: number) => void;
   visibleTypes?: Partial<VisibleTypes>;
+  detailVisibility?: Partial<ConversationDetailVisibility>;
 };
 
 export function ConversationTurn({
@@ -23,12 +30,48 @@ export function ConversationTurn({
   renderModes,
   onToggleRender,
   visibleTypes,
+  detailVisibility,
 }: ConversationTurnProps) {
-  // Filter items based on visible types
+  const showToolSummaries = detailVisibility?.showToolSummaries ?? visibleTypes?.toolCalls ?? true;
+  const showToolDetails = detailVisibility?.showToolDetails ?? true;
+  const showTokenCounters = detailVisibility?.showTokenCounters ?? visibleTypes?.tokenCounters ?? true;
+  const showIntermediateTokenCounters = detailVisibility?.showIntermediateTokenCounters ?? false;
+  let finalTokenCounterIndex = -1;
+
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    if (items[index]?.type === 'token_counter') {
+      finalTokenCounterIndex = index;
+      break;
+    }
+  }
+
   const filteredItems: Array<{ item: TurnItem; originalIndex: number }> = [];
 
   for (const [originalIndex, item] of items.entries()) {
-    if (visibleTypes?.[getTurnItemVisibleType(item)] ?? true) {
+    const visibleType = getTurnItemVisibleType(item);
+
+    if (item.type === 'tool_call') {
+      if (showToolSummaries) {
+        filteredItems.push({ item, originalIndex });
+      }
+      continue;
+    }
+
+    if (item.type === 'token_counter') {
+      if (showTokenCounters && (showIntermediateTokenCounters || originalIndex === finalTokenCounterIndex)) {
+        filteredItems.push({ item, originalIndex });
+      }
+      continue;
+    }
+
+    if (item.role === 'tool') {
+      if (showToolSummaries) {
+        filteredItems.push({ item, originalIndex });
+      }
+      continue;
+    }
+
+    if (visibleTypes?.[visibleType] ?? true) {
       filteredItems.push({ item, originalIndex });
     }
   }
@@ -55,42 +98,58 @@ export function ConversationTurn({
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="p-3 space-y-3">
+      {/* Transcript rows */}
+      <div className="flex flex-col">
         {filteredItems.map(({ item, originalIndex }) => {
           if (item.type === 'token_counter') {
             return (
-              <TokenCounter
+              <div
                 key={getTurnItemKey(item, originalIndex)}
-                used={item.used}
-                limit={item.limit}
-                label={item.label}
-              />
+                className="border-b border-[var(--border)] last:border-b-0"
+              >
+                <TokenCounter
+                  used={item.used}
+                  limit={item.limit}
+                  label={item.label}
+                  cached={item.cached}
+                  inputTokens={item.inputTokens}
+                  outputTokens={item.outputTokens}
+                  reasoningOutputTokens={item.reasoningOutputTokens}
+                  lastUsage={item.lastUsage}
+                  rateLimits={item.rateLimits}
+                />
+              </div>
             );
           }
 
           if (item.type === 'tool_call') {
             return (
-              <ToolCall
+              <div
                 key={getTurnItemKey(item, originalIndex)}
-                tool={item.tool}
-                input={item.input}
-                output={item.output}
-                timestamp={item.timestamp}
-                status={item.status}
-              />
+                className="border-b border-[var(--border)] last:border-b-0"
+              >
+                <ToolCall
+                  tool={item.tool}
+                  input={item.input}
+                  output={item.output}
+                  timestamp={item.timestamp}
+                  status={item.status}
+                  showDetails={showToolDetails}
+                />
+              </div>
             );
           }
 
           return (
-            <MessageCard
-              key={getTurnItemKey(item, originalIndex)}
-              role={item.role}
-              content={item.content}
-              timestamp={item.timestamp}
-              renderMode={renderModes?.[originalIndex] || 'default'}
-              onToggleRender={onToggleRender ? () => onToggleRender(originalIndex) : undefined}
-            />
+            <div key={getTurnItemKey(item, originalIndex)} className="border-b border-[var(--border)] last:border-b-0">
+              <MessageCard
+                role={item.role}
+                content={item.content}
+                timestamp={item.timestamp}
+                renderMode={renderModes?.[originalIndex] || 'default'}
+                onToggleRender={onToggleRender ? () => onToggleRender(originalIndex) : undefined}
+              />
+            </div>
           );
         })}
       </div>

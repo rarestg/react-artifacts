@@ -82,10 +82,10 @@ turn semantics are not shared APIs.
 
 | File | Role |
 |------|------|
-| `conversation/MessageCard.tsx` | Renders one user, assistant, thinking, or tool message with literal/rendered modes. |
-| `conversation/ToolCall.tsx` | Renders collapsible tool input/output with status and copy behavior. |
-| `conversation/ConversationTurn.tsx` | Groups turn items with a stable header and filters visible item types. |
-| `conversation/TokenCounter.tsx` | Displays context-window usage with copyable raw summary text. |
+| `conversation/MessageCard.tsx` | Renders one user, assistant, thinking, or tool row with literal/rendered modes. |
+| `conversation/ToolCall.tsx` | Renders summary-first tool rows with optional literal input/output details and copy behavior. |
+| `conversation/ConversationTurn.tsx` | Groups turn items with a stable header, derives visible transcript rows, and preserves original item indexes. |
+| `conversation/TokenCounter.tsx` | Displays flat context-window telemetry rows with copyable raw summary text and real token telemetry normalization. |
 | `conversation/markdown.tsx` | Local lightweight markdown splitting/rendering helpers and render fallback boundary. |
 | `conversation/keys.ts` | Stable key helpers for turns and turn items. |
 | `conversation/types.ts` | Local conversation data and visibility types. |
@@ -107,6 +107,13 @@ turn semantics are not shared APIs.
   offset ring would clip or disrupt a compact row/control.
 - Preserve conversation source text. User/tool/raw output should stay literal and copyable as source text. Rendered
   assistant/thinking output should use the local renderer and fall back to literal text if rendering fails.
+- Keep conversation turns as transcript groups: one compact turn header and one contiguous row stack with row separators,
+  not nested message/tool/token cards.
+- Keep tool rows summary-first. Tool details are controlled separately and should not imply row-level expansion when the
+  global detail control is authoritative.
+- Token counters should show the final end-of-turn context-window row by default. Intermediate counters are an explicit
+  diagnostic detail mode. When normalizing real telemetry, use total token usage against the model context window, not
+  account rate-limit percentages.
 - Copy actions should copy the underlying source or a pasteable structured summary, not only the rendered view.
 
 ## Intentional Nuance

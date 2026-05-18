@@ -33,6 +33,10 @@ import { ExpandableTranscriptRow, TranscriptRow } from '../../src/artifacts/shar
 const SUBAGENT_ID = '019e27af-615f-7bf0-a26a-ee42ecd83783';
 const SUBAGENT_ID_SUFFIX = 'd83783';
 
+function countMatches(source: string, pattern: RegExp) {
+  return source.match(pattern)?.length ?? 0;
+}
+
 test('splitMessageContent keeps fenced code blocks literal', () => {
   const parts = splitMessageContent('Intro\n\n```ts\nconst value = `raw`;\n```\n\nOutro');
 
@@ -111,6 +115,7 @@ test('MessageCard shows render mode toggle state when a toggle handler is provid
   );
 
   assert.match(markup, /aria-pressed="true"/);
+  assert.match(markup, /aria-label="Rendered"/);
   assert.match(markup, /title="Switch between raw text and rendered Markdown output"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Rendered\s*<\/span>/);
@@ -127,6 +132,7 @@ test('MessageCard render mode toggle marks raw mode unpressed while reserving re
   );
 
   assert.match(markup, /aria-pressed="false"/);
+  assert.match(markup, /aria-label="Raw"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Raw\s*<\/span>/);
 });
@@ -627,6 +633,7 @@ test('ConversationTurn renders collapsed tool summaries by default', () => {
   assert.doesNotMatch(markup, /Success/);
   assert.doesNotMatch(markup, /success-weak/);
   assert.match(markup, /aria-expanded="false"/);
+  assert.equal(countMatches(markup, /aria-expanded=/g), 1);
   assert.match(markup, /aria-label="Expand bash tool details"/);
   assert.doesNotMatch(markup, /aria-label="Copy tool input and output"/);
   assert.doesNotMatch(markup, /title="Copy tool input and output"/);
@@ -658,7 +665,7 @@ test('TranscriptRow owns the shared transcript row shell contract', () => {
         summaryAriaLabel: 'Collapse tool details',
         onToggle: () => undefined,
         left: 'Tool',
-        right: 'Meta',
+        rightLeading: 'Meta',
       },
       createElement('span', null, 'Details'),
     ),
@@ -678,8 +685,12 @@ test('TranscriptRow owns the shared transcript row shell contract', () => {
   assert.match(expandableMarkup, /style="--transcript-row-accent:var\(--category-violet\)"/);
   assert.match(expandableMarkup, /flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3/);
   assert.match(expandableMarkup, /absolute inset-0 z-0 cursor-pointer bg-transparent/);
+  assert.equal(countMatches(expandableMarkup, /aria-expanded=/g), 1);
   assert.match(expandableMarkup, /pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-1\.5/);
   assert.match(expandableMarkup, /pointer-events-none relative z-10 flex shrink-0 items-center gap-1\.5/);
+  assert.match(expandableMarkup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
+  assert.match(expandableMarkup, /aria-hidden="true" class="inline-flex size-6 shrink-0/);
+  assert.doesNotMatch(expandableMarkup, /pointer-events-auto inline-flex size-6/);
   assert.doesNotMatch(expandableMarkup, /class="min-w-0 flex-1 cursor-pointer text-left/);
   assert.doesNotMatch(expandableMarkup, /pointer-events-auto relative z-10 flex shrink-0/);
   assert.match(expandableMarkup, /hover:bg-\[var\(--surface-muted\)\]/);
@@ -719,7 +730,12 @@ test('conversation event rows use the shared TranscriptRow accent and inset shel
   assert.match(toolMarkup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
   assert.match(notificationMarkup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
   assert.match(toolMarkup, /pointer-events-none relative z-10 flex shrink-0 items-center gap-1\.5/);
-  assert.match(toolMarkup, /pointer-events-auto inline-flex size-6/);
+  assert.match(toolMarkup, /aria-hidden="true" class="inline-flex size-6 shrink-0/);
+  assert.match(notificationMarkup, /aria-hidden="true" class="inline-flex size-6 shrink-0/);
+  assert.equal(countMatches(toolMarkup, /aria-expanded=/g), 1);
+  assert.equal(countMatches(notificationMarkup, /aria-expanded=/g), 1);
+  assert.doesNotMatch(toolMarkup, /pointer-events-auto inline-flex size-6/);
+  assert.doesNotMatch(notificationMarkup, /pointer-events-auto inline-flex size-6/);
   assert.doesNotMatch(toolMarkup, /gap-3 px-4 py-3/);
   assert.doesNotMatch(notificationMarkup, /gap-3 px-4 py-3/);
 });
@@ -1013,11 +1029,16 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(summaryMarkup, /aria-label="Copy UTC timestamp 10:44:30"/);
   assert.match(summaryMarkup, /title="10:44:30 AM local time; click to copy UTC timestamp 10:44:30"/);
   assert.match(summaryMarkup, /aria-expanded="false"/);
+  assert.equal(countMatches(summaryMarkup, /aria-expanded=/g), 1);
+  assert.equal(countMatches(summaryMarkup, /<button/g), 2);
   assert.match(summaryMarkup, /aria-label="Expand bash tool details"/);
   assert.match(summaryMarkup, /absolute inset-0 z-0 cursor-pointer bg-transparent/);
+  assert.match(summaryMarkup, /aria-hidden="true" class="inline-flex size-6 shrink-0/);
+  assert.doesNotMatch(summaryMarkup, /pointer-events-auto inline-flex size-6/);
   assert.match(summaryMarkup, /lucide-chevron-right/);
   assert.doesNotMatch(summaryMarkup, /PASS/);
   assert.match(markup, /aria-expanded="true"/);
+  assert.equal(countMatches(markup, /aria-expanded=/g), 1);
   assert.match(markup, /aria-label="Collapse bash tool details"/);
   assert.match(markup, />Input</);
   assert.match(markup, /npm test/);
@@ -1094,12 +1115,15 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
     assert.match(markup, /Running/);
     assert.match(markup, new RegExp(`aria-label="Expand ${tool} tool details"`));
     assert.match(markup, /absolute inset-0 z-0 cursor-pointer bg-transparent/);
+    assert.equal(countMatches(markup, /aria-expanded=/g), 1);
+    assert.match(markup, /aria-hidden="true" class="inline-flex size-6 shrink-0/);
+    assert.doesNotMatch(markup, /pointer-events-auto inline-flex size-6/);
     assert.doesNotMatch(markup, />TOOL</);
     assert.match(markup, /aria-label="Copy agent nickname Ada"/);
     assert.match(markup, /data-copy-value="Ada"/);
     assert.match(markup, /aria-label="Copy full agent ID 019e27af-615f-7bf0-a26a-ee42ecd83783"/);
     assert.match(markup, /data-copy-value="019e27af-615f-7bf0-a26a-ee42ecd83783"/);
-    assert.equal(markup.match(/<button/g)?.length ?? 0, 4);
+    assert.equal(countMatches(markup, /<button/g), 3);
   }
 });
 
@@ -1188,9 +1212,12 @@ test('SubagentNotification collapsed row keeps inspectable details behind disclo
   assert.match(markup, />d83783</);
   assert.match(markup, /The parser is treating inherited metadata/);
   assert.match(markup, /aria-expanded="false"/);
+  assert.equal(countMatches(markup, /aria-expanded=/g), 1);
   assert.match(markup, /aria-label="Expand subagent notification details for Ada \(d83783\)"/);
+  assert.match(markup, /aria-hidden="true" class="inline-flex size-6 shrink-0/);
+  assert.doesNotMatch(markup, /pointer-events-auto inline-flex size-6/);
   assert.match(markup, /lucide-chevron-right/);
-  assert.equal(markup.match(/<button/g)?.length ?? 0, 5);
+  assert.equal(countMatches(markup, /<button/g), 4);
   assert.match(markup, /aria-label="Copy agent nickname Ada"/);
   assert.match(markup, /data-copy-value="Ada"/);
   assert.match(markup, /aria-label="Copy full agent ID 019e27af-615f-7bf0-a26a-ee42ecd83783"/);
@@ -1220,6 +1247,7 @@ test('expanded SubagentNotification exposes result and source without repeated i
   );
 
   assert.match(markup, /aria-expanded="true"/);
+  assert.equal(countMatches(markup, /aria-expanded=/g), 1);
   assert.match(markup, /aria-label="Collapse subagent notification details for Ada \(d83783\)"/);
   assert.match(markup, /lucide-chevron-down/);
   assert.doesNotMatch(markup, />Agent</);

@@ -43,6 +43,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
     effectiveRenderMode === 'literal' ||
     (effectiveRenderMode === 'default' && getDefaultRenderMode(role) === 'literal');
   const canToggleRender = role === 'assistant' && onToggleRender;
+  const renderToggleLabel = isLiteral ? 'Raw' : 'Rendered';
 
   return (
     <TranscriptRow
@@ -56,7 +57,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
             canToggleRender ? (
               <button
                 type="button"
-                aria-label="Rendered Markdown output"
+                aria-label={renderToggleLabel}
                 aria-pressed={!isLiteral}
                 title="Switch between raw text and rendered Markdown output"
                 onClick={canToggleRender}
@@ -65,7 +66,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
                 <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
                   Rendered
                 </span>
-                <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
+                <span className="col-start-1 row-start-1">{renderToggleLabel}</span>
               </button>
             ) : null
           }

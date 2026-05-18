@@ -107,16 +107,8 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
   active/pressed state. Disabled controls should not look clickable.
 - Use `focus-visible` for keyboard focus. Offset rings are preferred when they fit; inset rings are acceptable where an
   offset ring would clip or disrupt a compact row/control.
-- Preserve conversation source text. User/tool/raw output should stay literal and copyable as source text. Rendered
-  assistant/thinking output should use the local renderer and fall back to literal text if rendering fails.
-- Keep conversation turns as transcript groups: one compact turn header and one contiguous row stack with row separators,
-  not nested message/tool/token cards.
-- Keep tool rows summary-first. Structured tool calls reveal input/output through row-level expansion so the transcript
-  stays scan-friendly until a specific tool needs inspection.
-- Token counters should show the final end-of-turn context-window row by default. Intermediate counters are an explicit
-  diagnostic detail mode. When normalizing real telemetry, use total token usage against the model context window, not
-  account rate-limit percentages.
-- Copy actions should copy the underlying source or a pasteable structured summary, not only the rendered view.
+- Keep conversation examples aligned with `conversation-rendering-preferences.md`; detailed Conversation Rendering row
+  anatomy, copy behavior, token telemetry, and subagent/event rules live there.
 
 ## Intentional Nuance
 
@@ -136,4 +128,3 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
 3. Keep local examples local unless there is a clear shared API need.
 4. Verify light and dark mode when changing tokens, surfaces, status colors, category colors, or focus styling.
 5. For code changes, run the relevant focused checks and `npm run check` before PR-level completion.
-6. Keep old migration notes historical unless the user explicitly asks to revive or archive them.

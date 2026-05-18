@@ -134,9 +134,9 @@ host-owned and keyed by stable item IDs.
 The renderer depends on artifact theme tokens for surfaces, text, borders, focus rings, semantic status colors, category
 colors, and shared copy states. It must render under `ArtifactThemeRoot` or an equivalent product theme boundary.
 
-Rows keep the current anatomy: category accent, primary label, preview, stable right-side status/timestamp/control
-cluster, one semantic disclosure control for expandable rows, and copy controls only where source text exists. Raw
-payloads, parser diagnostics, and source/debug material are opt-in detail/debug content, not normal transcript expansion.
+Detailed row anatomy, copy behavior, disclosure, timestamp, and metadata rules live in
+`conversation-rendering-preferences.md`. Raw payloads, parser diagnostics, and source/debug material are opt-in
+detail/debug content, not normal transcript expansion.
 
 ## Out Of Scope For First Export
 

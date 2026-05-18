@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { CSSProperties, ReactNode } from 'react';
+import { Children, type CSSProperties, type ReactNode } from 'react';
 
 type TranscriptRowStyle = CSSProperties & {
   '--transcript-row-accent': string;
@@ -111,6 +111,7 @@ export function ExpandableTranscriptRow({
   children,
 }: ExpandableTranscriptRowProps) {
   const hasSplitLeftControls = leftControls !== undefined || leftTrailing !== undefined;
+  const hasControlledRegion = Children.toArray(children).length > 0;
   const right = (
     <TranscriptRowActionCluster
       leading={rightLeading}
@@ -125,7 +126,7 @@ export function ExpandableTranscriptRow({
         <button
           type="button"
           aria-expanded={expanded}
-          aria-controls={controlsId}
+          aria-controls={hasControlledRegion ? controlsId : undefined}
           aria-label={summaryAriaLabel}
           title={summaryTitle}
           onClick={onToggle}
@@ -149,9 +150,9 @@ export function ExpandableTranscriptRow({
         <div className="pointer-events-none relative z-10 flex shrink-0 items-center gap-1.5">{right}</div>
       </div>
 
-      {expanded && children && (
-        <div id={controlsId} className="space-y-3 px-3 pb-3">
-          {children}
+      {hasControlledRegion && (
+        <div id={controlsId} hidden={!expanded} className="space-y-3 px-3 pb-3">
+          {expanded ? children : null}
         </div>
       )}
     </TranscriptRowShell>

@@ -22,6 +22,8 @@ import {
   EventPreviewPill,
   getAgentIdentityToneName,
   getAgentIdSuffix,
+  SubagentNotificationStatusBadge,
+  ToolStatusBadge,
 } from '../../src/artifacts/sharp2/conversation/EventRowParts';
 import { getTurnItemKey } from '../../src/artifacts/sharp2/conversation/keys';
 import { MessageCard } from '../../src/artifacts/sharp2/conversation/MessageCard';
@@ -50,6 +52,12 @@ function expectedTimestampCopyTitle(timestamp: string) {
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function openingTagByAriaLabel(markup: string, ariaLabel: string) {
+  const tag = markup.match(new RegExp(`<[^>]+\\baria-label="${escapeRegExp(ariaLabel)}"[^>]*>`))?.[0];
+  assert.ok(tag, `Expected element with aria-label="${ariaLabel}" in markup: ${markup}`);
+  return tag;
 }
 
 test('splitMessageContent keeps fenced code blocks literal', () => {
@@ -813,8 +821,23 @@ test('TranscriptRow owns the shared transcript row shell contract', () => {
       createElement('span', null, 'Details'),
     ),
   );
+  const collapsedExpandableMarkup = renderToStaticMarkup(
+    createElement(
+      ExpandableTranscriptRow,
+      {
+        accentColor: 'var(--category-violet)',
+        expanded: false,
+        controlsId: 'collapsed-tool-details',
+        summaryAriaLabel: 'Expand tool details',
+        onToggle: () => undefined,
+        left: 'Tool',
+        rightLeading: 'Meta',
+      },
+      createElement('span', null, 'Hidden detail body'),
+    ),
+  );
 
-  for (const markup of [rowMarkup, expandableMarkup]) {
+  for (const markup of [rowMarkup, expandableMarkup, collapsedExpandableMarkup]) {
     assert.match(
       markup,
       /class="border-l-2 border-l-\[color:var\(--transcript-row-accent\)\] bg-\[var\(--surface\)\]"/,
@@ -839,6 +862,11 @@ test('TranscriptRow owns the shared transcript row shell contract', () => {
   assert.match(expandableMarkup, /hover:bg-\[var\(--surface-muted\)\]/);
   assert.match(expandableMarkup, /focus-visible:ring-2/);
   assert.match(expandableMarkup, /id="tool-details" class="space-y-3 px-3 pb-3"/);
+  assert.match(collapsedExpandableMarkup, /aria-expanded="false"/);
+  assert.equal(countMatches(collapsedExpandableMarkup, /aria-expanded=/g), 1);
+  assert.match(collapsedExpandableMarkup, /aria-controls="collapsed-tool-details"/);
+  assert.match(collapsedExpandableMarkup, /id="collapsed-tool-details" hidden="" class="space-y-3 px-3 pb-3"/);
+  assert.doesNotMatch(collapsedExpandableMarkup, /Hidden detail body/);
 });
 
 test('conversation event rows use the shared TranscriptRow accent and inset shell', () => {
@@ -881,6 +909,33 @@ test('conversation event rows use the shared TranscriptRow accent and inset shel
   assert.doesNotMatch(notificationMarkup, /pointer-events-auto inline-flex size-6/);
   assert.doesNotMatch(toolMarkup, /gap-3 px-4 py-3/);
   assert.doesNotMatch(notificationMarkup, /gap-3 px-4 py-3/);
+});
+
+test('expandable header copy controls stay pointer-enabled while the disclosure indicator stays inert', () => {
+  const timestamp = '10:46:29';
+  const markup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'wait_agent',
+      toolKind: 'subagent_wait',
+      agentId: SUBAGENT_ID,
+      agentNickname: 'Ada',
+      agentRole: 'worker',
+      preview: 'Completed within 10m',
+      input: 'wait for Ada',
+      output: 'done',
+      timestamp,
+    }),
+  );
+
+  assert.match(openingTagByAriaLabel(markup, 'Copy agent nickname Ada'), /\bpointer-events-auto\b/);
+  assert.match(
+    openingTagByAriaLabel(markup, 'Copy full agent ID 019e27af-615f-7bf0-a26a-ee42ecd83783'),
+    /\bpointer-events-auto\b/,
+  );
+  assert.match(openingTagByAriaLabel(markup, `Copy UTC timestamp ${timestamp}`), /\bpointer-events-auto\b/);
+  assert.match(markup, /aria-hidden="true" class="inline-flex size-6 shrink-0/);
+  assert.doesNotMatch(markup, /pointer-events-auto inline-flex size-6/);
+  assert.equal(countMatches(markup, /aria-expanded=/g), 1);
 });
 
 test('EventDescriptor reserves event action width for rows with previews', () => {
@@ -928,6 +983,28 @@ test('EventPreviewPill leaves width policy to row callers', () => {
   assert.match(fillMarkup, /inline-flex h-6 min-w-0 items-center/);
   assert.match(fillMarkup, /flex-1/);
   assert.doesNotMatch(fillMarkup, /max-w-\[24rem\]/);
+});
+
+test('status badges treat inherited prototype keys as unknown statuses', () => {
+  const toolMarkup = renderToStaticMarkup(
+    createElement(ToolStatusBadge, { status: 'constructor' as unknown as ToolCallStatus }),
+  );
+  const notificationMarkup = renderToStaticMarkup(
+    createElement(SubagentNotificationStatusBadge, {
+      status: 'toString' as unknown as SubagentNotificationStatus,
+    }),
+  );
+
+  for (const markup of [toolMarkup, notificationMarkup]) {
+    assert.match(markup, />Unknown</);
+    assert.match(markup, /text-\[var\(--text-muted\)\]/);
+    assert.match(markup, /bg-\[var\(--surface-muted\)\]/);
+    assert.match(markup, /border-\[var\(--border\)\]/);
+    assert.doesNotMatch(markup, />Error</);
+    assert.doesNotMatch(markup, />Running</);
+    assert.doesNotMatch(markup, />Failed</);
+    assert.doesNotMatch(markup, />Timed out</);
+  }
 });
 
 test('transcript event previews fill available row space without a fixed cap', () => {

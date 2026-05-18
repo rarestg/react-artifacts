@@ -5,7 +5,13 @@ import * as React from 'react';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import { ConversationTurn } from '../../src/artifacts/sharp2/conversation/ConversationTurn';
+import {
+  ConversationTurn,
+  type ConversationTurnData,
+  getTurnItemVisibleType,
+  getTurnKey,
+  tokenCounterPropsFromTelemetry,
+} from '../../src/artifacts/sharp2/conversation';
 import {
   AgentIdentityTags,
   agentIdentityToneNames,
@@ -14,18 +20,13 @@ import {
   getAgentIdentityToneName,
   getAgentIdSuffix,
 } from '../../src/artifacts/sharp2/conversation/EventRowParts';
-import { getTurnItemKey, getTurnKey } from '../../src/artifacts/sharp2/conversation/keys';
+import { getTurnItemKey } from '../../src/artifacts/sharp2/conversation/keys';
 import { MessageCard } from '../../src/artifacts/sharp2/conversation/MessageCard';
 import { getDefaultRenderMode, splitMessageContent } from '../../src/artifacts/sharp2/conversation/markdown';
 import { SubagentNotification } from '../../src/artifacts/sharp2/conversation/SubagentNotification';
-import {
-  getTokenUsageSummary,
-  TokenCounter,
-  tokenCounterPropsFromTelemetry,
-} from '../../src/artifacts/sharp2/conversation/TokenCounter';
+import { getTokenUsageSummary, TokenCounter } from '../../src/artifacts/sharp2/conversation/TokenCounter';
 import { ToolCall } from '../../src/artifacts/sharp2/conversation/ToolCall';
 import { ExpandableTranscriptRow, TranscriptRow } from '../../src/artifacts/sharp2/conversation/TranscriptRow';
-import { type ConversationTurnData, getTurnItemVisibleType } from '../../src/artifacts/sharp2/conversation/types';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
@@ -518,8 +519,8 @@ test('ConversationTurn only applies render toggles and overrides to assistant ro
         { id: 'thinking', role: 'thinking', content: 'Thinking **bold** note' },
         { id: 'assistant', role: 'assistant', content: 'Assistant **bold** output' },
       ],
-      renderModes: ['rendered', 'literal', 'literal'],
-      onToggleRender: () => undefined,
+      renderModesByItemIndex: ['rendered', 'literal', 'literal'],
+      onToggleRenderMode: () => undefined,
     }),
   );
 
@@ -540,7 +541,7 @@ test('ConversationTurn preserves original indexes for duplicate item references'
     createElement(ConversationTurn, {
       turnNumber: 1,
       items: [repeatedMessage, repeatedMessage],
-      renderModes: ['literal', 'rendered'],
+      renderModesByItemIndex: ['literal', 'rendered'],
     }),
   );
 
@@ -569,7 +570,6 @@ test('ConversationTurn shows only the final token counter unless intermediate co
         tokenCounters: true,
       },
       detailVisibility: {
-        showTokenCounters: true,
         showIntermediateTokenCounters: false,
       },
     }),
@@ -587,7 +587,6 @@ test('ConversationTurn shows only the final token counter unless intermediate co
         tokenCounters: true,
       },
       detailVisibility: {
-        showTokenCounters: true,
         showIntermediateTokenCounters: true,
       },
     }),
@@ -680,7 +679,9 @@ test('TranscriptRow owns the shared transcript row shell contract', () => {
   assert.match(expandableMarkup, /flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3/);
   assert.match(expandableMarkup, /absolute inset-0 z-0 cursor-pointer bg-transparent/);
   assert.match(expandableMarkup, /pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-1\.5/);
+  assert.match(expandableMarkup, /pointer-events-none relative z-10 flex shrink-0 items-center gap-1\.5/);
   assert.doesNotMatch(expandableMarkup, /class="min-w-0 flex-1 cursor-pointer text-left/);
+  assert.doesNotMatch(expandableMarkup, /pointer-events-auto relative z-10 flex shrink-0/);
   assert.match(expandableMarkup, /hover:bg-\[var\(--surface-muted\)\]/);
   assert.match(expandableMarkup, /focus-visible:ring-2/);
   assert.match(expandableMarkup, /id="tool-details" class="space-y-3 px-3 pb-3"/);
@@ -717,6 +718,8 @@ test('conversation event rows use the shared TranscriptRow accent and inset shel
   assert.match(notificationMarkup, /flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 p-3/);
   assert.match(toolMarkup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
   assert.match(notificationMarkup, /grid grid-cols-\[4\.75rem_auto_1\.5rem\] items-center gap-1\.5/);
+  assert.match(toolMarkup, /pointer-events-none relative z-10 flex shrink-0 items-center gap-1\.5/);
+  assert.match(toolMarkup, /pointer-events-auto inline-flex size-6/);
   assert.doesNotMatch(toolMarkup, /gap-3 px-4 py-3/);
   assert.doesNotMatch(notificationMarkup, /gap-3 px-4 py-3/);
 });

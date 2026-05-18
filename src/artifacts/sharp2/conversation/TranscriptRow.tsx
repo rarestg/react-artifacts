@@ -19,6 +19,7 @@ export type ExpandableTranscriptRowProps = TranscriptRowSummarySlots & {
   expanded: boolean;
   controlsId: string;
   summaryAriaLabel: string;
+  summaryTitle?: string;
   onToggle: () => void;
   leftControls?: ReactNode;
   leftTrailing?: ReactNode;
@@ -90,7 +91,7 @@ export function TranscriptRowDisclosureButton({
       aria-label={ariaLabel}
       title={ariaLabel}
       onClick={onToggle}
-      className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
+      className="pointer-events-auto inline-flex size-6 shrink-0 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
     >
       <Icon className="size-4" aria-hidden="true" />
     </button>
@@ -113,6 +114,7 @@ export function ExpandableTranscriptRow({
   expanded,
   controlsId,
   summaryAriaLabel,
+  summaryTitle,
   onToggle,
   left,
   leftControls,
@@ -130,6 +132,7 @@ export function ExpandableTranscriptRow({
           aria-expanded={expanded}
           aria-controls={controlsId}
           aria-label={summaryAriaLabel}
+          title={summaryTitle}
           onClick={onToggle}
           className="absolute inset-0 z-0 cursor-pointer bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
         />
@@ -142,14 +145,14 @@ export function ExpandableTranscriptRow({
             {left}
           </div>
           {leftControls !== undefined && leftControls !== null && (
-            <div className="pointer-events-auto flex shrink-0 items-center gap-1.5">{leftControls}</div>
+            <div className="pointer-events-none flex shrink-0 items-center gap-1.5">{leftControls}</div>
           )}
           {leftTrailing !== undefined && leftTrailing !== null && (
             <div className="flex min-w-0 flex-1 items-center gap-1.5">{leftTrailing}</div>
           )}
         </div>
         {right !== undefined && right !== null && (
-          <div className="pointer-events-auto relative z-10 flex shrink-0 items-center gap-1.5">{right}</div>
+          <div className="pointer-events-none relative z-10 flex shrink-0 items-center gap-1.5">{right}</div>
         )}
       </div>
 

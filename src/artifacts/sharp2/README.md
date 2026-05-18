@@ -27,7 +27,7 @@ Use this ownership model when resolving conflicts:
 | `meta.ts` | Viewer metadata for the sidebar label and model/version tags. |
 | `fixtures.tsx` | Static search and conversation data used by the showcase. |
 | `components/*` | Sharp2-local showcase components that are not shared APIs. |
-| `conversation/*` | Sharp2-local conversation rendering examples, helpers, and types. |
+| `conversation/*` | Sharp2-local conversation rendering examples, helpers, and renderer view-model types. |
 | `sharp2-migration-guide.md` | Historical migration checklist. It is stale as an active plan and should not be followed once this README is accepted. Keep it until the user signs off on removal. |
 | `sharp2.txt` | Older narrative notes. Treat this README and the root/design docs as current once this README is accepted. Keep it until the user signs off on removal. |
 
@@ -77,19 +77,21 @@ promote to `src/components`.
 
 ## Conversation Examples
 
-Conversation rendering is a sharp2-local domain example. It may import shared primitives internally, but its message and
-turn semantics are not shared APIs.
+Conversation rendering is a sharp2-local domain example. It may import shared primitives internally, but its row
+primitives, markdown helpers, and event-row parts are not shared APIs. Production sharp2 code should import through
+`conversation/index.ts` so the local public surface stays deliberate.
 
 | File | Role |
 |------|------|
-| `conversation/MessageCard.tsx` | Renders one user, assistant, thinking, or tool row with literal/rendered modes. |
+| `conversation/index.ts` | Narrow sharp2-local public surface for the renderer: `ConversationTurn`, renderer view-model types, key helpers, and token telemetry normalization. |
+| `conversation/MessageCard.tsx` | Renders one user, assistant, or thinking message row with literal/rendered modes. |
 | `conversation/ToolCall.tsx` | Renders summary-first tool rows with optional literal input/output details and copy behavior. |
 | `conversation/ConversationTurn.tsx` | Groups turn items with a stable header, derives visible transcript rows, and preserves original item indexes. |
 | `conversation/TokenCounter.tsx` | Displays flat context-window telemetry rows with copyable raw summary text and real token telemetry normalization. |
 | `conversation/markdown.tsx` | Local lightweight markdown splitting/rendering helpers and render fallback boundary. |
 | `conversation/keys.ts` | Stable key helpers for turns and turn items. |
 | `conversation/types.ts` | Local conversation data and visibility types. |
-| `conversation-rendering-execution-plan.md` | Implementation plan for reducing nested-card conversation rendering and improving tool/token detail controls. |
+| `conversation-rendering-execution-plan.md` | Historical completed implementation plan. Keep it as context only; use this README and `conversation-rendering-preferences.md` for current behavior. |
 
 ## Patterns To Preserve
 

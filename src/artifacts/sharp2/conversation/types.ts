@@ -19,10 +19,9 @@ export type VisibleTypes = {
   tokenCounters: boolean;
 };
 export type VisibleType = keyof VisibleTypes;
+export type ConversationVisibilityOptions = Partial<VisibleTypes>;
 
 export type ConversationDetailVisibility = {
-  showToolSummaries: boolean;
-  showTokenCounters: boolean;
   showIntermediateTokenCounters: boolean;
 };
 
@@ -54,6 +53,10 @@ export type TokenCounterItem = {
   rateLimits?: unknown;
 };
 
+/**
+ * Renderer-level tool-call row data. Raw JSONL parser records should normalize call_id,
+ * raw arguments/output, parse state, and multi-agent relationships before mapping here.
+ */
 export type ToolCallItem = {
   id?: string;
   type: 'tool_call';

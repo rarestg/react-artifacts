@@ -1,7 +1,6 @@
 import { Folder as FolderIcon, MessageSquare as MessageIcon } from 'lucide-react';
 import type { SearchResult } from './components/SearchInput';
-import { tokenCounterPropsFromTelemetry } from './conversation/TokenCounter';
-import type { ConversationTurnData } from './conversation/types';
+import { type ConversationTurnData, tokenCounterPropsFromTelemetry } from './conversation';
 
 export const allSearchResults = [
   {

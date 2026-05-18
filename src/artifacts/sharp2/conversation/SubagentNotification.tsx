@@ -50,6 +50,7 @@ export function SubagentNotification({
       expanded={isExpanded}
       controlsId={detailsId}
       summaryAriaLabel={disclosureLabel}
+      summaryTitle={summary}
       onToggle={() => setIsExpanded((expanded) => !expanded)}
       left={
         <EventDescriptor

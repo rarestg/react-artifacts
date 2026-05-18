@@ -28,14 +28,14 @@ import { Row } from './components/Row';
 import { SearchInput } from './components/SearchInput';
 import { Section } from './components/Section';
 import { SubSection } from './components/SubSection';
-import { ConversationTurn } from './conversation/ConversationTurn';
-import { getTurnKey } from './conversation/keys';
 import {
   type ConversationDetailVisibility,
+  ConversationTurn,
   getTurnItemVisibleType,
+  getTurnKey,
   type RenderMode,
   type VisibleTypes,
-} from './conversation/types';
+} from './conversation';
 import { allSearchResults, sampleConversation } from './fixtures';
 
 // ============================================
@@ -633,14 +633,13 @@ export default function DesignSystem() {
                   items={turn.items}
                   visibleTypes={visibleTypes}
                   detailVisibility={{
-                    showTokenCounters: visibleTypes.tokenCounters,
                     showIntermediateTokenCounters:
                       visibleTypes.tokenCounters && detailVisibility.showIntermediateTokenCounters,
                   }}
-                  renderModes={turn.items.map(
+                  renderModesByItemIndex={turn.items.map(
                     (_, msgIndex) => conversationRenderModes[`${turnIndex}-${msgIndex}`] || 'default',
                   )}
-                  onToggleRender={(msgIndex) => toggleMessageRender(turnIndex, msgIndex)}
+                  onToggleRenderMode={(itemIndex) => toggleMessageRender(turnIndex, itemIndex)}
                 />
               ))}
             </div>

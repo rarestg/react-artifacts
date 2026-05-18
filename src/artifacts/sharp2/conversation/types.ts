@@ -62,6 +62,7 @@ export type ToolCallItem = {
   agentId?: string;
   agentNickname?: string;
   agentRole?: string;
+  preview?: string;
   summary?: string;
   input: string;
   output: string;

@@ -18,6 +18,10 @@ policy, but future edits should preserve them unless the user explicitly changes
   ordinary tool names such as `TOOL | bash`, so previews start on a shared throughline with enough breathing room.
 - Row preview pills should let the row layout own truncation width. In transcript event rows, previews fill the remaining
   summary space and truncate only when they reach the sibling right action cluster, with row gaps providing breathing room.
+- Subagent tool row `preview` data should be full semantic orchestration text supplied by parsed/fixture data, not
+  pre-truncated text. React rendering should not parse raw JSON tool arguments to derive it.
+- Subagent tool previews should describe orchestration mechanics or submitted prompts, such as `Completed within 10m` or
+  a follow-up instruction, rather than repeating tool and identity strings like `spawn_agent > Ada`.
 - Subagent identity should render as separate nickname and short-id tags, not a combined `nickname / id` label.
 - Subagent identity tags may use deterministic per-agent color for recognition, while the row accent remains the row
   category color.

@@ -46,7 +46,7 @@ export function splitMessageContent(content: string): MessageContentPart[] {
 }
 
 export function getDefaultRenderMode(role: MessageRole): 'literal' | 'rendered' {
-  return role === 'user' || role === 'tool' ? 'literal' : 'rendered';
+  return role === 'user' ? 'literal' : 'rendered';
 }
 
 export function renderInlineMarkdown(text: string, keyBase: string): ReactNode[] {

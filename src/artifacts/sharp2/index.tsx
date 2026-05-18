@@ -101,9 +101,8 @@ export default function DesignSystem() {
     tokenCounters: false,
   });
   const [detailVisibility, setDetailVisibility] = useState<
-    Pick<ConversationDetailVisibility, 'showToolDetails' | 'showIntermediateTokenCounters'>
+    Pick<ConversationDetailVisibility, 'showIntermediateTokenCounters'>
   >({
-    showToolDetails: false,
     showIntermediateTokenCounters: false,
   });
 
@@ -129,8 +128,6 @@ export default function DesignSystem() {
     (count, turn) => count + (turn.items.some((item) => item.type === 'token_counter') ? 1 : 0),
     0,
   );
-  const intermediateTokenCounterCount = Math.max(0, itemCounts.tokenCounters - finalTokenCounterCount);
-
   return (
     <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-strong)] p-8 text-[var(--text)]">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -556,19 +553,7 @@ export default function DesignSystem() {
                   borderStyle="neutral"
                 />
                 <FilterCheckbox
-                  label="Tool Details"
-                  count={itemCounts.toolCalls}
-                  checked={detailVisibility.showToolDetails}
-                  onCheckedChange={(checked) =>
-                    setDetailVisibility((visibility) => ({ ...visibility, showToolDetails: checked }))
-                  }
-                  tone="violet"
-                  borderStyle="neutral"
-                  disabled={!visibleTypes.toolCalls}
-                  className={!visibleTypes.toolCalls ? 'opacity-50' : undefined}
-                />
-                <FilterCheckbox
-                  label="Token Counters"
+                  label="Context Usage"
                   count={finalTokenCounterCount}
                   checked={visibleTypes.tokenCounters ?? false}
                   onCheckedChange={(checked) => setVisibleTypes((v) => ({ ...v, tokenCounters: checked }))}
@@ -576,8 +561,8 @@ export default function DesignSystem() {
                   borderStyle="neutral"
                 />
                 <FilterCheckbox
-                  label="Intermediate Tokens"
-                  count={intermediateTokenCounterCount}
+                  label="All"
+                  // All is a dependent control for Context Usage, so avoid repeating that count here.
                   checked={detailVisibility.showIntermediateTokenCounters}
                   onCheckedChange={(checked) =>
                     setDetailVisibility((visibility) => ({
@@ -612,7 +597,7 @@ export default function DesignSystem() {
                 </div>
                 <div>
                   <span className="inline-block size-2 bg-[var(--category-violet)] mr-2" />
-                  Tool Call: summary first, details optional
+                  Tool Call: summary first, click to show details
                 </div>
                 <div>
                   <span className="inline-block size-2 bg-[var(--text-muted)] mr-2" />
@@ -620,8 +605,8 @@ export default function DesignSystem() {
                 </div>
               </div>
               <p className="text-[var(--text-subtle)]">
-                Toggle message types above. Thinking, tools, and token counters are hidden by default; tool details and
-                intermediate token counters are explicit detail modes.
+                Toggle message types above. Thinking, tools, and token counters are hidden by default; tool rows reveal
+                their own details, and intermediate token counters are an explicit detail mode.
               </p>
             </div>
 
@@ -636,7 +621,6 @@ export default function DesignSystem() {
                   visibleTypes={visibleTypes}
                   detailVisibility={{
                     showToolSummaries: visibleTypes.toolCalls,
-                    showToolDetails: visibleTypes.toolCalls && detailVisibility.showToolDetails,
                     showTokenCounters: visibleTypes.tokenCounters,
                     showIntermediateTokenCounters:
                       visibleTypes.tokenCounters && detailVisibility.showIntermediateTokenCounters,

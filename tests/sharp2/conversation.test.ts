@@ -34,7 +34,6 @@ test('getDefaultRenderMode follows role defaults', () => {
   assert.equal(getDefaultRenderMode('user'), 'literal');
   assert.equal(getDefaultRenderMode('assistant'), 'rendered');
   assert.equal(getDefaultRenderMode('thinking'), 'rendered');
-  assert.equal(getDefaultRenderMode('tool'), 'literal');
 });
 
 test('MessageCard follows role defaults for real rendering', () => {
@@ -42,7 +41,6 @@ test('MessageCard follows role defaults for real rendering', () => {
     { role: 'user', content: 'User **bold** content' },
     { role: 'assistant', content: 'Assistant **bold** content' },
     { role: 'thinking', content: 'Thinking **bold** content' },
-    { role: 'tool', content: 'Tool **bold** content' },
   ] as const;
 
   for (const { role, content } of cases) {
@@ -84,6 +82,7 @@ test('MessageCard shows render mode toggle state when a toggle handler is provid
   );
 
   assert.match(markup, /aria-pressed="true"/);
+  assert.match(markup, /title="Switch between raw text and rendered Markdown output"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Rendered\s*<\/span>/);
 });
@@ -101,6 +100,32 @@ test('MessageCard render mode toggle marks raw mode unpressed while reserving re
   assert.match(markup, /aria-pressed="false"/);
   assert.match(markup, /<span[^>]*aria-hidden="true"[^>]*>\s*Rendered\s*<\/span>/);
   assert.match(markup, /<span(?![^>]*aria-hidden)[^>]*>\s*Raw\s*<\/span>/);
+});
+
+test('MessageCard keeps render controls assistant-only', () => {
+  const userMarkup = renderToStaticMarkup(
+    createElement(MessageCard, {
+      role: 'user',
+      content: 'User **bold** input',
+      renderMode: 'rendered',
+      onToggleRender: () => {},
+    }),
+  );
+  const thinkingMarkup = renderToStaticMarkup(
+    createElement(MessageCard, {
+      role: 'thinking',
+      content: 'Thinking **bold** note',
+      renderMode: 'literal',
+      onToggleRender: () => {},
+    }),
+  );
+
+  assert.doesNotMatch(userMarkup, /aria-pressed/);
+  assert.match(userMarkup, /\*\*bold\*\*/);
+  assert.doesNotMatch(userMarkup, /<strong/);
+  assert.doesNotMatch(thinkingMarkup, /aria-pressed/);
+  assert.match(thinkingMarkup, /<strong/);
+  assert.match(thinkingMarkup, />bold<\/strong>/);
 });
 
 test('conversation key helpers prefer supplied ids', () => {
@@ -311,28 +336,66 @@ test('ConversationTurn filters hidden item types', () => {
   assert.doesNotMatch(markup, /npm test/);
 });
 
-test('ConversationTurn filters tool-role messages with the toolCalls bucket', () => {
+test('ConversationTurn shows visible and available item counts when filters hide rows', () => {
   const markup = renderToStaticMarkup(
     createElement(ConversationTurn, {
       turnNumber: 1,
       items: [
         { id: 'user', role: 'user', content: 'Question' },
-        { id: 'tool-role', role: 'tool', content: 'Raw tool transcript output' },
+        { id: 'thinking', role: 'thinking', content: 'Reasoning' },
         { id: 'assistant', role: 'assistant', content: 'Answer' },
       ],
       visibleTypes: {
         user: true,
         assistant: true,
-        thinking: true,
+        thinking: false,
         toolCalls: false,
-        tokenCounters: true,
+        tokenCounters: false,
       },
     }),
   );
 
-  assert.match(markup, /Question/);
-  assert.match(markup, /Answer/);
-  assert.doesNotMatch(markup, /Raw tool transcript output/);
+  assert.match(markup, /title="2 of 3 transcript rows visible for Turn 1"/);
+  assert.match(markup, />2 \/ 3 visible</);
+});
+
+test('ConversationTurn keeps timestamp beside the turn label and duration units lowercase', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 7,
+      timestamp: '10:44:30',
+      duration: '3.1s',
+      items: [{ id: 'assistant', role: 'assistant', content: 'Done' }],
+    }),
+  );
+  const turnIndex = markup.indexOf('Turn 7');
+  const timestampTitleIndex = markup.indexOf('10:44:30 AM local time');
+  const timestampDisplayIndex = markup.indexOf('10:44 AM');
+  const durationIndex = markup.indexOf('3.1s');
+  const countIndex = markup.indexOf('1 / 1 visible');
+
+  assert.ok(turnIndex !== -1);
+  assert.ok(timestampTitleIndex > turnIndex);
+  assert.ok(timestampDisplayIndex > timestampTitleIndex);
+  assert.ok(durationIndex > timestampDisplayIndex);
+  assert.match(markup, /title="3\.1s elapsed in Turn 7"/);
+  assert.ok(countIndex > durationIndex);
+  assert.match(markup, /normal-case[^"]*text-\[var\(--text-muted\)\][^"]*tabular-nums">\s*3\.1s/);
+  assert.doesNotMatch(markup, /3\.1S/);
+});
+
+test('MessageCard renders row timestamps as copyable UTC timestamp buttons', () => {
+  const markup = renderToStaticMarkup(
+    createElement(MessageCard, {
+      role: 'assistant',
+      content: 'Done',
+      timestamp: '10:44:30',
+    }),
+  );
+
+  assert.match(markup, /aria-label="Copy UTC timestamp 10:44:30"/);
+  assert.match(markup, /title="10:44:30 AM local time; click to copy UTC timestamp 10:44:30"/);
+  assert.match(markup, />10:44 AM</);
 });
 
 test('ConversationTurn omits render mode toggles when no toggle handler is provided', () => {
@@ -344,6 +407,26 @@ test('ConversationTurn omits render mode toggles when no toggle handler is provi
   );
 
   assert.doesNotMatch(markup, /aria-pressed/);
+});
+
+test('ConversationTurn only applies render toggles and overrides to assistant rows', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items: [
+        { id: 'user', role: 'user', content: 'User **bold** input' },
+        { id: 'thinking', role: 'thinking', content: 'Thinking **bold** note' },
+        { id: 'assistant', role: 'assistant', content: 'Assistant **bold** output' },
+      ],
+      renderModes: ['rendered', 'literal', 'literal'],
+      onToggleRender: () => undefined,
+    }),
+  );
+
+  assert.equal(markup.match(/aria-pressed=/g)?.length ?? 0, 1);
+  assert.match(markup, /User \*\*bold\*\* input/);
+  assert.match(markup, /Thinking <strong\b[^>]*>bold<\/strong> note/);
+  assert.match(markup, /Assistant \*\*bold\*\* output/);
 });
 
 test('ConversationTurn preserves original indexes for duplicate item references', () => {
@@ -411,13 +494,13 @@ test('ConversationTurn shows only the final token counter unless intermediate co
   assert.doesNotMatch(summaryOnlyMarkup, /Used: 100/);
   assert.match(summaryOnlyMarkup, /Used: 200/);
   assert.match(summaryOnlyMarkup, /Limit: 1,000/);
-  assert.match(summaryOnlyMarkup, />3 items</);
+  assert.match(summaryOnlyMarkup, />3 \/ 3 visible</);
   assert.match(intermediateMarkup, /Used: 100/);
   assert.match(intermediateMarkup, /Used: 200/);
-  assert.match(intermediateMarkup, />4 items</);
+  assert.match(intermediateMarkup, />4 \/ 4 visible</);
 });
 
-test('ConversationTurn renders tool summaries without details when detail mode is off', () => {
+test('ConversationTurn renders collapsed tool summaries by default', () => {
   const markup = renderToStaticMarkup(
     createElement(ConversationTurn, {
       turnNumber: 1,
@@ -433,32 +516,31 @@ test('ConversationTurn renders tool summaries without details when detail mode i
         toolCalls: true,
         tokenCounters: false,
       },
-      detailVisibility: {
-        showToolSummaries: true,
-        showToolDetails: false,
-      },
     }),
   );
 
   assert.match(markup, /Tool Call/);
-  assert.match(markup, /bash/);
+  assert.match(markup, /npm test/);
+  assert.doesNotMatch(markup, />bash</);
   assert.match(markup, /Success/);
-  assert.match(markup, /aria-label="Copy tool input and output"/);
+  assert.match(markup, /aria-expanded="false"/);
+  assert.match(markup, /aria-label="Expand bash tool details"/);
+  assert.doesNotMatch(markup, /aria-label="Copy tool input and output"/);
+  assert.doesNotMatch(markup, /title="Copy tool input and output"/);
   assert.doesNotMatch(markup, />Input</);
-  assert.doesNotMatch(markup, /npm test/);
   assert.doesNotMatch(markup, />Output</);
   assert.doesNotMatch(markup, /PASS/);
-  assert.match(markup, />3 items</);
+  assert.match(markup, />3 \/ 3 visible</);
 });
 
-test('ToolCall supports summary-only and detail rendering without expandable affordances', () => {
+test('ToolCall supports row-level expansion for input and output details', () => {
   const summaryMarkup = renderToStaticMarkup(
     createElement(ToolCall, {
       tool: 'bash',
       input: 'npm test',
       output: 'PASS',
+      timestamp: '10:44:30',
       status: 'success',
-      showDetails: false,
     }),
   );
   const markup = renderToStaticMarkup(
@@ -467,21 +549,29 @@ test('ToolCall supports summary-only and detail rendering without expandable aff
       input: 'npm test',
       output: 'PASS',
       status: 'success',
-      showDetails: true,
+      defaultExpanded: true,
     }),
   );
 
   assert.match(summaryMarkup, /Tool Call/);
-  assert.match(summaryMarkup, /bash/);
+  assert.match(summaryMarkup, /npm test/);
+  assert.doesNotMatch(summaryMarkup, />bash</);
   assert.match(summaryMarkup, /Success/);
-  assert.doesNotMatch(summaryMarkup, /aria-expanded/);
-  assert.doesNotMatch(summaryMarkup, /npm test/);
+  assert.match(summaryMarkup, /title="10:44:30 AM local time"/);
+  assert.doesNotMatch(summaryMarkup, /Copy UTC timestamp/);
+  assert.match(summaryMarkup, /aria-expanded="false"/);
+  assert.match(summaryMarkup, /aria-label="Expand bash tool details"/);
   assert.doesNotMatch(summaryMarkup, /PASS/);
+  assert.match(markup, /aria-expanded="true"/);
+  assert.match(markup, /aria-label="Collapse bash tool details"/);
   assert.match(markup, />Input</);
   assert.match(markup, /npm test/);
   assert.match(markup, />Output</);
   assert.match(markup, /PASS/);
   assert.match(markup, /aria-label="Copy tool input"/);
   assert.match(markup, /aria-label="Copy tool output"/);
+  assert.doesNotMatch(markup, />Copy input</);
+  assert.doesNotMatch(markup, />Copy output</);
+  assert.equal(markup.match(/>Copy<\/span>/g)?.length ?? 0, 2);
   assert.match(markup, /focus-visible:ring-2/);
 });

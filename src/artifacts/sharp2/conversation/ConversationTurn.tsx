@@ -1,8 +1,9 @@
-import { Tag } from '../../../components/Tag';
+import type { ReactNode } from 'react';
 import { getTurnItemKey } from './keys';
 import { MessageCard } from './MessageCard';
 import { TokenCounter } from './TokenCounter';
 import { ToolCall } from './ToolCall';
+import { formatConversationTimestamp, formatConversationTimestampTitle } from './time';
 import {
   type ConversationDetailVisibility,
   getTurnItemVisibleType,
@@ -10,6 +11,27 @@ import {
   type TurnItem,
   type VisibleTypes,
 } from './types';
+
+function TurnMetaBadge({
+  children,
+  title,
+  uppercase = true,
+}: {
+  children: ReactNode;
+  title?: string;
+  uppercase?: boolean;
+}) {
+  return (
+    <span
+      title={title}
+      className={`inline-flex h-6 items-center border border-[var(--border)] bg-[var(--surface)] px-1.5 text-[10px] font-semibold ${
+        uppercase ? 'uppercase' : 'normal-case'
+      } text-[var(--text-muted)] tabular-nums`}
+    >
+      {children}
+    </span>
+  );
+}
 
 export type ConversationTurnProps = {
   turnNumber: number;
@@ -33,7 +55,6 @@ export function ConversationTurn({
   detailVisibility,
 }: ConversationTurnProps) {
   const showToolSummaries = detailVisibility?.showToolSummaries ?? visibleTypes?.toolCalls ?? true;
-  const showToolDetails = detailVisibility?.showToolDetails ?? true;
   const showTokenCounters = detailVisibility?.showTokenCounters ?? visibleTypes?.tokenCounters ?? true;
   const showIntermediateTokenCounters = detailVisibility?.showIntermediateTokenCounters ?? false;
   let finalTokenCounterIndex = -1;
@@ -46,11 +67,13 @@ export function ConversationTurn({
   }
 
   const filteredItems: Array<{ item: TurnItem; originalIndex: number }> = [];
+  let availableItemCount = 0;
 
   for (const [originalIndex, item] of items.entries()) {
     const visibleType = getTurnItemVisibleType(item);
 
     if (item.type === 'tool_call') {
+      availableItemCount += 1;
       if (showToolSummaries) {
         filteredItems.push({ item, originalIndex });
       }
@@ -59,18 +82,15 @@ export function ConversationTurn({
 
     if (item.type === 'token_counter') {
       if (showTokenCounters && (showIntermediateTokenCounters || originalIndex === finalTokenCounterIndex)) {
+        availableItemCount += 1;
+      }
+      if (showTokenCounters && (showIntermediateTokenCounters || originalIndex === finalTokenCounterIndex)) {
         filteredItems.push({ item, originalIndex });
       }
       continue;
     }
 
-    if (item.role === 'tool') {
-      if (showToolSummaries) {
-        filteredItems.push({ item, originalIndex });
-      }
-      continue;
-    }
-
+    availableItemCount += 1;
     if (visibleTypes?.[visibleType] ?? true) {
       filteredItems.push({ item, originalIndex });
     }
@@ -78,23 +98,34 @@ export function ConversationTurn({
 
   if (filteredItems.length === 0) return null;
 
+  const itemCountTitle = `${filteredItems.length} of ${availableItemCount} transcript rows visible for Turn ${turnNumber}`;
+  const formattedTimestamp = formatConversationTimestamp(timestamp);
+  const timestampTitle = formatConversationTimestampTitle(timestamp);
+
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)]">
       {/* Turn header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-muted)]">
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-[var(--text)]">Turn {turnNumber}</span>
-          {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          {duration && (
-            <Tag variant="muted" className="tabular-nums">
-              {duration}
-            </Tag>
+          {formattedTimestamp && (
+            <span
+              title={timestampTitle ? `${timestampTitle} local time` : undefined}
+              className="border-l border-[var(--border)] pl-3 text-[10px] text-[var(--text-subtle)] tabular-nums"
+            >
+              {formattedTimestamp}
+            </span>
           )}
-          <Tag variant="muted" className="tabular-nums">
-            {filteredItems.length} items
-          </Tag>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {duration && (
+            <TurnMetaBadge title={`${duration} elapsed in Turn ${turnNumber}`} uppercase={false}>
+              {duration}
+            </TurnMetaBadge>
+          )}
+          <TurnMetaBadge title={itemCountTitle}>
+            {filteredItems.length} / {availableItemCount} visible
+          </TurnMetaBadge>
         </div>
       </div>
 
@@ -134,7 +165,6 @@ export function ConversationTurn({
                   output={item.output}
                   timestamp={item.timestamp}
                   status={item.status}
-                  showDetails={showToolDetails}
                 />
               </div>
             );
@@ -146,8 +176,10 @@ export function ConversationTurn({
                 role={item.role}
                 content={item.content}
                 timestamp={item.timestamp}
-                renderMode={renderModes?.[originalIndex] || 'default'}
-                onToggleRender={onToggleRender ? () => onToggleRender(originalIndex) : undefined}
+                renderMode={item.role === 'assistant' ? renderModes?.[originalIndex] || 'default' : 'default'}
+                onToggleRender={
+                  item.role === 'assistant' && onToggleRender ? () => onToggleRender(originalIndex) : undefined
+                }
               />
             </div>
           );

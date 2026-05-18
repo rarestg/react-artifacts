@@ -1,7 +1,12 @@
 import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
 import { getDefaultRenderMode, RenderErrorBoundary, renderInlineMarkdown, splitMessageContent } from './markdown';
+import { TimestampBadge } from './TimestampBadge';
 import type { MessageRole, RenderMode } from './types';
+
+const headerActionClasses =
+  'h-6 place-items-center border border-transparent bg-transparent px-1.5 py-0 text-[10px] font-semibold uppercase leading-none text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+const renderToggleSlotClasses = 'w-[4.75rem]';
 
 export type MessageCardProps = {
   role: MessageRole;
@@ -12,64 +17,63 @@ export type MessageCardProps = {
 };
 
 export function MessageCard({ role, content, timestamp, renderMode = 'default', onToggleRender }: MessageCardProps) {
-  // Role configuration
-  const roleConfig: Record<
-    MessageRole,
-    { label: string; borderColor: string; bgColor: string; alwaysLiteral?: boolean }
-  > = {
+  // Keep message row surfaces neutral; role color belongs in the left accent only.
+  const roleConfig: Record<MessageRole, { label: string; borderColor: string; labelColor: string; bgColor: string }> = {
     user: {
       label: 'User',
       borderColor: 'border-l-[var(--category-blue)]',
+      labelColor: 'text-[var(--category-blue)]',
       bgColor: 'bg-[var(--surface)]',
     },
     assistant: {
       label: 'Assistant',
       borderColor: 'border-l-[var(--category-green)]',
+      labelColor: 'text-[var(--category-green)]',
       bgColor: 'bg-[var(--surface)]',
     },
     thinking: {
       label: 'Thinking',
       borderColor: 'border-l-[var(--category-amber)]',
-      bgColor: 'bg-[var(--category-amber-weak)]',
-    },
-    tool: {
-      label: 'Tool Output',
-      borderColor: 'border-l-[var(--category-violet)]',
-      bgColor: 'bg-[var(--category-violet-weak)]',
-      alwaysLiteral: true,
+      labelColor: 'text-[var(--category-amber)]',
+      bgColor: 'bg-[var(--surface)]',
     },
   };
 
   const config = roleConfig[role] || roleConfig.assistant;
+  const effectiveRenderMode = role === 'assistant' ? renderMode : 'default';
   const isLiteral =
-    config.alwaysLiteral ||
-    renderMode === 'literal' ||
-    (renderMode === 'default' && getDefaultRenderMode(role) === 'literal');
+    effectiveRenderMode === 'literal' ||
+    (effectiveRenderMode === 'default' && getDefaultRenderMode(role) === 'literal');
+  const canToggleRender = role === 'assistant' && onToggleRender;
 
   return (
     <div className={mergeClassNames('border-l-2 px-3 py-3', config.borderColor, config.bgColor)}>
       {/* Header */}
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-[var(--text)]">{config.label}</span>
-          {timestamp && <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">{timestamp}</span>}
+          <span className={mergeClassNames('text-xs font-semibold uppercase', config.labelColor)}>{config.label}</span>
         </div>
-        <div className="flex items-center gap-1">
-          {/* Render mode toggle (not for tool/meta) */}
-          {!config.alwaysLiteral && onToggleRender && (
-            <button
-              type="button"
-              aria-pressed={!isLiteral}
-              onClick={onToggleRender}
-              className="inline-grid cursor-pointer px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-subtle)] transition-colors hover:bg-[var(--surface-strong)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]"
-            >
-              <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
-                Rendered
-              </span>
-              <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
-            </button>
-          )}
-          <CopyButton text={content} className="border-0 bg-transparent hover:bg-[var(--surface-strong)] px-1.5" />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className="grid grid-cols-[4.75rem_auto_1.5rem] items-center gap-1.5">
+            {canToggleRender ? (
+              <button
+                type="button"
+                aria-pressed={!isLiteral}
+                title="Switch between raw text and rendered Markdown output"
+                onClick={canToggleRender}
+                className={mergeClassNames('inline-grid cursor-pointer', renderToggleSlotClasses, headerActionClasses)}
+              >
+                <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
+                  Rendered
+                </span>
+                <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
+              </button>
+            ) : (
+              <span className={renderToggleSlotClasses} aria-hidden="true" />
+            )}
+            <TimestampBadge timestamp={timestamp} />
+            <CopyButton text={content} idleLabel="" ariaLabel="Copy message source" variant="icon" />
+          </div>
         </div>
       </div>
 

@@ -8,7 +8,7 @@ not a package yet.
 
 The export target is pane 3 of CodexScope: pane 1 chooses a workspace, pane 2 chooses a session, and pane 3 renders one
 selected session transcript page. The product host owns paging, search target handling, visibility, render modes,
-expansion state, detail cache/loading/error state, and follow behavior.
+expansion state, and detail cache/loading/error state. Follow/streaming ownership belongs to a later product mode.
 
 ## Boundary
 
@@ -49,7 +49,7 @@ Pane 3 renders one selected session transcript. Family context comes from `getSe
 child transcript messages into the parent timeline. A follow-up to a subagent is parent-side orchestration plus a child
 turn, not a new human user message in the parent transcript.
 
-Subagent completions can arrive through a waited result, a standalone notification, or both. The product timeline should
+Subagent completions can arrive through a wait result, a standalone notification, or both. The product timeline should
 group duplicate raw deliveries with stable event IDs, `groupedWithEventIds`, and `evidenceIds`; the renderer should
 display the normalized logical event. Resume/interrupted flows may produce provisional or unresolved nodes and later
 notifications, so DTOs need explicit `provisional` and `unresolved` states.
@@ -74,16 +74,25 @@ debug details.
 
 Tool `callId` preserves source call/output identity but should not be used as renderer state identity. Raw arguments,
 parsed JSON, parse errors, unpaired call/output evidence, and full input/output text belong in item details or debug
-reads. Visible unresolved, pending, or unknown tool relationship state should be normalized upstream through `tool.status`
-or an explicit generated DTO field. Unknown product enum values must use runtime fallback labels instead of throwing.
+reads.
+
+Visible unresolved, pending, or unknown tool relationship state should be normalized upstream through `tool.status` or an
+explicit generated DTO field. Unknown product enum values must use runtime fallback labels. Product status enums are not
+identical to current renderer view-model statuses; the adapter maps product statuses to renderer status/category while
+preserving unknown fallback behavior.
 
 `ConversationTurnData` is the current sharp2 presentation model, not the backend DTO. A product adapter should map
-`TranscriptPageResponse.items` into renderer rows, key render/expansion/detail state by `transcriptItemId`, and fetch full
-details through `getTranscriptItemDetails`.
+`TranscriptPageResponse.items` into renderer rows, group page items into renderer turns or equivalent transcript groups,
+key render/expansion/detail state by `transcriptItemId`, and fetch full details through `getTranscriptItemDetails`.
+Product pages may contain one or more adapted turn groups.
 
 Current fixtures may embed full `input`, `output`, or `rawPayload` so the showcase can demonstrate expansion without a
 backend. Product summary pages should prefer previews, `detailsAvailable`, and detail status; full source/debug material
 should come from explicit details/debug reads.
+
+Product paging/opening modes are part of contract behavior: `beginning`, `around`, `latest`, `page_before`,
+`page_after`, opaque cursors, and summary-page text/byte limits should be handled by the product API and host. The first
+export is paged only; host-owned follow/streaming state may be added later but is out of scope for this pass.
 
 ## Renderer API Direction
 
@@ -91,9 +100,9 @@ Low-level renderer:
 
 ```tsx
 <ConversationTurn
-  turnNumber={pageNumber}
-  timestamp={header.lastActivityAt}
-  items={adaptTranscriptItems(page.items)}
+  turnNumber={turn.turnNumber}
+  timestamp={turn.timestamp ?? header.lastActivityAt}
+  items={adaptTranscriptItems(turn.items)}
   visibleTypes={localVisibility}
   detailVisibility={{ showIntermediateTokenCounters, showRawDebug }}
   renderModesByItemId={renderModesByItemId}
@@ -117,6 +126,9 @@ Product controller:
 
 The current sharp2 artifact intentionally implements the renderer pieces, not the full product controller.
 
+Current sharp2 rows own expansion internally for showcase purposes. Product export should make expansion/detail state
+host-owned and keyed by stable item IDs.
+
 ## Theme And UI Contract
 
 The renderer depends on artifact theme tokens for surfaces, text, borders, focus rings, semantic status colors, category
@@ -134,7 +146,7 @@ payloads, parser diagnostics, and source/debug material are opt-in detail/debug 
 - Full family-tree visualization beyond `getSessionFamilyTimeline` context.
 - Pane-2 workspace/session search.
 - Virtualization.
-- Streaming/follow mode beyond explicit paged reads.
+- Streaming/follow mode; the first export supports explicit paged reads only.
 
 ## Extraction Checklist
 

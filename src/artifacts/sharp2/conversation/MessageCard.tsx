@@ -2,7 +2,7 @@ import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
 import { getDefaultRenderMode, RenderErrorBoundary, renderInlineMarkdown, splitMessageContent } from './markdown';
 import { TimestampBadge } from './TimestampBadge';
-import { TranscriptRow } from './TranscriptRow';
+import { TranscriptRow, TranscriptRowActionCluster } from './TranscriptRow';
 import type { MessageRole, RenderMode } from './types';
 
 const headerActionClasses =
@@ -51,26 +51,26 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
         <span className={mergeClassNames('text-xs font-semibold uppercase', config.labelColor)}>{config.label}</span>
       }
       right={
-        <div className="grid grid-cols-[4.75rem_auto_1.5rem] items-center gap-1.5">
-          {canToggleRender ? (
-            <button
-              type="button"
-              aria-pressed={!isLiteral}
-              title="Switch between raw text and rendered Markdown output"
-              onClick={canToggleRender}
-              className={mergeClassNames('inline-grid cursor-pointer', renderToggleSlotClasses, headerActionClasses)}
-            >
-              <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
-                Rendered
-              </span>
-              <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
-            </button>
-          ) : (
-            <span className={renderToggleSlotClasses} aria-hidden="true" />
-          )}
-          <TimestampBadge timestamp={timestamp} />
-          <CopyButton text={content} idleLabel="" ariaLabel="Copy message source" variant="icon" />
-        </div>
+        <TranscriptRowActionCluster
+          leading={
+            canToggleRender ? (
+              <button
+                type="button"
+                aria-pressed={!isLiteral}
+                title="Switch between raw text and rendered Markdown output"
+                onClick={canToggleRender}
+                className={mergeClassNames('inline-grid cursor-pointer', renderToggleSlotClasses, headerActionClasses)}
+              >
+                <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
+                  Rendered
+                </span>
+                <span className="col-start-1 row-start-1">{isLiteral ? 'Raw' : 'Rendered'}</span>
+              </button>
+            ) : null
+          }
+          timestamp={<TimestampBadge timestamp={timestamp} />}
+          action={<CopyButton text={content} idleLabel="" ariaLabel="Copy message source" variant="icon" />}
+        />
       }
     >
       <div>

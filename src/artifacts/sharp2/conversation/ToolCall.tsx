@@ -1,9 +1,8 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useId, useState } from 'react';
 import { CopyButton } from '../../../components/CopyButton';
 import { AgentIdentityTags, EventDescriptor, EventPreviewPill, ToolStatusBadge } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
-import { ExpandableTranscriptRow } from './TranscriptRow';
+import { ExpandableTranscriptRow, TranscriptRowActionCluster, TranscriptRowDisclosureButton } from './TranscriptRow';
 import type { ToolCallKind, ToolCallStatus } from './types';
 
 export type ToolCallProps = {
@@ -84,60 +83,68 @@ export function ToolCall({
     isSubagent && agentLabel ? `${tool} > ${agentLabel}` : (summary ?? getCommandPreview(input, tool));
   const commandTitle = (summary ?? input.trim()) || tool;
   const actionLabel = kindConfig.action || tool;
-  const hasAgentIdentity = Boolean(agentNickname?.trim() || agentId?.trim());
+  const disclosureLabel = isExpanded ? `Collapse ${tool} tool details` : `Expand ${tool} tool details`;
 
   return (
     <ExpandableTranscriptRow
       accentColor={kindConfig.color}
       expanded={isExpanded}
       controlsId={detailsId}
-      summaryAriaLabel={isExpanded ? `Collapse ${tool} tool details` : `Expand ${tool} tool details`}
+      summaryAriaLabel={disclosureLabel}
       onToggle={() => setIsExpanded((expanded) => !expanded)}
       left={
-        <>
+        isSubagent ? (
           <EventDescriptor
             category={kindConfig.category}
             colorClassName="text-[color:var(--transcript-row-accent)]"
-            sections={[{ value: actionLabel, width: isSubagent ? 'subagentAction' : undefined }]}
+            sections={[{ value: actionLabel, width: 'action' }]}
           />
-          {isSubagent && (
-            <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="display" />
-          )}
-          <EventPreviewPill title={commandTitle}>{commandPreview}</EventPreviewPill>
-        </>
+        ) : (
+          <>
+            <EventDescriptor
+              category={kindConfig.category}
+              colorClassName="text-[color:var(--transcript-row-accent)]"
+              sections={[{ value: actionLabel, width: 'action' }]}
+            />
+            <EventPreviewPill title={commandTitle} className="flex-1">
+              {commandPreview}
+            </EventPreviewPill>
+          </>
+        )
+      }
+      leftControls={
+        isSubagent ? (
+          <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
+        ) : undefined
+      }
+      leftTrailing={
+        isSubagent ? (
+          <EventPreviewPill title={commandTitle} className="flex-1">
+            {commandPreview}
+          </EventPreviewPill>
+        ) : undefined
       }
       right={
-        <>
-          <ToolStatusBadge status={status} />
-          <TimestampBadge timestamp={timestamp} interactive={false} />
-          {isExpanded ? (
-            <ChevronDown className="size-4 text-[var(--text-subtle)]" aria-hidden="true" />
-          ) : (
-            <ChevronRight className="size-4 text-[var(--text-subtle)]" aria-hidden="true" />
-          )}
-        </>
+        <TranscriptRowActionCluster
+          leading={<ToolStatusBadge status={status} />}
+          timestamp={<TimestampBadge timestamp={timestamp} />}
+          action={
+            <TranscriptRowDisclosureButton
+              expanded={isExpanded}
+              controlsId={detailsId}
+              ariaLabel={disclosureLabel}
+              onToggle={() => setIsExpanded((expanded) => !expanded)}
+            />
+          }
+        />
       }
     >
-      {isSubagent && hasAgentIdentity && (
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]">
-            Agent
-          </div>
-          <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
-        </div>
-      )}
-
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]">
             Input
           </div>
-          <CopyButton
-            text={input}
-            idleLabel="Copy"
-            ariaLabel="Copy tool input"
-            className="border-0 bg-transparent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider hover:bg-[var(--surface-strong)]"
-          />
+          <CopyButton text={input} idleLabel="" ariaLabel="Copy tool input" variant="icon" />
         </div>
         <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5">
           {input}
@@ -147,12 +154,7 @@ export function ToolCall({
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Output</div>
-          <CopyButton
-            text={output}
-            idleLabel="Copy"
-            ariaLabel="Copy tool output"
-            className="border-0 bg-transparent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider hover:bg-[var(--surface-strong)]"
-          />
+          <CopyButton text={output} idleLabel="" ariaLabel="Copy tool output" variant="icon" />
         </div>
         <pre className="font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5 max-h-48 overflow-y-auto">
           {output}

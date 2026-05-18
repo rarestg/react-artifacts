@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { CopyButton } from '../../../components/CopyButton';
 import { mergeClassNames } from '../../../lib/classNames';
-import { useCopyToClipboard } from '../../../lib/useCopyToClipboard';
 import type { SubagentNotificationStatus, ToolCallStatus } from './types';
 
-type EventDescriptorSectionWidth = 'subagentAction';
+type EventDescriptorSectionWidth = 'action';
 
 export type EventDescriptorSection = {
   value: string;
@@ -18,10 +18,13 @@ type AgentIdentityTagStyle = CSSProperties & {
   '--agent-tag-color': string;
   '--agent-tag-text': string;
   '--agent-tag-bg': string;
+  '--copy-button-tag-bg': string;
+  '--copy-button-tag-text': string;
+  '--copy-button-tag-hover-bg': string;
 };
 
 const eventDescriptorSectionWidthClasses: Record<EventDescriptorSectionWidth, string> = {
-  subagentAction: 'min-w-[12ch] shrink-0',
+  action: 'min-w-[12ch] shrink-0',
 };
 
 const agentIdentityTonePalette = [
@@ -32,28 +35,10 @@ const agentIdentityTonePalette = [
     weak: 'var(--category-blue-weak)',
   },
   {
-    name: 'green',
-    color: 'var(--category-green)',
-    text: 'var(--category-green-text)',
-    weak: 'var(--category-green-weak)',
-  },
-  {
-    name: 'amber',
-    color: 'var(--category-amber)',
-    text: 'var(--category-amber-text)',
-    weak: 'var(--category-amber-weak)',
-  },
-  {
     name: 'violet',
     color: 'var(--category-violet)',
     text: 'var(--category-violet-text)',
     weak: 'var(--category-violet-weak)',
-  },
-  {
-    name: 'red',
-    color: 'var(--category-red)',
-    text: 'var(--category-red-text)',
-    weak: 'var(--category-red-weak)',
   },
   {
     name: 'pink',
@@ -62,10 +47,10 @@ const agentIdentityTonePalette = [
     weak: 'var(--category-pink-weak)',
   },
   {
-    name: 'lime',
-    color: 'var(--category-lime)',
-    text: 'var(--category-lime-text)',
-    weak: 'var(--category-lime-weak)',
+    name: 'cyan',
+    color: 'var(--category-cyan)',
+    text: 'var(--category-cyan-text)',
+    weak: 'var(--category-cyan-weak)',
   },
 ] as const;
 
@@ -77,6 +62,8 @@ const metadataAgentTone = {
 } as const;
 
 type AgentIdentityTone = (typeof agentIdentityTonePalette)[number] | typeof metadataAgentTone;
+
+export const agentIdentityToneNames = agentIdentityTonePalette.map((tone) => tone.name);
 
 const hashString = (value: string) => {
   let hash = 0x811c9dc5;
@@ -92,6 +79,10 @@ const hashString = (value: string) => {
 export function getAgentIdSuffix(agentId?: string) {
   const trimmedId = agentId?.trim();
   if (!trimmedId) return undefined;
+
+  const compact = trimmedId.replace(/-/g, '');
+  if (/^[0-9a-f]{32}$/i.test(compact)) return compact.slice(-6).toLowerCase();
+
   return trimmedId.slice(-6);
 }
 
@@ -180,13 +171,15 @@ function getAgentIdentityTagStyle(tone: AgentIdentityTone): AgentIdentityTagStyl
     '--agent-tag-color': tone.color,
     '--agent-tag-text': tone.text,
     '--agent-tag-bg': tone.weak,
+    '--copy-button-tag-bg': tone.weak,
+    '--copy-button-tag-text': tone.text,
+    '--copy-button-tag-hover-bg': 'var(--surface)',
   };
 }
 
 const agentIdentityTagBaseClasses =
-  'inline-flex h-6 min-w-0 shrink-0 items-center border px-1.5 font-mono text-[10px] font-semibold';
-const agentIdentityTagToneClasses =
-  'border-[color:var(--agent-tag-color)] bg-[var(--agent-tag-bg)] text-[var(--agent-tag-text)]';
+  'inline-flex h-6 min-w-0 shrink-0 items-center border border-transparent px-1.5 font-mono text-[10px] font-semibold';
+const agentIdentityTagToneClasses = 'bg-[var(--agent-tag-bg)] text-[var(--agent-tag-text)]';
 
 function AgentIdentityDisplayTag({ tag, tone }: { tag: AgentIdentityTagModel; tone: AgentIdentityTone }) {
   return (
@@ -202,38 +195,23 @@ function AgentIdentityDisplayTag({ tag, tone }: { tag: AgentIdentityTagModel; to
 }
 
 function AgentIdentityCopyTag({ tag, tone }: { tag: AgentIdentityTagModel; tone: AgentIdentityTone }) {
-  const { status, copy, announcement } = useCopyToClipboard();
-  const statusClass =
-    status === 'copied'
-      ? 'border-[color:var(--copy-success-border)] bg-[var(--copy-success-bg)] text-[var(--copy-success-text)]'
-      : status === 'failed'
-        ? 'border-[color:var(--copy-fail-border)] bg-[var(--copy-fail-bg)] text-[var(--copy-fail-text)]'
-        : mergeClassNames(agentIdentityTagToneClasses, 'hover:bg-[var(--surface)] active:bg-[var(--surface-pressed)]');
-  const title = tag.title ? `${tag.title}; click to copy ${tag.copyValue}` : `Click to copy ${tag.copyValue}`;
+  const title = tag.key === 'nickname' ? 'Copy nickname' : 'Copy full agent ID';
 
   return (
-    <button
-      type="button"
+    <CopyButton
+      text={tag.copyValue}
+      idleLabel={tag.label}
+      ariaLabel={tag.ariaLabel}
       title={title}
-      aria-label={tag.ariaLabel}
-      data-agent-identity-tag={tag.key}
-      data-copy-value={tag.copyValue}
-      style={getAgentIdentityTagStyle(tone)}
-      onClick={() => {
-        void copy(tag.copyValue);
+      showIcon={false}
+      variant="tag"
+      dataAttributes={{
+        'data-agent-identity-tag': tag.key,
+        'data-copy-value': tag.copyValue,
       }}
-      className={mergeClassNames(
-        agentIdentityTagBaseClasses,
-        'cursor-pointer transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-        statusClass,
-        tag.maxWidthClassName,
-      )}
-    >
-      <span className="truncate">{tag.label}</span>
-      <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {announcement}
-      </span>
-    </button>
+      style={getAgentIdentityTagStyle(tone)}
+      className={tag.maxWidthClassName}
+    />
   );
 }
 
@@ -281,7 +259,7 @@ export function AgentIdentityTags({
   const TagComponent = mode === 'copy' ? AgentIdentityCopyTag : AgentIdentityDisplayTag;
 
   return (
-    <span className="inline-flex min-w-0 shrink-0 items-center gap-1" data-agent-tone={tone.name}>
+    <span className="inline-flex min-w-0 shrink-0 items-center gap-1.5" data-agent-tone={tone.name}>
       {tags.map((tag) => (
         <TagComponent key={tag.key} tag={tag} tone={tone} />
       ))}
@@ -289,11 +267,22 @@ export function AgentIdentityTags({
   );
 }
 
-export function EventPreviewPill({ children, title }: { children: ReactNode; title?: string }) {
+export function EventPreviewPill({
+  children,
+  title,
+  className,
+}: {
+  children: ReactNode;
+  title?: string;
+  className?: string;
+}) {
   return (
     <span
       title={title}
-      className="inline-flex h-6 min-w-0 max-w-[24rem] flex-[1_1_10rem] items-center border border-[var(--border)] bg-[var(--surface-muted)] px-1.5 font-mono text-xs font-medium text-[var(--text)]"
+      className={mergeClassNames(
+        'inline-flex h-6 min-w-0 items-center border border-[var(--border)] bg-[var(--surface-muted)] px-1.5 font-mono text-xs font-medium text-[var(--text)]',
+        className,
+      )}
     >
       <span className="min-w-0 truncate">{children}</span>
     </span>

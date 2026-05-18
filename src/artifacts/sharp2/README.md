@@ -28,8 +28,6 @@ Use this ownership model when resolving conflicts:
 | `fixtures.tsx` | Static search and conversation data used by the showcase. |
 | `components/*` | Sharp2-local showcase components that are not shared APIs. |
 | `conversation/*` | Sharp2-local conversation rendering examples, helpers, and renderer view-model types. |
-| `sharp2-migration-guide.md` | Historical migration checklist. It is stale as an active plan and should not be followed once this README is accepted. Keep it until the user signs off on removal. |
-| `sharp2.txt` | Older narrative notes. Treat this README and the root/design docs as current once this README is accepted. Keep it until the user signs off on removal. |
 
 ## Boundary
 
@@ -92,8 +90,16 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
 | `conversation/keys.ts` | Stable key helpers for turns and turn items. |
 | `conversation/types.ts` | Local conversation data and visibility types. |
 | `conversation/productTypes.ts` | Temporary type-only outline of the target `codexscope.product.v1` transcript/read contract. Replace with generated product DTOs when available. |
+| `conversation-rendering-preferences.md` | Current sharp2 conversation renderer design contract: row anatomy, semantics, controls, copy behavior, and metadata rules. |
 | `conversation-export-readiness.md` | Export-readiness notes for moving the renderer toward a product transcript pane without package extraction yet. |
-| `conversation-rendering-execution-plan.md` | Historical completed implementation plan. Keep it as context only; use this README and `conversation-rendering-preferences.md` for current behavior. |
+
+## Conversation Handoff
+
+For CodexScope UI/product handoff, start here:
+- This README gives the sharp2 file map, ownership model, and local import boundary.
+- `conversation-rendering-preferences.md` owns the renderer UX/design contract and the behavior not to break.
+- `conversation-export-readiness.md` owns the CodexScope product/API/export boundary and remaining extraction work.
+- `conversation/index.ts` is the current local public import surface for production sharp2 code.
 
 ## Patterns To Preserve
 
@@ -109,16 +115,8 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
   active/pressed state. Disabled controls should not look clickable.
 - Use `focus-visible` for keyboard focus. Offset rings are preferred when they fit; inset rings are acceptable where an
   offset ring would clip or disrupt a compact row/control.
-- Preserve conversation source text. User/tool/raw output should stay literal and copyable as source text. Rendered
-  assistant/thinking output should use the local renderer and fall back to literal text if rendering fails.
-- Keep conversation turns as transcript groups: one compact turn header and one contiguous row stack with row separators,
-  not nested message/tool/token cards.
-- Keep tool rows summary-first. Structured tool calls reveal input/output through row-level expansion so the transcript
-  stays scan-friendly until a specific tool needs inspection.
-- Token counters should show the final end-of-turn context-window row by default. Intermediate counters are an explicit
-  diagnostic detail mode. When normalizing real telemetry, use total token usage against the model context window, not
-  account rate-limit percentages.
-- Copy actions should copy the underlying source or a pasteable structured summary, not only the rendered view.
+- Keep conversation examples aligned with `conversation-rendering-preferences.md`; detailed Conversation Rendering row
+  anatomy, copy behavior, token telemetry, and subagent/event rules live there.
 
 ## Intentional Nuance
 
@@ -138,4 +136,3 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
 3. Keep local examples local unless there is a clear shared API need.
 4. Verify light and dark mode when changing tokens, surfaces, status colors, category colors, or focus styling.
 5. For code changes, run the relevant focused checks and `npm run check` before PR-level completion.
-6. Keep old migration notes historical unless the user explicitly asks to revive or archive them.

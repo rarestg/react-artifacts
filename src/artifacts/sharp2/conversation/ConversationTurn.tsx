@@ -63,6 +63,8 @@ export function ConversationTurn({
   const showTokenCounters = visibleTypes?.tokenCounters ?? true;
   const showIntermediateTokenCounters = detailVisibility?.showIntermediateTokenCounters ?? false;
   const showRawDebug = detailVisibility?.showRawDebug ?? false;
+  // Token-counter metadata makes finality an explicit data contract for paged fragments.
+  // Fixture-only rows without that metadata keep the older "last counter in turn" fallback.
   const hasExplicitTokenCounterRoles = items.some(
     (item) =>
       item.type === 'token_counter' && (item.isFinalForTurn !== undefined || item.tokenCounterRole !== undefined),

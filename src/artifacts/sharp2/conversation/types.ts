@@ -59,7 +59,9 @@ export type TokenCounterItem = {
 
 /**
  * Renderer-level tool-call row data. Product or showcase adapters provide normalized
- * summary/detail fields here; raw parser and debug material stays behind details reads.
+ * summary/detail fields here. Subagent function names are already mapped to toolKind
+ * values, and previews are semantic strings rather than React-parsed JSON arguments.
+ * Raw parser/debug material stays behind details reads.
  */
 export type ToolCallItem = {
   id?: string;
@@ -79,6 +81,10 @@ export type ToolCallItem = {
   status?: ToolCallStatus;
 };
 
+/**
+ * Machine-delivered child-agent result surfaced in the parent timeline. It is not
+ * a human-authored message and should stay separate from ordinary tool output.
+ */
 export type SubagentNotificationItem = {
   id?: string;
   type: 'subagent_notification';

@@ -110,6 +110,8 @@ export function ExpandableTranscriptRow({
   rightTimestamp,
   children,
 }: ExpandableTranscriptRowProps) {
+  // Keep a single semantic disclosure control over the row. The chevron is inert,
+  // while promoted sibling controls such as timestamps and identity tags stay separate.
   const hasSplitLeftControls = leftControls !== undefined || leftTrailing !== undefined;
   const hasControlledRegion = Children.toArray(children).length > 0;
   const right = (

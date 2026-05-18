@@ -16,6 +16,7 @@ import {
   tokenCounterPropsFromTelemetry,
 } from '../../src/artifacts/sharp2/conversation/TokenCounter';
 import { ToolCall } from '../../src/artifacts/sharp2/conversation/ToolCall';
+import { ExpandableTranscriptRow, TranscriptRow } from '../../src/artifacts/sharp2/conversation/TranscriptRow';
 import { type ConversationTurnData, getTurnItemVisibleType } from '../../src/artifacts/sharp2/conversation/types';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
@@ -69,11 +70,11 @@ test('MessageCard uses the intended role accent color mapping', () => {
   );
   const thinkingMarkup = renderToStaticMarkup(createElement(MessageCard, { role: 'thinking', content: 'Thinking' }));
 
-  assert.match(userMarkup, /border-l-\[var\(--category-green\)\]/);
+  assert.match(userMarkup, /--transcript-row-accent:var\(--category-green\)/);
   assert.match(userMarkup, /text-\[var\(--category-green\)\]/);
-  assert.match(assistantMarkup, /border-l-\[var\(--category-blue\)\]/);
+  assert.match(assistantMarkup, /--transcript-row-accent:var\(--category-blue\)/);
   assert.match(assistantMarkup, /text-\[var\(--category-blue\)\]/);
-  assert.match(thinkingMarkup, /border-l-\[var\(--category-amber\)\]/);
+  assert.match(thinkingMarkup, /--transcript-row-accent:var\(--category-amber\)/);
   assert.match(thinkingMarkup, /text-\[var\(--category-amber\)\]/);
 });
 
@@ -625,7 +626,54 @@ test('ConversationTurn renders collapsed tool summaries by default', () => {
   assert.match(markup, />3 \/ 3 visible</);
 });
 
-test('conversation event rows share the message row left inset', () => {
+test('TranscriptRow owns the shared transcript row shell contract', () => {
+  const rowMarkup = renderToStaticMarkup(
+    createElement(
+      TranscriptRow,
+      {
+        accentColor: 'var(--category-blue)',
+        left: 'Label',
+        right: 'Actions',
+      },
+      createElement('span', null, 'Body'),
+    ),
+  );
+  const expandableMarkup = renderToStaticMarkup(
+    createElement(
+      ExpandableTranscriptRow,
+      {
+        accentColor: 'var(--category-violet)',
+        expanded: true,
+        controlsId: 'tool-details',
+        summaryAriaLabel: 'Collapse tool details',
+        onToggle: () => undefined,
+        left: 'Tool',
+        right: 'Meta',
+      },
+      createElement('span', null, 'Details'),
+    ),
+  );
+
+  for (const markup of [rowMarkup, expandableMarkup]) {
+    assert.match(
+      markup,
+      /class="border-l-2 border-l-\[color:var\(--transcript-row-accent\)\] bg-\[var\(--surface\)\]"/,
+    );
+    assert.match(markup, /flex min-w-0 flex-1 items-center gap-1\.5/);
+    assert.match(markup, /flex shrink-0 items-center gap-1\.5/);
+  }
+
+  assert.match(rowMarkup, /style="--transcript-row-accent:var\(--category-blue\)"/);
+  assert.match(rowMarkup, /<div class="p-3"><div class="flex min-w-0 items-center justify-between gap-3">/);
+  assert.match(expandableMarkup, /style="--transcript-row-accent:var\(--category-violet\)"/);
+  assert.match(expandableMarkup, /cursor-pointer items-center justify-between gap-3 p-3 text-left/);
+  assert.match(expandableMarkup, /hover:bg-\[var\(--surface-muted\)\]/);
+  assert.match(expandableMarkup, /active:bg-\[var\(--surface-pressed\)\]/);
+  assert.match(expandableMarkup, /focus-visible:ring-2/);
+  assert.match(expandableMarkup, /id="tool-details" class="space-y-3 px-3 pb-3"/);
+});
+
+test('conversation event rows use the shared TranscriptRow accent and inset shell', () => {
   const messageMarkup = renderToStaticMarkup(createElement(MessageCard, { role: 'user', content: 'Question' }));
   const toolMarkup = renderToStaticMarkup(
     createElement(ToolCall, {
@@ -642,10 +690,18 @@ test('conversation event rows share the message row left inset', () => {
       summary: 'Done',
     }),
   );
+  const rowShellPattern =
+    /class="border-l-2 border-l-\[color:var\(--transcript-row-accent\)\] bg-\[var\(--surface\)\]"/;
 
-  assert.match(messageMarkup, /border-l-2 px-3 py-3/);
-  assert.match(toolMarkup, /gap-3 p-3/);
-  assert.match(notificationMarkup, /gap-3 p-3/);
+  assert.match(messageMarkup, rowShellPattern);
+  assert.match(toolMarkup, rowShellPattern);
+  assert.match(notificationMarkup, rowShellPattern);
+  assert.match(messageMarkup, /style="--transcript-row-accent:var\(--category-green\)"/);
+  assert.match(toolMarkup, /style="--transcript-row-accent:var\(--category-violet\)"/);
+  assert.match(notificationMarkup, /style="--transcript-row-accent:var\(--category-cyan\)"/);
+  assert.match(messageMarkup, /<div class="p-3"><div class="flex min-w-0 items-center justify-between gap-3">/);
+  assert.match(notificationMarkup, /<div class="p-3"><div class="flex min-w-0 items-center justify-between gap-3">/);
+  assert.match(toolMarkup, /cursor-pointer items-center justify-between gap-3 p-3 text-left/);
   assert.doesNotMatch(toolMarkup, /gap-3 px-4 py-3/);
   assert.doesNotMatch(notificationMarkup, /gap-3 px-4 py-3/);
 });
@@ -807,7 +863,7 @@ test('ToolCall gives subagent lifecycle rows a consistent subagent label grammar
     assert.match(markup, new RegExp(label));
     assert.match(markup, /Ada \/ ad-123/);
     assert.match(markup, new RegExp(`${tool} &gt; Ada`));
-    assert.match(markup, /--tool-call-color:var\(--category-cyan\)/);
+    assert.match(markup, /--transcript-row-accent:var\(--category-cyan\)/);
     assert.match(markup, /Running/);
     assert.match(markup, new RegExp(`aria-label="Expand ${tool} tool details"`));
     assert.doesNotMatch(markup, />TOOL</);

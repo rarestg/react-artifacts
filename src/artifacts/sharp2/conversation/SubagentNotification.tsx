@@ -1,9 +1,9 @@
 import { CopyButton } from '../../../components/CopyButton';
 import {
-  AgentTag,
-  EventLabel,
+  AgentIdentityTags,
+  EventDescriptor,
   EventPreviewPill,
-  getAgentDisplayLabel,
+  getAgentSummaryLabel,
   SubagentNotificationStatusBadge,
 } from './EventRowParts';
 import { TimestampBadge } from './TimestampBadge';
@@ -36,7 +36,7 @@ export function SubagentNotification({
   rawPayload,
   timestamp,
 }: SubagentNotificationProps) {
-  const agentLabel = getAgentDisplayLabel({ agentId, agentNickname }) ?? agentNickname ?? agentId;
+  const agentLabel = getAgentSummaryLabel({ agentId, agentNickname }) ?? agentId;
   const copyText = rawPayload ?? `${agentLabel}: ${statusLabels[status]}: ${summary}`;
 
   return (
@@ -44,8 +44,12 @@ export function SubagentNotification({
       accentColor="var(--category-cyan)"
       left={
         <>
-          <EventLabel category="SUBAGENT" action="Notification" colorClassName="text-[var(--category-cyan)]" />
-          <AgentTag agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} />
+          <EventDescriptor
+            category="SUBAGENT"
+            colorClassName="text-[var(--category-cyan)]"
+            sections={[{ value: 'Notification', width: 'subagentAction' }]}
+          />
+          <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
           <EventPreviewPill title={summary}>{summary}</EventPreviewPill>
         </>
       }

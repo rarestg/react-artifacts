@@ -4,18 +4,30 @@ These notes capture local product/design preferences for the sharp2 conversation
 policy, but future edits should preserve them unless the user explicitly changes direction.
 
 - Prefer flat transcript groups over nested cards. Each turn should read as one header plus one contiguous row stack.
-- Use role color primarily through the left row accent and role label. Keep message row backgrounds neutral.
-- Conversation role colors should use user green, assistant blue, subagent cyan/system, thinking amber, and ordinary
-  tools violet.
+- Use role/category color primarily through the left row accent and primary label. Keep transcript row backgrounds neutral.
+- Conversation category colors should use user green, assistant blue, subagent cyan/system, thinking amber, and ordinary
+  tools violet. Per-agent identity color should not replace the subagent row/category color.
 - Message role labels should be uppercase and color-matched to the left accent.
+- Transcript rows should share one row-shell contract: left accent, summary inset, right action cluster, and expanded
+  detail inset should not drift between row types.
 - Tool calls should use structured `type: 'tool_call'` data only. Do not reintroduce raw `role: 'tool'` message rows.
 - Subagent lifecycle activity should use subagent-specific `toolKind` values and `type: 'subagent_notification'` for
   machine-delivered results. Keep it on its own filter and category color, distinct from ordinary tool calls.
+- Event rows should use compact descriptors with category plus pipe-separated sections, such as `SUBAGENT | Wait`.
+- Reserve aligned section widths only for closed vocabularies where comparison matters, such as subagent actions.
+- Do not reserve width for arbitrary tool names. Ordinary tool descriptors may stay natural-width, such as `TOOL | bash`.
+- Subagent identity should render as separate nickname and short-id tags, not a combined `nickname / id` label.
+- Subagent identity tags may use deterministic per-agent color for recognition, while the row accent remains the row
+  category color.
+- Copyable subagent identity belongs only where interaction permits it: non-expandable notification rows and expanded
+  tool details. Collapsed expandable tool rows should show inert identity tags.
 - Tool rows should be summary-first and collapsed by default. The row itself should be the large click target for
   expansion, with the timestamp and chevron on the right.
 - Tool row headers should show a one-line truncated command/input preview rather than a standalone tool-name tag.
-- Collapsed tool rows should not include copy actions; keep copy controls inside expanded Input/Output details.
-- Tool row headers and expanded Input/Output details should share the same horizontal inset.
+- Collapsed tool rows should not include nested copy actions; keep copy controls inside expanded details, including
+  Input/Output and relevant metadata.
+- Tool row headers, message rows, subagent rows, and expanded details should preserve shared transcript row geometry and
+  horizontal rhythm.
 - Do not use a global Tool Details filter. Inspect details by expanding the specific tool row.
 - Keep row action controls visually cohesive: compact neutral controls, borderless at rest when the row needs to stay
   quiet, and clearly visible hover/active/focus/copied/failed states.

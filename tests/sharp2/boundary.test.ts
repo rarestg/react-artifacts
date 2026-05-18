@@ -298,6 +298,22 @@ test('sharp2 product DTO smoke fixtures cover paged rows, details, and family ti
     contentMode: 'future_content_mode',
   } satisfies TranscriptPageRequest;
 
+  const aroundRequestBase = {
+    mode: 'around',
+    sessionId: 'root-thread-001',
+    limit: 50,
+    visibility,
+    contentMode: 'future_content_mode',
+  } as const;
+  const itemAnchoredPageRequest = {
+    ...aroundRequestBase,
+    transcriptItemId: 'item-message-1',
+  } satisfies TranscriptPageRequest;
+  // @ts-expect-error around requests require transcriptItemId or matchId
+  const anchorlessAroundRequest = aroundRequestBase satisfies TranscriptPageRequest;
+  void itemAnchoredPageRequest;
+  void anchorlessAroundRequest;
+
   const pageResponse = {
     apiInfo,
     header: {

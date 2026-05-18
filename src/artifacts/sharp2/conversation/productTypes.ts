@@ -49,8 +49,17 @@ export type TranscriptPageRequest =
   | {
       mode: 'around';
       sessionId: string;
-      transcriptItemId?: string;
+      transcriptItemId: string;
       matchId?: string;
+      limit: number;
+      visibility: TranscriptVisibility;
+      contentMode: TranscriptContentMode;
+    }
+  | {
+      mode: 'around';
+      sessionId: string;
+      matchId: string;
+      transcriptItemId?: string;
       limit: number;
       visibility: TranscriptVisibility;
       contentMode: TranscriptContentMode;

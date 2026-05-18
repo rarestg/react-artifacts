@@ -289,7 +289,12 @@ export function EventPreviewPill({
   );
 }
 
-const unknownStatusConfig = {
+type StatusConfig = {
+  label: string;
+  className: string;
+};
+
+const unknownStatusConfig: StatusConfig = {
   label: 'Unknown',
   className: 'text-[var(--text-muted)] bg-[var(--surface-muted)] border-[var(--border)]',
 };
@@ -303,7 +308,7 @@ const toolStatusConfig = {
     label: 'Running',
     className: 'text-[var(--warning-text)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
   },
-} satisfies Record<Exclude<ToolCallStatus, 'success'>, { label: string; className: string }>;
+} satisfies Record<Exclude<ToolCallStatus, 'success'>, StatusConfig>;
 
 const notificationStatusConfig = {
   failed: {
@@ -318,24 +323,28 @@ const notificationStatusConfig = {
     label: 'Timed out',
     className: 'text-[var(--warning-text)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
   },
-} satisfies Record<Exclude<SubagentNotificationStatus, 'completed'>, { label: string; className: string }>;
+} satisfies Record<Exclude<SubagentNotificationStatus, 'completed'>, StatusConfig>;
+
+function getOwnStatusConfig<TStatus extends string>(
+  config: Record<TStatus, StatusConfig>,
+  status: unknown,
+): StatusConfig {
+  if (typeof status !== 'string') return unknownStatusConfig;
+  if (!Object.hasOwn(config, status)) return unknownStatusConfig;
+
+  return config[status as TStatus];
+}
 
 export function ToolStatusBadge({ status }: { status?: ToolCallStatus }) {
   if (!status || status === 'success') return null;
-  const config =
-    typeof status === 'string'
-      ? (toolStatusConfig[status as keyof typeof toolStatusConfig] ?? unknownStatusConfig)
-      : unknownStatusConfig;
+  const config = getOwnStatusConfig(toolStatusConfig, status);
 
   return <EventStatusBadge label={config.label} className={config.className} />;
 }
 
 export function SubagentNotificationStatusBadge({ status }: { status: SubagentNotificationStatus }) {
   if (status === 'completed') return null;
-  const config =
-    typeof status === 'string'
-      ? (notificationStatusConfig[status as keyof typeof notificationStatusConfig] ?? unknownStatusConfig)
-      : unknownStatusConfig;
+  const config = getOwnStatusConfig(notificationStatusConfig, status);
 
   return <EventStatusBadge label={config.label} className={config.className} />;
 }

@@ -35,6 +35,12 @@ function buttonClassByPressed(markup: string, pressed: boolean) {
   return className;
 }
 
+function firstSvgTag(markup: string) {
+  const svgTag = markup.match(/<svg\b[^>]*>/)?.[0];
+  assert.ok(svgTag, `Expected SVG tag in markup: ${markup}`);
+  return svgTag;
+}
+
 test('disabled shared checkbox and toggle preserve disabled cursor without pointer-events-none', () => {
   const checkbox = renderToStaticMarkup(
     createElement(Checkbox, {
@@ -120,13 +126,14 @@ test('shared checkbox keeps the check icon mounted and opacity-hidden to avoid t
     }),
   );
 
-  assert.match(unchecked, /<svg\b/);
-  assert.match(unchecked, /aria-hidden="true"/);
-  assert.match(unchecked, /opacity-0/);
-  assert.match(unchecked, /transition-opacity/);
-  assert.match(checked, /<svg\b/);
-  assert.match(checked, /<svg[^>]*opacity-100/);
-  assert.doesNotMatch(checked, /<svg[^>]*opacity-0/);
+  const uncheckedIcon = firstSvgTag(unchecked);
+  const checkedIcon = firstSvgTag(checked);
+
+  assert.match(uncheckedIcon, /\baria-hidden="true"/);
+  assert.match(uncheckedIcon, /\bopacity-0\b/);
+  assert.match(uncheckedIcon, /\btransition-opacity\b/);
+  assert.match(checkedIcon, /\bopacity-100\b/);
+  assert.doesNotMatch(checkedIcon, /\bopacity-0\b/);
 });
 
 test('FilterCheckbox exposes category tones, selected chip color, and a stable count badge', () => {

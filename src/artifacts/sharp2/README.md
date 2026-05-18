@@ -93,6 +93,14 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
 | `conversation-rendering-preferences.md` | Current sharp2 conversation renderer design contract: row anatomy, semantics, controls, copy behavior, and metadata rules. |
 | `conversation-export-readiness.md` | Export-readiness notes for moving the renderer toward a product transcript pane without package extraction yet. |
 
+## Conversation Handoff
+
+For CodexScope UI/product handoff, start here:
+- This README gives the sharp2 file map, ownership model, and local import boundary.
+- `conversation-rendering-preferences.md` owns the renderer UX/design contract and the behavior not to break.
+- `conversation-export-readiness.md` owns the CodexScope product/API/export boundary and remaining extraction work.
+- `conversation/index.ts` is the current local public import surface for production sharp2 code.
+
 ## Patterns To Preserve
 
 - Keep root and nested UI tokenized: use `var(--surface*)`, `var(--text*)`, `var(--border*)`, `var(--ring)`,

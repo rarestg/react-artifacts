@@ -289,7 +289,12 @@ export function EventPreviewPill({
   );
 }
 
-const toolStatusConfig: Record<Exclude<ToolCallStatus, 'success'>, { label: string; className: string }> = {
+const unknownStatusConfig = {
+  label: 'Unknown',
+  className: 'text-[var(--text-muted)] bg-[var(--surface-muted)] border-[var(--border)]',
+};
+
+const toolStatusConfig = {
   error: {
     label: 'Error',
     className: 'text-[var(--danger-text)] bg-[var(--danger-weak)] border-[color:var(--danger)]',
@@ -298,12 +303,9 @@ const toolStatusConfig: Record<Exclude<ToolCallStatus, 'success'>, { label: stri
     label: 'Running',
     className: 'text-[var(--warning-text)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
   },
-};
+} satisfies Record<Exclude<ToolCallStatus, 'success'>, { label: string; className: string }>;
 
-const notificationStatusConfig: Record<
-  Exclude<SubagentNotificationStatus, 'completed'>,
-  { label: string; className: string }
-> = {
+const notificationStatusConfig = {
   failed: {
     label: 'Failed',
     className: 'text-[var(--danger-text)] bg-[var(--danger-weak)] border-[color:var(--danger)]',
@@ -316,18 +318,24 @@ const notificationStatusConfig: Record<
     label: 'Timed out',
     className: 'text-[var(--warning-text)] bg-[var(--warning-weak)] border-[color:var(--warning)]',
   },
-};
+} satisfies Record<Exclude<SubagentNotificationStatus, 'completed'>, { label: string; className: string }>;
 
 export function ToolStatusBadge({ status }: { status?: ToolCallStatus }) {
   if (!status || status === 'success') return null;
-  const config = toolStatusConfig[status];
+  const config =
+    typeof status === 'string'
+      ? (toolStatusConfig[status as keyof typeof toolStatusConfig] ?? unknownStatusConfig)
+      : unknownStatusConfig;
 
   return <EventStatusBadge label={config.label} className={config.className} />;
 }
 
 export function SubagentNotificationStatusBadge({ status }: { status: SubagentNotificationStatus }) {
   if (status === 'completed') return null;
-  const config = notificationStatusConfig[status];
+  const config =
+    typeof status === 'string'
+      ? (notificationStatusConfig[status as keyof typeof notificationStatusConfig] ?? unknownStatusConfig)
+      : unknownStatusConfig;
 
   return <EventStatusBadge label={config.label} className={config.className} />;
 }

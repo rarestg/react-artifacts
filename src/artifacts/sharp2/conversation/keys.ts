@@ -19,6 +19,13 @@ const hashFields = (fields: unknown[]) =>
 const withOriginalIndex = (key: string, originalIndex?: number) =>
   originalIndex === undefined ? key : `${key}-${originalIndex}`;
 
+const getSummaryTextPart = (value: string | undefined) =>
+  value
+    ?.split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean)
+    ?.slice(0, 120) ?? '';
+
 export const getTurnItemKey = (item: TurnItem, originalIndex?: number) => {
   if (item.id) return withOriginalIndex(item.id, originalIndex);
   if (item.type === 'token_counter') {
@@ -37,9 +44,10 @@ export const getTurnItemKey = (item: TurnItem, originalIndex?: number) => {
         item.agentNickname ?? '',
         item.agentRole ?? '',
         item.summary ?? '',
+        item.preview ?? '',
         item.timestamp ?? '',
-        item.input,
-        item.output,
+        getSummaryTextPart(item.input),
+        getSummaryTextPart(item.output),
         item.status ?? '',
       ])}`,
       originalIndex,
@@ -55,7 +63,6 @@ export const getTurnItemKey = (item: TurnItem, originalIndex?: number) => {
         item.status,
         item.timestamp ?? '',
         item.summary,
-        item.rawPayload ?? '',
       ])}`,
       originalIndex,
     );

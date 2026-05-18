@@ -41,7 +41,9 @@ export type ConversationTurnProps = {
   duration?: string;
   items: TurnItem[];
   renderModesByItemIndex?: RenderMode[];
+  renderModesByItemId?: Record<string, RenderMode>;
   onToggleRenderMode?: (originalItemIndex: number) => void;
+  onToggleRenderModeForItem?: (itemId: string) => void;
   visibleTypes?: ConversationVisibilityOptions;
   detailVisibility?: Partial<ConversationDetailVisibility>;
 };
@@ -56,20 +58,52 @@ export function ConversationTurn({
   duration,
   items,
   renderModesByItemIndex,
+  renderModesByItemId,
   onToggleRenderMode,
+  onToggleRenderModeForItem,
   visibleTypes,
   detailVisibility,
 }: ConversationTurnProps) {
   const showTokenCounters = visibleTypes?.tokenCounters ?? true;
   const showIntermediateTokenCounters = detailVisibility?.showIntermediateTokenCounters ?? false;
+  const showRawDebug = detailVisibility?.showRawDebug ?? false;
+  const hasExplicitTokenCounterRoles = items.some(
+    (item) =>
+      item.type === 'token_counter' && (item.isFinalForTurn !== undefined || item.tokenCounterRole !== undefined),
+  );
   let finalTokenCounterIndex = -1;
 
-  for (let index = items.length - 1; index >= 0; index -= 1) {
-    if (items[index]?.type === 'token_counter') {
-      finalTokenCounterIndex = index;
-      break;
+  if (!hasExplicitTokenCounterRoles) {
+    for (let index = items.length - 1; index >= 0; index -= 1) {
+      if (items[index]?.type === 'token_counter') {
+        finalTokenCounterIndex = index;
+        break;
+      }
     }
   }
+
+  const shouldShowTokenCounter = (item: TurnItem, originalIndex: number) => {
+    if (item.type !== 'token_counter' || !showTokenCounters) return false;
+    if (showIntermediateTokenCounters) return true;
+    if (hasExplicitTokenCounterRoles) return item.isFinalForTurn === true || item.tokenCounterRole === 'final';
+    return originalIndex === finalTokenCounterIndex;
+  };
+
+  const getAssistantRenderMode = (item: TurnItem, originalIndex: number): RenderMode => {
+    if (item.type !== undefined) return 'default';
+    if (item.role !== 'assistant') return 'default';
+    if (item.id && renderModesByItemId?.[item.id]) return renderModesByItemId[item.id];
+    return renderModesByItemIndex?.[originalIndex] || 'default';
+  };
+
+  const getAssistantRenderToggle = (item: TurnItem, originalIndex: number) => {
+    if (item.type !== undefined) return undefined;
+    if (item.role !== 'assistant') return undefined;
+    const itemId = item.id;
+    if (itemId && onToggleRenderModeForItem) return () => onToggleRenderModeForItem(itemId);
+    if (onToggleRenderMode) return () => onToggleRenderMode(originalIndex);
+    return undefined;
+  };
 
   const filteredItems: Array<{ item: TurnItem; originalIndex: number }> = [];
   let availableItemCount = 0;
@@ -86,10 +120,10 @@ export function ConversationTurn({
     }
 
     if (item.type === 'token_counter') {
-      if (showTokenCounters && (showIntermediateTokenCounters || originalIndex === finalTokenCounterIndex)) {
+      if (shouldShowTokenCounter(item, originalIndex)) {
         availableItemCount += 1;
       }
-      if (showTokenCounters && (showIntermediateTokenCounters || originalIndex === finalTokenCounterIndex)) {
+      if (shouldShowTokenCounter(item, originalIndex)) {
         filteredItems.push({ item, originalIndex });
       }
       continue;
@@ -161,6 +195,8 @@ export function ConversationTurn({
                   summary={item.summary}
                   input={item.input}
                   output={item.output}
+                  detailsAvailable={item.detailsAvailable}
+                  detailsStatus={item.detailsStatus}
                   timestamp={item.timestamp}
                   status={item.status}
                 />
@@ -178,6 +214,7 @@ export function ConversationTurn({
                   status={item.status}
                   summary={item.summary}
                   rawPayload={item.rawPayload}
+                  showRawDebug={showRawDebug}
                   timestamp={item.timestamp}
                 />
               </TranscriptRowStackItem>
@@ -190,12 +227,8 @@ export function ConversationTurn({
                 role={item.role}
                 content={item.content}
                 timestamp={item.timestamp}
-                renderMode={
-                  item.role === 'assistant' ? renderModesByItemIndex?.[originalIndex] || 'default' : 'default'
-                }
-                onToggleRender={
-                  item.role === 'assistant' && onToggleRenderMode ? () => onToggleRenderMode(originalIndex) : undefined
-                }
+                renderMode={getAssistantRenderMode(item, originalIndex)}
+                onToggleRender={getAssistantRenderToggle(item, originalIndex)}
               />
             </TranscriptRowStackItem>
           );

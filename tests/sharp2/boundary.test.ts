@@ -3,9 +3,21 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 
+import type {
+  FindTranscriptRequest,
+  FindTranscriptResponse,
+  SessionFamilyTimelineRequest,
+  SessionFamilyTimelineResponse,
+  TranscriptItemDetailsRequest,
+  TranscriptItemDetailsResponse,
+  TranscriptPageRequest,
+  TranscriptPageResponse,
+} from '../../src/artifacts/sharp2/conversation';
+
 const sharp2Dir = 'src/artifacts/sharp2';
 const sharp2ConversationDir = `${sharp2Dir}/conversation`;
 const sharp2ReadmePath = `${sharp2Dir}/README.md`;
+const conversationExportReadinessPath = `${sharp2Dir}/conversation-export-readiness.md`;
 const importSpecifierPattern =
   /\b(?:import|export)\s+(?:type\s+)?(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]|\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
 const sharedPrimitiveNames = [
@@ -24,6 +36,18 @@ const sharedPrimitiveNames = [
   'ArtifactDialog',
   'panelHeaderClasses',
 ];
+
+type ProductContractRequestResponseSmoke =
+  | TranscriptPageRequest
+  | TranscriptPageResponse
+  | TranscriptItemDetailsRequest
+  | TranscriptItemDetailsResponse
+  | FindTranscriptRequest
+  | FindTranscriptResponse
+  | SessionFamilyTimelineRequest
+  | SessionFamilyTimelineResponse;
+
+void (undefined as unknown as ProductContractRequestResponseSmoke);
 
 async function readSharp2SourceFiles(dir = sharp2Dir): Promise<Array<{ file: string; source: string }>> {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -177,6 +201,17 @@ test('sharp2 conversation exposes a narrow local public barrel', async () => {
     'tokenCounterPropsFromTelemetry',
     'TokenTelemetryPayload',
     'TokenUsageViewModel',
+    'KnownOrUnknown',
+    'ApiInfo',
+    'TranscriptPageRequest',
+    'TranscriptPageResponse',
+    'TranscriptItem',
+    'TranscriptItemDetailsRequest',
+    'TranscriptItemDetailsResponse',
+    'TranscriptVisibility',
+    'ToolSummary',
+    'AgentEventSummary',
+    'ProductError',
   ]) {
     assert.match(source, new RegExp(`\\b${name}\\b`), `${name} should be exported from the conversation barrel`);
   }
@@ -197,6 +232,39 @@ test('sharp2 conversation exposes a narrow local public barrel', async () => {
       new RegExp(`\\b${privateName}\\b`),
       `${privateName} should stay private to conversation internals`,
     );
+  }
+});
+
+test('sharp2 conversation export-readiness doc states the product contract boundary', async () => {
+  const guide = await readFile(sharp2ReadmePath, 'utf8');
+  const doc = await readFile(conversationExportReadinessPath, 'utf8');
+
+  assert.match(guide, /conversation-export-readiness\.md/);
+  assert.match(doc, /codexscope\.product\.v1/);
+  assert.match(doc, /getTranscriptPage/);
+  assert.match(doc, /getTranscriptItemDetails/);
+  assert.match(doc, /unknown product enum values must use runtime fallback labels/i);
+  assert.match(doc, /ArtifactThemeRoot/);
+  assert.match(doc, /theme tokens/i);
+  assert.match(doc, /ParsedSessionFile[\s\S]*non-contract|non-contract[\s\S]*ParsedSessionFile/);
+  assert.match(doc, /AnchorWindowEntry[\s\S]*non-contract|non-contract[\s\S]*AnchorWindowEntry/);
+  assert.doesNotMatch(doc, /Target Product Contract[\s\S]{0,200}targets? (?:parser IR|raw JSONL|anchors)/i);
+});
+
+test('sharp2 temporary product types stay type-only and avoid parser contracts', async () => {
+  const productTypes = await readFile(`${sharp2ConversationDir}/productTypes.ts`, 'utf8');
+  const barrel = await readFile(`${sharp2ConversationDir}/index.ts`, 'utf8');
+  const publicSurface = `${productTypes}\n${barrel}`;
+
+  assert.match(productTypes, /Temporary product transcript\/read contract outline/);
+  assert.match(productTypes, /codexscope-model/);
+  assert.match(productTypes, /TranscriptPageRequest/);
+  assert.match(productTypes, /TranscriptItemDetailsRequest/);
+  assert.doesNotMatch(productTypes, /\bimport\b/);
+  assert.doesNotMatch(productTypes, /from ['"]react['"]/);
+
+  for (const parserTerm of ['ParsedSessionFile', 'AnchorWindowEntry', 'graph_events', 'lineage_evidence']) {
+    assert.doesNotMatch(publicSurface, new RegExp(`\\b${parserTerm}\\b`), `${parserTerm} should not be a public type`);
   }
 });
 

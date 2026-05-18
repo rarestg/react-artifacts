@@ -12,12 +12,13 @@ import { ExpandableTranscriptRow } from './TranscriptRow';
 import type { SubagentNotificationStatus } from './types';
 
 export type SubagentNotificationProps = {
-  agentId: string;
+  agentId?: string;
   agentNickname?: string;
   agentRole?: string;
   status: SubagentNotificationStatus;
   summary: string;
   rawPayload?: string;
+  showRawDebug?: boolean;
   timestamp?: string;
   defaultExpanded?: boolean;
 };
@@ -34,12 +35,13 @@ export function SubagentNotification({
   status,
   summary,
   rawPayload,
+  showRawDebug = false,
   timestamp,
   defaultExpanded = false,
 }: SubagentNotificationProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const detailsId = useId();
-  const agentLabel = getAgentSummaryLabel({ agentId, agentNickname }) ?? agentId;
+  const agentLabel = getAgentSummaryLabel({ agentId, agentNickname }) ?? 'Unknown agent';
   const disclosureLabel = isExpanded
     ? `Collapse subagent notification details for ${agentLabel}`
     : `Expand subagent notification details for ${agentLabel}`;
@@ -83,7 +85,7 @@ export function SubagentNotification({
         <pre className={detailPreClasses}>{summary}</pre>
       </div>
 
-      {rawPayload && (
+      {showRawDebug && rawPayload && (
         <div>
           <div className="mb-1 flex items-center justify-between gap-2">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">

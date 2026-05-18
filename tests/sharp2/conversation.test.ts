@@ -10,6 +10,9 @@ import {
   type ConversationTurnData,
   getTurnItemVisibleType,
   getTurnKey,
+  type SubagentNotificationStatus,
+  type ToolCallKind,
+  type ToolCallStatus,
   tokenCounterPropsFromTelemetry,
 } from '../../src/artifacts/sharp2/conversation';
 import {
@@ -390,6 +393,16 @@ test('getTurnItemVisibleType categorizes subagent lifecycle activity separately'
     getTurnItemVisibleType({ type: 'tool_call', tool: 'bash', input: 'npm test', output: 'PASS' }),
     'toolCalls',
   );
+  assert.equal(
+    getTurnItemVisibleType({
+      type: 'tool_call',
+      toolKind: 'subagent_unknown' as unknown as ToolCallKind,
+      tool: 'custom_agent_tool',
+      input: 'agent operation',
+      output: 'done',
+    }),
+    'toolCalls',
+  );
 });
 
 test('conversation fallback keys use original indexes to distinguish identical siblings', () => {
@@ -555,6 +568,27 @@ test('ConversationTurn preserves original indexes for duplicate item references'
   assert.equal(markup.match(/<strong\b[^>]*>this<\/strong>/g)?.length ?? 0, 1);
 });
 
+test('ConversationTurn lets item ids override index render mode state for assistant rows', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items: [
+        { id: 'assistant-first', role: 'assistant', content: 'First **raw** item' },
+        { id: 'assistant-second', role: 'assistant', content: 'Second **rendered** item' },
+      ],
+      renderModesByItemIndex: ['literal', 'literal'],
+      renderModesByItemId: {
+        'assistant-second': 'rendered',
+      },
+      onToggleRenderModeForItem: () => undefined,
+    }),
+  );
+
+  assert.equal(markup.match(/aria-pressed=/g)?.length ?? 0, 2);
+  assert.match(markup, /First \*\*raw\*\* item/);
+  assert.match(markup, /Second <strong\b[^>]*>rendered<\/strong> item/);
+});
+
 test('ConversationTurn shows only the final token counter unless intermediate counters are enabled', () => {
   const items: ConversationTurnData['items'] = [
     { id: 'user', role: 'user', content: 'Question' },
@@ -605,6 +639,50 @@ test('ConversationTurn shows only the final token counter unless intermediate co
   assert.match(intermediateMarkup, /Used: 100/);
   assert.match(intermediateMarkup, /Used: 200/);
   assert.match(intermediateMarkup, />4 \/ 4 visible</);
+});
+
+test('ConversationTurn prefers explicit final token counter markers over loaded item order', () => {
+  const items: ConversationTurnData['items'] = [
+    {
+      id: 'token-final',
+      type: 'token_counter',
+      used: 200,
+      limit: 1000,
+      label: 'Context Window',
+      tokenCounterRole: 'final',
+    },
+    { id: 'assistant', role: 'assistant', content: 'Answer' },
+    {
+      id: 'token-intermediate',
+      type: 'token_counter',
+      used: 100,
+      limit: 1000,
+      label: 'Context Window',
+      tokenCounterRole: 'intermediate',
+    },
+  ];
+
+  const markup = renderToStaticMarkup(
+    createElement(ConversationTurn, {
+      turnNumber: 1,
+      items,
+      visibleTypes: {
+        user: true,
+        assistant: true,
+        thinking: true,
+        toolCalls: true,
+        subagentActivity: true,
+        tokenCounters: true,
+      },
+      detailVisibility: {
+        showIntermediateTokenCounters: false,
+      },
+    }),
+  );
+
+  assert.match(markup, /Used: 200/);
+  assert.doesNotMatch(markup, /Used: 100/);
+  assert.match(markup, />2 \/ 2 visible</);
 });
 
 test('ConversationTurn renders collapsed tool summaries by default', () => {
@@ -1054,6 +1132,58 @@ test('ToolCall supports row-level expansion for input and output details', () =>
   assert.match(markup, /focus-visible:ring-2/);
 });
 
+test('ToolCall renders missing summary-page details without empty copy targets', () => {
+  const summaryMarkup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      summary: 'Run focused tests',
+      input: 'npm test',
+      detailsStatus: 'pending',
+    }),
+  );
+  const expandedMarkup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'bash',
+      summary: 'Run focused tests',
+      input: 'npm test',
+      detailsStatus: 'pending',
+      defaultExpanded: true,
+    }),
+  );
+
+  assert.match(summaryMarkup, /Run focused tests/);
+  assert.doesNotMatch(summaryMarkup, />Input</);
+  assert.doesNotMatch(summaryMarkup, />Output</);
+  assert.doesNotMatch(summaryMarkup, /Output pending/);
+  assert.match(expandedMarkup, />Input</);
+  assert.match(expandedMarkup, /npm test/);
+  assert.match(expandedMarkup, /aria-label="Copy tool input"/);
+  assert.match(expandedMarkup, />Output</);
+  assert.match(expandedMarkup, /Output pending/);
+  assert.doesNotMatch(expandedMarkup, /aria-label="Copy tool output"/);
+  assert.equal(expandedMarkup.match(/lucide-copy/g)?.length ?? 0, 1);
+});
+
+test('ToolCall handles unknown tool kinds and statuses as an ordinary safe row', () => {
+  const markup = renderToStaticMarkup(
+    createElement(ToolCall, {
+      tool: 'custom_agent_tool',
+      toolKind: 'subagent_custom' as unknown as ToolCallKind,
+      input: 'run custom flow',
+      output: 'done',
+      status: 'mystery' as unknown as ToolCallStatus,
+    }),
+  );
+
+  assert.match(markup, />TOOL</);
+  assert.match(markup, />custom_agent_tool</);
+  assert.match(markup, /run custom flow/);
+  assert.match(markup, />Unknown</);
+  assert.match(markup, /--transcript-row-accent:var\(--category-violet\)/);
+  assert.doesNotMatch(markup, />SUBAGENT</);
+  assert.doesNotMatch(markup, /data-agent-identity-tag=/);
+});
+
 test('ordinary ToolCall collapsed previews keep summary and input fallback behavior', () => {
   const summaryMarkup = renderToStaticMarkup(
     createElement(ToolCall, {
@@ -1230,7 +1360,24 @@ test('SubagentNotification collapsed row keeps inspectable details behind disclo
   assert.doesNotMatch(markup, />User</);
 });
 
-test('expanded SubagentNotification exposes result and source without repeated identity detail', () => {
+test('SubagentNotification handles unknown status and missing agent identity', () => {
+  const markup = renderToStaticMarkup(
+    createElement(SubagentNotification, {
+      agentId: '',
+      status: 'paused' as unknown as SubagentNotificationStatus,
+      summary: 'Worker state is not available yet.',
+    }),
+  );
+
+  assert.match(markup, />SUBAGENT</);
+  assert.match(markup, />Notification</);
+  assert.match(markup, />Unknown</);
+  assert.match(markup, /aria-label="Expand subagent notification details for Unknown agent"/);
+  assert.doesNotMatch(markup, /for "/);
+  assert.doesNotMatch(markup, /data-agent-identity-tag=/);
+});
+
+test('expanded SubagentNotification exposes result and hides raw debug by default', () => {
   const rawPayload =
     '<subagent_notification>\n{"agent_path":"019e27af-615f-7bf0-a26a-ee42ecd83783","status":{"completed":"done"}}\n</subagent_notification>';
   const markup = renderToStaticMarkup(
@@ -1260,10 +1407,34 @@ test('expanded SubagentNotification exposes result and source without repeated i
   assert.match(markup, /aria-label="Copy UTC timestamp 10:46:29"/);
   assert.match(markup, />Result</);
   assert.match(markup, /aria-label="Copy subagent notification result for Ada \(d83783\)"/);
+  assert.doesNotMatch(markup, />Raw Payload</);
+  assert.doesNotMatch(markup, /aria-label="Copy raw subagent notification payload for Ada \(d83783\)"/);
+  assert.doesNotMatch(markup, /agent_path/);
+  assert.doesNotMatch(markup, />Copy<\/span>/);
+  assert.equal(markup.match(/lucide-copy/g)?.length ?? 0, 1);
+  assert.equal(markup.match(/size-6 justify-center p-0/g)?.length ?? 0, 1);
+});
+
+test('expanded SubagentNotification exposes raw debug only when enabled', () => {
+  const rawPayload =
+    '<subagent_notification>\n{"agent_path":"019e27af-615f-7bf0-a26a-ee42ecd83783","status":{"completed":"done"}}\n</subagent_notification>';
+  const markup = renderToStaticMarkup(
+    createElement(SubagentNotification, {
+      agentId: SUBAGENT_ID,
+      agentNickname: 'Ada',
+      agentRole: 'worker',
+      status: 'completed',
+      summary: 'The parser is treating inherited metadata as current-session metadata.',
+      rawPayload,
+      showRawDebug: true,
+      defaultExpanded: true,
+    }),
+  );
+
+  assert.match(markup, />Result</);
   assert.match(markup, />Raw Payload</);
   assert.match(markup, /aria-label="Copy raw subagent notification payload for Ada \(d83783\)"/);
   assert.match(markup, /agent_path/);
-  assert.doesNotMatch(markup, />Copy<\/span>/);
   assert.equal(markup.match(/lucide-copy/g)?.length ?? 0, 2);
   assert.equal(markup.match(/size-6 justify-center p-0/g)?.length ?? 0, 2);
 });

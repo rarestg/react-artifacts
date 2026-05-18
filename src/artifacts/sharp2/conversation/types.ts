@@ -9,6 +9,7 @@ export type ToolCallKind =
 export type SubagentNotificationStatus = 'completed' | 'failed' | 'running' | 'timed_out';
 export type MessageRole = 'user' | 'assistant' | 'thinking';
 export type RenderMode = 'default' | 'literal' | 'rendered';
+export type ToolDetailStatus = 'available_on_demand' | 'loading' | 'pending' | 'unavailable';
 
 export type VisibleTypes = {
   user: boolean;
@@ -23,6 +24,7 @@ export type ConversationVisibilityOptions = Partial<VisibleTypes>;
 
 export type ConversationDetailVisibility = {
   showIntermediateTokenCounters: boolean;
+  showRawDebug: boolean;
 };
 
 export type MessageItem = {
@@ -39,6 +41,8 @@ export type TokenCounterItem = {
   used: number;
   limit: number;
   label?: string;
+  isFinalForTurn?: boolean;
+  tokenCounterRole?: 'intermediate' | 'final';
   cached?: number;
   inputTokens?: number;
   outputTokens?: number;
@@ -67,8 +71,10 @@ export type ToolCallItem = {
   agentRole?: string;
   preview?: string;
   summary?: string;
-  input: string;
-  output: string;
+  input?: string;
+  output?: string;
+  detailsAvailable?: boolean;
+  detailsStatus?: ToolDetailStatus;
   timestamp?: string;
   status?: ToolCallStatus;
 };
@@ -76,7 +82,7 @@ export type ToolCallItem = {
 export type SubagentNotificationItem = {
   id?: string;
   type: 'subagent_notification';
-  agentId: string;
+  agentId?: string;
   agentNickname?: string;
   agentRole?: string;
   status: SubagentNotificationStatus;
@@ -87,8 +93,32 @@ export type SubagentNotificationItem = {
 
 export type TurnItem = MessageItem | TokenCounterItem | ToolCallItem | SubagentNotificationItem;
 
+const knownToolCallKinds = [
+  'standard',
+  'subagent_spawn',
+  'subagent_wait',
+  'subagent_send_input',
+  'subagent_resume',
+  'subagent_close',
+] as const satisfies readonly ToolCallKind[];
+
+const knownSubagentToolKinds = [
+  'subagent_spawn',
+  'subagent_wait',
+  'subagent_send_input',
+  'subagent_resume',
+  'subagent_close',
+] as const satisfies readonly ToolCallKind[];
+
+const knownToolCallKindSet = new Set<string>(knownToolCallKinds);
+const knownSubagentToolKindSet = new Set<string>(knownSubagentToolKinds);
+
+export function isKnownToolCallKind(toolKind: unknown): toolKind is ToolCallKind {
+  return typeof toolKind === 'string' && knownToolCallKindSet.has(toolKind);
+}
+
 export function isSubagentToolKind(toolKind: ToolCallKind | undefined): boolean {
-  return toolKind !== undefined && toolKind !== 'standard';
+  return typeof toolKind === 'string' && knownSubagentToolKindSet.has(toolKind);
 }
 
 export function getTurnItemVisibleType(item: TurnItem): VisibleType {

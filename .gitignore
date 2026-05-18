@@ -22,6 +22,7 @@ pnpm-debug.log*
 .tmp/
 GitHub Reviews/
 .superpowers/
+.clawpatch/
 
 # Env files
 .env

@@ -56,6 +56,12 @@ the current rows, keys render state by `transcriptItemId`, and fetches full deta
 The adapter should require unique stable item IDs for product data. Existing fixture fallbacks remain deterministic only
 for showcase data.
 
+Current sharp2 fixtures may place full tool `input`/`output` text and gated subagent `rawPayload` directly on
+presentational rows so the reference renderer can demonstrate expanded details without a backend. Product page adapters
+should not treat those fields as summary-page requirements. Page rows should prefer previews, `detailsAvailable`, and
+detail status; full text, parsed tool JSON, parse errors, and raw debug payloads should come from
+`getTranscriptItemDetails` or an explicit debug/details read.
+
 ## Renderer API Direction
 
 Low-level renderer API example:

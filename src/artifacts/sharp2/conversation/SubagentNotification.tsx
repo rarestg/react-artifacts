@@ -42,6 +42,10 @@ export function SubagentNotification({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const detailsId = useId();
   const agentLabel = getAgentSummaryLabel({ agentId, agentNickname }) ?? 'Unknown agent';
+  const hasAgentIdentity = Boolean(agentId?.trim() || agentNickname?.trim());
+  const agentIdentityControls = hasAgentIdentity ? (
+    <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
+  ) : undefined;
   const disclosureLabel = isExpanded
     ? `Collapse subagent notification details for ${agentLabel}`
     : `Expand subagent notification details for ${agentLabel}`;
@@ -61,9 +65,7 @@ export function SubagentNotification({
           sections={[{ value: 'Notification', width: 'action' }]}
         />
       }
-      leftControls={
-        <AgentIdentityTags agentId={agentId} agentNickname={agentNickname} agentRole={agentRole} mode="copy" />
-      }
+      leftControls={agentIdentityControls}
       leftTrailing={
         <EventPreviewPill title={summary} className="flex-1">
           {summary}

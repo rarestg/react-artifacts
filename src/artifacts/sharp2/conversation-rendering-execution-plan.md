@@ -252,7 +252,9 @@ Expected tests:
 
 Pitfall:
 
-- Preserve original indexes for render-mode state and duplicate-key handling. Current tests cover this behavior.
+- Historical note: this milestone originally preserved original indexes for render-mode state and duplicate-key handling.
+  The export-readiness cleanup superseded that behavior: render modes are item-id keyed, explicit item IDs are stable
+  keys, and adapters/fixtures must provide unique IDs.
 
 ### Milestone 3 - Convert Turn Body To A Transcript Stack
 
@@ -525,15 +527,15 @@ Expected observation:
   the problem is nested boxed messages inside the turn, not the existence of turn grouping.
 - Removing message borders makes the UI calmer, but it increases reliance on row separators and left accents. Test with
   long messages and hidden metadata states to ensure message boundaries remain clear.
-- Global tool detail controls are simpler than per-tool expansion, but less flexible. Start global unless product needs
-  row-level detail control.
+- This plan originally considered global tool detail controls. That direction is superseded: tool details are inspected
+  through row-level expansion, and there is no global Tool Details filter.
 - End-of-turn token counters are less detailed than intermediate counters, but they support the primary UX better. Keep
   intermediate counters available as an explicit diagnostic mode.
 
 ## Risks And Pitfalls
 
-- Index-based render-mode state can break if filtered item indexes are changed. Preserve original item indexes when
-  mapping rows.
+- Render-mode state must be keyed by stable item IDs. Do not reintroduce index-keyed render-mode state; product adapters
+  should provide unique transcript item IDs.
 - Token counter derivation based on "last token counter in turn" assumes the final counter is the end-of-turn summary.
   That matches current expectations but should be revisited if the data format later includes scope metadata.
 - Tool rows can become too quiet if details are hidden and the summary lacks status or timestamp. Keep enough metadata
@@ -549,10 +551,12 @@ Expected observation:
 - User, assistant, thinking, and tool rows keep their left role accent and remain easy to scan.
 - Message rows no longer look like standalone cards nested inside a turn card.
 - Tool calls can be shown as summary rows without input/output details.
-- Tool details can be enabled separately and still render literal input/output with copy behavior.
+- Tool details expand per row and render literal input/output with copy behavior when detail text or explicit detail
+  state is available.
 - Token counters default to one end-of-turn telemetry row per turn.
 - Intermediate token counters remain available as an explicit detail mode.
-- Source preservation, copy behavior, render defaults, filtering, and duplicate key/index behavior remain covered by tests.
+- Source preservation, copy behavior, render defaults, filtering, stable explicit IDs, and fallback key behavior remain
+  covered by tests.
 - `node --import tsx --test tests/sharp2/conversation.test.ts` passes.
 - `node --import tsx --test tests/sharp2/boundary.test.ts` passes.
 - `npm run check` passes before PR handoff.

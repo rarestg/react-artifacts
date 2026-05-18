@@ -45,8 +45,9 @@ export type TokenTelemetryPayload = {
 const INVALID_LIMIT_TEXT = 'invalid limit';
 const INVALID_USED_TEXT = 'invalid usage';
 const TOKEN_METER_BLOCKS = 20;
+const tokenNumberFormatter = new Intl.NumberFormat('en-US');
 
-const formatTokens = (n: number) => new Intl.NumberFormat('en-US').format(n);
+const formatTokens = (n: number) => tokenNumberFormatter.format(n);
 
 export function tokenCounterPropsFromTelemetry(
   payload: TokenTelemetryPayload,

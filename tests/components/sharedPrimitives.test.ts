@@ -104,7 +104,7 @@ test('shared toggle and checkbox include active-state parity classes', () => {
   assert.match(toggleOn, /active:bg-\[var\(--primary-active\)\]/);
 });
 
-test('shared checkbox keeps the check icon mounted when unchecked to avoid color-transition flicker', () => {
+test('shared checkbox keeps the check icon mounted and opacity-hidden to avoid transition flicker', () => {
   const unchecked = renderToStaticMarkup(
     createElement(Checkbox, {
       label: 'Checkbox',
@@ -122,9 +122,11 @@ test('shared checkbox keeps the check icon mounted when unchecked to avoid color
 
   assert.match(unchecked, /<svg\b/);
   assert.match(unchecked, /aria-hidden="true"/);
-  assert.match(unchecked, /text-\[var\(--checkbox-off-bg\)\]/);
+  assert.match(unchecked, /opacity-0/);
+  assert.match(unchecked, /transition-opacity/);
   assert.match(checked, /<svg\b/);
-  assert.doesNotMatch(checked, /text-\[var\(--checkbox-off-bg\)\]/);
+  assert.match(checked, /<svg[^>]*opacity-100/);
+  assert.doesNotMatch(checked, /<svg[^>]*opacity-0/);
 });
 
 test('FilterCheckbox exposes category tones, selected chip color, and a stable count badge', () => {

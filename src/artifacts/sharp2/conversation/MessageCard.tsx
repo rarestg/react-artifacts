@@ -21,14 +21,14 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
   const roleConfig: Record<MessageRole, { label: string; borderColor: string; labelColor: string; bgColor: string }> = {
     user: {
       label: 'User',
-      borderColor: 'border-l-[var(--category-blue)]',
-      labelColor: 'text-[var(--category-blue)]',
+      borderColor: 'border-l-[var(--category-green)]',
+      labelColor: 'text-[var(--category-green)]',
       bgColor: 'bg-[var(--surface)]',
     },
     assistant: {
       label: 'Assistant',
-      borderColor: 'border-l-[var(--category-green)]',
-      labelColor: 'text-[var(--category-green)]',
+      borderColor: 'border-l-[var(--category-blue)]',
+      labelColor: 'text-[var(--category-blue)]',
       bgColor: 'bg-[var(--surface)]',
     },
     thinking: {

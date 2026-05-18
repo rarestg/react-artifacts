@@ -29,7 +29,34 @@ export const getTurnItemKey = (item: TurnItem, originalIndex?: number) => {
   }
   if (item.type === 'tool_call') {
     return withOriginalIndex(
-      `tool-${hashFields(['tool_call', item.tool, item.timestamp ?? '', item.input, item.output, item.status ?? ''])}`,
+      `tool-${hashFields([
+        'tool_call',
+        item.toolKind ?? 'standard',
+        item.tool,
+        item.agentId ?? '',
+        item.agentNickname ?? '',
+        item.agentRole ?? '',
+        item.summary ?? '',
+        item.timestamp ?? '',
+        item.input,
+        item.output,
+        item.status ?? '',
+      ])}`,
+      originalIndex,
+    );
+  }
+  if (item.type === 'subagent_notification') {
+    return withOriginalIndex(
+      `subagent-${hashFields([
+        'subagent_notification',
+        item.agentId,
+        item.agentNickname ?? '',
+        item.agentRole ?? '',
+        item.status,
+        item.timestamp ?? '',
+        item.summary,
+        item.rawPayload ?? '',
+      ])}`,
       originalIndex,
     );
   }

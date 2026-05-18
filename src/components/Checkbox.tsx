@@ -97,7 +97,8 @@ export function Checkbox({
           aria-hidden="true"
           className={mergeClassNames(
             checkClassName ?? 'text-[var(--primary-contrast)]',
-            !checked && 'text-[var(--checkbox-off-bg)]',
+            checked ? 'opacity-100' : 'opacity-0',
+            'transition-opacity motion-reduce:transition-none',
             checkSize,
           )}
         />

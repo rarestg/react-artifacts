@@ -65,6 +65,30 @@ const turnThreeFinalTokenUsage = tokenCounterPropsFromTelemetry({
   },
 });
 
+const turnFourFinalTokenUsage = tokenCounterPropsFromTelemetry({
+  info: {
+    total_token_usage: {
+      input_tokens: 7600,
+      cached_input_tokens: 1800,
+      output_tokens: 2450,
+      reasoning_output_tokens: 1320,
+      total_tokens: 11370,
+    },
+    last_token_usage: {
+      input_tokens: 720,
+      cached_input_tokens: 120,
+      output_tokens: 340,
+      reasoning_output_tokens: 150,
+      total_tokens: 1210,
+    },
+    model_context_window: 200000,
+  },
+  rate_limits: {
+    primary: { used_percent: 94 },
+    secondary: { used_percent: 44 },
+  },
+});
+
 export const sampleConversation = [
   {
     id: 'turn-1',
@@ -251,6 +275,201 @@ The tests took **1.8s** total, with the debounce timing test accounting for most
         id: 'turn-3-token-2',
         type: 'token_counter',
         ...turnThreeFinalTokenUsage,
+      },
+    ],
+  },
+  {
+    id: 'turn-4',
+    turnNumber: 4,
+    timestamp: '10:46:12',
+    duration: '31.4s',
+    items: [
+      {
+        id: 'turn-4-user',
+        role: 'user',
+        content:
+          'Use a subagent to inspect why the parser sometimes attaches inherited session metadata to the active transcript. Keep the parent thread focused on orchestration and review the result before you answer.',
+        timestamp: '10:46:12',
+      },
+      {
+        id: 'turn-4-token-1',
+        type: 'token_counter',
+        used: 6010,
+        limit: 200000,
+        label: 'Context Window',
+      },
+      {
+        id: 'turn-4-thinking',
+        role: 'thinking',
+        content:
+          'This is a good use for a worker because the parser edge case can be inspected independently. I should spawn a subagent, wait for the result, then review it before responding.',
+        timestamp: '10:46:13',
+      },
+      {
+        id: 'turn-4-assistant-start',
+        role: 'assistant',
+        content: 'I will start a worker to inspect the parser edge case, then I will review its result here.',
+        timestamp: '10:46:14',
+      },
+      {
+        id: 'turn-4-spawn',
+        type: 'tool_call',
+        toolKind: 'subagent_spawn',
+        tool: 'spawn_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        summary: 'spawn_agent -> Ada / worker',
+        input: `{
+  "agent_type": "worker",
+  "message": "Inspect the failing parser case and report the root cause. Do not edit files.",
+  "reasoning_effort": "xhigh"
+}`,
+        output: `{
+  "agent_id": "child-thread-123",
+  "nickname": "Ada"
+}`,
+        timestamp: '10:46:15',
+        status: 'success',
+      },
+      {
+        id: 'turn-4-assistant-running',
+        role: 'assistant',
+        content: 'Ada is running. I will wait for the child session to finish before drawing conclusions.',
+        timestamp: '10:46:16',
+      },
+      {
+        id: 'turn-4-wait-1',
+        type: 'tool_call',
+        toolKind: 'subagent_wait',
+        tool: 'wait_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        summary: 'wait_agent -> Ada',
+        input: `{
+  "targets": ["child-thread-123"],
+  "timeout_ms": 600000
+}`,
+        output: `{
+  "status": {
+    "child-thread-123": {
+      "completed": "The parser is treating inherited metadata as current-session metadata."
+    }
+  },
+  "timed_out": false
+}`,
+        timestamp: '10:46:29',
+        status: 'success',
+      },
+      {
+        id: 'turn-4-notification-1',
+        type: 'subagent_notification',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        status: 'completed',
+        summary: 'The parser is treating inherited metadata as current-session metadata.',
+        rawPayload: `<subagent_notification>
+{"agent_path":"child-thread-123","status":{"completed":"The parser is treating inherited metadata as current-session metadata."}}
+</subagent_notification>`,
+        timestamp: '10:46:29',
+      },
+      {
+        id: 'turn-4-assistant-review',
+        role: 'assistant',
+        content:
+          'Ada found the likely root cause: later inherited metadata is overriding the active session identity. I will send one follow-up asking for the smallest fix before I summarize.',
+        timestamp: '10:46:30',
+      },
+      {
+        id: 'turn-4-send-input',
+        type: 'tool_call',
+        toolKind: 'subagent_send_input',
+        tool: 'send_input',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        summary: 'send_input -> Ada follow-up',
+        input: `{
+  "target": "child-thread-123",
+  "message": "Follow up: explain why this happens and suggest the smallest safe fix."
+}`,
+        output: `{
+  "submission_id": "submission-789"
+}`,
+        timestamp: '10:46:31',
+        status: 'success',
+      },
+      {
+        id: 'turn-4-wait-2',
+        type: 'tool_call',
+        toolKind: 'subagent_wait',
+        tool: 'wait_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        summary: 'wait_agent -> Ada follow-up result',
+        input: `{
+  "targets": ["child-thread-123"],
+  "timeout_ms": 600000
+}`,
+        output: `{
+  "status": {
+    "child-thread-123": {
+      "completed": "The smallest fix is to lock session identity from the first session_meta row only."
+    }
+  },
+  "timed_out": false
+}`,
+        timestamp: '10:46:40',
+        status: 'success',
+      },
+      {
+        id: 'turn-4-notification-2',
+        type: 'subagent_notification',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        status: 'completed',
+        summary: 'The smallest fix is to lock session identity from the first session_meta row only.',
+        rawPayload: `<subagent_notification>
+{"agent_path":"child-thread-123","status":{"completed":"The smallest fix is to lock session identity from the first session_meta row only."}}
+</subagent_notification>`,
+        timestamp: '10:46:40',
+      },
+      {
+        id: 'turn-4-close',
+        type: 'tool_call',
+        toolKind: 'subagent_close',
+        tool: 'close_agent',
+        agentId: 'child-thread-123',
+        agentNickname: 'Ada',
+        agentRole: 'worker',
+        summary: 'close_agent -> Ada',
+        input: `{
+  "target": "child-thread-123"
+}`,
+        output: `{
+  "previous_status": {
+    "completed": "The smallest fix is to lock session identity from the first session_meta row only."
+  }
+}`,
+        timestamp: '10:46:41',
+        status: 'success',
+      },
+      {
+        id: 'turn-4-assistant-final',
+        role: 'assistant',
+        content: `I reviewed Ada's result. The parent parser should treat the first \`session_meta\` in each JSONL file as the session identity and ignore later inherited metadata for identity fields.
+
+The smallest safe fix is to store the first header's session id, parent id, depth, nickname, and role before the content pass, then make later \`session_meta\` rows ordinary context records instead of identity overrides.`,
+        timestamp: '10:46:43',
+      },
+      {
+        id: 'turn-4-token-2',
+        type: 'token_counter',
+        ...turnFourFinalTokenUsage,
       },
     ],
   },

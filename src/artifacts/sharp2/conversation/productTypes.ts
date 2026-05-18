@@ -119,6 +119,8 @@ export type ToolStatus = KnownOrUnknown<
   'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'unknown'
 > | null;
 
+// Product adapters derive previews and call/output relationships upstream. The renderer
+// should not parse raw tool arguments or use callId as row state identity.
 export type ToolSummary = {
   name: string | null;
   callId: string | null;
@@ -250,6 +252,8 @@ export type SessionFamilyTimelineNode = {
   unresolved: boolean;
 };
 
+// Family timeline data is product-normalized context. Duplicate raw deliveries
+// such as a wait result plus notification should be grouped before rendering.
 export type SessionFamilyTimelineItem = {
   eventId: string;
   eventType: AgentEventType;

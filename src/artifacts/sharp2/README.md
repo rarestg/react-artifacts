@@ -28,8 +28,6 @@ Use this ownership model when resolving conflicts:
 | `fixtures.tsx` | Static search and conversation data used by the showcase. |
 | `components/*` | Sharp2-local showcase components that are not shared APIs. |
 | `conversation/*` | Sharp2-local conversation rendering examples, helpers, and renderer view-model types. |
-| `sharp2-migration-guide.md` | Historical migration checklist. It is stale as an active plan and should not be followed once this README is accepted. Keep it until the user signs off on removal. |
-| `sharp2.txt` | Older narrative notes. Treat this README and the root/design docs as current once this README is accepted. Keep it until the user signs off on removal. |
 
 ## Boundary
 
@@ -92,8 +90,8 @@ primitives, markdown helpers, and event-row parts are not shared APIs. Productio
 | `conversation/keys.ts` | Stable key helpers for turns and turn items. |
 | `conversation/types.ts` | Local conversation data and visibility types. |
 | `conversation/productTypes.ts` | Temporary type-only outline of the target `codexscope.product.v1` transcript/read contract. Replace with generated product DTOs when available. |
+| `conversation-rendering-preferences.md` | Current sharp2 conversation renderer design contract: row anatomy, semantics, controls, copy behavior, and metadata rules. |
 | `conversation-export-readiness.md` | Export-readiness notes for moving the renderer toward a product transcript pane without package extraction yet. |
-| `conversation-rendering-execution-plan.md` | Historical completed implementation plan. Keep it as context only; use this README and `conversation-rendering-preferences.md` for current behavior. |
 
 ## Patterns To Preserve
 

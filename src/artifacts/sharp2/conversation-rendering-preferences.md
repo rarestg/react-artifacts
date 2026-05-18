@@ -19,10 +19,10 @@ policy, but export work should preserve these rules unless product requirements 
   thinking amber, ordinary tool violet, and subagent cyan/system.
 - Role and event labels are uppercase. Event descriptors use compact pipe sections such as `TOOL | bash` and
   `SUBAGENT | Wait`; reserve action-section width so previews start on a shared line.
-- Preview pills should contain semantic text and let layout own truncation. Do not pre-truncate fixture/product strings
-  to satisfy one viewport.
-- Expandable rows use one semantic disclosure target over the full row. The chevron is visual; sibling timestamp/copy/tag
-  controls remain separate controls.
+- Preview pills should carry full semantic preview text; CSS/layout truncates it to the available row width. Do not
+  pre-truncate fixture/product strings to satisfy one viewport.
+- Expandable rows use one full-row disclosure button. The chevron is only the visual indicator; sibling
+  timestamp/copy/tag controls remain separate controls.
 
 ## Row Semantics
 

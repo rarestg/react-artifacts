@@ -154,6 +154,33 @@ Prioritize hard-won context over a chronological transcript. Include concrete pa
 
 Keep it concise and scannable so it can be pasted at the start of a new session.`,
   },
+  {
+    id: 'stacked-pr-review-orchestrator',
+    title: 'Stacked PR Review Orchestrator',
+    summary: 'Coordinate stacked PR review-comment triage, follow-up fixes, and durable replies.',
+    tags: ['review', 'implementation', 'planning', 'subagents'],
+    context:
+      'Use when a stack of dependent pull requests has accumulated review comments across multiple PRs, and fixes should land in a new PR above the current stack rather than by amending older reviewed branches.',
+    prompt: `Please dispatch a fresh subagent as the mini-PM for stacked PR review-comment cleanup.
+
+The mini-PM must first read the installed GitHub review workflow skill at ~/.agents/skills/github-review-workflow/SKILL.md and its referenced SOP, then use its export scripts and durable reply queue.
+
+Give the mini-PM the PR stack, current branch context, and top-of-stack branch if known. They own exporting review bundles for every PR, stack-aware triage, implementation coordination, follow-up PR creation, queued replies, review-file moves per SOP, and the final report.
+
+Triage bottom to top. Treat lower-PR comments as potentially superseded by later changes: each may already be addressed, now live in another file or branch, be obsolete, be intentionally declined, or still identify a real issue at the current location. Do not assume a comment remains valid just because it was proposed when written.
+
+Fan out triage to additional subagents only when stack size or comment volume justifies the coordination cost. For each comment, decide: already addressed, obsolete, will not take with rationale, or will fix.
+
+For each still-valid comment, propose the best current-codebase fix. Before implementation, a fresh subagent must review the proposal with enough context to assess the original comment, current location, rationale, constraints, smaller alternatives, whether no change is justified, and relevant risks or tests.
+
+Create durable reply-queue drafts as decisions are made. Implement only accepted fixes. Do not amend, rebase, force-push, or otherwise update older reviewed PR branches. All code fixes must land on a new branch and PR stacked above the current highest PR. Keep changes scoped to review resolution.
+
+If implementation is delegated, avoid overlapping file edits, review diffs, run relevant checks, commit, push, and open the new top-of-stack PR according to the workflow.
+
+After the follow-up PR exists, use the workflow's reply queue to post replies to the original comments, referencing the new PR for fixed comments. Leave outside-diff or nitpick items local-only unless the SOP says otherwise.
+
+Return a concise report with the PR stack, comments reviewed, comments fixed, comments declined or obsolete, files changed, checks run, follow-up PR URL, and remaining risks.`,
+  },
 ] as const satisfies readonly PromptEntry[];
 
 export function getPromptTag(id: PromptTagId): PromptTag {

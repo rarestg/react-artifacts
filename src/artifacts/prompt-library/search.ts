@@ -1,6 +1,6 @@
 import Fuse, { type Expression, type FuseResult, type FuseResultMatch, type IFuseOptions } from 'fuse.js';
 
-import type { PromptEntry, PromptTagId } from './prompts';
+import { type PromptEntry, type PromptTagId, renderPromptText } from './prompts';
 
 type MatchRange = readonly [number, number];
 type DisplayMatchSource = 'phrase' | 'token' | 'fuse' | 'none';
@@ -56,6 +56,16 @@ export const promptFuseOptions = {
   findAllMatches: true,
   threshold: 0.35,
   minMatchCharLength: 2,
+  getFn: (entry, path) => {
+    const key = Array.isArray(path) ? path[0] : path;
+
+    if (key === 'prompt') {
+      return renderPromptText(entry);
+    }
+
+    const value = entry[key as keyof PromptEntry];
+    return typeof value === 'string' || Array.isArray(value) ? value : '';
+  },
 } satisfies IFuseOptions<PromptEntry>;
 
 const promptLiteralSearchFields = ['title', 'tags', 'summary', 'context', 'prompt'] as const;
@@ -194,7 +204,11 @@ export function pickResultSnippet(result: PromptSearchResult | undefined, radius
     const displayMatch = candidates.find(({ candidate }) => candidate.source === source && candidate.indices.length);
     if (!displayMatch) continue;
 
-    const snippet = makeSnippet(result.prompt[displayMatch.field], displayMatch.candidate.indices, radius);
+    const snippet = makeSnippet(
+      getPromptDisplayFieldText(result.prompt, displayMatch.field),
+      displayMatch.candidate.indices,
+      radius,
+    );
     return { ...snippet, field: displayMatch.field };
   }
 
@@ -251,11 +265,15 @@ function getPromptDisplayMatches(result: PromptSearchResult, query: string) {
       { field: 'title', text: result.prompt.title, fuseIndices: titleMatch?.indices },
       { field: 'summary', text: result.prompt.summary, fuseIndices: summaryMatch?.indices },
       { field: 'context', text: result.prompt.context, fuseIndices: contextMatch?.indices },
-      { field: 'prompt', text: result.prompt.prompt, fuseIndices: promptMatch?.indices },
+      { field: 'prompt', text: renderPromptText(result.prompt), fuseIndices: promptMatch?.indices },
       { field: 'tags', text: result.prompt.tags.join(' ') },
     ],
     query,
   );
+}
+
+function getPromptDisplayFieldText(prompt: PromptEntry, field: 'summary' | 'context' | 'prompt'): string {
+  return field === 'prompt' ? renderPromptText(prompt) : prompt[field];
 }
 
 function getMultiTokenLiteralSearchQuery(query: string): Expression | undefined {

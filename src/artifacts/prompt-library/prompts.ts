@@ -1,4 +1,11 @@
-export type PromptTagId = 'review' | 'implementation' | 'planning' | 'subagents' | 'risk' | 'architecture';
+export type PromptTagId =
+  | 'review'
+  | 'implementation'
+  | 'planning'
+  | 'subagents'
+  | 'risk'
+  | 'architecture'
+  | 'synthesis';
 
 const promptTagColorIdValues = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime'] as const;
 
@@ -56,6 +63,12 @@ export const promptTags = [
     label: 'Architecture',
     description: 'Prompts that evaluate design cleanliness, maintainability, and larger structural alternatives.',
     color: 'cyan',
+  },
+  {
+    id: 'synthesis',
+    label: 'Synthesis',
+    description: 'Prompts that compress source material into insights, implications, and actionable takeaways.',
+    color: 'pink',
   },
 ] as const satisfies readonly PromptTag[];
 
@@ -153,6 +166,31 @@ Focus on the information that would materially shorten their ramp-up: the curren
 Prioritize hard-won context over a chronological transcript. Include concrete paths, names, commands, URLs, and dates when useful. Distinguish confirmed facts from assumptions or recommendations.
 
 Keep it concise and scannable so it can be pasted at the start of a new session.`,
+  },
+  {
+    id: 'founder-transcript-synthesis',
+    title: 'Founder Transcript Synthesis',
+    summary:
+      'Extract actionable founder-oriented insight from a video, talk, interview, podcast, or lecture transcript.',
+    tags: ['planning', 'synthesis'],
+    context:
+      'Use when you have a transcript from a video, talk, interview, podcast, or lecture and want concise strategic synthesis for a technically minded startup founder.',
+    prompt: `Analyze the transcript I provide as source material from a video, talk, interview, podcast, or lecture.
+
+Give me a deep but concise synthesis of what is presented. Write for a technically minded startup founder who is hungry for knowledge, opportunity, and better strategic judgment.
+
+Focus on:
+
+- The core thesis or worldview behind the material.
+- The most important ideas, arguments, frameworks, or claims.
+- Which insights are practically actionable, and what someone could do differently because of them.
+- The non-obvious lessons that could change a person's trajectory, priorities, perspective, or way of thinking.
+- Any assumptions, blind spots, incentives, or caveats that should temper the advice.
+- The strongest opportunities, risks, or strategic implications for a technical founder.
+
+Do not merely recap the transcript in order. Distill it. Separate signal from filler. Preserve nuance where it matters, and say when an idea is interesting but not clearly actionable.
+
+Use whatever structure best fits the material, but keep the result concise enough to be useful.`,
   },
   {
     id: 'stacked-pr-review-orchestrator',

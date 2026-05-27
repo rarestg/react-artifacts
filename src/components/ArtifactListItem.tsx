@@ -1,5 +1,6 @@
 import { Layers, Square, SquareArrowOutUpRight } from 'lucide-react';
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 import type { ArtifactEntry } from '../artifacts';
 import { mergeClassNames } from '../lib/classNames';
@@ -18,7 +19,108 @@ const getStandaloneUrl = (id: string) => {
   return `${normalizedBase}artifact/${encodeURIComponent(id)}`;
 };
 
+type TooltipPosition = {
+  left: number;
+  top: number;
+  placement: 'bottom' | 'top';
+};
+
+const TOOLTIP_OFFSET = 8;
+const TOOLTIP_WIDTH = 256;
+const TOOLTIP_MARGIN = 12;
+const TOOLTIP_ESTIMATED_HEIGHT = 96;
+
 export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListItemProps) {
+  const subtitleRef = React.useRef<HTMLDivElement>(null);
+  const tooltipId = React.useId();
+  const [subtitleHovered, setSubtitleHovered] = React.useState(false);
+  const [buttonFocused, setButtonFocused] = React.useState(false);
+  const [tooltipPosition, setTooltipPosition] = React.useState<TooltipPosition | null>(null);
+  const tooltipVisible = Boolean(artifact.subtitle && (subtitleHovered || buttonFocused));
+
+  const updateTooltipPosition = React.useCallback(() => {
+    const subtitleElement = subtitleRef.current;
+
+    if (!subtitleElement || typeof window === 'undefined') {
+      return;
+    }
+
+    const rect = subtitleElement.getBoundingClientRect();
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const maxLeft = Math.max(TOOLTIP_MARGIN, viewportWidth - TOOLTIP_WIDTH - TOOLTIP_MARGIN);
+    const left = Math.min(Math.max(rect.left, TOOLTIP_MARGIN), maxLeft);
+    const spaceBelow = viewportHeight - rect.bottom - TOOLTIP_MARGIN;
+    const spaceAbove = rect.top - TOOLTIP_MARGIN;
+    const placement = spaceBelow < TOOLTIP_ESTIMATED_HEIGHT && spaceAbove > spaceBelow ? 'top' : 'bottom';
+
+    setTooltipPosition({
+      left,
+      top: placement === 'top' ? rect.top - TOOLTIP_OFFSET : rect.bottom + TOOLTIP_OFFSET,
+      placement,
+    });
+  }, []);
+
+  const handleButtonFocus = React.useCallback(() => {
+    updateTooltipPosition();
+    setButtonFocused(true);
+  }, [updateTooltipPosition]);
+
+  const handleButtonBlur = React.useCallback(() => {
+    setButtonFocused(false);
+  }, []);
+
+  const handleButtonMouseMove = React.useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const hoveringSubtitle = Boolean(subtitleRef.current?.contains(event.target as Node));
+
+      if (hoveringSubtitle) {
+        updateTooltipPosition();
+      }
+
+      setSubtitleHovered(hoveringSubtitle);
+    },
+    [updateTooltipPosition],
+  );
+
+  const handleButtonMouseLeave = React.useCallback(() => {
+    setSubtitleHovered(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (!tooltipVisible) {
+      return;
+    }
+
+    updateTooltipPosition();
+    window.addEventListener('resize', updateTooltipPosition);
+    window.addEventListener('scroll', updateTooltipPosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateTooltipPosition);
+      window.removeEventListener('scroll', updateTooltipPosition, true);
+    };
+  }, [tooltipVisible, updateTooltipPosition]);
+
+  const tooltip =
+    artifact.subtitle && tooltipVisible && tooltipPosition && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            id={tooltipId}
+            role="tooltip"
+            className="pointer-events-none fixed z-50 w-64 border border-gray-200 bg-white px-2.5 py-2 text-xs leading-snug text-gray-700 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+            style={{
+              left: tooltipPosition.left,
+              top: tooltipPosition.top,
+              transform: tooltipPosition.placement === 'top' ? 'translateY(-100%)' : undefined,
+            }}
+          >
+            {artifact.subtitle}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return React.createElement(
     'li',
     null,
@@ -26,7 +128,12 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
       <button
         type="button"
         aria-label={`Select ${artifact.name}`}
+        aria-describedby={tooltipVisible && artifact.subtitle ? tooltipId : undefined}
         onClick={() => onSelect(artifact.id)}
+        onFocus={artifact.subtitle ? handleButtonFocus : undefined}
+        onBlur={artifact.subtitle ? handleButtonBlur : undefined}
+        onMouseMove={artifact.subtitle ? handleButtonMouseMove : undefined}
+        onMouseLeave={artifact.subtitle ? handleButtonMouseLeave : undefined}
         className={mergeClassNames(
           'block w-full cursor-pointer px-3 pt-2 pr-12 pb-2 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950',
           selected
@@ -43,7 +150,9 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
           <span className="truncate">{artifact.name}</span>
         </div>
         {artifact.subtitle && (
-          <div className="mt-0.5 truncate text-[11px] text-gray-500 dark:text-slate-400">{artifact.subtitle}</div>
+          <div ref={subtitleRef} className="mt-0.5 truncate text-[11px] text-gray-500 dark:text-slate-400">
+            {artifact.subtitle}
+          </div>
         )}
         {(artifact.model || artifact.version) && (
           <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
@@ -72,6 +181,7 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
       >
         <SquareArrowOutUpRight className="size-3.5" aria-hidden="true" />
       </a>
+      {tooltip}
     </div>,
   );
 }

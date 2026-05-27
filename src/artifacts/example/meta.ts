@@ -1,6 +1,6 @@
 const meta = {
   name: 'Example Artifact',
-  subtitle: 'Single-file demo component',
+  subtitle: 'Demonstrate theme tokens, palette switching, and semantic color swatches',
   kind: 'single',
   model: 'claude',
   version: 'opus 4.5',

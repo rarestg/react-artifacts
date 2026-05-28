@@ -273,8 +273,8 @@ function PromptCommandPalette({
       shouldFilter={false}
       loop
       container={container ?? undefined}
-      overlayClassName="pointer-events-auto absolute inset-0 z-40 bg-[var(--overlay)]"
-      contentClassName="pointer-events-auto absolute left-1/2 top-4 z-50 flex max-h-[calc(100%-2rem)] w-[calc(100%-2rem)] max-w-[42rem] -translate-x-1/2 flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
+      overlayClassName="pointer-events-auto fixed inset-0 z-40 bg-[var(--overlay)]"
+      contentClassName="pointer-events-auto fixed left-1/2 top-4 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[42rem] -translate-x-1/2 flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
       className="flex min-h-0 flex-col overflow-hidden"
     >
       <DialogTitle className="sr-only">Search prompts</DialogTitle>
@@ -606,7 +606,7 @@ function PromptDetailDialog({
       footer={<CopyButton text={renderedPrompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy Prompt" />}
       closeLabel="Close prompt details"
       container={container}
-      placement="contained"
+      placement="viewport"
       align="center"
       contentClassName="max-w-[46rem]"
       bodyClassName="flex flex-col gap-4"

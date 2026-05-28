@@ -25,6 +25,7 @@ import {
   filterPromptsByTags,
   getDisplayMatchesForFields,
   getHighlightedSegments,
+  getMatchedPromptSearchVariant,
   getMatchForKey,
   getPromptHeaderDisplayMatches,
   type PromptSearchResult,
@@ -560,15 +561,18 @@ function PromptDetailDialog({
   onClose: () => void;
 }) {
   const defaultModifierOptionId = getDefaultPromptModifierOptionId(prompt);
-  const [selectedModifierOptionId, setSelectedModifierOptionId] = useState(defaultModifierOptionId);
-  const renderedPrompt = renderPromptText(prompt, selectedModifierOptionId);
-  const defaultRenderedPrompt = renderPromptText(prompt);
   const matchingSearchResult = searchResult?.prompt.id === prompt.id ? searchResult : undefined;
+  const matchedPromptVariant = matchingSearchResult
+    ? getMatchedPromptSearchVariant(matchingSearchResult, searchQuery)
+    : undefined;
+  const initialModifierOptionId = matchedPromptVariant?.optionId ?? defaultModifierOptionId;
+  const [selectedModifierOptionId, setSelectedModifierOptionId] = useState(initialModifierOptionId);
+  const renderedPrompt = renderPromptText(prompt, selectedModifierOptionId);
   const titleMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'title') : undefined;
   const summaryMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'summary') : undefined;
   const contextMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'context') : undefined;
-  const promptMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'prompt') : undefined;
-  const promptFuseIndices = renderedPrompt === defaultRenderedPrompt ? promptMatch?.indices : undefined;
+  const promptFuseIndices =
+    renderedPrompt === matchedPromptVariant?.text ? matchedPromptVariant.fuseIndices : undefined;
   const [titleDisplayMatch, summaryDisplayMatch, contextDisplayMatch, promptDisplayMatch] = matchingSearchResult
     ? getDisplayMatchesForFields(
         [
@@ -588,8 +592,8 @@ function PromptDetailDialog({
   const highlightedTagIds = matchingSearchResult ? getMatchedTagIds(matchingSearchResult) : EMPTY_HIGHLIGHTED_TAG_IDS;
 
   useEffect(() => {
-    setSelectedModifierOptionId(defaultModifierOptionId);
-  }, [defaultModifierOptionId]);
+    setSelectedModifierOptionId(initialModifierOptionId);
+  }, [initialModifierOptionId]);
 
   return (
     <ArtifactDialog

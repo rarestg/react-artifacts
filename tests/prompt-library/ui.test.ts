@@ -6,6 +6,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { prompts, renderPromptText } from '../../src/artifacts/prompt-library/prompts';
+import { getMatchedPromptSearchVariant, searchPrompts } from '../../src/artifacts/prompt-library/search';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
@@ -15,7 +16,7 @@ async function renderPromptLibrary() {
   return renderToStaticMarkup(createElement(PromptLibrary));
 }
 
-async function renderProposalPromptDetailContent() {
+async function renderProposalPromptDetailContent(selectedModifierOptionId?: string) {
   const { PromptDetailContent } = await import('../../src/artifacts/prompt-library');
   const prompt = prompts.find((entry) => entry.id === 'proposal-review-subagent');
 
@@ -25,8 +26,8 @@ async function renderProposalPromptDetailContent() {
   return renderToStaticMarkup(
     createElement(PromptDetailContent, {
       prompt,
-      renderedPrompt: renderPromptText(prompt),
-      selectedModifierOptionId: prompt.modifier.defaultOptionId,
+      renderedPrompt: renderPromptText(prompt, selectedModifierOptionId),
+      selectedModifierOptionId: selectedModifierOptionId ?? prompt.modifier.defaultOptionId,
       onModifierOptionChange: () => undefined,
     }),
   );
@@ -101,4 +102,23 @@ test('prompt detail modifier controls stay in the prompt section header', async 
   assert.equal(promptBody.contains(sourceTypeControl), false);
   assert.equal(promptHeader.nextElementSibling, promptBody);
   assert.equal(promptBody.firstElementChild, promptPre);
+});
+
+test('prompt detail content can render a search-matched non-default modifier variant', async () => {
+  const query = 'proposed paths';
+  const [result] = searchPrompts(prompts, query);
+
+  assert.ok(result);
+
+  const variant = getMatchedPromptSearchVariant(result, query);
+
+  assert.ok(variant);
+  assert.equal(variant?.optionId, 'multiple-proposals');
+
+  const document = parseMarkup(await renderProposalPromptDetailContent(variant.optionId));
+  const promptPre = document.querySelector('[data-prompt-detail-section="prompt"] pre');
+
+  assert.ok(promptPre);
+  assert.match(promptPre.textContent ?? '', /proposed paths/i);
+  assert.doesNotMatch(promptPre.textContent ?? '', /this is the best path/i);
 });

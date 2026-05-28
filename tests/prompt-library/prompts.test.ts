@@ -114,12 +114,18 @@ test('proposal review prompt renders multiple proposal modifier text', () => {
 
   const renderedPrompt = renderPromptText(prompt, 'multiple-proposals');
 
-  assert.match(renderedPrompt, /review the current proposals before we act on them/);
-  assert.match(renderedPrompt, /why these directions were proposed/);
-  assert.match(renderedPrompt, /whether the proposed paths are sound independently or in combination/);
-  assert.match(renderedPrompt, /"The proposals are solid," "some proposals should change,"/);
-  assert.doesNotMatch(renderedPrompt, /one of these proposals is the best path/i);
-  assert.doesNotMatch(renderedPrompt, /One of the proposals is solid/);
+  assert.equal(
+    renderedPrompt,
+    `Please dispatch a fresh subagent to review the current proposals before we act on them.
+
+Give them enough context to understand the goal, what led to these proposals, the relevant code or architecture areas they touch, and why these directions were proposed. Summarize the proposals and assumptions clearly. Make clear that the proposals are context, not conclusions.
+
+Ask them to evaluate from first principles whether the proposed paths are sound independently or in combination. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons no changes are needed.
+
+They should not manufacture objections. "The proposals are solid," "some proposals should change," and "none of the proposals are needed" are valid answers if the evidence supports them.
+
+After they report back, compare their assessment with yours. Synthesize the strongest path forward, including combining, narrowing, changing, or rejecting proposals as warranted.`,
+  );
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 

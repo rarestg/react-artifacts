@@ -124,13 +124,16 @@ After they report back, compare their findings with your own view and recommend 
           label: 'Plan',
           replacements: {
             reviewSubjectClause: 'the current plan before we act on it',
-            directionStatus: 'this direction was proposed',
+            contextOverview:
+              'the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed',
             sourceInstruction:
               'If there is a written plan or document, point them to it; otherwise summarize the plan and assumptions clearly.',
-            contextStatement: 'the plan is',
+            contextRoleStatement: 'the plan is context, not a conclusion',
             soundnessQuestion: 'this is the best path',
+            changeOutcome: 'no change is needed',
             validOutcomeExamples: '"The plan is solid," "a smaller change is enough," and "no change is needed"',
-            originalDirection: 'the original plan',
+            synthesisInstruction:
+              "compare their view with yours. Synthesize the strongest overall path, not merely a choice between the original plan and the subagent's view.",
           },
         },
         {
@@ -138,12 +141,15 @@ After they report back, compare their findings with your own view and recommend 
           label: 'Proposal',
           replacements: {
             reviewSubjectClause: 'the current proposal before we act on it',
-            directionStatus: 'this direction was proposed',
+            contextOverview:
+              'the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed',
             sourceInstruction: 'Summarize the proposal and assumptions clearly.',
-            contextStatement: 'the proposal is',
+            contextRoleStatement: 'the proposal is context, not a conclusion',
             soundnessQuestion: 'this is the best path',
+            changeOutcome: 'no change is needed',
             validOutcomeExamples: '"The proposal is solid," "a smaller change is enough," and "no change is needed"',
-            originalDirection: 'the original proposal',
+            synthesisInstruction:
+              "compare their view with yours. Synthesize the strongest overall path, not merely a choice between the original proposal and the subagent's view.",
           },
         },
         {
@@ -151,26 +157,29 @@ After they report back, compare their findings with your own view and recommend 
           label: 'Multiple proposals',
           replacements: {
             reviewSubjectClause: 'the current proposals before we act on them',
-            directionStatus: 'these directions were proposed',
+            contextOverview:
+              'the goal, what led to these proposals, the relevant code or architecture areas they touch, and why these directions were proposed',
             sourceInstruction: 'Summarize the proposals and assumptions clearly.',
-            contextStatement: 'the proposals are',
+            contextRoleStatement: 'the proposals are context, not conclusions',
             soundnessQuestion: 'the proposed paths are sound independently or in combination',
+            changeOutcome: 'no changes are needed',
             validOutcomeExamples:
               '"The proposals are solid," "some proposals should change," and "none of the proposals are needed"',
-            originalDirection: 'the original proposals',
+            synthesisInstruction:
+              'compare their assessment with yours. Synthesize the strongest path forward, including combining, narrowing, changing, or rejecting proposals as warranted.',
           },
         },
       ],
     },
     prompt: `Please dispatch a fresh subagent to review {{reviewSubjectClause}}.
 
-Give them enough context to understand the goal, the issue that led here, the relevant code or architecture area, and why {{directionStatus}}. {{sourceInstruction}} Make clear that {{contextStatement}} context, not a conclusion.
+Give them enough context to understand {{contextOverview}}. {{sourceInstruction}} Make clear that {{contextRoleStatement}}.
 
-Ask them to evaluate from first principles whether {{soundnessQuestion}}. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons no change is needed.
+Ask them to evaluate from first principles whether {{soundnessQuestion}}. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons {{changeOutcome}}.
 
 They should not manufacture objections. {{validOutcomeExamples}} are valid answers if the evidence supports them.
 
-After they report back, compare their view with yours. Synthesize the strongest overall path, not merely a choice between {{originalDirection}} and the subagent's view.`,
+After they report back, {{synthesisInstruction}}`,
   },
   {
     id: 'self-contained-execution-plan',

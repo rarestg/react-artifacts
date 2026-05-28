@@ -1,27 +1,31 @@
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
 import { Search } from 'lucide-react';
-import { type CSSProperties, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
 import { FilterCheckbox } from '../../components/FilterCheckbox';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
 import {
+  getDefaultPromptModifierOptionId,
   getPromptTag,
   type PromptEntry,
   type PromptTagColorId,
   type PromptTagId,
   prompts,
   promptTags,
+  renderPromptText,
 } from './prompts';
 import {
   filterPromptsByTags,
   getDisplayMatchesForFields,
   getHighlightedSegments,
+  getMatchedPromptSearchVariant,
   getMatchForKey,
   getPromptHeaderDisplayMatches,
   type PromptSearchResult,
@@ -42,6 +46,8 @@ type HighlightIndices = readonly (readonly [number, number])[];
 
 const EMPTY_HIGHLIGHTED_TAG_IDS: readonly PromptTagId[] = [];
 const EMPTY_HIGHLIGHT_INDICES: HighlightIndices = [];
+
+type PromptDetailSectionId = 'usage-context' | 'prompt';
 
 type PromptTagColorStyle = CSSProperties & {
   '--prompt-tag-color': string;
@@ -192,6 +198,7 @@ export default function PromptLibrary() {
 
       {activePrompt && (
         <PromptDetailDialog
+          key={activePrompt.id}
           prompt={activePrompt}
           searchResult={activeSearchResult}
           searchQuery={activeSearchQuery}
@@ -230,7 +237,7 @@ function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: 
         >
           {prompt.title}
         </button>
-        <CopyButton text={prompt.prompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy" />
+        <CopyButton text={renderPromptText(prompt)} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy" />
       </div>
       <p className="text-sm text-[var(--text)]">{prompt.summary}</p>
       <p className="line-clamp-4 text-xs leading-5 text-[var(--text-muted)]">{prompt.context}</p>
@@ -422,6 +429,120 @@ function getMatchedTagIds(result: PromptSearchResult): PromptTagId[] {
   return [...tagIds];
 }
 
+function PromptDetailSection({
+  sectionId,
+  title,
+  controls,
+  children,
+  bodyClassName,
+}: {
+  sectionId: PromptDetailSectionId;
+  title: string;
+  controls?: ReactNode;
+  children: ReactNode;
+  bodyClassName?: string;
+}) {
+  const titleId = useId();
+
+  return (
+    <section data-prompt-detail-section={sectionId} aria-labelledby={titleId} className="min-w-0 flex flex-col gap-2">
+      <div
+        data-prompt-detail-section-header=""
+        className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2"
+      >
+        <h3 id={titleId} className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+          {title}
+        </h3>
+        {controls && (
+          <div data-prompt-detail-section-controls="" className="flex min-w-0 flex-wrap items-center gap-2">
+            {controls}
+          </div>
+        )}
+      </div>
+      <div data-prompt-detail-section-body="" className={mergeClassNames('min-w-0', bodyClassName)}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function PromptModifierControl({
+  label,
+  value,
+  onValueChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: readonly { value: string; label: string }[];
+}) {
+  return (
+    <>
+      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
+      <SegmentedControl
+        ariaLabel={label}
+        value={value}
+        onValueChange={onValueChange}
+        options={options}
+        size="compact"
+      />
+    </>
+  );
+}
+
+export function PromptDetailContent({
+  prompt,
+  renderedPrompt,
+  selectedModifierOptionId,
+  onModifierOptionChange,
+  highlightedTagIds = EMPTY_HIGHLIGHTED_TAG_IDS,
+  contextIndices,
+  promptIndices,
+}: {
+  prompt: PromptEntry;
+  renderedPrompt: string;
+  selectedModifierOptionId?: string;
+  onModifierOptionChange: (optionId: string) => void;
+  highlightedTagIds?: readonly PromptTagId[];
+  contextIndices?: HighlightIndices;
+  promptIndices?: HighlightIndices;
+}) {
+  const modifierOptions = prompt.modifier?.options.map((option) => ({
+    value: option.id,
+    label: option.label,
+  }));
+  const modifierControl =
+    prompt.modifier && modifierOptions ? (
+      <PromptModifierControl
+        label={prompt.modifier.label}
+        value={selectedModifierOptionId ?? prompt.modifier.defaultOptionId}
+        onValueChange={onModifierOptionChange}
+        options={modifierOptions}
+      />
+    ) : undefined;
+
+  return (
+    <>
+      <PromptTags prompt={prompt} highlightedTagIds={highlightedTagIds} />
+      <PromptDetailSection
+        sectionId="usage-context"
+        title="Usage Context"
+        bodyClassName="text-sm text-[var(--text-muted)]"
+      >
+        <p>
+          <HighlightedText text={prompt.context} indices={contextIndices} />
+        </p>
+      </PromptDetailSection>
+      <PromptDetailSection sectionId="prompt" title="Prompt" controls={modifierControl} bodyClassName="min-h-0">
+        <pre className="max-h-80 overflow-auto whitespace-pre-wrap border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5 text-[var(--text)]">
+          <HighlightedText text={renderedPrompt} indices={promptIndices} />
+        </pre>
+      </PromptDetailSection>
+    </>
+  );
+}
+
 function PromptDetailDialog({
   prompt,
   searchResult,
@@ -439,18 +560,26 @@ function PromptDetailDialog({
   fallbackFocusTo?: HTMLElement | null;
   onClose: () => void;
 }) {
+  const defaultModifierOptionId = getDefaultPromptModifierOptionId(prompt);
   const matchingSearchResult = searchResult?.prompt.id === prompt.id ? searchResult : undefined;
+  const matchedPromptVariant = matchingSearchResult
+    ? getMatchedPromptSearchVariant(matchingSearchResult, searchQuery)
+    : undefined;
+  const initialModifierOptionId = matchedPromptVariant?.optionId ?? defaultModifierOptionId;
+  const [selectedModifierOptionId, setSelectedModifierOptionId] = useState(initialModifierOptionId);
+  const renderedPrompt = renderPromptText(prompt, selectedModifierOptionId);
   const titleMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'title') : undefined;
   const summaryMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'summary') : undefined;
   const contextMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'context') : undefined;
-  const promptMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'prompt') : undefined;
+  const promptFuseIndices =
+    renderedPrompt === matchedPromptVariant?.text ? matchedPromptVariant.fuseIndices : undefined;
   const [titleDisplayMatch, summaryDisplayMatch, contextDisplayMatch, promptDisplayMatch] = matchingSearchResult
     ? getDisplayMatchesForFields(
         [
           { field: 'title', text: prompt.title, fuseIndices: titleMatch?.indices },
           { field: 'summary', text: prompt.summary, fuseIndices: summaryMatch?.indices },
           { field: 'context', text: prompt.context, fuseIndices: contextMatch?.indices },
-          { field: 'prompt', text: prompt.prompt, fuseIndices: promptMatch?.indices },
+          { field: 'prompt', text: renderedPrompt, fuseIndices: promptFuseIndices },
           { field: 'tags', text: prompt.tags.join(' ') },
         ],
         searchQuery,
@@ -462,6 +591,10 @@ function PromptDetailDialog({
   const promptIndices = promptDisplayMatch?.indices;
   const highlightedTagIds = matchingSearchResult ? getMatchedTagIds(matchingSearchResult) : EMPTY_HIGHLIGHTED_TAG_IDS;
 
+  useEffect(() => {
+    setSelectedModifierOptionId(initialModifierOptionId);
+  }, [initialModifierOptionId]);
+
   return (
     <ArtifactDialog
       open={Boolean(prompt)}
@@ -470,7 +603,7 @@ function PromptDetailDialog({
       }}
       title={<HighlightedText text={prompt.title} indices={titleIndices} />}
       description={<HighlightedText text={prompt.summary} indices={summaryIndices} />}
-      footer={<CopyButton text={prompt.prompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy Prompt" />}
+      footer={<CopyButton text={renderedPrompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy Prompt" />}
       closeLabel="Close prompt details"
       container={container}
       placement="contained"
@@ -481,21 +614,15 @@ function PromptDetailDialog({
       returnFocusTo={returnFocusTo}
       fallbackFocusTo={fallbackFocusTo}
     >
-      <PromptTags prompt={prompt} highlightedTagIds={highlightedTagIds} />
-      <section className="text-sm text-[var(--text-muted)]">
-        <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-          Usage Context
-        </h3>
-        <p>
-          <HighlightedText text={prompt.context} indices={contextIndices} />
-        </p>
-      </section>
-      <section className="min-h-0">
-        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">Prompt</h3>
-        <pre className="max-h-80 overflow-auto whitespace-pre-wrap border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5 text-[var(--text)]">
-          <HighlightedText text={prompt.prompt} indices={promptIndices} />
-        </pre>
-      </section>
+      <PromptDetailContent
+        prompt={prompt}
+        renderedPrompt={renderedPrompt}
+        selectedModifierOptionId={selectedModifierOptionId}
+        onModifierOptionChange={setSelectedModifierOptionId}
+        highlightedTagIds={highlightedTagIds}
+        contextIndices={contextIndices}
+        promptIndices={promptIndices}
+      />
     </ArtifactDialog>
   );
 }

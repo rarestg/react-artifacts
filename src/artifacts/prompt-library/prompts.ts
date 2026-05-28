@@ -25,6 +25,19 @@ export type PromptEntry = {
   tags: readonly PromptTagId[];
   context: string;
   prompt: string;
+  modifier?: PromptModifier;
+};
+
+export type PromptModifierOption = {
+  id: string;
+  label: string;
+  replacements: Readonly<Record<string, string>>;
+};
+
+export type PromptModifier = {
+  label: string;
+  defaultOptionId: string;
+  options: readonly PromptModifierOption[];
 };
 
 export const promptTags = [
@@ -102,15 +115,71 @@ After they report back, compare their findings with your own view and recommend 
     tags: ['review', 'implementation', 'subagents', 'architecture'],
     context:
       'Use after an agent proposes a solution, design, or implementation plan, especially before implementation or when design tradeoffs are subtle.',
-    prompt: `Please dispatch a fresh subagent to review the current proposal or plan before we act on it.
+    modifier: {
+      label: 'Source type',
+      defaultOptionId: 'plan',
+      options: [
+        {
+          id: 'plan',
+          label: 'Plan',
+          replacements: {
+            reviewSubjectClause: 'the current plan before we act on it',
+            contextOverview:
+              'the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed',
+            sourceInstruction:
+              'If there is a written plan or document, point them to it; otherwise summarize the plan and assumptions clearly.',
+            contextRoleStatement: 'the plan is context, not a conclusion',
+            soundnessQuestion: 'this is the best path',
+            changeOutcome: 'no change is needed',
+            validOutcomeExamples: '"The plan is solid," "a smaller change is enough," and "no change is needed"',
+            synthesisInstruction:
+              "compare their view with yours. Synthesize the strongest overall path, not merely a choice between the original plan and the subagent's view.",
+          },
+        },
+        {
+          id: 'proposal',
+          label: 'Proposal',
+          replacements: {
+            reviewSubjectClause: 'the current proposal before we act on it',
+            contextOverview:
+              'the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed',
+            sourceInstruction: 'Summarize the proposal and assumptions clearly.',
+            contextRoleStatement: 'the proposal is context, not a conclusion',
+            soundnessQuestion: 'this is the best path',
+            changeOutcome: 'no change is needed',
+            validOutcomeExamples: '"The proposal is solid," "a smaller change is enough," and "no change is needed"',
+            synthesisInstruction:
+              "compare their view with yours. Synthesize the strongest overall path, not merely a choice between the original proposal and the subagent's view.",
+          },
+        },
+        {
+          id: 'multiple-proposals',
+          label: 'Multiple proposals',
+          replacements: {
+            reviewSubjectClause: 'the current proposals before we act on them',
+            contextOverview:
+              'the goal, what led to these proposals, the relevant code or architecture areas they touch, and why these directions were proposed',
+            sourceInstruction: 'Summarize the proposals and assumptions clearly.',
+            contextRoleStatement: 'the proposals are context, not conclusions',
+            soundnessQuestion: 'the proposed paths are sound independently or in combination',
+            changeOutcome: 'no changes are needed',
+            validOutcomeExamples:
+              '"The proposals are solid," "some proposals should change," and "none of the proposals are needed"',
+            synthesisInstruction:
+              'compare their assessment with yours. Synthesize the strongest path forward, including combining, narrowing, changing, or rejecting proposals as warranted.',
+          },
+        },
+      ],
+    },
+    prompt: `Please dispatch a fresh subagent to review {{reviewSubjectClause}}.
 
-Give them enough context to understand the goal, the issue that led here, the relevant code or architecture area, and why this direction was proposed. If there is a written plan or document, point them to it; otherwise summarize the proposal and assumptions clearly. Make clear that the proposal or plan is context, not a conclusion.
+Give them enough context to understand {{contextOverview}}. {{sourceInstruction}} Make clear that {{contextRoleStatement}}.
 
-Ask them to evaluate from first principles whether this is the best path. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons no change is needed.
+Ask them to evaluate from first principles whether {{soundnessQuestion}}. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons {{changeOutcome}}.
 
-They should not manufacture objections. "The proposal is solid," "a smaller change is enough," and "no change is needed" are valid answers if the evidence supports them.
+They should not manufacture objections. {{validOutcomeExamples}} are valid answers if the evidence supports them.
 
-After they report back, compare their view with yours. Synthesize the strongest overall path, not merely a choice between the original proposal and the subagent's view.`,
+After they report back, {{synthesisInstruction}}`,
   },
   {
     id: 'self-contained-execution-plan',
@@ -221,6 +290,8 @@ Return a concise report with the PR stack, comments reviewed, comments fixed, co
   },
 ] as const satisfies readonly PromptEntry[];
 
+const promptTokenPattern = /\{\{([A-Za-z][A-Za-z0-9]*)\}\}/g;
+
 export function getPromptTag(id: PromptTagId): PromptTag {
   const tag = promptTags.find((item) => item.id === id);
   if (!tag) {
@@ -231,6 +302,29 @@ export function getPromptTag(id: PromptTagId): PromptTag {
 
 export function hasWorkflowTag(prompt: PromptEntry): boolean {
   return prompt.tags.some((tag) => workflowTagIds.has(tag));
+}
+
+export function getDefaultPromptModifierOptionId(prompt: PromptEntry): string | undefined {
+  return prompt.modifier?.defaultOptionId;
+}
+
+export function renderPromptText(prompt: PromptEntry, optionId = prompt.modifier?.defaultOptionId): string {
+  if (!prompt.modifier) {
+    return prompt.prompt;
+  }
+
+  const option = prompt.modifier.options.find((item) => item.id === optionId);
+  if (!option) {
+    throw new Error(`Prompt "${prompt.id}" uses unknown modifier option: ${optionId}`);
+  }
+
+  return prompt.prompt.replace(promptTokenPattern, (token, name: string) => {
+    const replacement = option.replacements[name];
+    if (replacement === undefined) {
+      throw new Error(`Prompt "${prompt.id}" modifier option "${option.id}" is missing replacement: ${token}`);
+    }
+    return replacement;
+  });
 }
 
 export function validatePrompts(
@@ -266,7 +360,79 @@ export function validatePrompts(
         throw new Error(`Prompt "${entry.id}" uses unknown tag: ${tag}`);
       }
     }
+
+    validatePromptTemplate(entry);
   }
+}
+
+function validatePromptTemplate(entry: PromptEntry): void {
+  const tokenNames = getPromptTokenNames(entry.prompt);
+
+  if (!entry.modifier) {
+    if (tokenNames.length) {
+      throw new Error(`Prompt "${entry.id}" has template tokens without a modifier`);
+    }
+    return;
+  }
+
+  if (!entry.modifier.label.trim()) {
+    throw new Error(`Prompt "${entry.id}" modifier must have a label`);
+  }
+
+  if (!entry.modifier.options.length) {
+    throw new Error(`Prompt "${entry.id}" modifier must have options`);
+  }
+
+  if (!tokenNames.length) {
+    throw new Error(`Prompt "${entry.id}" modifier must render at least one template token`);
+  }
+
+  const optionIds = new Set<string>();
+  for (const option of entry.modifier.options) {
+    if (optionIds.has(option.id)) {
+      throw new Error(`Prompt "${entry.id}" modifier has duplicate option id: ${option.id}`);
+    }
+    optionIds.add(option.id);
+
+    if (!option.label.trim()) {
+      throw new Error(`Prompt "${entry.id}" modifier option "${option.id}" must have a label`);
+    }
+
+    const replacementNames = new Set(Object.keys(option.replacements));
+    for (const tokenName of tokenNames) {
+      if (!replacementNames.has(tokenName)) {
+        throw new Error(`Prompt "${entry.id}" modifier option "${option.id}" is missing replacement: ${tokenName}`);
+      }
+    }
+
+    for (const replacementName of replacementNames) {
+      if (!tokenNames.includes(replacementName)) {
+        throw new Error(
+          `Prompt "${entry.id}" modifier option "${option.id}" has unused replacement: ${replacementName}`,
+        );
+      }
+    }
+
+    const renderedPrompt = renderPromptText(entry, option.id);
+    if (getPromptTokenNames(renderedPrompt).length) {
+      throw new Error(`Prompt "${entry.id}" modifier option "${option.id}" renders unreplaced template tokens`);
+    }
+  }
+
+  if (!optionIds.has(entry.modifier.defaultOptionId)) {
+    throw new Error(`Prompt "${entry.id}" modifier uses unknown default option: ${entry.modifier.defaultOptionId}`);
+  }
+}
+
+function getPromptTokenNames(prompt: string): string[] {
+  const tokenNames = new Set<string>();
+
+  for (const match of prompt.matchAll(promptTokenPattern)) {
+    const tokenName = match[1];
+    if (tokenName) tokenNames.add(tokenName);
+  }
+
+  return [...tokenNames];
 }
 
 validatePrompts();

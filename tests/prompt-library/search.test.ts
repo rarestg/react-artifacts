@@ -8,6 +8,7 @@ import {
   getDisplayMatchesForFields,
   getDisplayMatchIndices,
   getHighlightedSegments,
+  getMatchedPromptSearchVariant,
   getPromptHeaderDisplayMatches,
   makeSnippet,
   type PromptSearchResult,
@@ -168,6 +169,63 @@ test('searchPrompts keeps the proposal result first while completing a multi-tok
 
     assert.equal(result?.prompt.id, 'proposal-review-subagent', `Expected ${query} to keep proposal first`);
   }
+});
+
+test('searchPrompts indexes rendered modifier text instead of raw template tokens', () => {
+  const modifierPrompt = {
+    id: 'modifier-search',
+    title: 'Modifier Search',
+    summary: 'Fixture summary.',
+    tags: ['review'],
+    context: 'Fixture context.',
+    prompt: 'Review {{subject}}.',
+    modifier: {
+      label: 'Source type',
+      defaultOptionId: 'plan',
+      options: [
+        {
+          id: 'plan',
+          label: 'Plan',
+          replacements: {
+            subject: 'renderedmarker',
+          },
+        },
+      ],
+    },
+  } as const satisfies PromptEntry;
+
+  const [renderedResult] = searchPrompts([modifierPrompt], 'renderedmarker');
+
+  assert.equal(renderedResult?.prompt.id, 'modifier-search');
+  assert.ok(renderedResult.matches.some((match) => match.key === 'prompt'));
+  assert.deepEqual(searchPrompts([modifierPrompt], 'subject'), []);
+});
+
+test('searchPrompts indexes non-default rendered modifier text', () => {
+  const [pathsResult] = searchPrompts(prompts, 'proposed paths');
+  const [changeResult] = searchPrompts(prompts, 'some proposals should change');
+
+  assert.equal(pathsResult?.prompt.id, 'proposal-review-subagent');
+  assert.ok(
+    pathsResult.matches.some(
+      (match) => match.key === 'prompt' && typeof match.value === 'string' && match.value.includes('proposed paths'),
+    ),
+  );
+
+  assert.equal(changeResult?.prompt.id, 'proposal-review-subagent');
+  assert.ok(
+    changeResult.matches.some(
+      (match) =>
+        match.key === 'prompt' &&
+        typeof match.value === 'string' &&
+        match.value.includes('some proposals should change'),
+    ),
+  );
+});
+
+test('searchPrompts does not index modifier template token names', () => {
+  assert.deepEqual(searchPrompts(prompts, 'soundnessQuestion'), []);
+  assert.deepEqual(searchPrompts(prompts, 'reviewSubjectClause'), []);
 });
 
 test('searchPrompts applies AND semantics across multi-token literal matches', () => {
@@ -473,6 +531,33 @@ test('pickResultSnippet highlights multi-token literal search evidence', () => {
     snippet.indices.map(([start, end]) => snippet.text.slice(start, end + 1).toLowerCase()),
     ['subagent', 'validate', 'proposal'],
   );
+});
+
+test('pickResultSnippet uses the matched non-default modifier text', () => {
+  const query = 'proposed paths';
+  const [result] = searchPrompts(prompts, query);
+  const snippet = pickResultSnippet(result, 80, query);
+
+  assert.equal(result?.prompt.id, 'proposal-review-subagent');
+  assert.equal(snippet.field, 'prompt');
+  assert.match(snippet.text, /proposed paths/i);
+  assert.doesNotMatch(snippet.text, /this is the best path/i);
+  assert.deepEqual(
+    snippet.indices.map(([start, end]) => snippet.text.slice(start, end + 1).toLowerCase()),
+    ['proposed paths'],
+  );
+});
+
+test('getMatchedPromptSearchVariant maps non-default prompt matches to modifier options', () => {
+  const query = 'proposed paths';
+  const [result] = searchPrompts(prompts, query);
+
+  assert.ok(result);
+
+  const variant = getMatchedPromptSearchVariant(result, query);
+
+  assert.equal(variant?.optionId, 'multiple-proposals');
+  assert.match(variant?.text ?? '', /proposed paths/i);
 });
 
 test('pickResultSnippet falls back to fuzzy ranges when no exact display evidence exists', () => {

@@ -1,6 +1,6 @@
 const meta = {
   name: 'Prompt Library',
-  subtitle: 'Curated agentic development prompts',
+  subtitle: 'Search and copy reusable prompts for agent workflow tasks',
   kind: 'app',
   model: 'codex',
   version: 'gpt 5.5',

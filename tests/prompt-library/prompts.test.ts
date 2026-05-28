@@ -68,3 +68,12 @@ test('self-contained execution plan uses planning instead of risk', () => {
   assert.deepEqual(prompt.tags, ['implementation', 'planning', 'architecture']);
   assert.equal(getPromptTag('planning').color, 'amber');
 });
+
+test('founder transcript synthesis prompt uses planning and synthesis tags', () => {
+  const prompt = prompts.find((entry) => entry.id === 'founder-transcript-synthesis');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Founder Transcript Synthesis');
+  assert.deepEqual(prompt.tags, ['planning', 'synthesis']);
+  assert.equal(getPromptTag('synthesis').color, 'pink');
+});

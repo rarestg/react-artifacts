@@ -294,7 +294,7 @@ If the session does not contain a durable reader-facing lesson, say so and propo
 
 Write the article in Markdown. A working title or H1 is fine if it helps the article stand on its own.
 
-If a repo-specific blog or content directory is obvious, create the draft there with a clear kebab-case filename. If the destination is not clear, ask me for the target path before writing files. If file edits are not available, return the complete Markdown article in the response.
+Create the draft as a Markdown file. If a repo-specific blog or content directory is obvious, use it with a clear kebab-case filename. If the destination is not clear, ask me for the target path before writing files.
 
 Write for a useful blog. Be short by default: produce the shortest article that preserves the durable lesson. Prefer one clear sentence over a paragraph when one sentence carries the idea. Prefer a short note, compact section, or list over a full essay when the material does not justify an essay. The tone should be humane, plain, and pleasant where appropriate: explain like I'm an intern, not explain like I'm five. Preserve my voice where the conversation gives you enough signal. Do not ornament ordinary engineering work, dramatize the stakes, "Shakespeare-ify" the prose, or add literary scene-setting unless it adds concrete reader value. Avoid hype, filler, throat-clearing, buzzwords, generic lessons, clever hooks for their own sake, and anything that sounds like a content-marketing recap.
 

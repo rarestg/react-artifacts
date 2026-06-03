@@ -79,6 +79,71 @@ test('founder transcript synthesis prompt uses planning and synthesis tags', () 
   assert.equal(getPromptTag('synthesis').color, 'pink');
 });
 
+test('blog tag is available for prose publishing prompts', () => {
+  const tag = getPromptTag('blog');
+
+  assert.equal(tag.label, 'Blog');
+  assert.equal(tag.color, 'lime');
+});
+
+test('session-to-blog article prompt separates reviewed article drafting from metadata', () => {
+  const prompt = prompts.find((entry) => entry.id === 'session-to-blog-article-polisher');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Session-To-Blog Article Polisher');
+  assert.deepEqual(prompt.tags, ['blog']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /Markdown blog article body/);
+  assert.match(renderedPrompt, /durable reader-facing lesson/);
+  assert.match(renderedPrompt, /Do not create YAML frontmatter/);
+  assert.match(renderedPrompt, /Be short by default/);
+  assert.match(renderedPrompt, /shortest article that preserves the durable lesson/);
+  assert.match(renderedPrompt, /explain like I'm an intern/);
+  assert.match(renderedPrompt, /Preserve my voice/);
+  assert.match(renderedPrompt, /Shakespeare-ify/);
+  assert.match(renderedPrompt, /compression pass/);
+  assert.match(renderedPrompt, /If a paragraph's point can be made in one sentence/);
+  assert.match(renderedPrompt, /Do not invent stakes/);
+  assert.match(renderedPrompt, /2-4 fresh subagents/);
+  assert.match(renderedPrompt, /final fresh subagent/);
+  assert.match(renderedPrompt, /Aggressive concision/);
+  assert.match(renderedPrompt, /rather than direct edits/);
+  assert.match(renderedPrompt, /frontmatter still needs to be generated separately/);
+  assert.doesNotMatch(renderedPrompt, /America\/New_York/);
+  assert.doesNotMatch(renderedPrompt, /semantic_triples/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('article frontmatter prompt derives strict New York metadata without editing the body', () => {
+  const prompt = prompts.find((entry) => entry.id === 'article-frontmatter-generator');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Article Frontmatter Generator');
+  assert.deepEqual(prompt.tags, ['blog']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /Generate only YAML frontmatter/);
+  assert.match(renderedPrompt, /Do not rewrite, critique, or edit the article body/);
+  assert.match(renderedPrompt, /America\/New_York/);
+  assert.match(renderedPrompt, /±HH:MM/);
+  assert.match(renderedPrompt, /Verify the New York local time/);
+  assert.match(renderedPrompt, /semantic_triples/);
+  assert.match(renderedPrompt, /Base the metadata on the final article/);
+  assert.match(renderedPrompt, /Use the article H1 or title/);
+  assert.match(renderedPrompt, /explicit, article-supported claims/);
+  assert.match(renderedPrompt, /not a keyword pairing/);
+  assert.match(renderedPrompt, /supported, non-obvious, reusable, and more informative than a tag/);
+  assert.match(renderedPrompt, /Prefer 2-6 high-signal triples/);
+  assert.match(renderedPrompt, /use \[\] when none are warranted/);
+  assert.match(renderedPrompt, /Quote or escape YAML strings/);
+  assert.match(renderedPrompt, /Return only the frontmatter block/);
+  assert.doesNotMatch(renderedPrompt, /2-4 fresh subagents/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
 test('proposal review prompt renders the default plan modifier without template tokens', () => {
   const prompt = prompts.find((entry) => entry.id === 'proposal-review-subagent');
 

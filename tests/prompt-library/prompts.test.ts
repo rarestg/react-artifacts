@@ -86,18 +86,26 @@ test('blog tag is available for prose publishing prompts', () => {
   assert.equal(tag.color, 'lime');
 });
 
-test('session-to-blog article prompt separates reviewed article drafting from metadata', () => {
+test('session-to-blog article prompt renders technical article checks by default', () => {
   const prompt = prompts.find((entry) => entry.id === 'session-to-blog-article-polisher');
 
   assert.ok(prompt);
   assert.equal(prompt.title, 'Session-To-Blog Article Polisher');
   assert.deepEqual(prompt.tags, ['blog']);
+  assert.equal(prompt.modifier?.label, 'Article type');
+  assert.equal(prompt.modifier.defaultOptionId, 'technical');
+  assert.deepEqual(
+    prompt.modifier.options.map((option) => ({ id: option.id, label: option.label })),
+    [
+      { id: 'technical', label: 'Technical article' },
+      { id: 'general', label: 'General article' },
+    ],
+  );
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /Markdown blog article body/);
+  assert.match(renderedPrompt, /Markdown blog article/);
   assert.match(renderedPrompt, /durable reader-facing lesson/);
-  assert.match(renderedPrompt, /Do not create YAML frontmatter/);
   assert.match(renderedPrompt, /Be short by default/);
   assert.match(renderedPrompt, /shortest article that preserves the durable lesson/);
   assert.match(renderedPrompt, /explain like I'm an intern/);
@@ -106,13 +114,54 @@ test('session-to-blog article prompt separates reviewed article drafting from me
   assert.match(renderedPrompt, /compression pass/);
   assert.match(renderedPrompt, /If a paragraph's point can be made in one sentence/);
   assert.match(renderedPrompt, /Do not invent stakes/);
+  assert.match(renderedPrompt, /reproducibility pass before review/);
+  assert.match(renderedPrompt, /command, log line, observed output, source text, or explicit inference/);
+  assert.match(renderedPrompt, /copy-paste-dangerous placeholder commands/);
+  assert.match(renderedPrompt, /PID, service label, bundle ID/);
+  assert.match(renderedPrompt, /ellipses inside a runnable command block/);
+  assert.match(renderedPrompt, /observed in this session/);
+  assert.match(renderedPrompt, /generally true/);
+  assert.match(renderedPrompt, /expected but unverified/);
+  assert.match(renderedPrompt, /2-4 fresh subagents/);
+  assert.match(renderedPrompt, /final fresh subagent/);
+  assert.match(renderedPrompt, /Technical accuracy, reproducibility/);
+  assert.match(renderedPrompt, /Command safety: placeholders/);
+  assert.match(renderedPrompt, /Aggressive concision/);
+  assert.match(renderedPrompt, /rather than direct edits/);
+  assert.doesNotMatch(renderedPrompt, /over-disclosing private context/);
+  assert.doesNotMatch(renderedPrompt, /broad life lessons/);
+  assert.doesNotMatch(renderedPrompt, /frontmatter/i);
+  assert.doesNotMatch(renderedPrompt, /metadata/i);
+  assert.doesNotMatch(renderedPrompt, /keywords/i);
+  assert.doesNotMatch(renderedPrompt, /entities/i);
+  assert.doesNotMatch(renderedPrompt, /America\/New_York/);
+  assert.doesNotMatch(renderedPrompt, /semantic_triples/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('session-to-blog article prompt renders general article checks', () => {
+  const prompt = prompts.find((entry) => entry.id === 'session-to-blog-article-polisher');
+
+  assert.ok(prompt);
+
+  const renderedPrompt = renderPromptText(prompt, 'general');
+
+  assert.match(renderedPrompt, /Markdown blog article/);
+  assert.match(renderedPrompt, /durable reader-facing lesson/);
+  assert.match(renderedPrompt, /Write for a useful blog/);
+  assert.match(renderedPrompt, /natural language of the session/);
+  assert.match(renderedPrompt, /Do not impose debugging, implementation, or process scaffolding/);
+  assert.match(renderedPrompt, /avoid over-disclosing private context/);
+  assert.match(renderedPrompt, /Separate what happened, what you inferred, and what you now believe/);
+  assert.match(renderedPrompt, /modest, specific claims over broad life lessons/);
+  assert.match(renderedPrompt, /Specificity, honesty/);
+  assert.match(renderedPrompt, /Voice, privacy/);
   assert.match(renderedPrompt, /2-4 fresh subagents/);
   assert.match(renderedPrompt, /final fresh subagent/);
   assert.match(renderedPrompt, /Aggressive concision/);
-  assert.match(renderedPrompt, /rather than direct edits/);
-  assert.match(renderedPrompt, /frontmatter still needs to be generated separately/);
-  assert.doesNotMatch(renderedPrompt, /America\/New_York/);
-  assert.doesNotMatch(renderedPrompt, /semantic_triples/);
+  assert.doesNotMatch(renderedPrompt, /reproducibility pass before review/);
+  assert.doesNotMatch(renderedPrompt, /copy-paste-dangerous placeholder commands/);
+  assert.doesNotMatch(renderedPrompt, /Command safety: placeholders/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
@@ -125,8 +174,8 @@ test('article frontmatter prompt derives strict New York metadata without editin
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /Generate only YAML frontmatter/);
-  assert.match(renderedPrompt, /Do not rewrite, critique, or edit the article body/);
+  assert.match(renderedPrompt, /Return only YAML frontmatter/);
+  assert.match(renderedPrompt, /leave the article text unchanged/);
   assert.match(renderedPrompt, /America\/New_York/);
   assert.match(renderedPrompt, /±HH:MM/);
   assert.match(renderedPrompt, /Verify the New York local time/);
@@ -135,6 +184,10 @@ test('article frontmatter prompt derives strict New York metadata without editin
   assert.match(renderedPrompt, /Use the article H1 or title/);
   assert.match(renderedPrompt, /explicit, article-supported claims/);
   assert.match(renderedPrompt, /not a keyword pairing/);
+  assert.match(renderedPrompt, /Do not generalize a one-off observation into a class-level fact/);
+  assert.match(renderedPrompt, /one app, one session, one machine, or one configuration/);
+  assert.match(renderedPrompt, /the observed app process PATH/);
+  assert.match(renderedPrompt, /broader subjects only when the article itself explicitly establishes/);
   assert.match(renderedPrompt, /supported, non-obvious, reusable, and more informative than a tag/);
   assert.match(renderedPrompt, /Prefer 2-6 high-signal triples/);
   assert.match(renderedPrompt, /use \[\] when none are warranted/);

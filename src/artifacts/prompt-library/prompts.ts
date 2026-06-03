@@ -246,36 +246,71 @@ Keep it concise and scannable so it can be pasted at the start of a new session.
   {
     id: 'session-to-blog-article-polisher',
     title: 'Session-To-Blog Article Polisher',
-    summary: 'Turn a finished work session into a polished technical blog article body with staged review.',
+    summary: 'Turn a finished work session into a polished blog article with staged review.',
     tags: ['blog'],
     context:
-      'Use at the end of a substantial work session when the conversation produced a useful lesson, resolved a tricky problem, or surfaced insight worth sharing as a down-to-earth technical blog article.',
-    prompt: `Please turn the session we just finished into a polished Markdown blog article body that I can publish or revise further.
+      'Use at the end of a substantial work session when the conversation produced a useful lesson, resolved a tricky problem, or surfaced insight worth sharing as a down-to-earth blog article.',
+    modifier: {
+      label: 'Article type',
+      defaultOptionId: 'technical',
+      options: [
+        {
+          id: 'technical',
+          label: 'Technical article',
+          replacements: {
+            articleTypeChecks: `For a technical article, run a reproducibility pass before review. For each diagnostic claim, make sure the article shows the command, log line, observed output, source text, or explicit inference that supports it. If the article relies on an inference, label it as an inference and name the observation it came from.
+
+Avoid copy-paste-dangerous placeholder commands. If a command needs an app-specific PID, service label, bundle ID, account name, host, path, or other local value, either show how to discover that value first or use an obvious placeholder with a short note explaining how to replace it. Do not put ellipses inside a runnable command block unless the block is explicitly marked as illustrative and not directly runnable.
+
+Separate what was observed in this session from what is generally true and from what is expected but unverified. If a fix requires a reboot, redeploy, migration, or other follow-up that was not tested, say that plainly.`,
+            reviewerLenses: `- Technical accuracy, reproducibility, and whether diagnostic claims are backed by commands, observed output, or explicit inference.
+- Command safety: placeholders, destructive commands, local paths, PIDs, service labels, and environment-specific values.
+- Reader clarity for an explain-like-I'm-an-intern audience.
+- Narrative structure, usefulness, and whether the piece has a real point.
+- Aggressive concision: what can be cut, merged, or reduced to one sentence while preserving the useful lesson.`,
+          },
+        },
+        {
+          id: 'general',
+          label: 'General article',
+          replacements: {
+            articleTypeChecks: `For a general article, keep the evidence and examples in the natural language of the session. Do not impose debugging, implementation, or process scaffolding unless it genuinely belongs to the reader-facing lesson. Ground the article in concrete moments from the session when they help, but avoid over-disclosing private context or turning one personal observation into universal advice.
+
+Separate what happened, what you inferred, and what you now believe. Prefer modest, specific claims over broad life lessons. Cut generic self-help takeaways unless the session actually earned them.`,
+            reviewerLenses: `- Specificity, honesty, and whether the piece avoids overgeneralizing from one experience.
+- Reader clarity for an explain-like-I'm-an-intern audience without technical scaffolding that does not belong.
+- Voice, privacy, and whether concrete details are useful rather than over-shared.
+- Narrative structure, usefulness, and whether the piece has a real point.
+- Aggressive concision: what can be cut, merged, or reduced to one sentence while preserving the useful lesson.`,
+          },
+        },
+      ],
+    },
+    prompt: `Please turn the session we just finished into a polished Markdown blog article that I can publish or revise further.
 
 Start by reflecting on the conversation as source material. Identify what was learned, solved, clarified, or usefully reframed. Extract the durable lesson for a reader; do not write a transcript recap. Separate confirmed facts from assumptions, unresolved questions, and opinions.
 
 If the session does not contain a durable reader-facing lesson, say so and propose a shorter note, outline, or no article instead of inflating it into a post.
 
-Write only the article content. Do not create YAML frontmatter, tags, keywords, entity lists, summaries, semantic triples, or other metadata; that is a separate step for a different prompt. A working title or H1 is fine if it helps the article stand on its own.
+Write the article in Markdown. A working title or H1 is fine if it helps the article stand on its own.
 
-If a repo-specific blog or content directory is obvious, create the draft there with a clear kebab-case filename. If the destination is not clear, ask me for the target path before writing files. If file edits are not available, return the complete Markdown article body in the response.
+Create the draft as a Markdown file. If a repo-specific blog or content directory is obvious, use it with a clear kebab-case filename. If the destination is not clear, ask me for the target path before writing files.
 
-Write for a useful life and technical blog. Be short by default: produce the shortest article that preserves the durable lesson. Prefer one clear sentence over a paragraph when one sentence carries the idea. Prefer a short note, compact section, or list over a full essay when the material does not justify an essay. The tone should be humane, plain, and pleasant where appropriate: explain like I'm an intern, not explain like I'm five. Preserve my voice where the conversation gives you enough signal. Do not ornament ordinary engineering work, dramatize the stakes, "Shakespeare-ify" the prose, or add literary scene-setting unless it adds concrete reader value. Avoid hype, filler, throat-clearing, buzzwords, generic lessons, clever hooks for their own sake, and anything that sounds like a content-marketing recap.
+Write for a useful blog. Be short by default: produce the shortest article that preserves the durable lesson. Prefer one clear sentence over a paragraph when one sentence carries the idea. Prefer a short note, compact section, or list over a full essay when the material does not justify an essay. The tone should be humane, plain, and pleasant where appropriate: explain like I'm an intern, not explain like I'm five. Preserve my voice where the conversation gives you enough signal. Do not ornament ordinary engineering work, dramatize the stakes, "Shakespeare-ify" the prose, or add literary scene-setting unless it adds concrete reader value. Avoid hype, filler, throat-clearing, buzzwords, generic lessons, clever hooks for their own sake, and anything that sounds like a content-marketing recap.
 
 Do not invent stakes, examples, quotes, certainty, or takeaways that the session does not support.
+
+{{articleTypeChecks}}
 
 Before considering the draft done, run a compression pass. Delete or merge any paragraph that does not add a concrete fact, decision, tradeoff, example, consequence, caveat, or useful reader move. If a paragraph's point can be made in one sentence, make it one sentence.
 
 After the initial draft exists, decide whether the session has enough substance to justify delegated review. For a small or low-stakes session, do a lighter self-review and explain why. For a substantial session, dispatch 2-4 fresh subagents in parallel with the draft and the relevant session context. Give each reviewer an orthogonal lens, such as:
 
-- Technical accuracy, nuance, and missing context.
-- Reader clarity for an explain-like-I'm-an-intern audience.
-- Narrative structure, usefulness, and whether the piece has a real point.
-- Aggressive concision: what can be cut, merged, or reduced to one sentence while preserving the useful lesson.
+{{reviewerLenses}}
 
 Wait for all reviewer feedback. Synthesize the feedback into a concrete change proposal. Distinguish edits you will take from edits you will decline, and explain the tradeoff when it matters. Before applying those changes, dispatch one final fresh subagent to review the proposed edits against the draft and the original goal. Ask that subagent for precise edit guidance rather than direct edits so the final voice stays coherent.
 
-Review the final draft yourself after the final subagent returns. Make any last touchups needed for accuracy, clarity, pacing, and publishability. Return a concise report with the draft path, the reviewers used or why review was skipped, the main changes made, remaining caveats, and a note that frontmatter still needs to be generated separately.`,
+Review the final draft yourself after the final subagent returns. Make any last touchups needed for accuracy, clarity, pacing, and publishability. Return a concise report with the draft path, the reviewers used or why review was skipped, the main changes made, and remaining caveats.`,
   },
   {
     id: 'article-frontmatter-generator',
@@ -288,7 +323,7 @@ Review the final draft yourself after the final subagent returns. Make any last 
 
 First read the finished article carefully. If I have not provided an article path or pasted article text, ask me for it before doing anything else. Base the metadata on the final article, not on prior conversation context unless that context is explicitly present in the article.
 
-Generate only YAML frontmatter. Do not rewrite, critique, or edit the article body. If the article already has frontmatter, produce the replacement frontmatter block only unless I explicitly ask you to modify the file.
+Return only YAML frontmatter and leave the article text unchanged. If the article already has frontmatter, produce the replacement frontmatter block only unless I explicitly ask you to modify the file.
 
 Use this exact shape:
 
@@ -312,7 +347,7 @@ Use the actual current date and local time in America/New_York for published_at,
 
 Keep the summary specific and useful, not promotional. Use the article H1 or title unless it is clearly a placeholder. Prefer a small, high-signal tag and keyword set over an exhaustive list. Entities should be concrete people, products, technologies, organizations, projects, concepts, or documents that matter to the article.
 
-Semantic triples should capture only explicit, article-supported claims that would still be useful in a future knowledge graph. Each triple must express a real relationship, not a keyword pairing, title restatement, summary fragment, or vague theme. Use stable, specific subjects and objects, preferably entities or concrete concepts named in the article. Use predicates as concise relationship phrases such as "depends on", "causes", "contrasts with", "is used to", "was chosen over", or "creates risk for". Do not infer facts from outside the article, do not turn opinions into facts, and do not include triples whose only support is generic background knowledge. Before emitting a triple, check that it is supported, non-obvious, reusable, and more informative than a tag. Prefer 2-6 high-signal triples. Fewer is better than noisy. If none pass that bar, use [].
+Semantic triples should capture only explicit, article-supported claims that would still be useful in a future knowledge graph. Each triple must express a real relationship, not a keyword pairing, title restatement, summary fragment, or vague theme. Use stable, specific subjects and objects, preferably entities or concrete concepts named in the article. Use predicates as concise relationship phrases such as "depends on", "causes", "contrasts with", "is used to", "was chosen over", or "creates risk for". Do not infer facts from outside the article, do not turn opinions into facts, and do not include triples whose only support is generic background knowledge. Do not generalize a one-off observation into a class-level fact. If the article only observed one app, one session, one machine, or one configuration, scope the subject and object to that case, such as "the observed app process PATH" or "this session's launchctl setenv result". Use broader subjects only when the article itself explicitly establishes the broader claim. Before emitting a triple, check that it is supported, non-obvious, reusable, and more informative than a tag. Prefer 2-6 high-signal triples. Fewer is better than noisy. If none pass that bar, use [].
 
 Do not include placeholder entities or triples; use [] when none are warranted. Quote or escape YAML strings as needed.
 

@@ -560,6 +560,18 @@ test('getMatchedPromptSearchVariant maps non-default prompt matches to modifier 
   assert.match(variant?.text ?? '', /proposed paths/i);
 });
 
+test('getMatchedPromptSearchVariant maps general article matches to the article modifier option', () => {
+  const query = 'broad life lessons';
+  const [result] = searchPrompts(prompts, query);
+
+  assert.equal(result?.prompt.id, 'session-to-blog-article-polisher');
+
+  const variant = getMatchedPromptSearchVariant(result, query);
+
+  assert.equal(variant?.optionId, 'general');
+  assert.match(variant?.text ?? '', /broad life lessons/i);
+});
+
 test('pickResultSnippet falls back to fuzzy ranges when no exact display evidence exists', () => {
   const result = assertSearchMatch(snippetPrompts, 'solsticegote', 'snippet-prompt', 'prompt');
   const snippet = pickResultSnippet(result, 32, 'solsticegote');

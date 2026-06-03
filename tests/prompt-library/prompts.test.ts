@@ -98,11 +98,17 @@ test('session-to-blog article prompt separates reviewed article drafting from me
   assert.match(renderedPrompt, /Markdown blog article body/);
   assert.match(renderedPrompt, /durable reader-facing lesson/);
   assert.match(renderedPrompt, /Do not create YAML frontmatter/);
+  assert.match(renderedPrompt, /Be short by default/);
+  assert.match(renderedPrompt, /shortest article that preserves the durable lesson/);
   assert.match(renderedPrompt, /explain like I'm an intern/);
   assert.match(renderedPrompt, /Preserve my voice/);
+  assert.match(renderedPrompt, /Shakespeare-ify/);
+  assert.match(renderedPrompt, /compression pass/);
+  assert.match(renderedPrompt, /If a paragraph's point can be made in one sentence/);
   assert.match(renderedPrompt, /Do not invent stakes/);
   assert.match(renderedPrompt, /2-4 fresh subagents/);
   assert.match(renderedPrompt, /final fresh subagent/);
+  assert.match(renderedPrompt, /Aggressive concision/);
   assert.match(renderedPrompt, /rather than direct edits/);
   assert.match(renderedPrompt, /frontmatter still needs to be generated separately/);
   assert.doesNotMatch(renderedPrompt, /America\/New_York/);
@@ -127,6 +133,10 @@ test('article frontmatter prompt derives strict New York metadata without editin
   assert.match(renderedPrompt, /semantic_triples/);
   assert.match(renderedPrompt, /Base the metadata on the final article/);
   assert.match(renderedPrompt, /Use the article H1 or title/);
+  assert.match(renderedPrompt, /explicit, article-supported claims/);
+  assert.match(renderedPrompt, /not a keyword pairing/);
+  assert.match(renderedPrompt, /supported, non-obvious, reusable, and more informative than a tag/);
+  assert.match(renderedPrompt, /Prefer 2-6 high-signal triples/);
   assert.match(renderedPrompt, /use \[\] when none are warranted/);
   assert.match(renderedPrompt, /Quote or escape YAML strings/);
   assert.match(renderedPrompt, /Return only the frontmatter block/);

@@ -16,7 +16,7 @@ Use this checklist before adding a prompt to the curated library.
 
 ## Before Committing
 
-- Add at least one workflow tag, such as `review` or `implementation`.
-- Reuse existing curated tags before adding a new tag.
+- Add at least one workflow or domain tag, such as `review`, `implementation`, or `blog`.
+- Reuse existing curated tags only when the tag description actually fits.
 - Keep the copied `prompt` body literal and free of UI-only notes.
 - Search for similar prompts and merge instead of duplicating when the workflow is the same.

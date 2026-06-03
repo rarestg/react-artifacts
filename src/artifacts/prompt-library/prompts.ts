@@ -246,19 +246,19 @@ Keep it concise and scannable so it can be pasted at the start of a new session.
   {
     id: 'session-to-blog-article-polisher',
     title: 'Session-To-Blog Article Polisher',
-    summary: 'Turn a finished work session into a polished technical blog article body with staged review.',
+    summary: 'Turn a finished work session into a polished technical blog article with staged review.',
     tags: ['blog'],
     context:
       'Use at the end of a substantial work session when the conversation produced a useful lesson, resolved a tricky problem, or surfaced insight worth sharing as a down-to-earth technical blog article.',
-    prompt: `Please turn the session we just finished into a polished Markdown blog article body that I can publish or revise further.
+    prompt: `Please turn the session we just finished into a polished Markdown blog article that I can publish or revise further.
 
 Start by reflecting on the conversation as source material. Identify what was learned, solved, clarified, or usefully reframed. Extract the durable lesson for a reader; do not write a transcript recap. Separate confirmed facts from assumptions, unresolved questions, and opinions.
 
 If the session does not contain a durable reader-facing lesson, say so and propose a shorter note, outline, or no article instead of inflating it into a post.
 
-Write only the article content. Do not create YAML frontmatter, tags, keywords, entity lists, summaries, semantic triples, or other metadata; that is a separate step for a different prompt. A working title or H1 is fine if it helps the article stand on its own.
+Write the article in Markdown. A working title or H1 is fine if it helps the article stand on its own.
 
-If a repo-specific blog or content directory is obvious, create the draft there with a clear kebab-case filename. If the destination is not clear, ask me for the target path before writing files. If file edits are not available, return the complete Markdown article body in the response.
+If a repo-specific blog or content directory is obvious, create the draft there with a clear kebab-case filename. If the destination is not clear, ask me for the target path before writing files. If file edits are not available, return the complete Markdown article in the response.
 
 Write for a useful life and technical blog. Be short by default: produce the shortest article that preserves the durable lesson. Prefer one clear sentence over a paragraph when one sentence carries the idea. Prefer a short note, compact section, or list over a full essay when the material does not justify an essay. The tone should be humane, plain, and pleasant where appropriate: explain like I'm an intern, not explain like I'm five. Preserve my voice where the conversation gives you enough signal. Do not ornament ordinary engineering work, dramatize the stakes, "Shakespeare-ify" the prose, or add literary scene-setting unless it adds concrete reader value. Avoid hype, filler, throat-clearing, buzzwords, generic lessons, clever hooks for their own sake, and anything that sounds like a content-marketing recap.
 
@@ -275,7 +275,7 @@ After the initial draft exists, decide whether the session has enough substance 
 
 Wait for all reviewer feedback. Synthesize the feedback into a concrete change proposal. Distinguish edits you will take from edits you will decline, and explain the tradeoff when it matters. Before applying those changes, dispatch one final fresh subagent to review the proposed edits against the draft and the original goal. Ask that subagent for precise edit guidance rather than direct edits so the final voice stays coherent.
 
-Review the final draft yourself after the final subagent returns. Make any last touchups needed for accuracy, clarity, pacing, and publishability. Return a concise report with the draft path, the reviewers used or why review was skipped, the main changes made, remaining caveats, and a note that frontmatter still needs to be generated separately.`,
+Review the final draft yourself after the final subagent returns. Make any last touchups needed for accuracy, clarity, pacing, and publishability. Return a concise report with the draft path, the reviewers used or why review was skipped, the main changes made, and remaining caveats.`,
   },
   {
     id: 'article-frontmatter-generator',
@@ -288,7 +288,7 @@ Review the final draft yourself after the final subagent returns. Make any last 
 
 First read the finished article carefully. If I have not provided an article path or pasted article text, ask me for it before doing anything else. Base the metadata on the final article, not on prior conversation context unless that context is explicitly present in the article.
 
-Generate only YAML frontmatter. Do not rewrite, critique, or edit the article body. If the article already has frontmatter, produce the replacement frontmatter block only unless I explicitly ask you to modify the file.
+Return only YAML frontmatter and leave the article text unchanged. If the article already has frontmatter, produce the replacement frontmatter block only unless I explicitly ask you to modify the file.
 
 Use this exact shape:
 

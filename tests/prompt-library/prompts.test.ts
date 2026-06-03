@@ -86,7 +86,7 @@ test('blog tag is available for prose publishing prompts', () => {
   assert.equal(tag.color, 'lime');
 });
 
-test('session-to-blog article prompt separates reviewed article drafting from metadata', () => {
+test('session-to-blog article prompt stays focused on reviewed article drafting', () => {
   const prompt = prompts.find((entry) => entry.id === 'session-to-blog-article-polisher');
 
   assert.ok(prompt);
@@ -95,9 +95,8 @@ test('session-to-blog article prompt separates reviewed article drafting from me
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /Markdown blog article body/);
+  assert.match(renderedPrompt, /Markdown blog article/);
   assert.match(renderedPrompt, /durable reader-facing lesson/);
-  assert.match(renderedPrompt, /Do not create YAML frontmatter/);
   assert.match(renderedPrompt, /Be short by default/);
   assert.match(renderedPrompt, /shortest article that preserves the durable lesson/);
   assert.match(renderedPrompt, /explain like I'm an intern/);
@@ -110,7 +109,10 @@ test('session-to-blog article prompt separates reviewed article drafting from me
   assert.match(renderedPrompt, /final fresh subagent/);
   assert.match(renderedPrompt, /Aggressive concision/);
   assert.match(renderedPrompt, /rather than direct edits/);
-  assert.match(renderedPrompt, /frontmatter still needs to be generated separately/);
+  assert.doesNotMatch(renderedPrompt, /frontmatter/i);
+  assert.doesNotMatch(renderedPrompt, /metadata/i);
+  assert.doesNotMatch(renderedPrompt, /keywords/i);
+  assert.doesNotMatch(renderedPrompt, /entities/i);
   assert.doesNotMatch(renderedPrompt, /America\/New_York/);
   assert.doesNotMatch(renderedPrompt, /semantic_triples/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
@@ -125,8 +127,8 @@ test('article frontmatter prompt derives strict New York metadata without editin
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /Generate only YAML frontmatter/);
-  assert.match(renderedPrompt, /Do not rewrite, critique, or edit the article body/);
+  assert.match(renderedPrompt, /Return only YAML frontmatter/);
+  assert.match(renderedPrompt, /leave the article text unchanged/);
   assert.match(renderedPrompt, /America\/New_York/);
   assert.match(renderedPrompt, /±HH:MM/);
   assert.match(renderedPrompt, /Verify the New York local time/);

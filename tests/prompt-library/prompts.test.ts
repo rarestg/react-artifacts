@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   getPromptTag,
+  normalizePromptNumberInputValue,
   type PromptEntry,
   type PromptTag,
   prompts,
@@ -77,6 +78,47 @@ test('founder transcript synthesis prompt uses planning and synthesis tags', () 
   assert.equal(prompt.title, 'Founder Transcript Synthesis');
   assert.deepEqual(prompt.tags, ['planning', 'synthesis']);
   assert.equal(getPromptTag('synthesis').color, 'pink');
+});
+
+test('parallel draft synthesis prompt renders the selected draft count', () => {
+  const prompt = prompts.find((entry) => entry.id === 'parallel-draft-synthesis');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Parallel Draft Synthesis');
+  assert.deepEqual(prompt.tags, ['planning', 'subagents', 'synthesis']);
+  assert.deepEqual(prompt.numberInput, {
+    token: 'draftCount',
+    label: 'Options',
+    defaultValue: 5,
+    min: 2,
+    max: 10,
+    step: 1,
+  });
+
+  const defaultRenderedPrompt = renderPromptText(prompt);
+  const customRenderedPrompt = renderPromptText(prompt, undefined, { numberInputValue: 7 });
+
+  assert.match(defaultRenderedPrompt, /Please orchestrate 5 independent drafts/);
+  assert.match(defaultRenderedPrompt, /Dispatch 5 fresh subagents in parallel/);
+  assert.match(customRenderedPrompt, /Please orchestrate 7 independent drafts/);
+  assert.match(customRenderedPrompt, /Dispatch 7 fresh subagents in parallel/);
+  assert.match(customRenderedPrompt, /same prompt for every subagent/);
+  assert.match(customRenderedPrompt, /different lenses/);
+  assert.match(customRenderedPrompt, /If the user should inspect distinct variants/);
+  assert.match(customRenderedPrompt, /optionally run one focused follow-up round/);
+  assert.doesNotMatch(customRenderedPrompt, /artificial lenses/);
+  assert.doesNotMatch(defaultRenderedPrompt, /\{\{/);
+  assert.doesNotMatch(customRenderedPrompt, /\{\{/);
+});
+
+test('prompt number input values clamp to the configured range', () => {
+  const prompt = prompts.find((entry) => entry.id === 'parallel-draft-synthesis');
+
+  assert.ok(prompt?.numberInput);
+
+  assert.equal(normalizePromptNumberInputValue(1, prompt.numberInput), 2);
+  assert.equal(normalizePromptNumberInputValue(12, prompt.numberInput), 10);
+  assert.equal(normalizePromptNumberInputValue(undefined, prompt.numberInput), 5);
 });
 
 test('blog tag is available for prose publishing prompts', () => {
@@ -274,4 +316,19 @@ test('validatePrompts rejects unreplaced tokens without modifiers', () => {
   } as const satisfies PromptEntry;
 
   assert.throws(() => validatePrompts([invalidEntry], validTags), /template tokens without a modifier/);
+});
+
+test('validatePrompts rejects unused number input tokens', () => {
+  const invalidEntry = {
+    ...validEntry,
+    numberInput: {
+      token: 'count',
+      label: 'Count',
+      defaultValue: 5,
+      min: 2,
+      max: 10,
+    },
+  } as const satisfies PromptEntry;
+
+  assert.throws(() => validatePrompts([invalidEntry], validTags), /number input token is not used/);
 });

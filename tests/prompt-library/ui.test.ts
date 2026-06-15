@@ -33,6 +33,24 @@ async function renderProposalPromptDetailContent(selectedModifierOptionId?: stri
   );
 }
 
+async function renderParallelDraftPromptDetailContent(numberInputValue = 5) {
+  const { PromptDetailContent } = await import('../../src/artifacts/prompt-library');
+  const prompt = prompts.find((entry) => entry.id === 'parallel-draft-synthesis');
+
+  assert.ok(prompt);
+  assert.ok(prompt.numberInput);
+
+  return renderToStaticMarkup(
+    createElement(PromptDetailContent, {
+      prompt,
+      renderedPrompt: renderPromptText(prompt, undefined, { numberInputValue }),
+      onModifierOptionChange: () => undefined,
+      selectedNumberInputValue: numberInputValue,
+      onNumberInputChange: () => undefined,
+    }),
+  );
+}
+
 function parseMarkup(markup: string) {
   const window = new Window();
   window.document.body.innerHTML = markup;
@@ -102,6 +120,42 @@ test('prompt detail modifier controls stay in the prompt section header', async 
   assert.equal(promptBody.contains(sourceTypeControl), false);
   assert.equal(promptHeader.nextElementSibling, promptBody);
   assert.equal(promptBody.firstElementChild, promptPre);
+});
+
+test('prompt detail number controls stay in the prompt section header', async () => {
+  const document = parseMarkup(await renderParallelDraftPromptDetailContent(7));
+  const promptSection = document.querySelector('[data-prompt-detail-section="prompt"]');
+
+  assert.ok(promptSection);
+
+  const promptHeader = promptSection.querySelector('[data-prompt-detail-section-header]');
+  const promptBody = promptSection.querySelector('[data-prompt-detail-section-body]');
+  const optionsInput = promptSection.querySelector('input[type="number"]');
+  const decreaseButton = promptSection.querySelector('button[aria-label="Decrease Options"]');
+  const increaseButton = promptSection.querySelector('button[aria-label="Increase Options"]');
+  const optionsLabel = [...(promptHeader?.querySelectorAll('label') ?? [])].find(
+    (element) => element.textContent === 'Options',
+  );
+  const promptPre = promptSection.querySelector('pre');
+
+  assert.ok(promptHeader);
+  assert.ok(promptBody);
+  assert.ok(optionsInput);
+  assert.ok(decreaseButton);
+  assert.ok(increaseButton);
+  assert.ok(optionsLabel);
+  assert.ok(promptPre);
+
+  assert.equal(optionsInput.getAttribute('value'), '7');
+  assert.equal(optionsInput.getAttribute('min'), '2');
+  assert.equal(optionsInput.getAttribute('max'), '10');
+  assert.equal(promptHeader.contains(optionsInput), true);
+  assert.equal(promptBody.contains(optionsInput), false);
+  assert.equal(optionsLabel.parentElement?.contains(optionsInput), true);
+  assert.equal(optionsLabel.parentElement?.contains(decreaseButton), true);
+  assert.equal(optionsLabel.parentElement?.contains(increaseButton), true);
+  assert.match(promptPre.textContent ?? '', /Please orchestrate 7 independent drafts/);
+  assert.match(promptPre.textContent ?? '', /Dispatch 7 fresh subagents in parallel/);
 });
 
 test('prompt detail content can render a search-matched non-default modifier variant', async () => {

@@ -1,6 +1,6 @@
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
-import { Search } from 'lucide-react';
+import { Minus, Plus, Search } from 'lucide-react';
 import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
@@ -14,7 +14,9 @@ import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer }
 import {
   getDefaultPromptModifierOptionId,
   getPromptTag,
+  normalizePromptNumberInputValue,
   type PromptEntry,
+  type PromptNumberInput,
   type PromptTagColorId,
   type PromptTagId,
   prompts,
@@ -478,7 +480,7 @@ function PromptModifierControl({
   options: readonly { value: string; label: string }[];
 }) {
   return (
-    <>
+    <div className="inline-flex min-w-0 items-center gap-2">
       <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
       <SegmentedControl
         ariaLabel={label}
@@ -487,7 +489,107 @@ function PromptModifierControl({
         options={options}
         size="compact"
       />
-    </>
+    </div>
+  );
+}
+
+function PromptNumberInputControl({
+  input,
+  value,
+  onValueChange,
+}: {
+  input: PromptNumberInput;
+  value: number;
+  onValueChange: (value: number) => void;
+}) {
+  const inputId = useId();
+  const step = input.step ?? 1;
+  const [draftValue, setDraftValue] = useState(String(value));
+  const canDecrease = value > input.min;
+  const canIncrease = value < input.max;
+
+  useEffect(() => {
+    setDraftValue(String(value));
+  }, [value]);
+
+  const commitDraftValue = () => {
+    const nextValue = normalizePromptNumberInputValue(draftValue === '' ? undefined : Number(draftValue), input);
+    setDraftValue(String(nextValue));
+    onValueChange(nextValue);
+  };
+
+  const updateDraftValue = (nextDraftValue: string) => {
+    setDraftValue(nextDraftValue);
+
+    const nextValue = Number(nextDraftValue);
+    if (Number.isInteger(nextValue) && nextValue >= input.min && nextValue <= input.max) {
+      onValueChange(nextValue);
+    }
+  };
+
+  const stepValue = (direction: -1 | 1) => {
+    const nextValue = normalizePromptNumberInputValue(value + direction * step, input);
+    setDraftValue(String(nextValue));
+    onValueChange(nextValue);
+  };
+
+  return (
+    <div className="inline-flex min-w-0 items-center gap-2">
+      <label
+        htmlFor={inputId}
+        className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]"
+      >
+        {input.label}
+      </label>
+      <div className="inline-flex h-6 min-w-0 items-stretch">
+        <button
+          type="button"
+          aria-label={`Decrease ${input.label}`}
+          disabled={!canDecrease}
+          onClick={() => stepValue(-1)}
+          className={mergeClassNames(
+            'inline-flex w-6 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] disabled:cursor-not-allowed disabled:opacity-50',
+            focusClass,
+          )}
+        >
+          <Minus className="size-3.5" aria-hidden="true" />
+        </button>
+        <input
+          id={inputId}
+          type="number"
+          inputMode="numeric"
+          min={input.min}
+          max={input.max}
+          step={step}
+          value={draftValue}
+          onChange={(event) => updateDraftValue(event.currentTarget.value)}
+          onBlur={commitDraftValue}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              commitDraftValue();
+            }
+          }}
+          className={mergeClassNames(
+            '-ml-px h-6 w-12 border border-[var(--border)] bg-[var(--surface)] px-1 text-center text-xs font-medium text-[var(--text)] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+            'focus:outline-none focus-visible:z-10 focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+          )}
+        />
+        <button
+          type="button"
+          aria-label={`Increase ${input.label}`}
+          disabled={!canIncrease}
+          onClick={() => stepValue(1)}
+          className={mergeClassNames(
+            '-ml-px inline-flex w-6 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] disabled:cursor-not-allowed disabled:opacity-50',
+            focusClass,
+          )}
+        >
+          <Plus className="size-3.5" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -496,6 +598,8 @@ export function PromptDetailContent({
   renderedPrompt,
   selectedModifierOptionId,
   onModifierOptionChange,
+  selectedNumberInputValue,
+  onNumberInputChange = () => undefined,
   highlightedTagIds = EMPTY_HIGHLIGHTED_TAG_IDS,
   contextIndices,
   promptIndices,
@@ -504,6 +608,8 @@ export function PromptDetailContent({
   renderedPrompt: string;
   selectedModifierOptionId?: string;
   onModifierOptionChange: (optionId: string) => void;
+  selectedNumberInputValue?: number;
+  onNumberInputChange?: (value: number) => void;
   highlightedTagIds?: readonly PromptTagId[];
   contextIndices?: HighlightIndices;
   promptIndices?: HighlightIndices;
@@ -521,6 +627,20 @@ export function PromptDetailContent({
         options={modifierOptions}
       />
     ) : undefined;
+  const numberInputControl = prompt.numberInput ? (
+    <PromptNumberInputControl
+      input={prompt.numberInput}
+      value={selectedNumberInputValue ?? prompt.numberInput.defaultValue}
+      onValueChange={onNumberInputChange}
+    />
+  ) : undefined;
+  const promptControls =
+    modifierControl || numberInputControl ? (
+      <>
+        {modifierControl}
+        {numberInputControl}
+      </>
+    ) : undefined;
 
   return (
     <>
@@ -534,7 +654,7 @@ export function PromptDetailContent({
           <HighlightedText text={prompt.context} indices={contextIndices} />
         </p>
       </PromptDetailSection>
-      <PromptDetailSection sectionId="prompt" title="Prompt" controls={modifierControl} bodyClassName="min-h-0">
+      <PromptDetailSection sectionId="prompt" title="Prompt" controls={promptControls} bodyClassName="min-h-0">
         <pre className="max-h-80 overflow-auto whitespace-pre-wrap border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-xs leading-5 text-[var(--text)]">
           <HighlightedText text={renderedPrompt} indices={promptIndices} />
         </pre>
@@ -561,13 +681,17 @@ function PromptDetailDialog({
   onClose: () => void;
 }) {
   const defaultModifierOptionId = getDefaultPromptModifierOptionId(prompt);
+  const defaultNumberInputValue = prompt.numberInput?.defaultValue;
   const matchingSearchResult = searchResult?.prompt.id === prompt.id ? searchResult : undefined;
   const matchedPromptVariant = matchingSearchResult
     ? getMatchedPromptSearchVariant(matchingSearchResult, searchQuery)
     : undefined;
   const initialModifierOptionId = matchedPromptVariant?.optionId ?? defaultModifierOptionId;
   const [selectedModifierOptionId, setSelectedModifierOptionId] = useState(initialModifierOptionId);
-  const renderedPrompt = renderPromptText(prompt, selectedModifierOptionId);
+  const [selectedNumberInputValue, setSelectedNumberInputValue] = useState(defaultNumberInputValue);
+  const renderedPrompt = renderPromptText(prompt, selectedModifierOptionId, {
+    numberInputValue: selectedNumberInputValue,
+  });
   const titleMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'title') : undefined;
   const summaryMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'summary') : undefined;
   const contextMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'context') : undefined;
@@ -595,6 +719,10 @@ function PromptDetailDialog({
     setSelectedModifierOptionId(initialModifierOptionId);
   }, [initialModifierOptionId]);
 
+  useEffect(() => {
+    setSelectedNumberInputValue(defaultNumberInputValue);
+  }, [defaultNumberInputValue]);
+
   return (
     <ArtifactDialog
       open={Boolean(prompt)}
@@ -619,6 +747,8 @@ function PromptDetailDialog({
         renderedPrompt={renderedPrompt}
         selectedModifierOptionId={selectedModifierOptionId}
         onModifierOptionChange={setSelectedModifierOptionId}
+        selectedNumberInputValue={selectedNumberInputValue}
+        onNumberInputChange={setSelectedNumberInputValue}
         highlightedTagIds={highlightedTagIds}
         contextIndices={contextIndices}
         promptIndices={promptIndices}

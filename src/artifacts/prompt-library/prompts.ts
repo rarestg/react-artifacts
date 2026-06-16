@@ -26,7 +26,21 @@ export type PromptEntry = {
   tags: readonly PromptTagId[];
   context: string;
   prompt: string;
+  numberInput?: PromptNumberInput;
   modifier?: PromptModifier;
+};
+
+export type PromptNumberInput = {
+  token: string;
+  label: string;
+  defaultValue: number;
+  min: number;
+  max: number;
+  step?: number;
+};
+
+export type PromptRenderOptions = {
+  numberInputValue?: number;
 };
 
 export type PromptModifierOption = {
@@ -379,6 +393,42 @@ Do not merely recap the transcript in order. Distill it. Separate signal from fi
 Use whatever structure best fits the material, but keep the result concise enough to be useful.`,
   },
   {
+    id: 'parallel-draft-synthesis',
+    title: 'Parallel Draft Synthesis',
+    summary: 'Generate independent drafts or options with parallel subagents, then synthesize the strongest result.',
+    tags: ['planning', 'subagents', 'synthesis'],
+    context:
+      'Use when you want several independent attempts at a prose draft, UI mockup, strategy, plan, brainstorm, or other creative or analytical output before choosing or distilling a final direction.',
+    numberInput: {
+      token: 'draftCount',
+      label: 'Options',
+      defaultValue: 5,
+      min: 2,
+      max: 10,
+      step: 1,
+    },
+    prompt: `Please orchestrate {{draftCount}} independent drafts, options, or mockups for the task we are working on, then synthesize the strongest path forward.
+
+First clarify the actual goal, audience, constraints, source material, and success criteria from the current context. If something essential is missing, ask before dispatching subagents. Otherwise proceed.
+
+Dispatch {{draftCount}} fresh subagents in parallel. Give each subagent the same core goal, relevant context, constraints, and definition of done. Make clear that the context is source material, not a conclusion they must preserve.
+
+Choose the delegation shape that best fits the task:
+
+- Use the same prompt for every subagent when independent attempts are more valuable than assigned roles.
+- Use different lenses when diversity would improve the result, such as concise vs. expansive, conservative vs. bold, user-first vs. technical, visual layout alternatives, risk-first, narrative-first, or strategy-first.
+
+Wait for all subagents to report back. Compare the outputs directly and use judgment to identify what is strongest, most interesting, most useful, or most fitting for the task. Favor the ideas and directions you would actually want to carry forward, whether that means choosing one standout approach, combining parts of several, or using the round to discover a better target.
+
+Then decide the next step:
+
+- If the user should inspect distinct variants before distillation, present the variants clearly and ask for a choice or direction.
+- If the best synthesis is clear, produce the final distilled draft, recommendation, mockup direction, plan, or next-step proposal.
+- If the first round is unsatisfactory but reveals a better target, optionally run one focused follow-up round with a narrower prompt before final synthesis.
+
+Return the result in the structure that best fits the work. Keep the report concise: explain which subagent approaches were used, what survived synthesis, what was rejected, and any remaining assumptions or decisions needed.`,
+  },
+  {
     id: 'stacked-pr-review-orchestrator',
     title: 'Stacked PR Review Orchestrator',
     summary: 'Coordinate stacked PR review-comment triage, follow-up fixes, and durable replies.',
@@ -425,20 +475,42 @@ export function getDefaultPromptModifierOptionId(prompt: PromptEntry): string | 
   return prompt.modifier?.defaultOptionId;
 }
 
-export function renderPromptText(prompt: PromptEntry, optionId = prompt.modifier?.defaultOptionId): string {
-  if (!prompt.modifier) {
-    return prompt.prompt;
-  }
+export function normalizePromptNumberInputValue(value: number | undefined, input: PromptNumberInput): number {
+  const fallback = input.defaultValue;
+  const numericValue = value === undefined || !Number.isFinite(value) ? fallback : value;
+  const step = input.step ?? 1;
+  const steppedValue = Math.round((numericValue - input.min) / step) * step + input.min;
 
-  const option = prompt.modifier.options.find((item) => item.id === optionId);
-  if (!option) {
+  return Math.min(input.max, Math.max(input.min, Math.trunc(steppedValue)));
+}
+
+export function renderPromptText(
+  prompt: PromptEntry,
+  optionId = prompt.modifier?.defaultOptionId,
+  options: PromptRenderOptions = {},
+): string {
+  const numberInput = prompt.numberInput;
+  const numberInputValue = numberInput
+    ? normalizePromptNumberInputValue(options.numberInputValue, numberInput)
+    : undefined;
+  const modifierOption = prompt.modifier?.options.find((item) => item.id === optionId);
+
+  if (prompt.modifier && !modifierOption) {
     throw new Error(`Prompt "${prompt.id}" uses unknown modifier option: ${optionId}`);
   }
 
   return prompt.prompt.replace(promptTokenPattern, (token, name: string) => {
-    const replacement = option.replacements[name];
+    if (numberInput && name === numberInput.token) {
+      return String(numberInputValue);
+    }
+
+    const replacement = modifierOption?.replacements[name];
     if (replacement === undefined) {
-      throw new Error(`Prompt "${prompt.id}" modifier option "${option.id}" is missing replacement: ${token}`);
+      if (!modifierOption) {
+        throw new Error(`Prompt "${prompt.id}" has unresolved template token: ${token}`);
+      }
+
+      throw new Error(`Prompt "${prompt.id}" modifier option "${modifierOption.id}" is missing replacement: ${token}`);
     }
     return replacement;
   });
@@ -484,9 +556,15 @@ export function validatePrompts(
 
 function validatePromptTemplate(entry: PromptEntry): void {
   const tokenNames = getPromptTokenNames(entry.prompt);
+  const numberInputTokenName = entry.numberInput?.token;
+  const modifierTokenNames = tokenNames.filter((tokenName) => tokenName !== numberInputTokenName);
+
+  if (entry.numberInput) {
+    validatePromptNumberInput(entry, tokenNames);
+  }
 
   if (!entry.modifier) {
-    if (tokenNames.length) {
+    if (modifierTokenNames.length) {
       throw new Error(`Prompt "${entry.id}" has template tokens without a modifier`);
     }
     return;
@@ -500,7 +578,7 @@ function validatePromptTemplate(entry: PromptEntry): void {
     throw new Error(`Prompt "${entry.id}" modifier must have options`);
   }
 
-  if (!tokenNames.length) {
+  if (!modifierTokenNames.length) {
     throw new Error(`Prompt "${entry.id}" modifier must render at least one template token`);
   }
 
@@ -516,14 +594,14 @@ function validatePromptTemplate(entry: PromptEntry): void {
     }
 
     const replacementNames = new Set(Object.keys(option.replacements));
-    for (const tokenName of tokenNames) {
+    for (const tokenName of modifierTokenNames) {
       if (!replacementNames.has(tokenName)) {
         throw new Error(`Prompt "${entry.id}" modifier option "${option.id}" is missing replacement: ${tokenName}`);
       }
     }
 
     for (const replacementName of replacementNames) {
-      if (!tokenNames.includes(replacementName)) {
+      if (!modifierTokenNames.includes(replacementName)) {
         throw new Error(
           `Prompt "${entry.id}" modifier option "${option.id}" has unused replacement: ${replacementName}`,
         );
@@ -538,6 +616,35 @@ function validatePromptTemplate(entry: PromptEntry): void {
 
   if (!optionIds.has(entry.modifier.defaultOptionId)) {
     throw new Error(`Prompt "${entry.id}" modifier uses unknown default option: ${entry.modifier.defaultOptionId}`);
+  }
+}
+
+function validatePromptNumberInput(entry: PromptEntry, tokenNames: readonly string[]): void {
+  const input = entry.numberInput;
+  if (!input) return;
+
+  if (!/^[A-Za-z][A-Za-z0-9]*$/.test(input.token)) {
+    throw new Error(`Prompt "${entry.id}" number input token is invalid: ${input.token}`);
+  }
+
+  if (!tokenNames.includes(input.token)) {
+    throw new Error(`Prompt "${entry.id}" number input token is not used: ${input.token}`);
+  }
+
+  if (!input.label.trim()) {
+    throw new Error(`Prompt "${entry.id}" number input must have a label`);
+  }
+
+  if (!Number.isInteger(input.min) || !Number.isInteger(input.max) || input.min > input.max) {
+    throw new Error(`Prompt "${entry.id}" number input must have an integer min and max range`);
+  }
+
+  if (!Number.isInteger(input.defaultValue) || input.defaultValue < input.min || input.defaultValue > input.max) {
+    throw new Error(`Prompt "${entry.id}" number input default must be inside the range`);
+  }
+
+  if (input.step !== undefined && (!Number.isInteger(input.step) || input.step <= 0)) {
+    throw new Error(`Prompt "${entry.id}" number input step must be a positive integer`);
   }
 }
 

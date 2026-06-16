@@ -8,7 +8,8 @@ Use this checklist before adding a prompt to the curated library.
 - The prompt is generalizable beyond one conversation.
 - The usage context explains when to use the prompt and why it exists.
 - The prompt gives enough context guidance without embedding stale specifics.
-- The prompt does not name irrelevant concepts just to ban them; negative constraints should target likely mistakes for this task.
+- The prompt does not name irrelevant concepts just to ban them.
+- Negative constraints target likely mistakes for this task; omit bans that only name mistakes an agent would not realistically make.
 - The prompt distinguishes context from conclusions.
 - The prompt makes room for "no change needed" when evidence supports that.
 - The prompt avoids forcing an output format that may not fit the task.

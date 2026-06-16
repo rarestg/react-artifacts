@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+  getDefaultPromptToggleOptionIds,
   getPromptTag,
   normalizePromptNumberInputValue,
   type PromptEntry,
@@ -311,6 +312,49 @@ They should not manufacture objections. "The proposals are solid," "some proposa
 
 After they report back, compare their assessment with yours. Synthesize the strongest path forward, including combining, narrowing, changing, or rejecting proposals as warranted.`,
   );
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('minimal code review team prompt defaults to all focused lenses', () => {
+  const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Minimal Code Review Team');
+  assert.deepEqual(prompt.tags, ['review', 'subagents', 'architecture']);
+  assert.equal(prompt.toggleModifier?.label, 'Lenses');
+  assert.deepEqual(getDefaultPromptToggleOptionIds(prompt), [
+    'minimalism',
+    'stdlib-native',
+    'correctness-safety',
+    'readability',
+    'checks',
+  ]);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /focused subagent review team/);
+  assert.match(renderedPrompt, /minimal, still correct, and still understandable/);
+  assert.match(renderedPrompt, /Minimalism\/YAGNI/);
+  assert.match(renderedPrompt, /Stdlib\/native\/deps/);
+  assert.match(renderedPrompt, /Correctness\/safety/);
+  assert.match(renderedPrompt, /Readability\/maintainability/);
+  assert.match(renderedPrompt, /Small checks/);
+  assert.match(renderedPrompt, /synthesize one ranked action list/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('minimal code review team prompt can omit the checks lens', () => {
+  const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
+
+  assert.ok(prompt);
+
+  const renderedPrompt = renderPromptText(prompt, undefined, {
+    enabledToggleOptionIds: ['minimalism', 'stdlib-native', 'correctness-safety', 'readability'],
+  });
+
+  assert.match(renderedPrompt, /Minimalism\/YAGNI/);
+  assert.match(renderedPrompt, /Readability\/maintainability/);
+  assert.doesNotMatch(renderedPrompt, /Small checks/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 

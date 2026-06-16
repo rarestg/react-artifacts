@@ -13,6 +13,7 @@ import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
 import {
   getDefaultPromptModifierOptionId,
+  getDefaultPromptToggleOptionIds,
   getPromptTag,
   normalizePromptNumberInputValue,
   type PromptEntry,
@@ -593,6 +594,39 @@ function PromptNumberInputControl({
   );
 }
 
+function PromptToggleModifierControl({
+  label,
+  selectedOptionIds,
+  onOptionChange,
+  options,
+}: {
+  label: string;
+  selectedOptionIds: readonly string[];
+  onOptionChange: (optionId: string, checked: boolean) => void;
+  options: readonly { id: string; label: string }[];
+}) {
+  const selectedOptionIdSet = new Set(selectedOptionIds);
+
+  return (
+    <>
+      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
+      <fieldset className="m-0 flex min-w-0 flex-wrap items-center gap-1.5 border-0 p-0" aria-label={label}>
+        {options.map((option) => (
+          <FilterCheckbox
+            key={option.id}
+            checked={selectedOptionIdSet.has(option.id)}
+            onCheckedChange={(checked) => onOptionChange(option.id, checked)}
+            label={option.label}
+            tone="metadata"
+            borderStyle="neutral"
+            className="h-6"
+          />
+        ))}
+      </fieldset>
+    </>
+  );
+}
+
 export function PromptDetailContent({
   prompt,
   renderedPrompt,
@@ -600,6 +634,8 @@ export function PromptDetailContent({
   onModifierOptionChange,
   selectedNumberInputValue,
   onNumberInputChange = () => undefined,
+  selectedToggleOptionIds = getDefaultPromptToggleOptionIds(prompt),
+  onToggleOptionChange,
   highlightedTagIds = EMPTY_HIGHLIGHTED_TAG_IDS,
   contextIndices,
   promptIndices,
@@ -610,6 +646,8 @@ export function PromptDetailContent({
   onModifierOptionChange: (optionId: string) => void;
   selectedNumberInputValue?: number;
   onNumberInputChange?: (value: number) => void;
+  selectedToggleOptionIds?: readonly string[];
+  onToggleOptionChange?: (optionId: string, checked: boolean) => void;
   highlightedTagIds?: readonly PromptTagId[];
   contextIndices?: HighlightIndices;
   promptIndices?: HighlightIndices;
@@ -634,11 +672,25 @@ export function PromptDetailContent({
       onValueChange={onNumberInputChange}
     />
   ) : undefined;
+  const toggleModifierOptions = prompt.toggleModifier?.options.map((option) => ({
+    id: option.id,
+    label: option.label,
+  }));
+  const toggleModifierControl =
+    prompt.toggleModifier && toggleModifierOptions && onToggleOptionChange ? (
+      <PromptToggleModifierControl
+        label={prompt.toggleModifier.label}
+        selectedOptionIds={selectedToggleOptionIds}
+        onOptionChange={onToggleOptionChange}
+        options={toggleModifierOptions}
+      />
+    ) : undefined;
   const promptControls =
-    modifierControl || numberInputControl ? (
+    modifierControl || numberInputControl || toggleModifierControl ? (
       <>
         {modifierControl}
         {numberInputControl}
+        {toggleModifierControl}
       </>
     ) : undefined;
 
@@ -682,6 +734,7 @@ function PromptDetailDialog({
 }) {
   const defaultModifierOptionId = getDefaultPromptModifierOptionId(prompt);
   const defaultNumberInputValue = prompt.numberInput?.defaultValue;
+  const defaultToggleOptionIds = useMemo(() => getDefaultPromptToggleOptionIds(prompt), [prompt]);
   const matchingSearchResult = searchResult?.prompt.id === prompt.id ? searchResult : undefined;
   const matchedPromptVariant = matchingSearchResult
     ? getMatchedPromptSearchVariant(matchingSearchResult, searchQuery)
@@ -689,8 +742,10 @@ function PromptDetailDialog({
   const initialModifierOptionId = matchedPromptVariant?.optionId ?? defaultModifierOptionId;
   const [selectedModifierOptionId, setSelectedModifierOptionId] = useState(initialModifierOptionId);
   const [selectedNumberInputValue, setSelectedNumberInputValue] = useState(defaultNumberInputValue);
+  const [selectedToggleOptionIds, setSelectedToggleOptionIds] = useState(defaultToggleOptionIds);
   const renderedPrompt = renderPromptText(prompt, selectedModifierOptionId, {
     numberInputValue: selectedNumberInputValue,
+    enabledToggleOptionIds: selectedToggleOptionIds,
   });
   const titleMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'title') : undefined;
   const summaryMatch = matchingSearchResult ? getMatchForKey(matchingSearchResult, 'summary') : undefined;
@@ -723,6 +778,20 @@ function PromptDetailDialog({
     setSelectedNumberInputValue(defaultNumberInputValue);
   }, [defaultNumberInputValue]);
 
+  useEffect(() => {
+    setSelectedToggleOptionIds(defaultToggleOptionIds);
+  }, [defaultToggleOptionIds]);
+
+  const handleToggleOptionChange = (optionId: string, checked: boolean) => {
+    setSelectedToggleOptionIds((current) =>
+      checked
+        ? current.includes(optionId)
+          ? current
+          : [...current, optionId]
+        : current.filter((selectedOptionId) => selectedOptionId !== optionId),
+    );
+  };
+
   return (
     <ArtifactDialog
       open={Boolean(prompt)}
@@ -749,6 +818,8 @@ function PromptDetailDialog({
         onModifierOptionChange={setSelectedModifierOptionId}
         selectedNumberInputValue={selectedNumberInputValue}
         onNumberInputChange={setSelectedNumberInputValue}
+        selectedToggleOptionIds={selectedToggleOptionIds}
+        onToggleOptionChange={handleToggleOptionChange}
         highlightedTagIds={highlightedTagIds}
         contextIndices={contextIndices}
         promptIndices={promptIndices}

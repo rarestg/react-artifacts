@@ -28,6 +28,7 @@ export type PromptEntry = {
   prompt: string;
   numberInput?: PromptNumberInput;
   modifier?: PromptModifier;
+  toggleModifier?: PromptToggleModifier;
 };
 
 export type PromptNumberInput = {
@@ -41,6 +42,7 @@ export type PromptNumberInput = {
 
 export type PromptRenderOptions = {
   numberInputValue?: number;
+  enabledToggleOptionIds?: readonly string[];
 };
 
 export type PromptModifierOption = {
@@ -53,6 +55,20 @@ export type PromptModifier = {
   label: string;
   defaultOptionId: string;
   options: readonly PromptModifierOption[];
+};
+
+export type PromptToggleModifierOption = {
+  id: string;
+  label: string;
+  defaultEnabled: boolean;
+  replacement: string;
+};
+
+export type PromptToggleModifier = {
+  label: string;
+  token: string;
+  emptyReplacement: string;
+  options: readonly PromptToggleModifierOption[];
 };
 
 export const promptTags = [
@@ -201,6 +217,74 @@ Ask them to evaluate from first principles whether {{soundnessQuestion}}. They s
 They should not manufacture objections. {{validOutcomeExamples}} are valid answers if the evidence supports them.
 
 After they report back, {{synthesisInstruction}}`,
+  },
+  {
+    id: 'minimal-code-review-team',
+    title: 'Minimal Code Review Team',
+    summary: 'Spawn focused subagents to simplify existing code without breaking correctness or readability.',
+    tags: ['review', 'subagents', 'architecture'],
+    context:
+      'Use when a script, gist, one-off tool, or already-written implementation should be reviewed from multiple lenses for the smallest version that still works and stays understandable.',
+    toggleModifier: {
+      label: 'Lenses',
+      token: 'enabledLenses',
+      emptyReplacement: 'No lenses are selected. Ask me which review lenses to use before spawning subagents.',
+      options: [
+        {
+          id: 'minimalism',
+          label: 'YAGNI',
+          defaultEnabled: true,
+          replacement:
+            'Minimalism/YAGNI: find code, abstractions, options, config, helpers, branches, files, or behavior that can be deleted, collapsed, or deferred. Prefer exact deletion/replacement suggestions and estimate net line reduction when obvious.',
+        },
+        {
+          id: 'stdlib-native',
+          label: 'Stdlib/native',
+          defaultEnabled: true,
+          replacement:
+            'Stdlib/native/deps: find hand-rolled logic, new dependencies, wrappers, or glue that the standard library, native platform, shell, database, browser, or already-installed packages can replace. Name the replacement directly.',
+        },
+        {
+          id: 'correctness-safety',
+          label: 'Safety',
+          defaultEnabled: true,
+          replacement:
+            'Correctness/safety: identify edge cases and guardrails that must survive simplification: trust-boundary validation, data-loss handling, security, filesystem/network failure, idempotency, ordering, encoding, and user-visible behavior.',
+        },
+        {
+          id: 'readability',
+          label: 'Readability',
+          defaultEnabled: true,
+          replacement:
+            'Readability/maintainability: check whether shorter code would become obscure. Prefer boring names, direct control flow, clear boundaries, and the simplest shape another engineer can understand quickly.',
+        },
+        {
+          id: 'checks',
+          label: 'Checks',
+          defaultEnabled: true,
+          replacement:
+            'Small checks: identify the smallest runnable check that proves the simplified code still works. Prefer one assert/demo/smoke command over a test framework unless the repo already has one and using it is cheaper.',
+        },
+      ],
+    },
+    prompt: `Please spawn a focused subagent review team for the already-written code I provide or reference.
+
+If I have not provided a script path, gist, pasted code, or clear target, ask me for that before spawning anyone.
+
+Shared goal for every subagent: make the code minimal, still correct, and still understandable. Prefer deletion, standard-library/native features, already-installed dependencies, fewer branches, fewer files, and simpler control flow. Do not sacrifice trust-boundary validation, data-loss handling, security, accessibility, hardware calibration, or behavior I explicitly asked to keep.
+
+Spawn one fresh subagent per enabled lens below. Give each subagent only the context needed for that lens, tell them they are reviewing only and must not edit files, and ask them to report uncertainty instead of guessing.
+
+{{enabledLenses}}
+
+Ask each subagent to return:
+- Top findings only.
+- File/line references when available.
+- Exact suggested deletion, replacement, or simplification.
+- Whether the change is safe now or needs verification.
+- Net line/dependency reduction when obvious.
+
+After they report back, synthesize one ranked action list. Deduplicate overlapping findings, call out disagreements between lenses, separate "safe now" from "verify first", and name the smallest final shape that still works and remains readable.`,
   },
   {
     id: 'self-contained-execution-plan',
@@ -475,6 +559,10 @@ export function getDefaultPromptModifierOptionId(prompt: PromptEntry): string | 
   return prompt.modifier?.defaultOptionId;
 }
 
+export function getDefaultPromptToggleOptionIds(prompt: PromptEntry): string[] {
+  return prompt.toggleModifier?.options.filter((option) => option.defaultEnabled).map((option) => option.id) ?? [];
+}
+
 export function normalizePromptNumberInputValue(value: number | undefined, input: PromptNumberInput): number {
   const fallback = input.defaultValue;
   const numericValue = value === undefined || !Number.isFinite(value) ? fallback : value;
@@ -494,25 +582,55 @@ export function renderPromptText(
     ? normalizePromptNumberInputValue(options.numberInputValue, numberInput)
     : undefined;
   const modifierOption = prompt.modifier?.options.find((item) => item.id === optionId);
+  const selectedToggleOptionIds = prompt.toggleModifier
+    ? (options.enabledToggleOptionIds ?? getDefaultPromptToggleOptionIds(prompt))
+    : undefined;
 
   if (prompt.modifier && !modifierOption) {
     throw new Error(`Prompt "${prompt.id}" uses unknown modifier option: ${optionId}`);
   }
+
+  if (prompt.toggleModifier && selectedToggleOptionIds) {
+    const knownOptionIds = new Set(prompt.toggleModifier.options.map((option) => option.id));
+    for (const selectedOptionId of selectedToggleOptionIds) {
+      if (!knownOptionIds.has(selectedOptionId)) {
+        throw new Error(`Prompt "${prompt.id}" uses unknown toggle option: ${selectedOptionId}`);
+      }
+    }
+  }
+
+  const toggleReplacement =
+    prompt.toggleModifier && selectedToggleOptionIds
+      ? selectedToggleOptionIds.length
+        ? (() => {
+            const selectedOptionIdSet = new Set(selectedToggleOptionIds);
+            return prompt.toggleModifier.options
+              .filter((option) => selectedOptionIdSet.has(option.id))
+              .map((option, index) => `${index + 1}. ${option.replacement}`)
+              .join('\n');
+          })()
+        : prompt.toggleModifier.emptyReplacement
+      : undefined;
 
   return prompt.prompt.replace(promptTokenPattern, (token, name: string) => {
     if (numberInput && name === numberInput.token) {
       return String(numberInputValue);
     }
 
-    const replacement = modifierOption?.replacements[name];
-    if (replacement === undefined) {
-      if (!modifierOption) {
-        throw new Error(`Prompt "${prompt.id}" has unresolved template token: ${token}`);
-      }
+    if (prompt.toggleModifier && name === prompt.toggleModifier.token) {
+      return toggleReplacement ?? prompt.toggleModifier.emptyReplacement;
+    }
 
+    const replacement = modifierOption?.replacements[name];
+    if (replacement !== undefined) {
+      return replacement;
+    }
+
+    if (modifierOption) {
       throw new Error(`Prompt "${prompt.id}" modifier option "${modifierOption.id}" is missing replacement: ${token}`);
     }
-    return replacement;
+
+    throw new Error(`Prompt "${prompt.id}" has unresolved template token: ${token}`);
   });
 }
 
@@ -557,18 +675,39 @@ export function validatePrompts(
 function validatePromptTemplate(entry: PromptEntry): void {
   const tokenNames = getPromptTokenNames(entry.prompt);
   const numberInputTokenName = entry.numberInput?.token;
-  const modifierTokenNames = tokenNames.filter((tokenName) => tokenName !== numberInputTokenName);
+  const toggleTokenName = entry.toggleModifier?.token;
+  const modifierTokenNames = tokenNames.filter(
+    (tokenName) => tokenName !== numberInputTokenName && tokenName !== toggleTokenName,
+  );
+  const toggleTokenNames = tokenNames.filter((tokenName) => tokenName !== numberInputTokenName);
 
   if (entry.numberInput) {
     validatePromptNumberInput(entry, tokenNames);
   }
 
-  if (!entry.modifier) {
+  if (entry.modifier && entry.toggleModifier) {
+    throw new Error(`Prompt "${entry.id}" cannot use both modifier and toggleModifier`);
+  }
+
+  if (!entry.modifier && !entry.toggleModifier) {
     if (modifierTokenNames.length) {
       throw new Error(`Prompt "${entry.id}" has template tokens without a modifier`);
     }
     return;
   }
+
+  if (entry.modifier) {
+    validatePromptModifier(entry, modifierTokenNames);
+    return;
+  }
+
+  if (entry.toggleModifier) {
+    validatePromptToggleModifier(entry, toggleTokenNames);
+  }
+}
+
+function validatePromptModifier(entry: PromptEntry, modifierTokenNames: readonly string[]): void {
+  if (!entry.modifier) return;
 
   if (!entry.modifier.label.trim()) {
     throw new Error(`Prompt "${entry.id}" modifier must have a label`);
@@ -645,6 +784,52 @@ function validatePromptNumberInput(entry: PromptEntry, tokenNames: readonly stri
 
   if (input.step !== undefined && (!Number.isInteger(input.step) || input.step <= 0)) {
     throw new Error(`Prompt "${entry.id}" number input step must be a positive integer`);
+  }
+}
+
+function validatePromptToggleModifier(entry: PromptEntry, toggleTokenNames: readonly string[]): void {
+  const toggleModifier = entry.toggleModifier;
+  if (!toggleModifier) return;
+
+  if (!toggleModifier.label.trim()) {
+    throw new Error(`Prompt "${entry.id}" toggle modifier must have a label`);
+  }
+
+  if (!/^[A-Za-z][A-Za-z0-9]*$/.test(toggleModifier.token)) {
+    throw new Error(`Prompt "${entry.id}" toggle modifier uses invalid token: ${toggleModifier.token}`);
+  }
+
+  if (!toggleTokenNames.includes(toggleModifier.token) || toggleTokenNames.length !== 1) {
+    throw new Error(`Prompt "${entry.id}" toggle modifier must render exactly one template token`);
+  }
+
+  if (!toggleModifier.emptyReplacement.trim()) {
+    throw new Error(`Prompt "${entry.id}" toggle modifier must have emptyReplacement text`);
+  }
+
+  if (!toggleModifier.options.length) {
+    throw new Error(`Prompt "${entry.id}" toggle modifier must have options`);
+  }
+
+  const optionIds = new Set<string>();
+  for (const option of toggleModifier.options) {
+    if (optionIds.has(option.id)) {
+      throw new Error(`Prompt "${entry.id}" toggle modifier has duplicate option id: ${option.id}`);
+    }
+    optionIds.add(option.id);
+
+    if (!option.label.trim()) {
+      throw new Error(`Prompt "${entry.id}" toggle modifier option "${option.id}" must have a label`);
+    }
+
+    if (!option.replacement.trim()) {
+      throw new Error(`Prompt "${entry.id}" toggle modifier option "${option.id}" must have replacement text`);
+    }
+  }
+
+  const renderedPrompt = renderPromptText(entry);
+  if (getPromptTokenNames(renderedPrompt).length) {
+    throw new Error(`Prompt "${entry.id}" toggle modifier renders unreplaced template tokens`);
   }
 }
 

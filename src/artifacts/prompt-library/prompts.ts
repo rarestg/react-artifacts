@@ -478,7 +478,8 @@ export function getDefaultPromptModifierOptionId(prompt: PromptEntry): string | 
 export function normalizePromptNumberInputValue(value: number | undefined, input: PromptNumberInput): number {
   const fallback = input.defaultValue;
   const numericValue = value === undefined || !Number.isFinite(value) ? fallback : value;
-  const steppedValue = Math.round(numericValue / (input.step ?? 1)) * (input.step ?? 1);
+  const step = input.step ?? 1;
+  const steppedValue = Math.round((numericValue - input.min) / step) * step + input.min;
 
   return Math.min(input.max, Math.max(input.min, Math.trunc(steppedValue)));
 }

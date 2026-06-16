@@ -121,6 +121,31 @@ test('prompt number input values clamp to the configured range', () => {
   assert.equal(normalizePromptNumberInputValue(undefined, prompt.numberInput), 5);
 });
 
+test('prompt number input step values snap relative to the configured minimum', () => {
+  assert.equal(
+    normalizePromptNumberInputValue(undefined, {
+      token: 'count',
+      label: 'Count',
+      defaultValue: 2,
+      min: 2,
+      max: 10,
+      step: 4,
+    }),
+    2,
+  );
+  assert.equal(
+    normalizePromptNumberInputValue(7, {
+      token: 'count',
+      label: 'Count',
+      defaultValue: 2,
+      min: 2,
+      max: 10,
+      step: 4,
+    }),
+    6,
+  );
+});
+
 test('blog tag is available for prose publishing prompts', () => {
   const tag = getPromptTag('blog');
 

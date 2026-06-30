@@ -1,3 +1,4 @@
+import type { PDFDocument } from 'pdf-lib';
 import { detectRepetition } from './anomaly';
 import { GeminiFatalError, ocrPage } from './gemini';
 import { buildOutputMarkdown } from './markdown';
@@ -24,6 +25,8 @@ export async function runOcrPipeline(
   pdfBytes: Uint8Array,
   fileName: string,
   options: OcrOptions,
+  /** A pre-parsed document to reuse (a retry passes the run's, avoiding a full re-parse). */
+  preloaded?: PDFDocument,
 ): Promise<OcrPipelineResult> {
   if (!options.apiKey?.trim()) throw new Error('A Gemini API key is required.');
 
@@ -34,7 +37,8 @@ export async function runOcrPipeline(
   const retries = Math.max(0, options.retries ?? DEFAULT_RETRIES);
   const timeoutMs = Math.max(1000, options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
 
-  const source = await loadPdf(pdfBytes);
+  // Reuse the already-parsed document when given (retries) instead of re-parsing the whole PDF.
+  const source = preloaded ?? (await loadPdf(pdfBytes));
   const total = source.getPageCount();
 
   // Either an explicit page subset (e.g. a retry of the failed pages) or a contiguous range.

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { actualCost } from '../core/cost';
 import { buildOutputMarkdown } from '../core/markdown';
 import { runOcrPipeline } from '../core/pipeline';
+import { loadPdf } from '../core/splitPdf';
 import {
   DEFAULT_MEDIA_RESOLUTION,
   DEFAULT_MODEL,
@@ -112,8 +113,14 @@ function mergeResults(base: PageResult[], updates: PageResult[]): PageResult[] {
 export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
   const [state, setState] = useState<JobState>(INITIAL);
   const abortRef = useRef<AbortController | null>(null);
-  // Retained so a retry can re-run a failed subset on the same PDF with the same base options.
-  const ctxRef = useRef<{ pdfBytes: Uint8Array; fileName: string; options: RunOptions } | null>(null);
+  // Retained so a retry can re-run a failed subset on the same PDF with the same base options,
+  // reusing the already-parsed document (`source`) instead of re-parsing the whole PDF each retry.
+  const ctxRef = useRef<{
+    pdfBytes: Uint8Array;
+    fileName: string;
+    options: RunOptions;
+    source: Awaited<ReturnType<typeof loadPdf>>;
+  } | null>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -126,7 +133,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
-      ctxRef.current = { pdfBytes, fileName, options };
+      ctxRef.current = null; // cleared until we have a parsed source to retry from
       const model = options.model?.trim() || DEFAULT_MODEL;
       const startedAt = performance.now();
       setState({
@@ -140,27 +147,36 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
 
       const collected: PageResult[] = [];
       try {
-        const { markdown, results } = await runOcrPipeline(pdfBytes, fileName, {
-          ...options,
-          signal: controller.signal,
-          onStats: (stats) => {
-            if (abortRef.current !== controller) return; // a superseded run must not write state
-            setState((prev) => ({ ...prev, activity: stats }));
+        // Parse the PDF once and retain it so retries don't re-parse the whole document.
+        const source = await loadPdf(pdfBytes);
+        if (abortRef.current !== controller) return; // a superseded/reset run must not clobber ctx
+        ctxRef.current = { pdfBytes, fileName, options, source };
+        const { markdown, results } = await runOcrPipeline(
+          pdfBytes,
+          fileName,
+          {
+            ...options,
+            signal: controller.signal,
+            onStats: (stats) => {
+              if (abortRef.current !== controller) return; // a superseded run must not write state
+              setState((prev) => ({ ...prev, activity: stats }));
+            },
+            onProgress: (result, completed, total) => {
+              if (abortRef.current !== controller) return;
+              collected.push(result);
+              setState((prev) => ({
+                ...prev,
+                status: 'running',
+                total,
+                completed,
+                failed: prev.failed + (result.error ? 1 : 0),
+                results: [...prev.results, result],
+                costByModel: addTokens(prev.costByModel, model, result),
+              }));
+            },
           },
-          onProgress: (result, completed, total) => {
-            if (abortRef.current !== controller) return;
-            collected.push(result);
-            setState((prev) => ({
-              ...prev,
-              status: 'running',
-              total,
-              completed,
-              failed: prev.failed + (result.error ? 1 : 0),
-              results: [...prev.results, result],
-              costByModel: addTokens(prev.costByModel, model, result),
-            }));
-          },
-        });
+          source,
+        );
         if (abortRef.current !== controller) return;
         setState((prev) => ({
           ...prev,
@@ -281,28 +297,33 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
         });
 
       try {
-        const { results } = await runOcrPipeline(ctx.pdfBytes, ctx.fileName, {
-          ...ctx.options,
-          model: retryModel,
-          mediaResolution: overrides.mediaResolution,
-          pages: pageNumbers,
-          signal: controller.signal,
-          onStats: (stats) => {
-            if (abortRef.current !== controller) return; // a superseded retry must not write state
-            setState((prev) => ({ ...prev, activity: stats }));
+        const { results } = await runOcrPipeline(
+          ctx.pdfBytes,
+          ctx.fileName,
+          {
+            ...ctx.options,
+            model: retryModel,
+            mediaResolution: overrides.mediaResolution,
+            pages: pageNumbers,
+            signal: controller.signal,
+            onStats: (stats) => {
+              if (abortRef.current !== controller) return; // a superseded retry must not write state
+              setState((prev) => ({ ...prev, activity: stats }));
+            },
+            onProgress: (result, completed, total) => {
+              if (abortRef.current !== controller) return;
+              retryResults.push({ ...result, retried: true });
+              setState((prev) => ({
+                ...prev,
+                status: 'running',
+                completed,
+                total,
+                costByModel: addTokens(prev.costByModel, retryModel, result),
+              }));
+            },
           },
-          onProgress: (result, completed, total) => {
-            if (abortRef.current !== controller) return;
-            retryResults.push({ ...result, retried: true });
-            setState((prev) => ({
-              ...prev,
-              status: 'running',
-              completed,
-              total,
-              costByModel: addTokens(prev.costByModel, retryModel, result),
-            }));
-          },
-        });
+          ctx.source,
+        );
         if (abortRef.current !== controller) return;
         settle('done');
         fireComplete(true, 0, invocationCost(retryModel, results));

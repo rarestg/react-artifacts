@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { mergeClassNames } from '../../../lib/classNames';
 import { estimateCost, formatCost, modelPricing } from '../core/cost';
@@ -14,13 +14,24 @@ type Row = {
   combined: number | null;
 };
 
-const headCellClass = 'px-3 py-2 text-left font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]';
+const headCellClass = 'px-3 py-2 font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]';
 
-function relGlyph(combined: number | null, min: number, max: number): string {
-  if (combined === null) return '—';
-  if (max === min) return '$';
+type RelTone = 'success' | 'warning' | 'danger' | 'none';
+
+const relToneClass: Record<RelTone, string> = {
+  success: 'text-[var(--success)]',
+  warning: 'text-[var(--warning)]',
+  danger: 'text-[var(--danger)]',
+  none: 'text-[var(--text-subtle)]',
+};
+
+function relCell(combined: number | null, min: number, max: number): { glyph: string; tone: RelTone } {
+  if (combined === null) return { glyph: '—', tone: 'none' };
+  if (max === min) return { glyph: '$', tone: 'success' };
   const tier = (combined - min) / (max - min);
-  return tier < 1 / 3 ? '$' : tier < 2 / 3 ? '$$' : '$$$';
+  if (tier < 1 / 3) return { glyph: '$', tone: 'success' };
+  if (tier < 2 / 3) return { glyph: '$$', tone: 'warning' };
+  return { glyph: '$$$', tone: 'danger' };
 }
 
 export function ModelTable({ vm }: { vm: Controller }) {
@@ -72,7 +83,7 @@ export function ModelTable({ vm }: { vm: Controller }) {
       <th
         scope="col"
         aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
-        className={headCellClass}
+        className={mergeClassNames(headCellClass, numeric ? 'text-right' : 'text-left')}
       >
         <button
           type="button"
@@ -126,13 +137,14 @@ export function ModelTable({ vm }: { vm: Controller }) {
             ) : (
               sortedRows.map((row) => {
                 const selected = row.name === vm.model;
+                const rel = relCell(row.combined, minCombined, maxCombined);
                 return (
                   <tr
                     key={row.name}
                     onClick={() => vm.setModel(row.name)}
                     className={mergeClassNames(
                       'border-b border-[var(--border)] last:border-b-0',
-                      selected ? 'bg-[var(--surface-muted)]' : 'hover:bg-[var(--surface-muted)]',
+                      selected ? 'bg-[var(--accent-weak)]' : 'hover:bg-[var(--surface-muted)]',
                     )}
                   >
                     <td
@@ -149,7 +161,20 @@ export function ModelTable({ vm }: { vm: Controller }) {
                           checked={selected}
                           onChange={() => vm.setModel(row.name)}
                         />
-                        <span className="font-mono text-xs text-[var(--text)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]">
+                        <span
+                          className={mergeClassNames(
+                            'inline-flex items-center gap-1.5 font-mono text-xs peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]',
+                            selected ? 'font-semibold text-[var(--accent-text)]' : 'text-[var(--text)]',
+                          )}
+                        >
+                          <Check
+                            aria-hidden="true"
+                            strokeWidth={3}
+                            className={mergeClassNames(
+                              'h-3 w-3 shrink-0',
+                              selected ? 'text-[var(--accent)]' : 'invisible',
+                            )}
+                          />
                           {row.name}
                         </span>
                       </label>
@@ -163,8 +188,8 @@ export function ModelTable({ vm }: { vm: Controller }) {
                     <td className="px-3 py-2 text-right font-mono text-xs tabular-nums text-[var(--text)]">
                       {row.estMid === null ? '—' : formatCost(row.estMid)}
                     </td>
-                    <td className="px-3 py-2 text-right font-mono text-xs tabular-nums text-[var(--text-muted)]">
-                      {relGlyph(row.combined, minCombined, maxCombined)}
+                    <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">
+                      <span className={mergeClassNames('font-bold', relToneClass[rel.tone])}>{rel.glyph}</span>
                     </td>
                   </tr>
                 );

@@ -31,8 +31,8 @@ const markdownClass = mergeClassNames(
   '[&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-[var(--border)] [&_th]:bg-[var(--surface-muted)] [&_th]:px-2 [&_th]:py-1 [&_td]:border [&_td]:border-[var(--border)] [&_td]:px-2 [&_td]:py-1 [&_table]:text-xs',
 );
 
-const preClass =
-  'max-h-[28rem] overflow-auto whitespace-pre-wrap break-words border border-[var(--border)] bg-[var(--surface-muted)] p-3 font-mono text-xs leading-relaxed text-[var(--text)]';
+const scrollBoxClass = 'max-h-[28rem] overflow-auto border border-[var(--border)] bg-[var(--surface)] p-3';
+const sourcePreClass = 'whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-[var(--text)]';
 
 /** Falls back to the literal markdown source if react-markdown throws while rendering. */
 class MarkdownBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
@@ -63,7 +63,7 @@ export function ResultView({ vm }: { vm: Controller }) {
             disabled={!hasMarkdown}
             ariaLabel="Copy markdown source"
           />
-          <Button size="sm" onClick={vm.download} disabled={!hasMarkdown}>
+          <Button onClick={vm.download} disabled={!hasMarkdown}>
             Download .md
           </Button>
         </div>
@@ -77,15 +77,17 @@ export function ResultView({ vm }: { vm: Controller }) {
       />
 
       {hasMarkdown ? (
-        vm.resultTab === 'preview' ? (
-          <MarkdownBoundary key={markdown} fallback={<pre className={preClass}>{markdown}</pre>}>
-            <div className={markdownClass}>
-              <Markdown remarkPlugins={[remarkGfm]}>{markdown}</Markdown>
-            </div>
-          </MarkdownBoundary>
-        ) : (
-          <pre className={preClass}>{markdown}</pre>
-        )
+        <div className={scrollBoxClass}>
+          {vm.resultTab === 'preview' ? (
+            <MarkdownBoundary key={markdown} fallback={<pre className={sourcePreClass}>{markdown}</pre>}>
+              <div className={markdownClass}>
+                <Markdown remarkPlugins={[remarkGfm]}>{markdown}</Markdown>
+              </div>
+            </MarkdownBoundary>
+          ) : (
+            <pre className={sourcePreClass}>{markdown}</pre>
+          )}
+        </div>
       ) : (
         <p className="border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-4 text-xs text-[var(--text-muted)]">
           No markdown produced yet — re-OCR the failed pages to build the document.

@@ -157,9 +157,9 @@ export default function PdfOcrApp() {
 
   return (
     <ArtifactThemeRoot className="min-h-screen bg-[var(--surface-muted)] text-[var(--text)]">
-      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
+      <div className="flex min-h-screen flex-col">
         <Header vm={vm} />
-        <main className="flex-1 space-y-4 p-4">
+        <main className="mx-auto w-full max-w-3xl flex-1 space-y-4 p-4">
           {vm.setupCollapsed ? (
             <SetupSummary vm={vm} />
           ) : (
@@ -185,10 +185,12 @@ export default function PdfOcrApp() {
           <LifetimeTally vm={vm} />
         </main>
 
-        <footer className="border-t border-[var(--border)] px-4 py-3">
-          <p className={helperClass}>
-            Your key and PDF stay in this browser — only the OCR requests are sent to Google.
-          </p>
+        <footer className="border-t border-[var(--border)]">
+          <div className="mx-auto w-full max-w-3xl px-4 py-3">
+            <p className={helperClass}>
+              Your key and PDF stay in this browser — only the OCR requests are sent to Google.
+            </p>
+          </div>
         </footer>
       </div>
     </ArtifactThemeRoot>

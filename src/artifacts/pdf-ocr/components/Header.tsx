@@ -49,20 +49,24 @@ export function Header({ vm }: { vm: Controller }) {
   const showCost = vm.state.status !== 'idle' && vm.hasCost;
 
   return (
-    <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 className="text-sm font-semibold tracking-tight text-[var(--text)]">PDF OCR</h1>
-        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-          <LaneFact filled={keyVerified}>{keyVerified ? 'Key OK' : 'No key'}</LaneFact>
-          <LaneFact filled={!!vm.file}>{vm.file ? `${vm.file.name} · ${vm.file.pageCount}p` : 'no file'}</LaneFact>
-          {showCost && (
+    <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--surface)]">
+      <div className="mx-auto w-full max-w-3xl px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <h1 className="text-sm font-semibold tracking-tight text-[var(--text)]">PDF OCR</h1>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+            <LaneFact filled={keyVerified}>{keyVerified ? 'Key OK' : 'No key'}</LaneFact>
+            <LaneFact filled={!!vm.file}>{vm.file ? `${vm.file.name} · ${vm.file.pageCount}p` : 'no file'}</LaneFact>
+            {showCost && (
+              <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">
+                {formatCost(vm.actualTotal)}
+                {vm.allPriced ? '' : '+'}
+              </span>
+            )}
+            <StateChip label={status.label} reserveLabel="Re-OCR-ing" tone={status.tone} icon={status.icon} />
             <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">
-              {formatCost(vm.actualTotal)}
-              {vm.allPriced ? '' : '+'}
+              {formatMmSs(vm.jobElapsedMs)}
             </span>
-          )}
-          <StateChip label={status.label} reserveLabel="Re-OCR-ing" tone={status.tone} icon={status.icon} />
-          <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">{formatMmSs(vm.jobElapsedMs)}</span>
+          </div>
         </div>
       </div>
     </header>

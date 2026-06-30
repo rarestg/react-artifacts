@@ -68,7 +68,7 @@ export function StateChip({
         <span aria-hidden="true" className="col-start-1 row-start-1 whitespace-nowrap opacity-0 pointer-events-none">
           {reserveLabel ?? label}
         </span>
-        <span className="col-start-1 row-start-1 min-w-0 truncate">{label}</span>
+        <span className="col-start-1 row-start-1 min-w-0 truncate text-center">{label}</span>
       </span>
     </span>
   );
@@ -119,6 +119,7 @@ export function PageStateMark({ state, className }: { state: PageState; classNam
 export function PageStateChip({ state }: { state: 'suspect' | 'failed' }) {
   const tone: ChipTone = state === 'suspect' ? 'warning' : 'danger';
   const label = state === 'suspect' ? 'SUSPECT · kept' : 'FAILED';
+  const Icon = state === 'suspect' ? AlertTriangle : X;
   return (
     <span
       className={mergeClassNames(
@@ -126,7 +127,7 @@ export function PageStateChip({ state }: { state: 'suspect' | 'failed' }) {
         chipToneClass[tone],
       )}
     >
-      <PageStateMark state={state} className="h-3 w-3" />
+      <Icon aria-hidden="true" className="h-3 w-3 shrink-0" strokeWidth={state === 'failed' ? 3 : undefined} />
       {label}
     </span>
   );
@@ -173,6 +174,8 @@ export function Stepper({
   onChange,
   disabled = false,
   suffix,
+  maxButton = false,
+  helperText,
 }: {
   label: string;
   value: number;
@@ -182,6 +185,8 @@ export function Stepper({
   onChange: (value: number) => void;
   disabled?: boolean;
   suffix?: string;
+  maxButton?: boolean;
+  helperText?: string;
 }) {
   const inputId = useId();
   const [draft, setDraft] = useState(String(value));
@@ -261,8 +266,30 @@ export function Stepper({
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
+        {maxButton && Number.isFinite(max) && (
+          <button
+            type="button"
+            aria-label={`Set to maximum, ${max}`}
+            title={`Set to maximum, ${max}`}
+            disabled={disabled || value >= max}
+            onClick={() => {
+              setDraft(String(max));
+              onChange(max);
+            }}
+            className={mergeClassNames(
+              'inline-flex h-8 shrink-0 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-2 text-xs font-medium text-[var(--text-muted)]',
+              'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] disabled:cursor-not-allowed disabled:opacity-50',
+              !disabled && 'cursor-pointer',
+              '-ml-px',
+              focusRing,
+            )}
+          >
+            Max
+          </button>
+        )}
         {suffix && <span className="ml-2 text-xs text-[var(--text-muted)]">{suffix}</span>}
       </div>
+      {helperText && <p className={helperClass}>{helperText}</p>}
     </div>
   );
 }

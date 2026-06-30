@@ -60,12 +60,12 @@ export function ApiKeyPanel({ vm }: { vm: Controller }) {
           inputClassName="font-mono"
         />
         <Button
-          variant="ghost"
+          variant="default"
           aria-pressed={vm.showKey}
           aria-label={vm.showKey ? 'Hide API key' : 'Show API key'}
           title={vm.showKey ? 'Hide API key' : 'Show API key'}
           onClick={() => vm.setShowKey(!vm.showKey)}
-          className="border border-[var(--border-strong)] px-2 text-[var(--text-muted)]"
+          className="px-2"
         >
           {vm.showKey ? (
             <EyeOff className="h-4 w-4" aria-hidden="true" />

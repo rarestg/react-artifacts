@@ -3,17 +3,15 @@ import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { actualCost, type CostEstimate, estimateCost } from './core/cost';
 import { checkApiKey, type GeminiModel, pickCheapestModel, pickSmarterModel } from './core/gemini';
 import { getPageCount, parsePageSpec } from './core/splitPdf';
-import {
-  DEFAULT_CONCURRENCY,
-  DEFAULT_MEDIA_RESOLUTION,
-  DEFAULT_PROMPT,
-  DEFAULT_TIMEOUT_MS,
-  type MediaResolution,
-} from './core/types';
+import { DEFAULT_MEDIA_RESOLUTION, DEFAULT_PROMPT, DEFAULT_TIMEOUT_MS, type MediaResolution } from './core/types';
 import { useLifetimeStats } from './hooks/useLifetimeStats';
 import { useOcrJob } from './hooks/useOcrJob';
 
 const KEY_STORAGE = 'pdf-ocr:key';
+
+/** Artifact's initial parallel-pages setting. Higher than the pipeline's DEFAULT_CONCURRENCY (4)
+ *  fallback on purpose: the UI ships a fast default; the pipeline keeps its conservative fallback. */
+const INITIAL_ARTIFACT_CONCURRENCY = 32;
 
 export type TestState = { status: 'idle' | 'testing' | 'ok' | 'error'; message: string };
 export type LoadedFile = { name: string; bytes: Uint8Array; pageCount: number; size: number };
@@ -77,7 +75,7 @@ export function useController() {
 
   // --- Settings ----------------------------------------------------------------------------------
   const [mediaResolution, setMediaResolution] = useState<MediaResolution>(DEFAULT_MEDIA_RESOLUTION);
-  const [concurrency, setConcurrency] = useState(DEFAULT_CONCURRENCY);
+  const [concurrency, setConcurrency] = useState(INITIAL_ARTIFACT_CONCURRENCY);
   const [timeoutSec, setTimeoutSec] = useState(Math.round(DEFAULT_TIMEOUT_MS / 1000));
   const [pageSpec, setPageSpec] = useState('all');
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
@@ -95,6 +93,7 @@ export function useController() {
   const [activeRetry, setActiveRetry] = useState<{ pages: number[]; model: string } | null>(null);
   const [retrySpec, setRetrySpec] = useState('');
   const [retryModel, setRetryModel] = useState('');
+  const [retryDetail, setRetryDetail] = useState<MediaResolution>(DEFAULT_MEDIA_RESOLUTION);
   const [resultTab, setResultTab] = useState<'preview' | 'source'>('preview');
 
   const running = state.status === 'running';
@@ -175,7 +174,8 @@ export function useController() {
     lastFlaggedSigRef.current = flaggedSpec;
     setRetrySpec(flaggedSpec);
     setRetryModel(computeRetryDefault());
-  }, [running, flaggedSpec, computeRetryDefault]);
+    setRetryDetail(runSnapshot?.mediaResolution ?? DEFAULT_MEDIA_RESOLUTION);
+  }, [running, flaggedSpec, computeRetryDefault, runSnapshot]);
 
   // Drop the in-flight retry descriptor once the operation settles.
   useEffect(() => {
@@ -185,6 +185,11 @@ export function useController() {
   const retryPages = useMemo(
     () => (file ? parsePageSpec(retrySpec, runSnapshot?.pageCount ?? file.pageCount) : []),
     [file, retrySpec, runSnapshot],
+  );
+  // Re-OCR estimate: the RETRY page count × the chosen retry model × the chosen retry detail.
+  const retryEstimate = useMemo(
+    () => (retryModel && retryPages.length > 0 ? estimateCost(retryModel, retryPages.length, retryDetail) : null),
+    [retryModel, retryPages.length, retryDetail],
   );
 
   // --- Handlers ----------------------------------------------------------------------------------
@@ -292,13 +297,14 @@ export function useController() {
     const pages = parsePageSpec(retrySpec, runSnapshot.pageCount);
     if (pages.length === 0) return;
     setActiveRetry({ pages, model: retryModel });
-    void retry(pages, { model: retryModel, mediaResolution: runSnapshot.mediaResolution });
-  }, [running, file, runSnapshot, retrySpec, retryModel, retry]);
+    void retry(pages, { model: retryModel, mediaResolution: retryDetail });
+  }, [running, file, runSnapshot, retrySpec, retryModel, retryDetail, retry]);
 
   const resetRetryToFlagged = useCallback(() => {
     setRetrySpec(flaggedSpec);
     setRetryModel(computeRetryDefault());
-  }, [flaggedSpec, computeRetryDefault]);
+    setRetryDetail(runSnapshot?.mediaResolution ?? DEFAULT_MEDIA_RESOLUTION);
+  }, [flaggedSpec, computeRetryDefault, runSnapshot]);
 
   const editSetup = useCallback(() => {
     if (state.status === 'running') return;
@@ -372,7 +378,10 @@ export function useController() {
     setRetrySpec,
     retryModel,
     setRetryModel,
+    retryDetail,
+    setRetryDetail,
     retryPages,
+    retryEstimate,
     resultTab,
     setResultTab,
     // convert gating

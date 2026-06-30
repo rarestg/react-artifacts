@@ -1,32 +1,12 @@
-import { AlertTriangle, Check, Loader2, X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '../../../components/Button';
 import { actualCost, estimateCost, formatCost, formatCostRange } from '../core/cost';
 import type { Controller } from '../useController';
-import { type ChipTone, formatMmSs, PageStateChip, PageStateMark, ProgressBar, StateChip } from './primitives';
+import { PageStateChip, PageStateMark, ProgressBar } from './primitives';
 
 const spin = 'h-3 w-3 animate-spin motion-reduce:animate-none';
 const sectionLabel = 'text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]';
 const numCell = 'px-3 py-1.5 text-right font-mono text-xs tabular-nums';
-
-function reportStatus(vm: Controller): { label: string; tone: ChipTone; icon?: ReactNode } {
-  if (vm.activeRunKind === 'retry')
-    return { label: 'Re-OCR-ing…', tone: 'warning', icon: <Loader2 className={spin} /> };
-  if (vm.activeRunKind === 'initial') return { label: 'Running', tone: 'accent', icon: <Loader2 className={spin} /> };
-  switch (vm.state.status) {
-    case 'done':
-      if (vm.counts.failed > 0) return { label: 'Completed', tone: 'danger', icon: <X className="h-3 w-3" /> };
-      if (vm.counts.suspect > 0)
-        return { label: 'Completed', tone: 'warning', icon: <AlertTriangle className="h-3 w-3" /> };
-      return { label: 'Completed', tone: 'success', icon: <Check className="h-3 w-3" /> };
-    case 'cancelled':
-      return { label: 'Cancelled', tone: 'neutral' };
-    case 'error':
-      return { label: 'Failed', tone: 'danger', icon: <X className="h-3 w-3" /> };
-    default:
-      return { label: 'Run report', tone: 'neutral' };
-  }
-}
 
 function CountItem({ state, label, count }: { state: 'ok' | 'suspect' | 'failed'; label: string; count: number }) {
   return (
@@ -41,7 +21,6 @@ export function RunReport({ vm }: { vm: Controller }) {
   const snap = vm.runSnapshot;
   if (!snap) return null;
 
-  const status = reportStatus(vm);
   const { completed, total } = vm.state;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
   const notStarted = Math.max(0, snap.selectedCount - completed);
@@ -112,12 +91,8 @@ export function RunReport({ vm }: { vm: Controller }) {
 
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
+      <div className="border-b border-[var(--border)] px-4 py-3">
         <h2 className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Run report</h2>
-        <div className="flex items-center gap-3">
-          <StateChip label={status.label} reserveLabel="Re-OCR-ing…" tone={status.tone} icon={status.icon} />
-          <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">{formatMmSs(vm.jobElapsedMs)}</span>
-        </div>
       </div>
 
       <div className="space-y-4 px-4 py-4">

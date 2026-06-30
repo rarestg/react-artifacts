@@ -3,9 +3,19 @@ import { useMemo } from 'react';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { ListboxSelect } from '../../../components/ListboxSelect';
+import { SegmentedControl } from '../../../components/SegmentedControl';
 import { mergeClassNames } from '../../../lib/classNames';
+import { formatCostRange } from '../core/cost';
+import type { MediaResolution } from '../core/types';
 import type { Controller } from '../useController';
 import { bandClass, bandLabelClass, formatMmSs, helperClass } from './primitives';
+
+const DETAIL_OPTIONS: { value: MediaResolution; label: string }[] = [
+  { value: 'low', label: 'low' },
+  { value: 'medium', label: 'med' },
+  { value: 'high', label: 'high' },
+];
+const DETAIL_SHORT: Record<MediaResolution, string> = { low: 'low', medium: 'med', high: 'high' };
 
 export function RetryPanel({ vm }: { vm: Controller }) {
   const modelOptions = useMemo(
@@ -15,13 +25,25 @@ export function RetryPanel({ vm }: { vm: Controller }) {
   const retryCount = vm.retryPages.length;
   const flaggedCount = vm.flaggedPages.length;
 
+  const estLine = (() => {
+    if (retryCount === 0) return '';
+    const pages = `${retryCount} page${retryCount === 1 ? '' : 's'}`;
+    const est = vm.retryEstimate;
+    if (est?.priced && est.costLow !== null && est.costHigh !== null) {
+      return `Est. retry cost: ${formatCostRange(est.costLow, est.costHigh)} · ${pages} · ${DETAIL_SHORT[vm.retryDetail]} detail`;
+    }
+    return `Est. retry cost: unpriced model · ${pages}`;
+  })();
+
   return (
     <section className={mergeClassNames(bandClass, 'space-y-3 border-t border-[var(--border)]')}>
       <div className={bandLabelClass}>Re-OCR</div>
       <p className="text-sm text-[var(--text)]">
         {vm.counts.failed} failed, {vm.counts.suspect} suspect — re-OCR them, or any pages you choose.
       </p>
-      <p className={helperClass}>Retry uses original run settings; only model and pages change.</p>
+      <p className={helperClass}>
+        Retry uses the original run’s concurrency, timeout, and prompt. Pages, model, and image detail can change.
+      </p>
 
       <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
         <Input
@@ -34,14 +56,8 @@ export function RetryPanel({ vm }: { vm: Controller }) {
           className="min-w-[12rem] flex-1"
         />
         {flaggedCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={vm.retrying}
-            onClick={vm.resetRetryToFlagged}
-            className="px-0 text-[var(--text-muted)]"
-          >
-            Reset to flagged ({flaggedCount})
+          <Button variant="ghost" size="sm" disabled={vm.retrying} onClick={vm.resetRetryToFlagged}>
+            Reset retry defaults
           </Button>
         )}
       </div>
@@ -52,8 +68,8 @@ export function RetryPanel({ vm }: { vm: Controller }) {
           : 'Enter pages to re-OCR.'}
       </p>
 
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-        <div className="flex w-full max-w-[18rem] flex-col gap-1">
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+        <div className="flex min-w-[12rem] max-w-[18rem] flex-1 flex-col gap-1">
           <span className={bandLabelClass}>Re-OCR model</span>
           {vm.retrying ? (
             <div className="flex h-9 items-center justify-between gap-2 border border-[var(--border)] bg-[var(--surface-muted)] px-3 text-[var(--text-muted)]">
@@ -67,9 +83,24 @@ export function RetryPanel({ vm }: { vm: Controller }) {
               onChange={vm.setRetryModel}
               ariaLabel="Re-OCR model"
               selectedLabel="Selected"
+              listboxClassName="z-30"
             />
           )}
         </div>
+        <div className="flex flex-col gap-1">
+          <span className={bandLabelClass}>Image detail</span>
+          <SegmentedControl
+            ariaLabel="Re-OCR image detail"
+            value={vm.retryDetail}
+            onValueChange={vm.setRetryDetail}
+            options={DETAIL_OPTIONS}
+            disabled={vm.retrying}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="min-h-4 text-xs tabular-nums text-[var(--text-muted)]">{estLine}</p>
 
         {vm.retrying ? (
           <div className="flex flex-wrap items-center gap-3">

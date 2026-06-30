@@ -54,7 +54,15 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
       {vm.settingsOpen && (
         <div className="space-y-4">
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(11rem,1fr))]">
-            <Stepper label="Parallel pages" value={vm.concurrency} min={1} max={32} onChange={vm.setConcurrency} />
+            <Stepper
+              label="Parallel pages"
+              value={vm.concurrency}
+              min={1}
+              max={128}
+              onChange={vm.setConcurrency}
+              maxButton
+              helperText="Higher = faster, but may trigger rate-limit backoff."
+            />
             <div className="flex flex-col gap-1">
               <span className={bandLabelClass}>Image detail</span>
               <SegmentedControl
@@ -62,12 +70,19 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
                 value={vm.mediaResolution}
                 onValueChange={vm.setMediaResolution}
                 options={DETAIL_OPTIONS}
+                fullWidth
               />
-              <p className={helperClass}>
-                {detailHints.length
-                  ? detailHints.map((entry) => `${entry.label} ≈ ${entry.cost}`).join(' · ')
-                  : 'Higher detail reads dense scans better, at more tokens.'}
-              </p>
+              {detailHints.length ? (
+                <div className="grid grid-cols-3 text-center text-[11px] tabular-nums text-[var(--text-muted)]">
+                  {detailHints.map((entry) => (
+                    <span key={entry.label} className="whitespace-nowrap px-1">
+                      {entry.cost}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className={helperClass}>Higher detail reads dense scans better, at more tokens.</p>
+              )}
             </div>
             <Stepper
               label="Page timeout"
@@ -120,7 +135,6 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
                   size="sm"
                   disabled={!promptChanged}
                   onClick={() => vm.setPrompt(DEFAULT_PROMPT)}
-                  className="px-0 text-[var(--text-muted)]"
                 >
                   Reset to default prompt
                 </Button>

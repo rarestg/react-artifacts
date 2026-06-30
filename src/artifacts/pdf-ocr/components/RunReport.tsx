@@ -97,7 +97,13 @@ export function RunReport({ vm }: { vm: Controller }) {
 
       <div className="space-y-4 px-4 py-4">
         <div className="space-y-1">
-          <ProgressBar value={completed} max={total} tone={vm.running ? 'accent' : 'neutral'} label="OCR progress" />
+          <ProgressBar
+            value={completed}
+            max={total}
+            tone={vm.running ? 'accent' : 'neutral'}
+            active={vm.running}
+            label="OCR progress"
+          />
           <div className="flex items-center justify-between font-mono text-xs tabular-nums text-[var(--text-muted)]">
             <span>
               {completed} / {total}

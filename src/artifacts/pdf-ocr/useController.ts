@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { actualCost, type CostEstimate, estimateCost } from './core/cost';
 import { checkApiKey, type GeminiModel, pickCheapestModel, pickSmarterModel } from './core/gemini';
-import { getPageCount, parsePageSpec } from './core/splitPdf';
+import { getPageCount, parsePageSpec, parsePageSpecDetailed } from './core/splitPdf';
 import { DEFAULT_MEDIA_RESOLUTION, DEFAULT_PROMPT, DEFAULT_TIMEOUT_MS, type MediaResolution } from './core/types';
 import { useLifetimeStats } from './hooks/useLifetimeStats';
 import { useOcrJob } from './hooks/useOcrJob';
@@ -41,6 +41,14 @@ function resolveSelectedPages(spec: string, pageCount: number): number[] {
   const trimmed = spec.trim().toLowerCase();
   if (trimmed === '' || trimmed === 'all') return Array.from({ length: pageCount }, (_, index) => index + 1);
   return parsePageSpec(spec, pageCount);
+}
+
+/** Tokens silently dropped from the current spec, surfaced as an advisory. Empty/"all" parses nothing,
+ *  so it has nothing to ignore — mirror resolveSelectedPages and skip junk-detection there. */
+function resolveIgnoredTokens(spec: string, pageCount: number): string[] {
+  const trimmed = spec.trim().toLowerCase();
+  if (trimmed === '' || trimmed === 'all') return [];
+  return parsePageSpecDetailed(spec, pageCount).ignored;
 }
 
 /**
@@ -158,6 +166,7 @@ export function useController() {
   // --- Selection + estimate (pre-run) ------------------------------------------------------------
   const selectedPages = useMemo(() => (file ? resolveSelectedPages(pageSpec, file.pageCount) : []), [file, pageSpec]);
   const selectedCount = selectedPages.length;
+  const ignoredTokens = useMemo(() => (file ? resolveIgnoredTokens(pageSpec, file.pageCount) : []), [file, pageSpec]);
   const estimate: CostEstimate | null = useMemo(
     () => (file && model ? estimateCost(model, selectedCount, mediaResolution) : null),
     [file, model, selectedCount, mediaResolution],
@@ -368,6 +377,7 @@ export function useController() {
     // derived
     selectedPages,
     selectedCount,
+    ignoredTokens,
     estimate,
     counts,
     flaggedPages,

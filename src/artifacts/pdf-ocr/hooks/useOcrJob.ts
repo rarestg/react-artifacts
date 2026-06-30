@@ -26,6 +26,8 @@ export interface JobState {
   total: number;
   completed: number;
   failed: number;
+  /** Live (telemetry): requests currently out to Gemini, and the subset asleep in a 429/503 back-off. */
+  activity: { inFlight: number; retrying: number };
   /** Live results in completion order while running; page order once settled. */
   results: PageResult[];
   markdown: string;
@@ -56,6 +58,7 @@ const INITIAL: JobState = {
   total: 0,
   completed: 0,
   failed: 0,
+  activity: { inFlight: 0, retrying: 0 },
   results: [],
   markdown: '',
   error: null,
@@ -68,7 +71,7 @@ const INITIAL: JobState = {
   lastRetry: null,
 };
 
-export type RunOptions = Omit<OcrOptions, 'signal' | 'onProgress'>;
+export type RunOptions = Omit<OcrOptions, 'signal' | 'onProgress' | 'onStats'>;
 
 /** Fired when a run or retry finalizes, so the caller can keep a lifetime spend tally. */
 export interface CompletionSummary {
@@ -140,6 +143,10 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
         const { markdown, results } = await runOcrPipeline(pdfBytes, fileName, {
           ...options,
           signal: controller.signal,
+          onStats: (stats) => {
+            if (abortRef.current !== controller) return; // a superseded run must not write state
+            setState((prev) => ({ ...prev, activity: stats }));
+          },
           onProgress: (result, completed, total) => {
             if (abortRef.current !== controller) return;
             collected.push(result);
@@ -165,6 +172,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
           results,
           markdown,
           error: null,
+          activity: { inFlight: 0, retrying: 0 },
           elapsedMs: performance.now() - (prev.startedAt ?? startedAt),
         }));
         fireComplete(false, results.length, invocationCost(model, results));
@@ -181,6 +189,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
             results: ordered,
             markdown,
             failed: ordered.filter((r) => r.error).length,
+            activity: { inFlight: 0, retrying: 0 },
             elapsedMs: performance.now() - (prev.startedAt ?? startedAt),
           }));
           fireComplete(false, ordered.length, invocationCost(model, ordered));
@@ -196,6 +205,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
             markdown,
             failed: ordered.filter((r) => r.error).length,
             error: error instanceof Error ? error.message : String(error),
+            activity: { inFlight: 0, retrying: 0 },
             elapsedMs: performance.now() - (prev.startedAt ?? startedAt),
           }));
           fireComplete(false, ordered.length, invocationCost(model, ordered));
@@ -226,6 +236,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
         actionError: null,
         completed: 0,
         total: pageNumbers.length,
+        activity: { inFlight: 0, retrying: 0 }, // defensive: never inherit a prior op's live counts
         startedAt,
       }));
 
@@ -263,6 +274,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
             failed: merged.filter((r) => r.error).length,
             completed: merged.length,
             total: merged.length,
+            activity: { inFlight: 0, retrying: 0 },
             elapsedMs: prev.elapsedMs + (performance.now() - startedAt),
             lastRetry: computeLastRetry(prev.results, merged),
           };
@@ -275,6 +287,10 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
           mediaResolution: overrides.mediaResolution,
           pages: pageNumbers,
           signal: controller.signal,
+          onStats: (stats) => {
+            if (abortRef.current !== controller) return; // a superseded retry must not write state
+            setState((prev) => ({ ...prev, activity: stats }));
+          },
           onProgress: (result, completed, total) => {
             if (abortRef.current !== controller) return;
             retryResults.push({ ...result, retried: true });
@@ -308,6 +324,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
               failed: merged.filter((r) => r.error).length,
               completed: merged.length,
               total: merged.length,
+              activity: { inFlight: 0, retrying: 0 },
               actionError: error instanceof Error ? error.message : String(error),
               elapsedMs: prev.elapsedMs + (performance.now() - startedAt),
               lastRetry: computeLastRetry(prev.results, merged),

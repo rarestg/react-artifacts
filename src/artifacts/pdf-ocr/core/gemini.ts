@@ -285,6 +285,8 @@ interface OcrPageParams {
   retries: number;
   timeoutMs: number;
   signal?: AbortSignal;
+  /** Live activity signal (telemetry only): a request is out (+1)/settled (-1), or a back-off began (+1)/ended (-1). */
+  onActivity?: (kind: 'request' | 'retry', delta: 1 | -1) => void;
 }
 
 /**
@@ -328,52 +330,66 @@ export async function ocrPage(page: PageInput, params: OcrPageParams): Promise<P
     generationConfig,
   });
 
-  let lastError = 'unknown error';
-  for (let attempt = 1; attempt <= params.retries + 1; attempt++) {
-    const startedAt = performance.now();
-    try {
-      const data = await postJson(url, params.apiKey, body, params.timeoutMs, params.signal);
-      const usage = readUsage(data);
+  // Telemetry only: a request is out for this page. Balanced by the finally below on EVERY exit
+  // (success/fail/exhausted/fatal/abort), so a cancel or thrown error can't strand the live count.
+  params.onActivity?.('request', 1);
+  try {
+    let lastError = 'unknown error';
+    for (let attempt = 1; attempt <= params.retries + 1; attempt++) {
+      const startedAt = performance.now();
       try {
-        return {
-          pageNumber: page.pageNumber,
-          text: stripOuterMarkdownFence(interpretResponse(data)),
-          elapsedMs: performance.now() - startedAt,
-          attempts: attempt,
-          model,
-          inputTokens: usage.inputTokens,
-          outputTokens: usage.outputTokens,
-        };
-      } catch (interpretError) {
-        // A deterministic page failure (MAX_TOKENS, block) still got billed — keep the
-        // tokens on the failed result so the cost tracker isn't under-counted.
-        if (interpretError instanceof PageError) {
+        const data = await postJson(url, params.apiKey, body, params.timeoutMs, params.signal);
+        const usage = readUsage(data);
+        try {
           return {
-            ...failed(page.pageNumber, attempt, performance.now() - startedAt, errorToString(interpretError), model),
+            pageNumber: page.pageNumber,
+            text: stripOuterMarkdownFence(interpretResponse(data)),
+            elapsedMs: performance.now() - startedAt,
+            attempts: attempt,
+            model,
             inputTokens: usage.inputTokens,
             outputTokens: usage.outputTokens,
           };
+        } catch (interpretError) {
+          // A deterministic page failure (MAX_TOKENS, block) still got billed — keep the
+          // tokens on the failed result so the cost tracker isn't under-counted.
+          if (interpretError instanceof PageError) {
+            return {
+              ...failed(page.pageNumber, attempt, performance.now() - startedAt, errorToString(interpretError), model),
+              inputTokens: usage.inputTokens,
+              outputTokens: usage.outputTokens,
+            };
+          }
+          throw interpretError;
         }
-        throw interpretError;
+      } catch (error) {
+        if (params.signal?.aborted) throw error; // user cancelled — abort the whole job
+        const kind = classify(error);
+        if (kind === 'fatal') throw new GeminiFatalError(fatalMessage(error));
+        if (kind === 'fail') {
+          return failed(page.pageNumber, attempt, performance.now() - startedAt, errorToString(error), model);
+        }
+        // backoff: a 429/503 — the only kind we auto-retry, with back-off.
+        lastError = errorToString(error);
+        if (attempt > params.retries) {
+          const tries = `${params.retries} ${params.retries === 1 ? 'retry' : 'retries'}`;
+          const note = `${lastError} — still failing after ${tries} of back-off; wait and retry, or lower "Parallel pages".`;
+          return failed(page.pageNumber, attempt, performance.now() - startedAt, note, model);
+        }
+        // This page is now asleep in a 429/503 back-off — the only thing "retrying" counts. The
+        // finally balances it even if the abort signal REJECTS the delay mid-wait.
+        params.onActivity?.('retry', 1);
+        try {
+          await delay(backoffMs(error, attempt), params.signal);
+        } finally {
+          params.onActivity?.('retry', -1);
+        }
       }
-    } catch (error) {
-      if (params.signal?.aborted) throw error; // user cancelled — abort the whole job
-      const kind = classify(error);
-      if (kind === 'fatal') throw new GeminiFatalError(fatalMessage(error));
-      if (kind === 'fail') {
-        return failed(page.pageNumber, attempt, performance.now() - startedAt, errorToString(error), model);
-      }
-      // backoff: a 429/503 — the only kind we auto-retry, with back-off.
-      lastError = errorToString(error);
-      if (attempt > params.retries) {
-        const tries = `${params.retries} ${params.retries === 1 ? 'retry' : 'retries'}`;
-        const note = `${lastError} — still failing after ${tries} of back-off; wait and retry, or lower "Parallel pages".`;
-        return failed(page.pageNumber, attempt, performance.now() - startedAt, note, model);
-      }
-      await delay(backoffMs(error, attempt), params.signal);
     }
+    return failed(page.pageNumber, params.retries + 1, 0, lastError, model);
+  } finally {
+    params.onActivity?.('request', -1);
   }
-  return failed(page.pageNumber, params.retries + 1, 0, lastError, model);
 }
 
 function failed(pageNumber: number, attempts: number, elapsedMs: number, error: string, model: string): PageResult {

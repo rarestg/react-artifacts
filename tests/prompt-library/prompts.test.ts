@@ -401,3 +401,43 @@ test('validatePrompts rejects unused number input tokens', () => {
 
   assert.throws(() => validatePrompts([invalidEntry], validTags), /number input token is not used/);
 });
+
+test('PM orchestrator mode prompt renders the default Codex reviewer modifier', () => {
+  const prompt = prompts.find((entry) => entry.id === 'pm-orchestrator-mode');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'PM Orchestrator Mode');
+  assert.deepEqual(prompt.tags, ['implementation', 'subagents', 'review']);
+  assert.equal(prompt.modifier?.label, 'Reviewer');
+  assert.equal(prompt.modifier.defaultOptionId, 'codex');
+  assert.deepEqual(
+    prompt.modifier.options.map((option) => ({ id: option.id, label: option.label })),
+    [
+      { id: 'codex', label: 'Codex' },
+      { id: 'independent-reviewer', label: 'Independent reviewer' },
+    ],
+  );
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /act as the PM/);
+  assert.match(renderedPrompt, /trust your subagents to do the implementation/);
+  assert.match(renderedPrompt, /scoped to whatever unit of work makes sense \(a PR, a phase, a feature\)/);
+  assert.match(renderedPrompt, /shape the delegation however fits the task/);
+  assert.match(renderedPrompt, /work with Codex on its approach before it implements/);
+  assert.match(renderedPrompt, /again on the changes once they're built/);
+  assert.match(renderedPrompt, /launch the next, one in flight at a time/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('PM orchestrator mode prompt renders the independent reviewer modifier', () => {
+  const prompt = prompts.find((entry) => entry.id === 'pm-orchestrator-mode');
+
+  assert.ok(prompt);
+
+  const renderedPrompt = renderPromptText(prompt, 'independent-reviewer');
+
+  assert.match(renderedPrompt, /work with an independent reviewer on its approach before it implements/);
+  assert.doesNotMatch(renderedPrompt, /Codex/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});

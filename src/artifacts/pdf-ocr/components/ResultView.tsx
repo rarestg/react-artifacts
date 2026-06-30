@@ -90,7 +90,7 @@ export function ResultView({ vm }: { vm: Controller }) {
         </div>
       ) : (
         <p className="border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-4 text-xs text-[var(--text-muted)]">
-          No markdown produced yet — re-OCR the failed pages to build the document.
+          No markdown produced yet. Re-OCR the failed pages to build the document.
         </p>
       )}
     </section>

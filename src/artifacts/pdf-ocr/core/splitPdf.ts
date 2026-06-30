@@ -4,10 +4,10 @@ const LOAD_OPTS = { updateMetadata: false, ignoreEncryption: true } as const;
 
 const ENCRYPTED_PDF_MESSAGE =
   'This PDF is protected (password- or permission-encrypted), which the in-browser reader can’t open. ' +
-  'Re-save an unprotected copy — open it and choose Print → Save as PDF (or in macOS Preview, File → Export without encryption) — then upload that copy.';
+  'Re-save an unprotected copy: open it and choose Print → Save as PDF (or in macOS Preview, File → Export without encryption), then upload that copy.';
 
 const MALFORMED_PDF_MESSAGE =
-  'This PDF couldn’t be read — it may be damaged or use an unusual structure. ' +
+  'This PDF couldn’t be read; it may be damaged or use an unusual structure. ' +
   'Try re-saving it (Print → Save as PDF) and uploading again.';
 
 /** Load a PDF once; reuse it to extract pages lazily (bounds memory). */

@@ -87,7 +87,7 @@ function LargeJobHint({ vm }: { vm: Controller }) {
     <p className="flex items-start gap-2 border-l-2 border-[color:var(--warning)] bg-[var(--warning-weak)] px-3 py-2 text-xs text-[var(--warning-text)]">
       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span className="tabular-nums">
-        Large job: {vm.selectedCount} pages — this can take a while at concurrency {vm.concurrency}
+        Large job: {vm.selectedCount} pages; this can take a while at concurrency {vm.concurrency}
         {estPriced && `, est ${formatCostRange(vm.estimate?.costLow as number, vm.estimate?.costHigh as number)}`}.
       </span>
     </p>
@@ -99,7 +99,7 @@ function JobErrorCallout({ vm, onDismiss }: { vm: Controller; onDismiss: () => v
     <div className="flex items-start gap-3 border border-[color:var(--danger)] bg-[var(--danger-weak)] px-4 py-3 text-[var(--danger-text)]">
       <X className="mt-0.5 h-4 w-4 shrink-0 text-[var(--danger)]" aria-hidden="true" />
       <div className="min-w-0 flex-1 space-y-1">
-        <p className="text-sm font-medium">Run stopped — {vm.state.error}</p>
+        <p className="text-sm font-medium">Run stopped: {vm.state.error}</p>
         <p className="text-xs">
           Pages completed before the failure are kept below. Re-test your key, then Edit and Convert again to finish the
           rest.
@@ -193,7 +193,7 @@ export default function PdfOcrApp() {
         <footer className="border-t border-[var(--border)]">
           <div className="mx-auto w-full max-w-3xl px-4 py-3">
             <p className={helperClass}>
-              Your key and PDF stay in this browser — only the OCR requests are sent to Google.
+              Your key and PDF stay in this browser; only the OCR requests are sent to Google.
             </p>
           </div>
         </footer>

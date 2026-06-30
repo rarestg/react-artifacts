@@ -539,6 +539,36 @@ After the follow-up PR exists, use the workflow's reply queue to post replies to
 
 Return a concise report with the PR stack, comments reviewed, comments fixed, comments declined or obsolete, files changed, checks run, follow-up PR URL, and remaining risks.`,
   },
+  {
+    id: 'pm-orchestrator-mode',
+    title: 'PM Orchestrator Mode',
+    summary:
+      'Act as the PM and hand each scoped chunk of work to a fresh subagent that reviews before and after, looping one at a time.',
+    tags: ['implementation', 'subagents', 'review'],
+    context:
+      'Use when the work ahead splits into sensible chunks (PRs, phases, or features) and you would rather orchestrate the build through subagents than implement it yourself.',
+    modifier: {
+      label: 'Reviewer',
+      defaultOptionId: 'codex',
+      options: [
+        {
+          id: 'codex',
+          label: 'Codex',
+          replacements: {
+            reviewer: 'Codex',
+          },
+        },
+        {
+          id: 'independent-reviewer',
+          label: 'Independent reviewer',
+          replacements: {
+            reviewer: 'an independent reviewer',
+          },
+        },
+      ],
+    },
+    prompt: `Please step back from the keyboard and act as the PM on this work: orchestrate it rather than build it yourself, and trust your subagents to do the implementation. Hand each large-scoped chunk to a fresh subagent, scoped to whatever unit of work makes sense (a PR, a phase, a feature), but shape the delegation however fits the task. Ask each subagent to work with {{reviewer}} on its approach before it implements, and again on the changes once they're built. When a subagent reports back, review its work, give any feedback or follow-up, then launch the next, one in flight at a time.`,
+  },
 ] as const satisfies readonly PromptEntry[];
 
 const promptTokenPattern = /\{\{([A-Za-z][A-Za-z0-9]*)\}\}/g;

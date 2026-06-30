@@ -196,6 +196,13 @@ export function useController() {
     () => (file ? parsePageSpec(retrySpec, runSnapshot?.pageCount ?? file.pageCount) : []),
     [file, retrySpec, runSnapshot],
   );
+  // Tokens silently dropped from the retry spec, surfaced as an advisory (never blocks the re-OCR).
+  // Parsed against the snapshot's page count; the retry spec is concrete page numbers, so there is no
+  // "all" special-case to skip — empty input already parses to no ignored tokens.
+  const retryIgnoredTokens = useMemo(
+    () => (file && runSnapshot ? parsePageSpecDetailed(retrySpec, runSnapshot.pageCount).ignored : []),
+    [file, runSnapshot, retrySpec],
+  );
   // Re-OCR estimate: the RETRY page count × the chosen retry model × the chosen retry detail.
   const retryEstimate = useMemo(
     () => (retryModel && retryPages.length > 0 ? estimateCost(retryModel, retryPages.length, retryDetail) : null),
@@ -396,6 +403,7 @@ export function useController() {
     retryDetail,
     setRetryDetail,
     retryPages,
+    retryIgnoredTokens,
     retryEstimate,
     resultTab,
     setResultTab,

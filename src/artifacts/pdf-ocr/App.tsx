@@ -1,5 +1,5 @@
 import { AlertTriangle, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Button } from '../../components/Button';
 import { mergeClassNames } from '../../lib/classNames';
@@ -150,6 +150,11 @@ function LifetimeTally({ vm }: { vm: Controller }) {
 export default function PdfOcrApp() {
   const vm = useController();
   const [dismissedError, setDismissedError] = useState<string | null>(null);
+
+  // A new run/retry clears any prior dismissal so a repeat failure (same message) shows again.
+  useEffect(() => {
+    if (vm.running) setDismissedError(null);
+  }, [vm.running]);
 
   // Only after the initial run settles (or while a retry runs) — never mid-initial-run, which would abort it.
   const showRetry = !!vm.runSnapshot && (vm.retrying || (!vm.running && vm.flaggedPages.length > 0));

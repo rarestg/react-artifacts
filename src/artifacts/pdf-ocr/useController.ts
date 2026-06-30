@@ -55,6 +55,7 @@ export function useController() {
   // --- API key (optionally remembered in localStorage) -------------------------------------------
   const [storedKey, setStoredKey] = useLocalStorageState<string>(KEY_STORAGE, '');
   const [apiKey, setApiKeyRaw] = useState(storedKey);
+  const latestKeyRef = useRef(apiKey);
   const [rememberKey, setRememberKey] = useState(() => storedKey.length > 0);
   const [showKey, setShowKey] = useState(false);
   const [test, setTest] = useState<TestState>({ status: 'idle', message: '' });
@@ -67,6 +68,7 @@ export function useController() {
 
   // Editing the key invalidates the previous test, which re-locks the model table.
   const setApiKey = useCallback((value: string) => {
+    latestKeyRef.current = value;
     setApiKeyRaw(value);
     setTest((prev) => (prev.status === 'idle' ? prev : { status: 'idle', message: '' }));
     setModels((prev) => (prev.length ? [] : prev));
@@ -199,6 +201,7 @@ export function useController() {
     setTest({ status: 'testing', message: 'Testing…' });
     try {
       const result = await checkApiKey(key);
+      if (key !== latestKeyRef.current.trim()) return;
       setModels(result.models);
       setModel(pickCheapestModel(result.models) ?? '');
       setTest({
@@ -208,6 +211,7 @@ export function useController() {
           : (result.note ?? `Key valid · ${result.models.length} models loaded.`),
       });
     } catch (error) {
+      if (key !== latestKeyRef.current.trim()) return;
       setModels([]);
       setModel('');
       setTest({ status: 'error', message: error instanceof Error ? error.message : String(error) });

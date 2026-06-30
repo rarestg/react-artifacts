@@ -13,6 +13,7 @@ export function Dropzone({ vm }: { vm: Controller }) {
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragOver(false);
+    if (vm.fileReading) return;
     void vm.pickFile(event.dataTransfer.files);
   };
 
@@ -97,6 +98,7 @@ export function Dropzone({ vm }: { vm: Controller }) {
         accept="application/pdf"
         aria-label="Choose a PDF file"
         className="sr-only"
+        disabled={vm.fileReading}
         onChange={(event) => {
           void vm.pickFile(event.currentTarget.files);
           event.currentTarget.value = '';

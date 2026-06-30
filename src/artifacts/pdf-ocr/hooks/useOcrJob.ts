@@ -141,6 +141,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
           ...options,
           signal: controller.signal,
           onProgress: (result, completed, total) => {
+            if (abortRef.current !== controller) return;
             collected.push(result);
             setState((prev) => ({
               ...prev,
@@ -153,6 +154,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
             }));
           },
         });
+        if (abortRef.current !== controller) return;
         setState((prev) => ({
           ...prev,
           status: 'done',
@@ -167,6 +169,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
         }));
         fireComplete(false, results.length, invocationCost(model, results));
       } catch (error) {
+        if (abortRef.current !== controller) return;
         if (controller.signal.aborted) {
           // Keep whatever pages finished before the cancel so work isn't lost.
           const ordered = [...collected].sort((a, b) => a.pageNumber - b.pageNumber);
@@ -182,14 +185,20 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
           }));
           fireComplete(false, ordered.length, invocationCost(model, ordered));
         } else {
+          // Keep pages that finished before the fatal error so the doc the UI promises isn't empty.
+          const ordered = [...collected].sort((a, b) => a.pageNumber - b.pageNumber);
+          const markdown = ordered.length ? buildOutputMarkdown(fileName, model, ordered) : '';
           setState((prev) => ({
             ...prev,
             status: 'error',
             runKind: null,
+            results: ordered,
+            markdown,
+            failed: ordered.filter((r) => r.error).length,
             error: error instanceof Error ? error.message : String(error),
             elapsedMs: performance.now() - (prev.startedAt ?? startedAt),
           }));
-          fireComplete(false, collected.length, invocationCost(model, collected));
+          fireComplete(false, ordered.length, invocationCost(model, ordered));
         }
       } finally {
         if (abortRef.current === controller) abortRef.current = null;
@@ -267,6 +276,7 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
           pages: pageNumbers,
           signal: controller.signal,
           onProgress: (result, completed, total) => {
+            if (abortRef.current !== controller) return;
             retryResults.push({ ...result, retried: true });
             setState((prev) => ({
               ...prev,
@@ -277,9 +287,11 @@ export function useOcrJob(onComplete?: (summary: CompletionSummary) => void) {
             }));
           },
         });
+        if (abortRef.current !== controller) return;
         settle('done');
         fireComplete(true, 0, invocationCost(retryModel, results));
       } catch (error) {
+        if (abortRef.current !== controller) return;
         if (controller.signal.aborted) {
           settle('cancelled');
         } else {

@@ -209,8 +209,9 @@ export async function checkApiKey(apiKey: string, signal?: AbortSignal): Promise
     const curated = curateModels(all);
     models = curated.length ? curated : all; // never strand the user with an empty list
   } catch (error) {
-    // A failed list means the key itself is bad/unauthorized.
-    if (error instanceof GeminiHttpError) throw new GeminiFatalError(fatalMessage(error));
+    // An auth failure means the key is bad/unauthorized; a transient 429/503/5xx is not —
+    // rethrow it as-is so the test shows the real reason, not "invalid key"/"model not available".
+    if (error instanceof GeminiHttpError && httpIsFatal(error)) throw new GeminiFatalError(fatalMessage(error));
     throw error;
   }
 

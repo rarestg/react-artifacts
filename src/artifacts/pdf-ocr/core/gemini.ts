@@ -105,14 +105,15 @@ async function listModels(apiKey: string, signal?: AbortSignal): Promise<GeminiM
  * models.list returns ~37 generateContent-capable entries cluttered with other
  * families and modalities; this keeps just the usable OCR candidates:
  *  - drop non-Gemini families (gemma / lyria / nano-banana / antigravity / deep-research),
- *  - drop non-text modalities (image / tts / audio / embedding / robotics / computer-use / customtools),
+ *  - drop non-text modalities (image / tts / audio / embedding / robotics / computer-use / customtools / omni realtime),
  *  - drop legacy generations (1.x, 2.0),
  *  - drop version-pinned dupes (-001) and moving "-latest" aliases,
  *  - collapse a "<base>-preview" when its stable "<base>" is also listed.
  */
 function curateModels(models: GeminiModel[]): GeminiModel[] {
   const isGeminiText = (id: string): boolean =>
-    /^gemini-/i.test(id) && !/-(image|tts|audio|embedding)\b|nano-banana|robotics|computer-use|customtools/i.test(id);
+    /^gemini-/i.test(id) &&
+    !/-(image|tts|audio|embedding)\b|nano-banana|robotics|computer-use|customtools|omni/i.test(id);
   const isLegacy = (id: string): boolean => /gemini-(1\.0|1\.5|2\.0)\b/i.test(id);
   const isAliasOrPinned = (id: string): boolean => /-latest$|-\d{3}$/i.test(id);
   // Models that models.list still returns but that are retired and 404 on use.
@@ -493,7 +494,7 @@ function fatalMessage(error: unknown): string {
       return 'Invalid or unauthorized API key. Create a new key at aistudio.google.com/apikey and check it has Gemini API access.';
     }
     if (error.status === 404 || /\bmodel\b/i.test(error.message)) {
-      return `Model not available for this key: ${error.message}. Use "Load" to pick a supported model.`;
+      return `Model not available for this key: ${error.message}. Use "Test" to pick a supported model.`;
     }
     return error.message;
   }

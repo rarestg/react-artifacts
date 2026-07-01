@@ -1,4 +1,4 @@
-import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
+import { Dialog } from '@base-ui/react/dialog';
 import { Command } from 'cmdk';
 import { Minus, Plus, Search } from 'lucide-react';
 import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
@@ -10,6 +10,8 @@ import { FilterCheckbox } from '../../components/FilterCheckbox';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
+import { ArtifactDialogPortal } from '../../ui/base-portals';
+import { popupOverlay, popupSurface } from '../../ui/recipes';
 import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
 import {
   getDefaultPromptModifierOptionId,
@@ -72,7 +74,6 @@ export default function PromptLibrary() {
     initialPromptLibraryInteractionState,
   );
   const detailReturnFocusRef = useRef<HTMLElement | null>(null);
-  const themePortalRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
 
   const searchShortcutHint = getPlatformShortcutHint('K');
@@ -205,21 +206,18 @@ export default function PromptLibrary() {
           prompt={activePrompt}
           searchResult={activeSearchResult}
           searchQuery={activeSearchQuery}
-          container={themePortalRef.current}
           returnFocusTo={detailReturnFocusRef.current}
           fallbackFocusTo={searchButtonRef.current}
           onClose={closePromptDetail}
         />
       )}
 
-      <div ref={themePortalRef} className="pointer-events-none absolute inset-0" />
       <PromptCommandPalette
         open={searchOpen}
         onOpenChange={(open) => dispatchInteraction({ type: 'set-search-open', open })}
         query={searchQuery}
         onQueryChange={setSearchQuery}
         results={searchResults}
-        container={themePortalRef.current}
         onSelectResult={selectSearchResult}
       />
     </ArtifactThemeRoot>
@@ -257,7 +255,6 @@ function PromptCommandPalette({
   query,
   onQueryChange,
   results,
-  container,
   onSelectResult,
 }: {
   open: boolean;
@@ -265,52 +262,60 @@ function PromptCommandPalette({
   query: string;
   onQueryChange: (query: string) => void;
   results: readonly PromptSearchResult[];
-  container: HTMLElement | null;
   onSelectResult: (result: PromptSearchResult) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
   return (
-    <Command.Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      label="Search prompts"
-      shouldFilter={false}
-      loop
-      container={container ?? undefined}
-      overlayClassName="pointer-events-auto fixed inset-0 z-40 bg-[var(--overlay)]"
-      contentClassName="pointer-events-auto fixed left-1/2 top-4 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[42rem] -translate-x-1/2 flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]"
-      className="flex min-h-0 flex-col overflow-hidden"
-    >
-      <DialogTitle className="sr-only">Search prompts</DialogTitle>
-      <DialogDescription className="sr-only">
-        Search the curated prompt library and open a prompt to copy or review.
-      </DialogDescription>
-      <div className="flex items-center gap-2 border-b border-[var(--border)] px-3">
-        <Search className="size-4 shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
-        <Command.Input
-          value={query}
-          onValueChange={onQueryChange}
-          placeholder="Search prompts..."
-          className="h-11 min-w-0 flex-1 bg-transparent text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
-        />
-      </div>
-      <Command.List className="min-h-0 overflow-y-auto p-2" label="Prompt results">
-        <Command.Empty className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">
-          No prompts found.
-        </Command.Empty>
-        {results.map((result) => (
-          <Command.Item
-            key={result.prompt.id}
-            value={result.prompt.id}
-            onSelect={() => onSelectResult(result)}
-            className={
-              'cursor-pointer border border-transparent p-3 text-left outline-none data-[selected=true]:border-[var(--border-strong)] data-[selected=true]:bg-[var(--surface-muted)]'
-            }
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <ArtifactDialogPortal>
+        <Dialog.Backdrop className={mergeClassNames('fixed inset-0 z-40', popupOverlay)} />
+        <Dialog.Viewport className="pointer-events-none fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4">
+          <Dialog.Popup
+            aria-label="Search prompts"
+            initialFocus={() => inputRef.current}
+            className={mergeClassNames(
+              popupSurface,
+              'pointer-events-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-[42rem] flex-col overflow-hidden',
+            )}
           >
-            <PromptSearchResultItem result={result} query={query} />
-          </Command.Item>
-        ))}
-      </Command.List>
-    </Command.Dialog>
+            <Dialog.Title className="sr-only">Search prompts</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              Search the curated prompt library and open a prompt to copy or review.
+            </Dialog.Description>
+            <Command label="Search prompts" shouldFilter={false} loop className="flex min-h-0 flex-col overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-[var(--border)] px-3">
+                <Search className="size-4 shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
+                <Command.Input
+                  ref={inputRef}
+                  value={query}
+                  onValueChange={onQueryChange}
+                  placeholder="Search prompts..."
+                  className="h-11 min-w-0 flex-1 bg-transparent text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
+                />
+              </div>
+              <Command.List className="min-h-0 overflow-y-auto p-2" label="Prompt results">
+                <Command.Empty className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">
+                  No prompts found.
+                </Command.Empty>
+                {results.map((result) => (
+                  <Command.Item
+                    key={result.prompt.id}
+                    value={result.prompt.id}
+                    onSelect={() => onSelectResult(result)}
+                    className={
+                      'cursor-pointer border border-transparent p-3 text-left outline-none data-[selected=true]:border-[var(--border-strong)] data-[selected=true]:bg-[var(--surface-muted)]'
+                    }
+                  >
+                    <PromptSearchResultItem result={result} query={query} />
+                  </Command.Item>
+                ))}
+              </Command.List>
+            </Command>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </ArtifactDialogPortal>
+    </Dialog.Root>
   );
 }
 
@@ -719,7 +724,6 @@ function PromptDetailDialog({
   prompt,
   searchResult,
   searchQuery,
-  container,
   returnFocusTo,
   fallbackFocusTo = null,
   onClose,
@@ -727,7 +731,6 @@ function PromptDetailDialog({
   prompt: PromptEntry;
   searchResult?: PromptSearchResult | null;
   searchQuery: string;
-  container: HTMLElement | null;
   returnFocusTo: HTMLElement | null;
   fallbackFocusTo?: HTMLElement | null;
   onClose: () => void;
@@ -802,7 +805,6 @@ function PromptDetailDialog({
       description={<HighlightedText text={prompt.summary} indices={summaryIndices} />}
       footer={<CopyButton text={renderedPrompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy Prompt" />}
       closeLabel="Close prompt details"
-      container={container}
       placement="viewport"
       align="center"
       contentClassName="max-w-[46rem]"

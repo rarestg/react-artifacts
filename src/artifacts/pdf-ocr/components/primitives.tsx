@@ -142,11 +142,14 @@ export function ProgressBar({
   max,
   tone = 'accent',
   label,
+  active = false,
 }: {
   value: number;
   max: number;
   tone?: 'accent' | 'neutral';
   label?: string;
+  /** When true, overlay a decorative baton that slides back and forth so a stalled run still reads as live. */
+  active?: boolean;
 }) {
   const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
   const fill = tone === 'accent' ? 'bg-[var(--accent)]' : 'bg-[var(--text-subtle)]';
@@ -157,9 +160,18 @@ export function ProgressBar({
       aria-valuemin={0}
       aria-valuemax={max}
       aria-label={label}
-      className="h-2.5 w-full border border-[var(--border)] bg-[var(--surface-strong)]"
+      className={mergeClassNames(
+        'h-2.5 w-full border border-[var(--border)] bg-[var(--surface-strong)]',
+        active && 'relative overflow-hidden',
+      )}
     >
       <div className={mergeClassNames('h-full', fill)} style={{ width: `${pct}%` }} />
+      {active && (
+        <div
+          aria-hidden="true"
+          className="progress-slider pointer-events-none absolute inset-y-0 left-0 w-[35%] bg-[var(--accent)] opacity-40"
+        />
+      )}
     </div>
   );
 }

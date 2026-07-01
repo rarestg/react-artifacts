@@ -145,6 +145,58 @@ export const itemBase =
 // Selection cue cluster (check + label), shown only on the selected option.
 export const itemIndicator = 'flex shrink-0 items-center gap-1 text-[var(--accent)]';
 
+/* Checkbox (Base UI Checkbox.Root box + Checkbox.Indicator). */
+
+type CheckboxSize = 'sm' | 'md';
+
+// Box shell: square, bordered, token-toned by Base UI's data-checked/data-unchecked state. Root is the
+// focusable element now (not a hidden peer input), so focus + interaction cues live on the box itself.
+const checkboxBox =
+  'flex shrink-0 items-center justify-center border rounded-none transition-colors motion-reduce:transition-none focus:outline-none ' +
+  'data-[checked]:bg-[var(--checkbox-on-bg)] data-[checked]:border-[color:var(--checkbox-on-border)] ' +
+  'data-[unchecked]:bg-[var(--checkbox-off-bg)] data-[unchecked]:border-[color:var(--checkbox-off-border)]';
+
+const checkboxBoxSize: Record<CheckboxSize, string> = {
+  sm: 'h-3.5 w-3.5',
+  md: 'h-4 w-4',
+};
+
+// Hover/press cues, dropped when disabled (mirroring controlRecipe's !disabled gate).
+const checkboxBoxInteractive =
+  'data-[unchecked]:hover:border-[color:var(--border-strong)] data-[unchecked]:active:bg-[var(--surface-pressed)] ' +
+  'data-[checked]:active:bg-[var(--checkbox-on-bg)]';
+
+// Focus ring drawn on the box itself (focusTarget="box"); container mode rings a sibling overlay instead.
+const checkboxBoxFocus =
+  'focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+
+export function checkboxBoxRecipe({
+  size,
+  focusTarget,
+  disabled,
+  className,
+}: {
+  size: CheckboxSize;
+  focusTarget: 'box' | 'container';
+  disabled?: boolean;
+  className?: string;
+}) {
+  return mergeClassNames(
+    checkboxBox,
+    checkboxBoxSize[size],
+    // Container mode exposes the box as a `peer` so a sibling overlay can track its :focus-visible.
+    focusTarget === 'box' ? checkboxBoxFocus : 'peer',
+    !disabled && checkboxBoxInteractive,
+    className,
+  );
+}
+
+// Indicator wrapper: paired with Checkbox.Indicator's keepMounted so the check mark only fades via
+// opacity across state changes (UI note #007) instead of unmounting mid-transition.
+export const checkboxIndicator =
+  'flex items-center justify-center transition-opacity motion-reduce:transition-none ' +
+  'data-[unchecked]:opacity-0 data-[checked]:opacity-100';
+
 /* Text input field skin. */
 
 export const inputBase = {

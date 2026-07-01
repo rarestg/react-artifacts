@@ -197,6 +197,75 @@ export const checkboxIndicator =
   'flex items-center justify-center transition-opacity motion-reduce:transition-none ' +
   'data-[unchecked]:opacity-0 data-[checked]:opacity-100';
 
+/* Toggle (Base UI Checkbox.Root skinned as a sharp square switch: track + sliding knob). */
+
+// Track shell: the `.sharp-toggle` geometry (index.css) plus token tones from Base UI's
+// data-checked/data-unchecked. Mirrors checkboxBoxRecipe — Root is the focusable element now, so
+// focus + interaction cues live on the track itself. The knob's slide + tone key off the track's
+// data-checked via a descendant rule in index.css.
+const toggleTrack =
+  'sharp-toggle transition-colors motion-reduce:transition-none focus:outline-none ' +
+  'data-[checked]:border-[color:var(--toggle-track-on-border)] data-[checked]:bg-[var(--toggle-track-on-bg)] ' +
+  'data-[unchecked]:border-[color:var(--toggle-track-off-border)] data-[unchecked]:bg-[var(--toggle-track-off-bg)]';
+
+// Hover/press cues, dropped when disabled (mirroring checkboxBoxRecipe's !disabled gate).
+const toggleTrackInteractive =
+  'data-[unchecked]:hover:border-[color:var(--border-strong)] data-[unchecked]:active:bg-[var(--surface-pressed)] ' +
+  'data-[checked]:active:bg-[var(--primary-active)]';
+
+// Focus ring on the track itself (focusTarget="track"); container mode rings a sibling overlay instead.
+const toggleTrackFocus =
+  'focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+
+export function toggleTrackRecipe({
+  focusTarget,
+  disabled,
+  className,
+}: {
+  focusTarget: 'track' | 'container';
+  disabled?: boolean;
+  className?: string;
+}) {
+  return mergeClassNames(
+    toggleTrack,
+    // Container mode exposes the track as a `peer` so a sibling overlay can track its :focus-visible.
+    focusTarget === 'track' ? toggleTrackFocus : 'peer',
+    !disabled && toggleTrackInteractive,
+    className,
+  );
+}
+
+/* Segmented control (Base UI ToggleGroup single-select + Toggle items). */
+
+type SegmentedTone = 'neutral' | 'accent';
+type SegmentedSize = 'compact' | 'default';
+
+// Item shell: bordered, sharp, token focus ring. Structural layout (min-w-0, shrink-0, flex-1,
+// -ml-px, z-index) and cursor stay inline at the call site; per UI note #001 the single separator
+// source is the child border overlap (-ml-px), never a parent gap/divide.
+export const segmentedControl = {
+  item:
+    'inline-flex items-center justify-center border transition-colors motion-reduce:transition-none rounded-none ' +
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+  size: {
+    compact: 'h-6 px-2 text-xs font-medium',
+    default: 'h-8 px-2 text-xs font-medium',
+  } satisfies Record<SegmentedSize, string>,
+  selected: {
+    neutral: 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]',
+    accent: 'border-[color:var(--accent)] bg-[var(--accent-weak)] text-[var(--accent-text)]',
+  } satisfies Record<SegmentedTone, string>,
+  inactive: {
+    neutral: 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+    accent: 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
+  } satisfies Record<SegmentedTone, string>,
+  // Hover/press cues for inactive, enabled items only.
+  inactiveInteractive: {
+    neutral: 'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]',
+    accent: 'hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)]',
+  } satisfies Record<SegmentedTone, string>,
+};
+
 /* Text input field skin. */
 
 export const inputBase = {

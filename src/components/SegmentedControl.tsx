@@ -1,5 +1,8 @@
+import { Toggle as BaseToggle } from '@base-ui/react/toggle';
+import { ToggleGroup } from '@base-ui/react/toggle-group';
 import { type CSSProperties, type ReactNode, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { segmentedControl } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type SegmentedControlTone = 'neutral' | 'accent';
@@ -51,29 +54,24 @@ export function SegmentedControl<TValue extends string = string>({
     [options],
   );
 
-  const sizeClass: Record<SegmentedControlSize, string> = {
-    compact: 'h-6 px-2 text-xs font-medium',
-    default: 'h-8 px-2 text-xs font-medium',
-  };
-  const selectedTone: Record<SegmentedControlTone, string> = {
-    neutral: 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]',
-    accent: 'border-[color:var(--accent)] bg-[var(--accent-weak)] text-[var(--accent-text)]',
-  };
-  const inactiveTone: Record<SegmentedControlTone, string> = {
-    neutral: 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-    accent: 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-  };
-  const inactiveInteractive: Record<SegmentedControlTone, string> = {
-    neutral: 'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)]',
-    accent: 'hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)] active:bg-[var(--surface-pressed)]',
-  };
-
   return (
-    <fieldset
-      ref={rootRef}
-      aria-label={ariaLabel}
+    <ToggleGroup
+      value={[value]}
+      // Base UI ToggleGroup is single-select here, but re-clicking the active item deselects it to an
+      // empty array. Ignore empty results so the control stays anchored on a visible value (UI notes
+      // #002/#003); selection + ARIA are driven from `value`, never from the transient empty array.
+      onValueChange={(groupValue) => {
+        const next = groupValue[0];
+        if (next !== undefined && next !== value) {
+          onValueChange(next);
+        }
+      }}
       disabled={disabled}
+      aria-label={ariaLabel}
       style={style}
+      // Render as a <fieldset> to keep the labelled group semantics callers/tests rely on. Group
+      // disabled cascades to each Toggle button (native disabled) rather than a native fieldset attr.
+      render={<fieldset ref={rootRef} />}
       className={mergeClassNames(
         'm-0 min-w-0 [min-inline-size:0] border-0 p-0',
         fullWidth ? 'flex w-full' : 'inline-flex',
@@ -87,26 +85,26 @@ export function SegmentedControl<TValue extends string = string>({
         const reserveLabel = option.reserveLabel ?? defaultReserveLabel;
 
         return (
-          <button
+          <BaseToggle
             key={option.value}
-            type="button"
-            aria-pressed={selected}
+            value={option.value}
             aria-label={option.ariaLabel}
             disabled={optionDisabled}
             title={option.title}
-            onClick={() => onValueChange(option.value)}
             className={mergeClassNames(
-              'relative inline-flex min-w-0 shrink-0 items-center justify-center border transition-colors motion-reduce:transition-none rounded-none',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)] focus-visible:z-20',
-              sizeClass[size],
+              // Structural layout stays inline; #001 separator source is the -ml-px border overlap.
+              'relative min-w-0 shrink-0',
+              segmentedControl.item,
+              'focus-visible:z-20',
+              segmentedControl.size[size],
               fullWidth && 'flex-1',
               option.icon ? 'gap-1.5' : '',
               index > 0 && '-ml-px',
               selected ? 'z-10' : 'z-0',
-              selected ? selectedTone[tone] : inactiveTone[tone],
+              selected ? segmentedControl.selected[tone] : segmentedControl.inactive[tone],
               optionDisabled
                 ? 'cursor-not-allowed'
-                : mergeClassNames('cursor-pointer', !selected && inactiveInteractive[tone]),
+                : mergeClassNames('cursor-pointer', !selected && segmentedControl.inactiveInteractive[tone]),
               optionClassName,
             )}
           >
@@ -120,9 +118,9 @@ export function SegmentedControl<TValue extends string = string>({
               <span className="col-start-1 row-start-1 min-w-0 truncate">{option.label}</span>
             </span>
             {option.icon}
-          </button>
+          </BaseToggle>
         );
       })}
-    </fieldset>
+    </ToggleGroup>
   );
 }

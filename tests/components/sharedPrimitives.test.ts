@@ -232,11 +232,13 @@ test('shared toggle passes through title and described-by metadata', () => {
     }),
   );
 
-  const inputTag = markup.match(/<input\b[^>]*>/)?.[0];
-  assert.ok(inputTag, `Expected toggle input markup: ${markup}`);
+  // Base UI Checkbox.Root exposes the role=checkbox span (what AT reads); the hidden native input is
+  // aria-hidden, so aria-describedby lands on the span, not the input.
+  const checkboxTag = markup.match(/<span\b[^>]*role="checkbox"[^>]*>/)?.[0];
+  assert.ok(checkboxTag, `Expected toggle checkbox markup: ${markup}`);
 
   assert.match(markup, /title="Details are unavailable"/);
-  assert.match(inputTag, /aria-describedby="details-description"/);
+  assert.match(checkboxTag, /aria-describedby="details-description"/);
   assert.match(markup, />Show details</);
 });
 

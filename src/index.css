@@ -95,10 +95,13 @@
     height: var(--toggle-knob);
     border-radius: 0;
     transform: translateX(0);
+    background-color: var(--toggle-knob-off-bg);
     transition: transform 150ms ease;
   }
 
-  .sharp-toggle[data-state="on"] .sharp-toggle__knob {
+  /* Slide + tone key off Base UI Checkbox.Root's data-checked on the track. */
+  .sharp-toggle[data-checked] .sharp-toggle__knob {
+    background-color: var(--toggle-knob-on-bg);
     transform: translateX(
       calc(var(--toggle-track-w) - (var(--toggle-pad) * 2) - (var(--toggle-border) * 2) - var(--toggle-knob))
     );

@@ -1,9 +1,10 @@
 import { type HTMLAttributes, type Ref, useCallback, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { assignRef } from '../lib/refs';
+import { type PanelVariant, panel } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
-export type PanelVariant = 'default' | 'muted' | 'dashed';
+export type { PanelVariant };
 
 export type PanelProps = HTMLAttributes<HTMLDivElement> & {
   ref?: Ref<HTMLDivElement>;
@@ -22,14 +23,8 @@ export function Panel({ ref, children, variant = 'default', className, ...props 
     [ref],
   );
 
-  const variants: Record<PanelVariant, string> = {
-    default: 'border border-[var(--border)] bg-[var(--surface)]',
-    muted: 'bg-[var(--surface-muted)]',
-    dashed: 'border border-dashed border-[var(--border-strong)] bg-[var(--surface)]',
-  };
-
   return (
-    <div ref={setRef} className={mergeClassNames(variants[variant], className)} {...props}>
+    <div ref={setRef} className={mergeClassNames(panel[variant], className)} {...props}>
       {children}
     </div>
   );

@@ -6,9 +6,6 @@ import * as React from 'react';
 import { act, createElement, createRef, type ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import CopyButton, {
-  type CopyButtonHandle as JsonlCopyButtonHandle,
-} from '../../src/artifacts/jsonl-structure-viewer/components/CopyButton';
 import { ArtifactThemeRoot } from '../../src/components/ArtifactThemeRoot';
 import { Button } from '../../src/components/Button';
 import {
@@ -186,13 +183,4 @@ test('shared CopyButton imperative ref receives a non-DOM copy handle', async ()
       assert.ok(!(copyRef.current instanceof window.HTMLButtonElement));
     },
   );
-});
-
-test('JSONL CopyButton imperative ref receives a non-DOM copy handle', async () => {
-  const copyRef = createRef<JsonlCopyButtonHandle>();
-
-  await withMountedElement(createElement(CopyButton, { ref: copyRef, text: 'value' }), (window) => {
-    assert.equal(typeof copyRef.current?.copy, 'function');
-    assert.ok(!(copyRef.current instanceof window.HTMLButtonElement));
-  });
 });

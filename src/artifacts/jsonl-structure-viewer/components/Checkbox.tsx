@@ -1,3 +1,4 @@
+// Intentional divergence from the shared Checkbox: supports ariaLabel-only mode, rich ReactNode labels, and a `between` layout.
 import { Check as CheckIcon } from 'lucide-react';
 import type { ChangeEventHandler, ReactNode } from 'react';
 import { mergeClassNames } from '../../../lib/classNames';

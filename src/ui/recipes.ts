@@ -266,6 +266,17 @@ export const segmentedControl = {
   } satisfies Record<SegmentedTone, string>,
 };
 
+/* Typography roles (the de-facto text styles of the sharp-minimal skin). */
+
+export const typo = {
+  pageTitle: 'text-2xl font-semibold text-[var(--text)]',
+  sectionTitle: 'text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]',
+  subLabel: 'text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]',
+  // Secondary body copy; primary body text stays `text-sm text-[var(--text)]` inline.
+  bodyMuted: 'text-sm text-[var(--text-muted)]',
+  meta: 'text-xs text-[var(--text-subtle)]',
+};
+
 /* Text input field skin. */
 
 export const inputBase = {

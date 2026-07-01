@@ -22,7 +22,9 @@ import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatusTag } from '../../components/StatusTag';
 import { Tag } from '../../components/Tag';
 import { Toggle } from '../../components/Toggle';
+import { typo } from '../../ui/recipes';
 import { CodeBlock } from './components/CodeBlock';
+import { DemoGrid, Stack } from './components/layout';
 import { Popover, popoverActionClass } from './components/Popover';
 import { Row } from './components/Row';
 import { SearchInput } from './components/SearchInput';
@@ -133,7 +135,7 @@ export default function DesignSystem() {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="border-b border-[var(--border-strong)] pb-6">
-          <h1 className="text-2xl font-semibold text-[var(--text)]">Sharp UI System</h1>
+          <h1 className={typo.pageTitle}>Sharp UI System</h1>
           <p className="text-sm text-[var(--text-subtle)] mt-1">
             Design primitives for Codex Conversation Manager — scan-first, dense, accessible
           </p>
@@ -141,22 +143,18 @@ export default function DesignSystem() {
 
         {/* Typography */}
         <Section title="Typography">
-          <div className="space-y-4">
+          <Stack gap="group">
             <SubSection label="Text hierarchy">
-              <div className="space-y-2">
+              <Stack gap="row">
                 <p className="text-[var(--text)] text-base">text-0 — Primary content (var(--text))</p>
                 <p className="text-[var(--text-muted)] text-base">text-1 — Secondary content (var(--text-muted))</p>
                 <p className="text-[var(--text-subtle)] text-base">text-2 — Muted content (var(--text-subtle))</p>
-              </div>
+              </Stack>
             </SubSection>
             <SubSection label="Label styles">
               <div className="flex flex-wrap gap-4 items-baseline">
-                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                  Section header
-                </span>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">
-                  Sub-label
-                </span>
+                <span className={typo.sectionTitle}>Section header</span>
+                <span className={typo.subLabel}>Sub-label</span>
                 <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--text-subtle)]">
                   Tag label
                 </span>
@@ -175,20 +173,20 @@ export default function DesignSystem() {
                 props.
               </p>
             </SubSection>
-          </div>
+          </Stack>
         </Section>
 
         {/* Surfaces */}
         <Section title="Surfaces & Containers">
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(12rem,100%),1fr))] gap-4">
+          <DemoGrid min="12rem" gap="group">
             <SubSection label="Panel (default)">
               <Panel className="p-4">
-                <p className="text-sm text-[var(--text-muted)]">Bordered, opaque, sharp edges</p>
+                <p className={typo.bodyMuted}>Bordered, opaque, sharp edges</p>
               </Panel>
             </SubSection>
             <SubSection label="Panel (muted)">
               <Panel variant="muted" className="p-4">
-                <p className="text-sm text-[var(--text-muted)]">Subtle background for grouping</p>
+                <p className={typo.bodyMuted}>Subtle background for grouping</p>
               </Panel>
             </SubSection>
             <SubSection label="Panel (dashed)">
@@ -196,12 +194,12 @@ export default function DesignSystem() {
                 <p className="text-sm text-[var(--text-subtle)]">Empty/placeholder states</p>
               </Panel>
             </SubSection>
-          </div>
+          </DemoGrid>
         </Section>
 
         {/* Tags */}
         <Section title="Tags & Status Indicators">
-          <div className="space-y-6">
+          <Stack gap="section">
             <SubSection label="Tag variants">
               <div className="flex flex-wrap gap-2">
                 <Tag variant="base">Base tag</Tag>
@@ -255,12 +253,12 @@ export default function DesignSystem() {
                 </Tag>
               </div>
             </SubSection>
-          </div>
+          </Stack>
         </Section>
 
         {/* Buttons */}
         <Section title="Buttons">
-          <div className="space-y-6">
+          <Stack gap="section">
             <SubSection label="Variants">
               <div className="flex flex-wrap gap-3">
                 <Button variant="default">Default</Button>
@@ -297,12 +295,12 @@ export default function DesignSystem() {
                 <CopyButton text="Hello world" />
               </div>
             </SubSection>
-          </div>
+          </Stack>
         </Section>
 
         {/* Copyable Labels */}
         <Section title="Copyable Labels">
-          <div className="space-y-6">
+          <Stack gap="section">
             <SubSection label="Session metadata (hover to see copy affordance)">
               <div className="flex flex-wrap gap-2">
                 <CopyableLabel value="/users/rares/projects/codex-manager" icon={<FolderIcon className="size-3.5" />} />
@@ -353,12 +351,12 @@ export default function DesignSystem() {
                 <div className="p-3 text-sm text-[var(--text-subtle)]">Message content would appear here...</div>
               </div>
             </SubSection>
-          </div>
+          </Stack>
         </Section>
 
         {/* Search Input */}
         <Section title="Search Input">
-          <div className="space-y-6">
+          <Stack gap="section">
             <SubSection label="With Base UI Autocomplete typeahead (click to focus)">
               <div className="max-w-md">
                 <SearchInput
@@ -385,13 +383,13 @@ export default function DesignSystem() {
               content below without affecting document flow, so the content below this box stays in place when results
               appear.
             </div>
-          </div>
+          </Stack>
         </Section>
 
         {/* Inputs & Controls */}
         <Section title="Inputs & Controls">
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6">
-            <div className="min-w-0 space-y-4">
+          <DemoGrid min="20rem">
+            <Stack gap="group">
               <SubSection label="Text input">
                 <Input aria-label="Example text input" placeholder="Enter text..." />
               </SubSection>
@@ -401,10 +399,10 @@ export default function DesignSystem() {
               <SubSection label="Error state">
                 <Input label="Email" placeholder="email@example.com" error="Invalid email address" />
               </SubSection>
-            </div>
-            <div className="min-w-0 space-y-4">
+            </Stack>
+            <Stack gap="group">
               <SubSection label="Checkboxes">
-                <div className="space-y-1">
+                <Stack gap="row" className="items-start">
                   <Checkbox
                     label="Show hidden files"
                     reserveLabel="Show hidden files"
@@ -424,10 +422,10 @@ export default function DesignSystem() {
                     onCheckedChange={(checked) => setCheckboxes((s) => ({ ...s, c: checked }))}
                     disabled
                   />
-                </div>
+                </Stack>
               </SubSection>
               <SubSection label="Toggles">
-                <div className="space-y-1">
+                <Stack gap="row" className="items-start">
                   <Toggle
                     label="Dark mode"
                     reserveLabel="Notifications"
@@ -440,10 +438,10 @@ export default function DesignSystem() {
                     checked={toggles.b}
                     onCheckedChange={(checked) => setToggles((s) => ({ ...s, b: checked }))}
                   />
-                </div>
+                </Stack>
               </SubSection>
               <SubSection label="Segmented controls">
-                <div className="space-y-3">
+                <Stack gap="group">
                   <SegmentedControl
                     ariaLabel="View mode"
                     value={viewMode}
@@ -466,16 +464,16 @@ export default function DesignSystem() {
                       { value: 'rendered', label: 'Rendered' },
                     ]}
                   />
-                </div>
+                </Stack>
               </SubSection>
-            </div>
-          </div>
+            </Stack>
+          </DemoGrid>
         </Section>
 
         {/* Lists & Rows */}
         <Section title="Lists & Rows">
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6">
-            <SubSection label="Interactive list with selection" className="min-w-0">
+          <DemoGrid>
+            <SubSection label="Interactive list with selection">
               <Panel className="divide-y divide-[color:var(--border)]">
                 {[
                   { id: 0, title: 'Project Setup', meta: '12 messages', time: '2m ago' },
@@ -487,15 +485,15 @@ export default function DesignSystem() {
                     <MessageIcon className="size-4 text-[var(--text-subtle)] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-[var(--text)] truncate">{item.title}</div>
-                      <div className="text-xs text-[var(--text-subtle)]">{item.meta}</div>
+                      <div className={typo.meta}>{item.meta}</div>
                     </div>
-                    <div className="text-xs text-[var(--text-subtle)] tabular-nums">{item.time}</div>
+                    <div className={`${typo.meta} tabular-nums`}>{item.time}</div>
                     <ChevronIcon className="size-4 text-[var(--text-subtle)]" />
                   </Row>
                 ))}
               </Panel>
             </SubSection>
-            <SubSection label="Static list (workspaces)" className="min-w-0">
+            <SubSection label="Static list (workspaces)">
               <Panel className="divide-y divide-[color:var(--border)]">
                 {[
                   { name: 'frontend', count: 42 },
@@ -512,12 +510,12 @@ export default function DesignSystem() {
                 ))}
               </Panel>
             </SubSection>
-          </div>
+          </DemoGrid>
         </Section>
 
         {/* Conversation Rendering */}
         <Section title="Conversation Rendering">
-          <div className="space-y-6">
+          <Stack gap="section">
             {/* Message type filter toggles */}
             <SubSection label="Message type filters">
               <div className="flex flex-wrap gap-1 border border-[var(--border)] bg-[var(--surface)] p-2">
@@ -591,39 +589,39 @@ export default function DesignSystem() {
               <p>
                 <strong>Rendering rules (terminal-adjacent):</strong>
               </p>
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(14rem,100%),1fr))] gap-2 text-[var(--text-subtle)]">
-                <div>
-                  <span className="inline-block size-2 bg-[var(--category-green)] mr-2" />
+              <DemoGrid min="14rem" gap="row" className="text-[var(--text-subtle)]">
+                <div className="flex items-start gap-2">
+                  <span className="size-2 mt-1 shrink-0 bg-[var(--category-green)]" />
                   User: literal by default (preserves exact input)
                 </div>
-                <div>
-                  <span className="inline-block size-2 bg-[var(--category-blue)] mr-2" />
+                <div className="flex items-start gap-2">
+                  <span className="size-2 mt-1 shrink-0 bg-[var(--category-blue)]" />
                   Assistant: rendered markdown by default
                 </div>
-                <div>
-                  <span className="inline-block size-2 bg-[var(--category-amber)] mr-2" />
+                <div className="flex items-start gap-2">
+                  <span className="size-2 mt-1 shrink-0 bg-[var(--category-amber)]" />
                   Thinking: rendered markdown by default
                 </div>
-                <div>
-                  <span className="inline-block size-2 bg-[var(--category-violet)] mr-2" />
+                <div className="flex items-start gap-2">
+                  <span className="size-2 mt-1 shrink-0 bg-[var(--category-violet)]" />
                   Tool Call: summary first, click to show details
                 </div>
-                <div>
-                  <span className="inline-block size-2 bg-[var(--category-cyan)] mr-2" />
+                <div className="flex items-start gap-2">
+                  <span className="size-2 mt-1 shrink-0 bg-[var(--category-cyan)]" />
                   Subagents: spawn, wait, follow-up, notification, close
                 </div>
-                <div>
-                  <span className="inline-block size-2 bg-[var(--text-muted)] mr-2" />
+                <div className="flex items-start gap-2">
+                  <span className="size-2 mt-1 shrink-0 bg-[var(--text-muted)]" />
                   Token Counter: final context row by default
                 </div>
-              </div>
+              </DemoGrid>
               <p className="text-[var(--text-subtle)]">
                 Toggle message types above. Thinking, subagents, tools, and token counters are hidden by default; tool
                 rows reveal their own details, and intermediate token counters are an explicit detail mode.
               </p>
             </div>
 
-            <div className="space-y-4">
+            <Stack gap="group">
               {sampleConversation.map((turn) => (
                 <ConversationTurn
                   key={getTurnKey(turn)}
@@ -640,7 +638,7 @@ export default function DesignSystem() {
                   onToggleRenderModeForItem={toggleMessageRender}
                 />
               ))}
-            </div>
+            </Stack>
 
             <SubSection label="Typography contract">
               <div className="p-3 border border-[var(--border)] bg-[var(--surface)] text-xs text-[var(--text-muted)] font-mono space-y-1">
@@ -651,23 +649,21 @@ export default function DesignSystem() {
                 <div>• whitespace-pre-wrap for literal text (no horizontal scroll for prose)</div>
               </div>
             </SubSection>
-          </div>
+          </Stack>
         </Section>
 
         {/* Code Blocks */}
         <Section title="Code Blocks">
-          <div className="space-y-4">
-            <SubSection label="With language label and copy">
-              <CodeBlock language="typescript">
-                {`interface StatusTagProps {
+          <SubSection label="With language label and copy">
+            <CodeBlock language="typescript">
+              {`interface StatusTagProps {
   label: string;
   reserveLabel?: string;
   active?: boolean;
   icon?: ReactNode;
 }`}
-              </CodeBlock>
-            </SubSection>
-          </div>
+            </CodeBlock>
+          </SubSection>
         </Section>
 
         {/* Modals & Overlays */}
@@ -688,17 +684,17 @@ export default function DesignSystem() {
                 contentClassName="max-w-md shadow-none"
                 bodyClassName="p-4"
               >
-                <p className="mb-4 text-sm text-[var(--text-muted)]">
-                  Are you sure you want to proceed? This action cannot be undone.
-                </p>
-                <div className="flex justify-end gap-2">
-                  <Button variant="ghost" onClick={() => setModalOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button variant="primary" onClick={() => setModalOpen(false)}>
-                    Confirm
-                  </Button>
-                </div>
+                <Stack gap="group">
+                  <p className={typo.bodyMuted}>Are you sure you want to proceed? This action cannot be undone.</p>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => setModalOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button variant="primary" onClick={() => setModalOpen(false)}>
+                      Confirm
+                    </Button>
+                  </div>
+                </Stack>
               </ArtifactDialog>
             </SubSection>
             <SubSection label="Popover">
@@ -726,16 +722,16 @@ export default function DesignSystem() {
 
         {/* Layout Grid */}
         <Section title="Layout & Grid">
-          <div className="space-y-6">
+          <Stack gap="section">
             <SubSection label="Two-column layout">
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-4">
+              <DemoGrid gap="group">
                 <Panel className="p-4">
-                  <div className="text-sm text-[var(--text-muted)]">Left panel</div>
+                  <div className={typo.bodyMuted}>Left panel</div>
                 </Panel>
                 <Panel className="p-4">
-                  <div className="text-sm text-[var(--text-muted)]">Right panel</div>
+                  <div className={typo.bodyMuted}>Right panel</div>
                 </Panel>
-              </div>
+              </DemoGrid>
             </SubSection>
             <SubSection label="Sidebar + content">
               <div className="flex flex-wrap gap-4">
@@ -765,14 +761,12 @@ export default function DesignSystem() {
                   </div>
                 </Panel>
                 <Panel className="min-w-[16rem] flex-[999_1_20rem] p-4">
-                  <div className="text-sm text-[var(--text-muted)]">
-                    Main content area with min-w-0 for safe truncation
-                  </div>
+                  <div className={typo.bodyMuted}>Main content area with min-w-0 for safe truncation</div>
                 </Panel>
               </div>
             </SubSection>
             <SubSection label="Stacked panels (interactive rows)">
-              <div className="space-y-2">
+              <Stack gap="row">
                 <Row className="justify-between border-l-transparent">
                   <span className="text-sm text-[var(--text)]">First item</span>
                   <Tag variant="muted">Active</Tag>
@@ -785,14 +779,14 @@ export default function DesignSystem() {
                   <span className="text-sm text-[var(--text)]">Third item</span>
                   <Tag variant="muted">Archived</Tag>
                 </Row>
-              </div>
+              </Stack>
             </SubSection>
-          </div>
+          </Stack>
         </Section>
 
         {/* Focus States */}
         <Section title="Focus & Keyboard">
-          <div className="space-y-4">
+          <Stack gap="group">
             <SubSection label="Tab through these elements to see focus states (checkbox is interactive)">
               <div className="flex flex-wrap gap-3 items-center">
                 <Button>Button</Button>
@@ -822,13 +816,13 @@ export default function DesignSystem() {
                 </div>
               </div>
             </div>
-          </div>
+          </Stack>
         </Section>
 
         {/* Design Rules Summary */}
         <Section title="Sharp UI Rules (Summary)">
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6 text-sm">
-            <div className="space-y-3">
+          <DemoGrid className="text-sm">
+            <Stack gap="row">
               <div className="flex items-start gap-2">
                 <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">No rounded corners (radius = 0)</span>
@@ -841,8 +835,8 @@ export default function DesignSystem() {
                 <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">No shadows for hierarchy</span>
               </div>
-            </div>
-            <div className="space-y-3">
+            </Stack>
+            <Stack gap="row">
               <div className="flex items-start gap-2">
                 <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">Border-driven hierarchy</span>
@@ -855,8 +849,8 @@ export default function DesignSystem() {
                 <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
                 <span className="text-[var(--text)]">Color is never the only cue</span>
               </div>
-            </div>
-          </div>
+            </Stack>
+          </DemoGrid>
         </Section>
       </div>
       <div ref={dialogPortalRef} className="pointer-events-none" />

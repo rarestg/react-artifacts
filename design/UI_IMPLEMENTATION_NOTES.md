@@ -9,14 +9,15 @@
 
 | ID | Title | When to read | Keywords | Lines |
 | --- | --- | --- | --- | --- |
-| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 30-57 |
-| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 58-73 |
-| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 74-86 |
-| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 87-124 |
-| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary, focus ring | 125-157 |
-| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 158-202 |
-| 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 203-270 |
-| 008 | Composite Expandable Rows | When a disclosure row also needs copy, metadata, timestamp, or detail actions. | disclosure rows, nested buttons, copy controls, timestamps, expandable rows, accessibility | 271-290 |
+| 001 | Single-Source Separators for Dynamic Children | Use when segmented controls/row groups add/remove items or toggle visibility. | tailwind, border, divide-x, gap-px, separators, dynamic children | 31-58 |
+| 002 | Preference vs. Visible State | Use when constraints force a different visible mode than the saved preference. | responsive state, aria-pressed, persisted settings, derived mode | 59-74 |
+| 003 | Conditional Control Stability | When adding mode-specific controls or disabling options based on context. | layout stability, conditional controls, disabled state, tooltips, toggle groups | 75-87 |
+| 004 | Color-Mix Token Overrides | When colors look darker/lighter than their hex or token values. | color-mix, tokens, css variables, theme, overrides | 88-125 |
+| 005 | Artifact Theme Boundary | When adding artifacts or using token-dependent shared components. | artifact-theme, ArtifactThemeRoot, tokens, shared components, theme boundary, focus ring | 126-158 |
+| 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 159-203 |
+| 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 204-271 |
+| 008 | Composite Expandable Rows | When a disclosure row also needs copy, metadata, timestamp, or detail actions. | disclosure rows, nested buttons, copy controls, timestamps, expandable rows, accessibility | 272-296 |
+| 009 | Semantic Gap Tiers and Demo Layout Primitives | When spacing sibling groups in artifact demo layouts or stacking inline-flex controls vertically. | spacing, gap tiers, Stack, DemoGrid, auto-fit grid, min-w-0, inline-flex stacking, tailwind literal classes | 297-327 |
 
 ## Format for new entries
 - Title
@@ -290,3 +291,37 @@ const actionTooltip = !hasInput
 - Do not add bespoke collapsed-row copy buttons to work around the disclosure structure.
 - If a collapsed row needs one-click copying more than disclosure, it should not be modeled as a row-level disclosure.
 - Do not use `stopPropagation` to make nested interactive controls appear to work; fix the structure by making controls siblings.
+
+---
+
+## 009 — Semantic Gap Tiers and Demo Layout Primitives
+
+### When it applies
+- Spacing sibling groups inside artifact showcase/demo layouts (sharp2 sections, columns, control clusters).
+- Adding a new responsive demo grid or a vertical stack of controls.
+
+### Recommended pattern
+- Use one spacing system per stack: three semantic gap tiers instead of mixed `space-y-*` / one-off margins.
+  - `row` = `gap-2` — items inside one control cluster (checkbox list, stacked rows).
+  - `group` = `gap-4` — sibling groups inside a section column.
+  - `section` = `gap-6` — sub-sections inside a section body.
+- In sharp2, the tiers live in local primitives (`src/artifacts/sharp2/components/layout.tsx`):
+  - `<Stack gap="row|group|section">` — vertical flex stack; `gap` is intentionally explicit.
+  - `<DemoGrid min="12rem|14rem|18rem|20rem" gap>` — owns the `grid-cols-[repeat(auto-fit,minmax(min(M,100%),1fr))]`
+    pattern and applies `*:min-w-0` so children truncate safely.
+- Keep class maps as literal strings (`Record<Tier, 'gap-2' | ...>`). Tailwind v4 only sees classes written out in
+  source; template-built class names are never generated.
+- Inline-flex controls (shared `Checkbox`/`Toggle`) flow horizontally inside a block `space-y-*` container — a
+  "vertical" list of them silently becomes a crowded row. Stack them with `flex-col` (`Stack gap="row"`) and add
+  `items-start` so the labels keep content-width click targets instead of stretching.
+
+### Why it matters
+- sharp2's showcase had ~33 distinct spacing utilities and 6 copies of the auto-fit grid with four different min
+  widths; two real collisions (checkbox row crowding a neighbor column, touching segmented controls) came directly
+  from that drift.
+- Named tiers make spacing intent reviewable: a wrong tier is visible in JSX, a wrong pixel value is not.
+
+### Exceptions
+- Bespoke density stays bespoke: menu item lists (`space-y-1`), prose/info-box internals, and optical dot alignment
+  (`mt-1`, `mt-1.5`) are not forced into tiers.
+- `Stack`/`DemoGrid` are sharp2-local by design; promote to `src/ui` only when a second artifact consumes them.

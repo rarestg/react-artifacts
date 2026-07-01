@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { mergeClassNames } from '../../../lib/classNames';
+import { typo } from '../../../ui/recipes';
 
 type SubSectionProps = {
   label: string;
@@ -10,7 +11,7 @@ type SubSectionProps = {
 export function SubSection({ label, children, className }: SubSectionProps) {
   return (
     <div className={mergeClassNames('space-y-2', className)}>
-      <div className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">{label}</div>
+      <div className={typo.subLabel}>{label}</div>
       {children}
     </div>
   );

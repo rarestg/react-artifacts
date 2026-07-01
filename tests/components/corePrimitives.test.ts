@@ -6,7 +6,6 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { Button } from '../../src/components/Button';
-import { Input } from '../../src/components/Input';
 import { Panel } from '../../src/components/Panel';
 import { Tag } from '../../src/components/Tag';
 
@@ -35,64 +34,8 @@ test('Button supports disabled cursor without pointer-events-none', () => {
   assert.doesNotMatch(rootClass, /pointer-events-none|cursor-pointer|hover:bg|active:bg/);
 });
 
-test('Input wires generated label and error description', () => {
-  const markup = renderToStaticMarkup(
-    createElement(Input, {
-      label: 'Email',
-      error: 'Invalid email address',
-      placeholder: 'email@example.com',
-    }),
-  );
-
-  const labelFor = markup.match(/<label[^>]*for="([^"]+)"/)?.[1];
-  const inputId = markup.match(/<input[^>]*id="([^"]+)"/)?.[1];
-
-  assert.ok(labelFor);
-  assert.equal(inputId, labelFor);
-  assert.match(markup, /aria-invalid="true"/);
-  assert.match(markup, /aria-describedby="[^"]*error/);
-  assert.match(markup, /Invalid email address/);
-});
-
-test('Input error state overrides caller-provided aria-invalid false', () => {
-  const markup = renderToStaticMarkup(
-    createElement(Input, {
-      label: 'Email',
-      error: 'Invalid email address',
-      'aria-invalid': false,
-    }),
-  );
-
-  assert.match(markup, /aria-invalid="true"/);
-  assert.doesNotMatch(markup, /aria-invalid="false"/);
-});
-
-test('Input preserves custom id and helper text description', () => {
-  const markup = renderToStaticMarkup(
-    createElement(Input, {
-      id: 'workspace-name',
-      label: 'Workspace',
-      helperText: 'Use a short readable name.',
-    }),
-  );
-
-  assert.match(markup, /for="workspace-name"/);
-  assert.match(markup, /id="workspace-name"/);
-  assert.match(markup, /aria-describedby="workspace-name-helper"/);
-  assert.match(markup, /Use a short readable name\./);
-});
-
-test('Input supports compact accessible names without relying on placeholder text', () => {
-  const markup = renderToStaticMarkup(
-    createElement(Input, {
-      'aria-label': 'Filter projects',
-      placeholder: 'Search',
-    }),
-  );
-
-  assert.match(markup, /aria-label="Filter projects"/);
-  assert.doesNotMatch(markup, /<label/);
-});
+// Input contract tests live in tests/components/inputField.test.ts: Base UI Field wires the
+// label/description ids in layout effects, so they need a client render instead of SSR markup.
 
 test('Tag renders non-interactive metadata span variants', () => {
   const base = renderToStaticMarkup(createElement(Tag, { variant: 'base', title: 'Branch' }, 'main'));

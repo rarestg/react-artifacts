@@ -1,4 +1,5 @@
-import { type InputHTMLAttributes, type ReactNode, type Ref, useId, useMemo, useRef } from 'react';
+import { Field } from '@base-ui/react/field';
+import { type InputHTMLAttributes, type ReactNode, type Ref, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { inputBase } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
@@ -31,51 +32,35 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'a
 
 export function Input({
   ref,
-  id,
   label,
   helperText,
   error,
   className,
   inputClassName,
   labelClassName,
-  'aria-describedby': ariaDescribedBy,
-  'aria-invalid': ariaInvalid,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
   ...props
 }: InputProps) {
-  const generatedId = useId();
-  const inputId = id ?? generatedId;
   const rootRef = useRef<HTMLDivElement>(null);
 
   useArtifactThemeGuard('Input', rootRef);
 
-  const helperId = helperText ? `${inputId}-helper` : undefined;
   const hasError = error !== undefined && error !== null && error !== false;
   const labelNode = label as ReactNode | false | null | undefined;
   const hasLabel = labelNode !== undefined && labelNode !== null && labelNode !== false;
-  const errorId = hasError ? `${inputId}-error` : undefined;
-  const describedBy = useMemo(
-    () => [ariaDescribedBy, helperId, errorId].filter(Boolean).join(' ') || undefined,
-    [ariaDescribedBy, helperId, errorId],
-  );
-  const resolvedAriaInvalid = hasError ? true : ariaInvalid;
 
   return (
-    <div ref={rootRef} className={mergeClassNames('space-y-1', className)}>
-      {hasLabel && (
-        <label htmlFor={inputId} className={mergeClassNames(inputBase.label, labelClassName)}>
-          {labelNode}
-        </label>
-      )}
-      <input
+    <Field.Root ref={rootRef} invalid={hasError} className={mergeClassNames('space-y-1', className)}>
+      {hasLabel && <Field.Label className={mergeClassNames(inputBase.label, labelClassName)}>{labelNode}</Field.Label>}
+      <Field.Control
         ref={ref}
         aria-label={ariaLabel}
+        // Always forward aria-labelledby (even undefined) so it overrides the aria-labelledby
+        // Field.Control injects for its Label part. Otherwise a caller's aria-label would lose
+        // the accessible-name race to the visible label; association still holds via htmlFor.
         aria-labelledby={ariaLabelledBy}
-        aria-describedby={describedBy}
         {...props}
-        aria-invalid={resolvedAriaInvalid}
-        id={inputId}
         className={mergeClassNames(
           inputBase.field,
           hasError ? inputBase.fieldError : inputBase.fieldDefault,
@@ -83,16 +68,12 @@ export function Input({
           inputClassName,
         )}
       />
-      {helperText && (
-        <p id={helperId} className={inputBase.helper}>
-          {helperText}
-        </p>
-      )}
+      {helperText && <Field.Description className={inputBase.helper}>{helperText}</Field.Description>}
       {hasError && (
-        <p id={errorId} className={inputBase.error}>
+        <Field.Error match className={inputBase.error}>
           {error}
-        </p>
+        </Field.Error>
       )}
-    </div>
+    </Field.Root>
   );
 }

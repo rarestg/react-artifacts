@@ -82,7 +82,8 @@ export function RetryPanel({ vm }: { vm: Controller }) {
           {vm.counts.failed} failed, {vm.counts.suspect} suspect. Re-OCR them, or any pages you choose.
         </p>
         <p className={helperClass}>
-          Retry uses the original run’s concurrency, timeout, and prompt. Pages, model, and image detail can change.
+          Retry uses the original run’s concurrency, timeout, retries, and prompt. Pages, model, and image detail can
+          change.
         </p>
 
         <div className="flex flex-wrap items-end gap-x-4 gap-y-2">

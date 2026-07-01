@@ -21,7 +21,7 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
     const trimmed = vm.pageSpec.trim().toLowerCase();
     return trimmed === '' || trimmed === 'all' ? 'all pages' : vm.pageSpec.trim();
   })();
-  const summary = `${vm.concurrency} parallel · ${DETAIL_SHORT[vm.mediaResolution]} · ${vm.timeoutSec}s · ${pagesLabel}`;
+  const summary = `${vm.concurrency} parallel · ${DETAIL_SHORT[vm.mediaResolution]} · ${vm.timeoutSec}s · ${vm.retries} retries · ${pagesLabel}`;
 
   const detailHint = (resolution: MediaResolution): string | null => {
     if (!vm.model || vm.selectedCount === 0) return null;
@@ -45,15 +45,16 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
         className={mergeClassNames('flex w-full items-center justify-between gap-3 text-left', focusRing)}
       >
         <span className={bandLabelClass}>4 · Settings</span>
-        <span className="inline-flex items-center gap-2 text-xs tabular-nums text-[var(--text-muted)]">
+        <span className="inline-flex min-w-0 items-center gap-2 text-xs tabular-nums text-[var(--text-muted)]">
           <span className="min-w-0 truncate">{summary}</span>
           {vm.settingsOpen ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
         </span>
       </button>
 
       {vm.settingsOpen && (
-        <div className="space-y-4">
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(11rem,1fr))]">
+        <div className="space-y-6">
+          {/* Top row: the two broad-stroke settings, centered/even. */}
+          <div className="flex flex-wrap items-start justify-around gap-x-6 gap-y-4 py-2">
             <Stepper
               label="Parallel pages"
               value={vm.concurrency}
@@ -63,8 +64,8 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
               maxButton
               helperText="Higher = faster, but may trigger rate-limit backoff."
             />
-            <div className="flex flex-col gap-1">
-              <span className={bandLabelClass}>Image detail</span>
+            <div className="flex min-w-[11rem] flex-col gap-1">
+              <span className={mergeClassNames(bandLabelClass, 'text-center')}>Image detail</span>
               <SegmentedControl
                 ariaLabel="Image detail"
                 value={vm.mediaResolution}
@@ -81,19 +82,16 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
                   ))}
                 </div>
               ) : (
-                <p className={helperClass}>Higher detail reads dense scans better, at more tokens.</p>
+                <p className={mergeClassNames(helperClass, 'text-center')}>
+                  Higher detail reads dense scans better, at more tokens.
+                </p>
               )}
             </div>
-            <Stepper
-              label="Page timeout"
-              value={vm.timeoutSec}
-              min={5}
-              max={300}
-              step={5}
-              onChange={vm.setTimeoutSec}
-              suffix="s"
-            />
-            <div className="flex flex-col gap-1">
+          </div>
+
+          {/* Bottom row: the per-page scope/limits, evenly spaced. */}
+          <div className="flex flex-wrap items-start justify-around gap-x-6 gap-y-4 py-2">
+            <div className="flex min-w-[11rem] flex-col gap-1">
               <Input
                 label="Pages"
                 value={vm.pageSpec}
@@ -112,6 +110,22 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
                 </p>
               )}
             </div>
+            <Stepper
+              label="Page timeout (s)"
+              value={vm.timeoutSec}
+              min={5}
+              max={300}
+              step={5}
+              onChange={vm.setTimeoutSec}
+            />
+            <Stepper
+              label="Retries"
+              value={vm.retries}
+              min={0}
+              max={10}
+              onChange={vm.setRetries}
+              helperText="Back-off retries on rate-limit or overload (429/503)."
+            />
           </div>
 
           <div className="space-y-2">

@@ -1,5 +1,6 @@
 import { type InputHTMLAttributes, type ReactNode, type Ref, useId, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { inputBase } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 type InputAccessibleName =
@@ -63,10 +64,7 @@ export function Input({
   return (
     <div ref={rootRef} className={mergeClassNames('space-y-1', className)}>
       {hasLabel && (
-        <label
-          htmlFor={inputId}
-          className={mergeClassNames('block text-xs font-medium text-[var(--text-muted)]', labelClassName)}
-        >
+        <label htmlFor={inputId} className={mergeClassNames(inputBase.label, labelClassName)}>
           {labelNode}
         </label>
       )}
@@ -79,20 +77,19 @@ export function Input({
         aria-invalid={resolvedAriaInvalid}
         id={inputId}
         className={mergeClassNames(
-          'h-9 w-full border bg-[var(--surface)] px-3 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)]',
-          'focus:outline-none focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-          hasError ? 'border-[color:var(--danger)]' : 'border-[var(--border)]',
-          'disabled:opacity-50 disabled:cursor-not-allowed',
+          inputBase.field,
+          hasError ? inputBase.fieldError : inputBase.fieldDefault,
+          inputBase.fieldDisabled,
           inputClassName,
         )}
       />
       {helperText && (
-        <p id={helperId} className="text-xs text-[var(--text-muted)]">
+        <p id={helperId} className={inputBase.helper}>
           {helperText}
         </p>
       )}
       {hasError && (
-        <p id={errorId} className="text-xs text-[var(--danger)]">
+        <p id={errorId} className={inputBase.error}>
           {error}
         </p>
       )}

@@ -1,5 +1,5 @@
+import { Autocomplete } from '@base-ui/react/autocomplete';
 import { Dialog } from '@base-ui/react/dialog';
-import { Command } from 'cmdk';
 import { Minus, Plus, Search } from 'lucide-react';
 import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
 
@@ -283,35 +283,44 @@ function PromptCommandPalette({
             <Dialog.Description className="sr-only">
               Search the curated prompt library and open a prompt to copy or review.
             </Dialog.Description>
-            <Command label="Search prompts" shouldFilter={false} loop className="flex min-h-0 flex-col overflow-hidden">
+            <Autocomplete.Root
+              open
+              inline
+              value={query}
+              onValueChange={onQueryChange}
+              items={results}
+              filter={null}
+              itemToStringValue={(result) => result.prompt.title}
+              autoHighlight="always"
+              keepHighlight
+            >
               <div className="flex items-center gap-2 border-b border-[var(--border)] px-3">
                 <Search className="size-4 shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
-                <Command.Input
+                <Autocomplete.Input
                   ref={inputRef}
-                  value={query}
-                  onValueChange={onQueryChange}
+                  aria-label="Search prompts"
                   placeholder="Search prompts..."
                   className="h-11 min-w-0 flex-1 bg-transparent text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
                 />
               </div>
-              <Command.List className="min-h-0 overflow-y-auto p-2" label="Prompt results">
-                <Command.Empty className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">
-                  No prompts found.
-                </Command.Empty>
+              <Autocomplete.Empty>
+                <div className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">No prompts found.</div>
+              </Autocomplete.Empty>
+              <Autocomplete.List aria-label="Prompt results" className="min-h-0 overflow-y-auto p-2 data-[empty]:p-0">
                 {results.map((result) => (
-                  <Command.Item
+                  <Autocomplete.Item
                     key={result.prompt.id}
-                    value={result.prompt.id}
-                    onSelect={() => onSelectResult(result)}
+                    value={result}
+                    onClick={() => onSelectResult(result)}
                     className={
-                      'cursor-pointer border border-transparent p-3 text-left outline-none data-[selected=true]:border-[var(--border-strong)] data-[selected=true]:bg-[var(--surface-muted)]'
+                      'cursor-pointer border border-transparent p-3 text-left outline-none data-[highlighted]:border-[var(--border-strong)] data-[highlighted]:bg-[var(--surface-muted)]'
                     }
                   >
                     <PromptSearchResultItem result={result} query={query} />
-                  </Command.Item>
+                  </Autocomplete.Item>
                 ))}
-              </Command.List>
-            </Command>
+              </Autocomplete.List>
+            </Autocomplete.Root>
           </Dialog.Popup>
         </Dialog.Viewport>
       </ArtifactDialogPortal>

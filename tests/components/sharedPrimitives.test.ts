@@ -110,7 +110,7 @@ test('shared toggle and checkbox include active-state parity classes', () => {
   assert.match(toggleOn, /active:bg-\[var\(--primary-active\)\]/);
 });
 
-test('shared checkbox keeps the check icon mounted and opacity-hidden to avoid transition flicker', () => {
+test('shared checkbox keeps the check icon mounted and fades via the indicator (UI note #007)', () => {
   const unchecked = renderToStaticMarkup(
     createElement(Checkbox, {
       label: 'Checkbox',
@@ -126,14 +126,22 @@ test('shared checkbox keeps the check icon mounted and opacity-hidden to avoid t
     }),
   );
 
-  const uncheckedIcon = firstSvgTag(unchecked);
-  const checkedIcon = firstSvgTag(checked);
+  // keepMounted: the check icon stays in the DOM in both states, so it only fades and never unmounts
+  // mid-transition (Base UI's Checkbox.Indicator drops it otherwise).
+  assert.match(firstSvgTag(unchecked), /\baria-hidden="true"/);
+  assert.match(firstSvgTag(checked), /\baria-hidden="true"/);
 
-  assert.match(uncheckedIcon, /\baria-hidden="true"/);
-  assert.match(uncheckedIcon, /\bopacity-0\b/);
-  assert.match(uncheckedIcon, /\btransition-opacity\b/);
-  assert.match(checkedIcon, /\bopacity-100\b/);
-  assert.doesNotMatch(checkedIcon, /\bopacity-0\b/);
+  // The fade + reduced-motion guard live on the indicator wrapper, keyed off Base UI's state attrs.
+  for (const markup of [unchecked, checked]) {
+    assert.match(markup, /\btransition-opacity\b/);
+    assert.match(markup, /\bmotion-reduce:transition-none\b/);
+    assert.match(markup, /data-\[unchecked\]:opacity-0/);
+    assert.match(markup, /data-\[checked\]:opacity-100/);
+  }
+
+  // The rendered checkbox state attribute is what actually drives the fade at runtime.
+  assert.match(unchecked, /<span data-unchecked="" role="checkbox"/);
+  assert.match(checked, /<span data-checked="" role="checkbox"/);
 });
 
 test('FilterCheckbox exposes category tones, selected chip color, and a stable count badge', () => {

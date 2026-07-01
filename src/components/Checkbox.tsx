@@ -1,6 +1,8 @@
+import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox';
 import { Check } from 'lucide-react';
-import { type CSSProperties, type KeyboardEvent, type ReactNode, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { checkboxBoxRecipe, checkboxIndicator } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type CheckboxProps = {
@@ -39,24 +41,14 @@ export function Checkbox({
 
   useArtifactThemeGuard('Checkbox', rootRef);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      onCheckedChange(!checked);
-    }
-  };
-
-  const boxTone = checked
-    ? 'bg-[var(--checkbox-on-bg)] border-[color:var(--checkbox-on-border)]'
-    : 'bg-[var(--checkbox-off-bg)] border-[color:var(--checkbox-off-border)]';
-  const boxSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
   const checkSize = size === 'sm' ? 'h-2.5 w-2.5' : 'h-3 w-3';
-  const boxFocus =
-    focusTarget === 'box'
-      ? 'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]'
-      : '';
 
+  // Base UI's documented pattern: a native <label> wraps Checkbox.Root so the whole row toggles and
+  // provides the accessible name. Root (a focusable role=checkbox span) supplies keyboard + ARIA;
+  // Space toggles, matching the ARIA checkbox spec (the old hand-rolled Enter toggle is intentionally
+  // dropped — these checkboxes are not inside forms).
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: BaseCheckbox.Root renders the labelable role=checkbox + hidden input inside this label; the control is invisible to static analysis.
     <label
       ref={rootRef}
       style={style}
@@ -67,42 +59,25 @@ export function Checkbox({
         className,
       )}
     >
-      <input
-        type="checkbox"
+      <BaseCheckbox.Root
         checked={checked}
-        onChange={(event) => onCheckedChange(event.target.checked)}
-        onKeyDown={handleKeyDown}
+        onCheckedChange={onCheckedChange}
         disabled={disabled}
-        className="peer sr-only"
-      />
+        className={checkboxBoxRecipe({ size, focusTarget, disabled, className: boxClassName })}
+      >
+        <BaseCheckbox.Indicator keepMounted className={checkboxIndicator}>
+          <Check
+            aria-hidden="true"
+            className={mergeClassNames(checkClassName ?? 'text-[var(--primary-contrast)]', checkSize)}
+          />
+        </BaseCheckbox.Indicator>
+      </BaseCheckbox.Root>
       {focusTarget === 'container' && (
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring)] ring-offset-1 ring-offset-[color:var(--surface)] opacity-0 peer-focus-visible:opacity-100"
         />
       )}
-      <span
-        className={mergeClassNames(
-          'flex shrink-0 items-center justify-center border rounded-none transition-colors motion-reduce:transition-none',
-          boxSize,
-          boxFocus,
-          checked
-            ? !disabled && 'active:bg-[var(--checkbox-on-bg)]'
-            : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]',
-          boxTone,
-          boxClassName,
-        )}
-      >
-        <Check
-          aria-hidden="true"
-          className={mergeClassNames(
-            checkClassName ?? 'text-[var(--primary-contrast)]',
-            checked ? 'opacity-100' : 'opacity-0',
-            'transition-opacity motion-reduce:transition-none',
-            checkSize,
-          )}
-        />
-      </span>
       <span className={mergeClassNames('relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName)}>
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {resolvedReserveLabel}

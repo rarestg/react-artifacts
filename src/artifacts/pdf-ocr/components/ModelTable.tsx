@@ -131,7 +131,7 @@ export function ModelTable({ vm }: { vm: Controller }) {
             {locked ? (
               <tr>
                 <td colSpan={5} className="px-3 py-4 text-center text-xs text-[var(--text-muted)]">
-                  Test your key first — models and prices unlock once it works.
+                  Test your key first: models and prices unlock once it works.
                 </td>
               </tr>
             ) : (

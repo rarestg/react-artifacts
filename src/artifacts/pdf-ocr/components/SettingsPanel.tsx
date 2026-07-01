@@ -100,7 +100,7 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
                 placeholder="all"
                 inputClassName="font-mono"
                 onChange={(event) => vm.setPageSpec(event.currentTarget.value)}
-                helperText="e.g. 1-5, 8, 12-20 — or “all”."
+                helperText="e.g. 1-5, 8, 12-20, or “all”."
               />
               {vm.ignoredTokens.length > 0 && vm.file && (
                 <p className={mergeClassNames(helperClass, 'flex items-start gap-1.5')}>
@@ -125,7 +125,7 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
               )}
             >
               {vm.advancedOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-              Advanced — OCR prompt
+              Advanced: OCR prompt
             </button>
             {vm.advancedOpen && (
               <div className="space-y-2">

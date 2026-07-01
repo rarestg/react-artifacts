@@ -213,7 +213,7 @@ export function RunReport({ vm }: { vm: Controller }) {
           </p>
           <p className="text-xs text-[var(--text-muted)]">
             Actual includes retries and failed attempts that reached the API.
-            {vm.hasCost && !vm.allPriced && ' Some models aren’t in the price table — priced subtotal only.'}
+            {vm.hasCost && !vm.allPriced && ' Some models aren’t in the price table (priced subtotal only).'}
           </p>
         </div>
 
@@ -232,7 +232,7 @@ export function RunReport({ vm }: { vm: Controller }) {
         {vm.activeRunKind === 'initial' && (
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="danger" size="sm" onClick={vm.cancel}>
-              Cancel — keep done
+              Cancel (keep done)
             </Button>
             <span className="text-xs text-[var(--text-muted)]">keeps finished pages</span>
           </div>

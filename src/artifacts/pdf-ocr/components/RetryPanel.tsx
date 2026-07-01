@@ -79,7 +79,7 @@ export function RetryPanel({ vm }: { vm: Controller }) {
 
       <div className="space-y-3 px-4 py-4">
         <p className="text-sm text-[var(--text)]">
-          {vm.counts.failed} failed, {vm.counts.suspect} suspect — re-OCR them, or any pages you choose.
+          {vm.counts.failed} failed, {vm.counts.suspect} suspect. Re-OCR them, or any pages you choose.
         </p>
         <p className={helperClass}>
           Retry uses the original run’s concurrency, timeout, and prompt. Pages, model, and image detail can change.

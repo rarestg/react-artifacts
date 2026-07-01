@@ -259,7 +259,7 @@ export async function checkApiKey(apiKey: string, signal?: AbortSignal): Promise
     elapsedMs: 0,
     reply: '',
     tested: false,
-    note: `Key valid · ${models.length} models loaded. No test-eligible model responded${lastUnavailable ? ` (last: ${lastUnavailable})` : ''} — pick one from the list.`,
+    note: `Key valid · ${models.length} models loaded. No test-eligible model responded${lastUnavailable ? ` (last: ${lastUnavailable})` : ''}. Pick one from the list.`,
   };
 }
 
@@ -373,7 +373,7 @@ export async function ocrPage(page: PageInput, params: OcrPageParams): Promise<P
         lastError = errorToString(error);
         if (attempt > params.retries) {
           const tries = `${params.retries} ${params.retries === 1 ? 'retry' : 'retries'}`;
-          const note = `${lastError} — still failing after ${tries} of back-off; wait and retry, or lower "Parallel pages".`;
+          const note = `${lastError}. Still failing after ${tries} of back-off; wait and retry, or lower "Parallel pages".`;
           return failed(page.pageNumber, attempt, performance.now() - startedAt, note, model);
         }
         // This page is now asleep in a 429/503 back-off — the only thing "retrying" counts. The
@@ -426,7 +426,7 @@ function interpretResponse(data: unknown): string {
     return '';
   }
   if (candidate.finishReason === 'MAX_TOKENS') {
-    throw new PageError('OCR output was truncated (MAX_TOKENS); the page may be too dense — try another model.');
+    throw new PageError('OCR output was truncated (MAX_TOKENS); the page may be too dense. Try another model.');
   }
   const parts = candidate.content?.parts;
   // Skip thought parts (only present if thinking summaries are enabled); join the rest.

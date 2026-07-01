@@ -1,5 +1,7 @@
-import { type KeyboardEvent, type ReactNode, useRef } from 'react';
+import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox';
+import { type ReactNode, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { toggleTrackRecipe } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type ToggleProps = {
@@ -38,23 +40,14 @@ export function Toggle({
 
   useArtifactThemeGuard('Toggle', rootRef);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      onCheckedChange(!checked);
-    }
-  };
-
-  const trackTone = checked
-    ? 'border-[color:var(--toggle-track-on-border)] bg-[var(--toggle-track-on-bg)]'
-    : 'border-[color:var(--toggle-track-off-border)] bg-[var(--toggle-track-off-bg)]';
-  const knobTone = checked ? 'bg-[var(--toggle-knob-on-bg)]' : 'bg-[var(--toggle-knob-off-bg)]';
-  const trackFocus =
-    focusTarget === 'track'
-      ? 'peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-[color:var(--surface)]'
-      : '';
-
+  // Base UI's documented pattern: a native <label> wraps Checkbox.Root so the whole row toggles and
+  // provides the accessible name. Root (a focusable role=checkbox span) supplies keyboard + ARIA;
+  // Space toggles, matching the ARIA checkbox spec (the old hand-rolled Enter toggle is intentionally
+  // dropped — these toggles are not inside forms). aria-describedby lands on the exposed role=checkbox
+  // element, not the hidden aria-hidden input. The sharp square track/knob visual is preserved: Root
+  // is the `.sharp-toggle` track and the knob is a decorative child driven by Root's data-checked.
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: BaseCheckbox.Root renders the labelable role=checkbox + hidden input inside this label; the control is invisible to static analysis.
     <label
       ref={rootRef}
       title={title}
@@ -65,35 +58,21 @@ export function Toggle({
         className,
       )}
     >
-      <input
-        type="checkbox"
+      <BaseCheckbox.Root
         checked={checked}
-        onChange={(event) => onCheckedChange(event.target.checked)}
-        onKeyDown={handleKeyDown}
+        onCheckedChange={onCheckedChange}
         disabled={disabled}
         aria-describedby={ariaDescribedBy}
-        className="peer sr-only"
-      />
+        className={toggleTrackRecipe({ focusTarget, disabled, className: trackClassName })}
+      >
+        <span aria-hidden="true" className={mergeClassNames('sharp-toggle__knob', knobClassName)} />
+      </BaseCheckbox.Root>
       {focusTarget === 'container' && (
         <span
           aria-hidden="true"
           className="pointer-events-none absolute -inset-[1px] ring-2 ring-[var(--ring)] ring-offset-1 ring-offset-[color:var(--surface)] opacity-0 peer-focus-visible:opacity-100"
         />
       )}
-      <span
-        data-state={checked ? 'on' : 'off'}
-        className={mergeClassNames(
-          'sharp-toggle transition-colors motion-reduce:transition-none',
-          trackFocus,
-          checked
-            ? !disabled && 'active:bg-[var(--primary-active)]'
-            : !disabled && 'hover:border-[color:var(--border-strong)] active:bg-[var(--surface-pressed)]',
-          trackTone,
-          trackClassName,
-        )}
-      >
-        <span className={mergeClassNames('sharp-toggle__knob', knobTone, knobClassName)} />
-      </span>
       <span className={mergeClassNames('relative inline-grid min-w-0 text-sm text-[var(--text)]', labelClassName)}>
         <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
           {resolvedReserveLabel}

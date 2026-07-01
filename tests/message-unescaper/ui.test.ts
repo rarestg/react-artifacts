@@ -32,11 +32,13 @@ function toggleMarkupByLabel(markup: string, label: string) {
 
 function assertToggleDisabledReason(markup: string, label: string, reason: string) {
   const toggleMarkup = toggleMarkupByLabel(markup, label);
-  const inputTag = toggleMarkup.match(/<input\b[^>]*>/)?.[0];
-  assert.ok(inputTag, `Expected toggle input markup for ${label}: ${toggleMarkup}`);
+  // Base UI Checkbox.Root carries aria-describedby on the exposed role=checkbox span (the hidden
+  // native input is aria-hidden), so read the association from there.
+  const checkboxTag = toggleMarkup.match(/<span\b[^>]*role="checkbox"[^>]*>/)?.[0];
+  assert.ok(checkboxTag, `Expected toggle checkbox markup for ${label}: ${toggleMarkup}`);
 
-  const describedBy = inputTag.match(/\baria-describedby="([^"]+)"/)?.[1];
-  assert.ok(describedBy, `Expected aria-describedby on ${label} input: ${inputTag}`);
+  const describedBy = checkboxTag.match(/\baria-describedby="([^"]+)"/)?.[1];
+  assert.ok(describedBy, `Expected aria-describedby on ${label} checkbox: ${checkboxTag}`);
 
   const reasonPattern = new RegExp(`>\\s*${escapeRegExp(reason)}\\s*</span>`);
   const reasonSpan = [...markup.matchAll(/<span\b[^>]*>[\s\S]*?<\/span>/g)]

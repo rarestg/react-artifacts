@@ -6,6 +6,9 @@ import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 type ListboxOption<T extends string> = {
   value: T;
   label: string;
+  /** Optional right-aligned muted annotation (e.g. a per-option cost). Plain text so it's part of the
+   *  option's accessible name; omit it and the row renders exactly as before. */
+  hint?: string;
 };
 
 type ListboxSelectProps<T extends string> = {
@@ -216,9 +219,18 @@ export function ListboxSelect<T extends string>({
                   optionClassName,
                 )}
               >
-                <span className="truncate">{option.label}</span>
-                {isSelected && (
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent)]">{selectedLabel}</span>
+                <span className="min-w-0 truncate">{option.label}</span>
+                {(option.hint || isSelected) && (
+                  <span className="flex shrink-0 items-center gap-2">
+                    {option.hint && (
+                      <span className="font-mono text-[11px] tabular-nums text-[var(--text-muted)]">{option.hint}</span>
+                    )}
+                    {isSelected && (
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent)]">
+                        {selectedLabel}
+                      </span>
+                    )}
+                  </span>
                 )}
               </div>
             );

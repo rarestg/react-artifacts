@@ -63,26 +63,46 @@ export function validatePageRange(total: number, startPage: number, endPage: num
 }
 
 /**
- * Parse a free-text page spec ("14, 15, 19-22, 32") against a known page count. Lenient: splits on
- * commas and/or whitespace; supports inclusive ranges ("a-b", reversed ranges swapped); clamps every
- * page to 1..maxPage and drops out-of-range singles / unparseable tokens. Result is deduped and sorted
- * ascending. Parse against the DOCUMENT's page count so any real page can be requested after a subset run.
+ * Parse a free-text page spec ("14, 15, 19-22, 32") against a known page count, also reporting which
+ * tokens were dropped. Lenient: splits on commas and/or whitespace; supports inclusive ranges ("a-b",
+ * reversed ranges swapped); clamps every page to 1..maxPage. `pages` is deduped and sorted ascending.
+ * Any raw token that contributed ZERO pages — unparseable junk, an out-of-range single, or a range that
+ * lands fully outside 1..maxPage — is collected into `ignored` (a partially-in-range range still
+ * contributes, so it is NOT ignored). Parse against the DOCUMENT's page count so any real page can be
+ * requested after a subset run.
  */
-export function parsePageSpec(input: string, maxPage: number): number[] {
+export function parsePageSpecDetailed(input: string, maxPage: number): { pages: number[]; ignored: string[] } {
   const pages = new Set<number>();
+  const ignored: string[] = [];
   for (const raw of input.split(/[\s,]+/).filter(Boolean)) {
     const range = /^(\d+)\s*[-–]\s*(\d+)$/.exec(raw);
     if (range) {
       let a = Number(range[1]);
       let b = Number(range[2]);
       if (a > b) [a, b] = [b, a];
-      for (let p = Math.max(1, a); p <= Math.min(maxPage, b); p++) pages.add(p);
+      let added = false;
+      for (let p = Math.max(1, a); p <= Math.min(maxPage, b); p++) {
+        pages.add(p);
+        added = true;
+      }
+      if (!added) ignored.push(raw);
     } else if (/^\d+$/.test(raw)) {
       const p = Number(raw);
       if (p >= 1 && p <= maxPage) pages.add(p);
+      else ignored.push(raw);
+    } else {
+      ignored.push(raw);
     }
   }
-  return [...pages].sort((x, y) => x - y);
+  return { pages: [...pages].sort((x, y) => x - y), ignored };
+}
+
+/**
+ * Parse a free-text page spec to a concrete 1-based page list (deduped, sorted ascending). Thin wrapper
+ * over {@link parsePageSpecDetailed} that drops the ignored-token report — leniency is unchanged.
+ */
+export function parsePageSpec(input: string, maxPage: number): number[] {
+  return parsePageSpecDetailed(input, maxPage).pages;
 }
 
 /** Extract a single page (1-based) into a standalone single-page PDF. */

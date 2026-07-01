@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { SegmentedControl } from '../../../components/SegmentedControl';
@@ -102,6 +102,15 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
                 onChange={(event) => vm.setPageSpec(event.currentTarget.value)}
                 helperText="e.g. 1-5, 8, 12-20 — or “all”."
               />
+              {vm.ignoredTokens.length > 0 && vm.file && (
+                <p className={mergeClassNames(helperClass, 'flex items-start gap-1.5')}>
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--warning)]" aria-hidden="true" />
+                  <span className="min-w-0 break-words">
+                    Ignored: <span className="font-mono">{vm.ignoredTokens.join(', ')}</span>{' '}
+                    {`(not in 1–${vm.file.pageCount}).`}
+                  </span>
+                </p>
+              )}
             </div>
           </div>
 

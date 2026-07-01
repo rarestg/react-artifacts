@@ -75,6 +75,8 @@ promote to `src/components`.
 | `CodeBlock` | Literal code block example with copy support. |
 | `Section` | Showcase section shell, not a general artifact primitive. |
 | `SubSection` | Showcase subsection label wrapper, not a general artifact primitive. |
+| `Stack` | Vertical flex stack with the semantic gap tiers (`row`/`group`/`section` → `gap-2`/`gap-4`/`gap-6`). The showcase's primary spacing system; see UI note 009. |
+| `DemoGrid` | Responsive auto-fit demo grid owning the `minmax(min(M,100%),1fr)` column pattern and `*:min-w-0` child shrinking; small fixed `min` set. |
 
 ## Conversation Examples
 

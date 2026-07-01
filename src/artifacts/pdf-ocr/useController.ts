@@ -144,9 +144,8 @@ export function useController() {
       else if (result.warning) suspect += 1;
       else ok += 1;
     }
-    const inFlight = running && activeRunKind === 'initial' ? Math.max(0, state.total - state.completed) : 0;
-    return { ok, suspect, failed, inFlight };
-  }, [state.results, state.total, state.completed, running, activeRunKind]);
+    return { ok, suspect, failed };
+  }, [state.results]);
 
   const ledgerRows: LedgerRow[] = useMemo(
     () =>
@@ -341,6 +340,8 @@ export function useController() {
     activeRunKind,
     running,
     retrying,
+    /** Live (telemetry): requests currently out, and the subset asleep in a 429/503 back-off. */
+    activity: state.activity,
     // setup state
     apiKey,
     setApiKey,

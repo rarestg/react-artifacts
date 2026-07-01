@@ -35,8 +35,8 @@ export function RunReport({ vm }: { vm: Controller }) {
           : `${pct}%`;
   const annotation =
     vm.activeRunKind === 'initial'
-      ? vm.counts.inFlight > 0
-        ? `· ${vm.counts.inFlight} in flight`
+      ? vm.activity.inFlight > 0
+        ? `· ${vm.activity.inFlight} in flight`
         : ''
       : vm.activeRunKind === 'retry'
         ? `· resolving ${vm.state.total}`
@@ -117,6 +117,13 @@ export function RunReport({ vm }: { vm: Controller }) {
           <CountItem state="suspect" label="suspect" count={vm.counts.suspect} />
           <CountItem state="failed" label="failed" count={vm.counts.failed} />
           {annotation && <span className="text-xs tabular-nums text-[var(--text-muted)]">{annotation}</span>}
+          {vm.running && vm.activity.retrying > 0 && (
+            // Auto 429/503 back-off — distinct from the manual "re-OCR-ing"; never color-alone (spinner + label).
+            <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-[var(--warning)]">
+              <Loader2 className={spin} aria-hidden="true" />
+              {vm.activity.retrying} backing off
+            </span>
+          )}
         </div>
 
         <div className="space-y-1">

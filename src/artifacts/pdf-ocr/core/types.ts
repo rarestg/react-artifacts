@@ -55,6 +55,8 @@ export interface OcrOptions {
   signal?: AbortSignal;
   /** Called once per finished page, in completion order. */
   onProgress?: (result: PageResult, completed: number, total: number) => void;
+  /** Telemetry: live activity counts changed — requests currently out, and pages in a 429/503 back-off wait. */
+  onStats?: (stats: { inFlight: number; retrying: number }) => void;
 }
 
 export interface OcrPipelineResult {

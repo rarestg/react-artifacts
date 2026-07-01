@@ -122,6 +122,29 @@ export const popupSurface =
 // Scrim behind modal overlays.
 export const popupOverlay = 'bg-[var(--overlay)]';
 
+/* Collection overlays (Base UI Select popup, and future Menu/Combobox popups). */
+
+// Positioner: stacking context for the portaled popup; the surface itself carries the skin.
+export const collectionPositioner = 'z-50 outline-none';
+
+// Popup: the sharp popup surface sized to its trigger, scrolling long lists.
+export const collectionPopup = mergeClassNames(
+  popupSurface,
+  'max-h-64 w-[var(--anchor-width)] overflow-y-auto py-1 outline-none',
+);
+
+// Collection option. Keyboard/hover highlight (a surface tint) stays on a separate channel from
+// selection (an accent border plus a check indicator via itemIndicator), so the two never mask
+// each other and the selected cue is never color-only.
+export const itemBase =
+  'flex cursor-pointer items-center gap-2 border-l-2 border-l-transparent px-3 py-2 text-left text-sm text-[var(--text)] outline-none ' +
+  'data-[highlighted]:bg-[var(--surface-muted)] ' +
+  'data-[selected]:border-l-[var(--accent)] ' +
+  'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50';
+
+// Selection cue cluster (check + label), shown only on the selected option.
+export const itemIndicator = 'flex shrink-0 items-center gap-1 text-[var(--accent)]';
+
 /* Text input field skin. */
 
 export const inputBase = {

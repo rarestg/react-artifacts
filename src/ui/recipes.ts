@@ -113,6 +113,15 @@ export const status = {
   dotInactive: 'border-[var(--border-strong)] bg-transparent',
 };
 
+/* Popup / overlay surfaces (Base UI overlays such as Dialog). */
+
+// Opaque, bordered, square, no shadow — the sharp-minimal popup surface.
+export const popupSurface =
+  'rounded-none border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)] shadow-none';
+
+// Scrim behind modal overlays.
+export const popupOverlay = 'bg-[var(--overlay)]';
+
 /* Text input field skin. */
 
 export const inputBase = {

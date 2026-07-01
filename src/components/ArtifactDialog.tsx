@@ -1,7 +1,9 @@
-import * as Dialog from '@radix-ui/react-dialog';
+import { Dialog } from '@base-ui/react/dialog';
 import { X } from 'lucide-react';
 import { type ReactNode, type RefObject, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
+import { ArtifactDialogPortal } from '../ui/base-portals';
+import { popupOverlay, popupSurface } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type ArtifactDialogPlacement = 'viewport' | 'contained';
@@ -38,6 +40,9 @@ const alignClass: Record<ArtifactDialogAlign, string> = {
   center: 'items-center',
 };
 
+const closeButtonClass =
+  'inline-flex size-8 shrink-0 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+
 export function ArtifactDialog({
   open,
   onOpenChange,
@@ -67,44 +72,24 @@ export function ArtifactDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal container={container ?? undefined}>
-        <Dialog.Overlay
-          className={mergeClassNames(
-            positionClass,
-            'pointer-events-auto z-40 bg-[color:var(--overlay)]',
-            overlayClassName,
-          )}
-        />
-        <div
+      <ArtifactDialogPortal container={container}>
+        <Dialog.Backdrop className={mergeClassNames(positionClass, 'z-40', popupOverlay, overlayClassName)} />
+        <Dialog.Viewport
           className={mergeClassNames(
             positionClass,
             verticalAlignClass,
             'pointer-events-none z-50 flex justify-center overflow-y-auto p-4',
           )}
         >
-          <Dialog.Content
+          <Dialog.Popup
             ref={contentRef}
-            {...(description ? {} : { 'aria-describedby': undefined })}
-            onOpenAutoFocus={(event) => {
-              event.preventDefault();
-              (initialFocusRef?.current ?? titleRef.current)?.focus();
-            }}
-            onCloseAutoFocus={(event) => {
-              // Radix FocusScope fires close autofocus on content unmount, so conditionally rendered dialogs still
-              // restore focus even when callers remove the dialog instead of rendering an explicit closed state.
-              if (returnFocusTo?.isConnected) {
-                event.preventDefault();
-                returnFocusTo.focus();
-                return;
-              }
-
-              if (fallbackFocusTo?.isConnected) {
-                event.preventDefault();
-                fallbackFocusTo.focus();
-              }
-            }}
+            initialFocus={() => initialFocusRef?.current ?? titleRef.current}
+            finalFocus={() =>
+              returnFocusTo?.isConnected ? returnFocusTo : fallbackFocusTo?.isConnected ? fallbackFocusTo : true
+            }
             className={mergeClassNames(
-              'pointer-events-auto flex max-h-[calc(100%-2rem)] w-full max-w-[42rem] flex-col border border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text)]',
+              popupSurface,
+              'pointer-events-auto flex max-h-[calc(100%-2rem)] w-full max-w-[42rem] flex-col',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
               contentClassName,
             )}
@@ -125,17 +110,13 @@ export function ArtifactDialog({
                   </Dialog.Description>
                 )}
               </div>
-              <Dialog.Close asChild>
-                <button
-                  type="button"
-                  aria-label={closeLabel}
-                  className={
-                    'inline-flex size-8 shrink-0 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]'
-                  }
-                >
-                  <X className="size-4" aria-hidden="true" />
-                </button>
-              </Dialog.Close>
+              <Dialog.Close
+                render={
+                  <button type="button" aria-label={closeLabel} className={closeButtonClass}>
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
+                }
+              />
             </header>
             <div className={mergeClassNames('min-h-0 flex-1 overflow-y-auto px-4 py-4', bodyClassName)}>{children}</div>
             {footer && (
@@ -143,9 +124,9 @@ export function ArtifactDialog({
                 {footer}
               </footer>
             )}
-          </Dialog.Content>
-        </div>
-      </Dialog.Portal>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </ArtifactDialogPortal>
     </Dialog.Root>
   );
 }

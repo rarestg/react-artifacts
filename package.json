@@ -23,7 +23,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.1.15",
+    "@base-ui/react": "^1.6.0",
     "@tailwindcss/vite": "^4.1.18",
     "@uiw/react-json-view": "^2.0.0-alpha.41",
     "cmdk": "^1.1.1",

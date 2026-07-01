@@ -185,7 +185,6 @@ export function Stepper({
   step = 1,
   onChange,
   disabled = false,
-  suffix,
   maxButton = false,
   helperText,
 }: {
@@ -196,7 +195,6 @@ export function Stepper({
   step?: number;
   onChange: (value: number) => void;
   disabled?: boolean;
-  suffix?: string;
   maxButton?: boolean;
   helperText?: string;
 }) {
@@ -228,7 +226,7 @@ export function Stepper({
   );
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col items-center gap-1">
       <label htmlFor={inputId} className={bandLabelClass}>
         {label}
       </label>
@@ -299,9 +297,8 @@ export function Stepper({
             Max
           </button>
         )}
-        {suffix && <span className="ml-2 text-xs text-[var(--text-muted)]">{suffix}</span>}
       </div>
-      {helperText && <p className={helperClass}>{helperText}</p>}
+      {helperText && <p className={mergeClassNames(helperClass, 'text-center')}>{helperText}</p>}
     </div>
   );
 }

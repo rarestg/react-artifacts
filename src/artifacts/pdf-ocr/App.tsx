@@ -191,7 +191,7 @@ export default function PdfOcrApp() {
         </main>
 
         <footer className="border-t border-[var(--border)]">
-          <div className="mx-auto w-full max-w-3xl px-4 py-3">
+          <div className="px-4 py-3">
             <p className={helperClass}>
               Your key and PDF stay in this browser; only the OCR requests are sent to Google.
             </p>

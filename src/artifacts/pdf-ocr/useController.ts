@@ -13,6 +13,10 @@ const KEY_STORAGE = 'pdf-ocr:key';
  *  fallback on purpose: the UI ships a fast default; the pipeline keeps its conservative fallback. */
 const INITIAL_ARTIFACT_CONCURRENCY = 32;
 
+/** Artifact's initial back-off-retries setting. Lower than the pipeline's DEFAULT_RETRIES (5)
+ *  fallback on purpose: the UI ships a leaner default; the pipeline keeps its own fallback. */
+const INITIAL_ARTIFACT_RETRIES = 3;
+
 export type TestState = { status: 'idle' | 'testing' | 'ok' | 'error'; message: string };
 export type LoadedFile = { name: string; bytes: Uint8Array; pageCount: number; size: number };
 
@@ -87,6 +91,7 @@ export function useController() {
   const [mediaResolution, setMediaResolution] = useState<MediaResolution>(DEFAULT_MEDIA_RESOLUTION);
   const [concurrency, setConcurrency] = useState(INITIAL_ARTIFACT_CONCURRENCY);
   const [timeoutSec, setTimeoutSec] = useState(Math.round(DEFAULT_TIMEOUT_MS / 1000));
+  const [retries, setRetries] = useState(INITIAL_ARTIFACT_RETRIES);
   const [pageSpec, setPageSpec] = useState('all');
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -293,6 +298,7 @@ export function useController() {
       prompt,
       mediaResolution,
       concurrency,
+      retries,
       timeoutMs: timeoutSec * 1000,
       pages: selectedPages,
     });
@@ -304,6 +310,7 @@ export function useController() {
     selectedPages,
     mediaResolution,
     concurrency,
+    retries,
     timeoutSec,
     apiKey,
     prompt,
@@ -364,6 +371,8 @@ export function useController() {
     setMediaResolution,
     concurrency,
     setConcurrency,
+    retries,
+    setRetries,
     timeoutSec,
     setTimeoutSec,
     pageSpec,

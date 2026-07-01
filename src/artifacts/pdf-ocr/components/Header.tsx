@@ -49,11 +49,16 @@ export function Header({ vm }: { vm: Controller }) {
   const showCost = vm.state.status !== 'idle' && vm.hasCost;
 
   return (
-    <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--surface)]">
-      <div className="mx-auto w-full max-w-3xl px-4 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <h1 className="text-sm font-semibold tracking-tight text-[var(--text)]">PDF OCR</h1>
-          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+    <header className="border-b border-[var(--border)] bg-[var(--surface)]">
+      <div className="px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold">PDF OCR</h1>
+            <p className="mt-1 max-w-3xl text-xs text-[var(--text-muted)]">
+              Split a PDF and OCR every page in parallel with Gemini.
+            </p>
+          </div>
+          <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
             <LaneFact filled={keyVerified}>{keyVerified ? 'Key OK' : 'No key'}</LaneFact>
             <LaneFact filled={!!vm.file}>{vm.file ? `${vm.file.name} · ${vm.file.pageCount}p` : 'no file'}</LaneFact>
             {showCost && (

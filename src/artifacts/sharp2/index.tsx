@@ -359,13 +359,13 @@ export default function DesignSystem() {
         {/* Search Input */}
         <Section title="Search Input">
           <div className="space-y-6">
-            <SubSection label="With floating typeahead results (click to focus)">
+            <SubSection label="With Base UI Autocomplete typeahead (click to focus)">
               <div className="max-w-md">
                 <SearchInput
                   ariaLabel="Search conversations"
                   placeholder="Search conversations..."
                   value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
+                  onValueChange={setSearchValue}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
                   showResults={searchFocused}
@@ -378,10 +378,11 @@ export default function DesignSystem() {
               </div>
             </SubSection>
             <div className="p-3 border border-[var(--border)] bg-[var(--surface-muted)] text-xs text-[var(--text-subtle)]">
-              <strong>Float behavior:</strong> The dropdown is absolutely positioned with{' '}
-              <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">position: absolute</code> and
-              <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">z-50</code>. It floats over
-              content below without affecting document flow. The content below this box stays in place when results
+              <strong>Float behavior:</strong> The results popup is a Base UI{' '}
+              <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">Autocomplete</code> that portals
+              inside the artifact theme boundary and floats via{' '}
+              <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">Positioner</code>. It overlays
+              content below without affecting document flow, so the content below this box stays in place when results
               appear.
             </div>
           </div>
@@ -704,6 +705,7 @@ export default function DesignSystem() {
               <Popover
                 open={popoverOpen}
                 onOpenChange={(nextOpen) => setPopoverOpen(nextOpen)}
+                ariaLabel="Popover actions"
                 trigger={<Button>Open Popover</Button>}
               >
                 <div className="p-2 space-y-1">

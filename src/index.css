@@ -72,6 +72,8 @@
     --decision-text: var(--text-muted);
   }
 
+  /* Toggle track geometry lives here; its token tones + focus/interaction states live in
+     `toggleTrackRecipe` (src/ui/recipes.ts). Change the two together. */
   .sharp-toggle {
     --toggle-track-w: 32px;
     --toggle-track-h: 16px;

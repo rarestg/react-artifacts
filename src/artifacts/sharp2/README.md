@@ -36,6 +36,9 @@ guards. Sharp2 currently uses the default artifact token set; do not add a local
 token contract justify it.
 
 Portals, dialogs, popovers, and copied/rendered content should stay inside the artifact theme boundary whenever possible.
+sharp2's Base UI overlays (`ArtifactDialog`, the `ListboxSelect` popup, and the local `SearchInput`/`Popover`) mount
+through the shared `Artifact*Portal` wrappers in `src/ui/base-portals.tsx`, which portal into the theme root rather than
+`document.body` so scoped tokens resolve in light + dark, device preview, and standalone routes.
 
 ## Shared Primitives
 
@@ -66,8 +69,8 @@ promote to `src/components`.
 
 | Component | Why it is local |
 |-----------|-----------------|
-| `SearchInput` | Managed combobox/typeahead example for this showcase's search fixture shape. |
-| `Popover` | Lightweight dropdown example with local action styling. |
+| `SearchInput` | Base UI `Autocomplete`-backed typeahead example over this showcase's search fixture shape; parent owns filtering and the popup portals inside the artifact boundary. |
+| `Popover` | Base UI `Popover`-backed dropdown example with local action styling (`popoverActionClass`); non-modal, and the popup portals inside the artifact boundary. |
 | `Row` | Clickable list row example for selection and scan-friendly row anatomy. |
 | `CodeBlock` | Literal code block example with copy support. |
 | `Section` | Showcase section shell, not a general artifact primitive. |

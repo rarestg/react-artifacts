@@ -1,4 +1,6 @@
+import { Autocomplete } from '@base-ui/react/autocomplete';
 import { Dialog } from '@base-ui/react/dialog';
+import { Popover } from '@base-ui/react/popover';
 import { Select } from '@base-ui/react/select';
 import { useArtifactPortalContainer } from '../components/ArtifactThemeRoot';
 
@@ -7,7 +9,7 @@ import { useArtifactPortalContainer } from '../components/ArtifactThemeRoot';
  * tokens resolve. An explicit `container` still wins; otherwise each falls back to the
  * theme root ref from context — never `document.body`.
  *
- * Popover/Menu/Combobox/etc. arrive with their migrations so knip does not flag unused exports.
+ * Menu/Combobox/etc. arrive with their migrations so knip does not flag unused exports.
  */
 export function ArtifactDialogPortal({
   container,
@@ -23,4 +25,20 @@ export function ArtifactSelectPortal({
 }: Omit<Select.Portal.Props, 'container'> & { container?: HTMLElement | null }) {
   const fallbackContainer = useArtifactPortalContainer();
   return <Select.Portal container={container ?? fallbackContainer} {...props} />;
+}
+
+export function ArtifactAutocompletePortal({
+  container,
+  ...props
+}: Omit<Autocomplete.Portal.Props, 'container'> & { container?: HTMLElement | null }) {
+  const fallbackContainer = useArtifactPortalContainer();
+  return <Autocomplete.Portal container={container ?? fallbackContainer} {...props} />;
+}
+
+export function ArtifactPopoverPortal({
+  container,
+  ...props
+}: Omit<Popover.Portal.Props, 'container'> & { container?: HTMLElement | null }) {
+  const fallbackContainer = useArtifactPortalContainer();
+  return <Popover.Portal container={container ?? fallbackContainer} {...props} />;
 }

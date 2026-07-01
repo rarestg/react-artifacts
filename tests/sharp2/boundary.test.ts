@@ -492,50 +492,57 @@ test('sharp2 avoids viewport breakpoints in preview-sensitive showcase layout', 
   assert.match(joined, /auto-fit|minmax\(/);
 });
 
-test('sharp2 SearchInput uses managed combobox focus instead of focusable option buttons', async () => {
+test('sharp2 SearchInput is a Base UI Autocomplete typeahead, not a hand-rolled combobox', async () => {
   const source = await readFile('src/artifacts/sharp2/components/SearchInput.tsx', 'utf8');
   const indexSource = await readFile('src/artifacts/sharp2/index.tsx', 'utf8');
 
-  assert.match(source, /role="combobox"/);
-  assert.match(source, /ariaLabel/);
-  assert.match(source, /aria-label=/);
+  // Base UI backing, in-boundary portal, and shared collection recipes (no bespoke popup skin).
+  assert.match(source, /from ['"]@base-ui\/react\/autocomplete['"]/);
+  assert.match(source, /ArtifactAutocompletePortal/);
+  assert.match(source, /itemBase/);
+  assert.match(source, /collectionPopup/);
+
+  // Accessible name is wired onto the input, and the empty state is preserved.
+  assert.match(source, /aria-label=\{ariaLabel\}/);
   assert.match(indexSource, /ariaLabel="Search conversations"/);
-  assert.match(source, /aria-expanded=/);
-  assert.match(source, /aria-controls=/);
-  assert.match(source, /aria-activedescendant=/);
-  assert.match(source, /role="option"/);
-  assert.match(source, /aria-selected=/);
-  assert.match(source, /border-l-\[var\(--accent\)\]/);
   assert.match(source, /No results for/);
-  const handleKeyDownStart = source.indexOf('const handleKeyDown');
-  const escapeBranch = source.indexOf("event.key === 'Escape'", handleKeyDownStart);
-  const emptyResultsReturn = /if \([^)]*results\.length === 0[^)]*\) return;/.exec(source.slice(handleKeyDownStart));
-  assert.notEqual(handleKeyDownStart, -1);
-  assert.notEqual(escapeBranch, -1);
-  assert.ok(
-    emptyResultsReturn === null || escapeBranch < handleKeyDownStart + emptyResultsReturn.index,
-    'Escape should be handled before any empty-results early return',
-  );
+
+  // Highlight (the active row) carries the accent left-border; Autocomplete keeps no persistent
+  // selection, so the accent tracks data-highlighted rather than a selected state.
+  assert.match(source, /data-\[highlighted\]:border-l-\[var\(--accent\)\]/);
+  assert.match(source, /onSelect\?\.\(result\)/);
+
+  // The hand-rolled keyboard nav / active-index / listbox wiring is gone.
+  assert.doesNotMatch(source, /const handleKeyDown/);
+  assert.doesNotMatch(source, /event\.key ===/);
+  assert.doesNotMatch(source, /aria-activedescendant/);
+  assert.doesNotMatch(source, /useState/);
+  // Options are never focusable buttons; selection stays managed by the combobox.
   assert.doesNotMatch(source, /<button[^>]*role="option"/s);
-  assert.doesNotMatch(source, /focus:bg-\[var\(--surface-muted\)\]/);
-  assert.doesNotMatch(source, /role="option"[\s\S]{0,600}focus-visible:/);
-  assert.doesNotMatch(source, /role="option"[\s\S]{0,600}tabIndex=/);
-  assert.doesNotMatch(source, /tabIndex=[\s\S]{0,600}role="option"/);
 });
 
-test('sharp2 Popover stays plain and avoids incomplete composite menu semantics', async () => {
+test('sharp2 Popover is a Base UI Popover with local action styling, not a hand-rolled menu', async () => {
   const source = await readFile('src/artifacts/sharp2/components/Popover.tsx', 'utf8');
   const indexSource = await readFile('src/artifacts/sharp2/index.tsx', 'utf8');
 
-  assert.match(source, /aria-expanded/);
-  assert.match(source, /aria-controls/);
-  assert.match(source, /Escape/);
-  assert.match(source, /focus\(\)/);
+  // Base UI backing, in-boundary portal, and a non-modal dropdown (no backdrop/scroll lock).
+  assert.match(source, /from ['"]@base-ui\/react\/popover['"]/);
+  assert.match(source, /ArtifactPopoverPortal/);
+  assert.match(source, /modal=\{false\}/);
+  // The role="dialog" popup gets an accessible name.
+  assert.match(source, /aria-label=\{ariaLabel\}/);
+
+  // The exported action class + its focus styling stay the local public API.
+  assert.match(source, /export const popoverActionClass/);
   assert.match(source, /focus-visible:bg-\[var\(--surface-muted\)\]/);
   assert.match(source, /focus-visible:ring-2/);
-  assert.match(source, /event\.currentTarget instanceof HTMLButtonElement/);
+
+  // Plain dropdown: no menu semantics, and the hand-rolled outside-click/focus/keyboard logic is gone.
   assert.doesNotMatch(source, /role="menu"/);
   assert.doesNotMatch(indexSource, /role="menuitem"/);
+  assert.doesNotMatch(source, /addEventListener/);
+  assert.doesNotMatch(source, /cloneElement/);
+  assert.doesNotMatch(source, /useId/);
 });
 
 test('sharp2 Section exposes a labelled semantic section wrapper', async () => {

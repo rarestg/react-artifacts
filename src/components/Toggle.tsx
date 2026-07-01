@@ -10,13 +10,13 @@ export type ToggleProps = {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
+  // 'container' rings a sibling overlay around the whole row instead of the track (see the overlay
+  // below), mirroring Checkbox's focusTarget so grouped/embedded toggles can move the focus cue.
   focusTarget?: 'track' | 'container';
   title?: string;
   'aria-describedby'?: string;
   className?: string;
   labelClassName?: string;
-  trackClassName?: string;
-  knobClassName?: string;
   suffix?: ReactNode;
 };
 
@@ -31,8 +31,6 @@ export function Toggle({
   'aria-describedby': ariaDescribedBy,
   className,
   labelClassName,
-  trackClassName,
-  knobClassName,
   suffix,
 }: ToggleProps) {
   const rootRef = useRef<HTMLLabelElement>(null);
@@ -63,9 +61,9 @@ export function Toggle({
         onCheckedChange={onCheckedChange}
         disabled={disabled}
         aria-describedby={ariaDescribedBy}
-        className={toggleTrackRecipe({ focusTarget, disabled, className: trackClassName })}
+        className={toggleTrackRecipe({ focusTarget, disabled })}
       >
-        <span aria-hidden="true" className={mergeClassNames('sharp-toggle__knob', knobClassName)} />
+        <span aria-hidden="true" className="sharp-toggle__knob" />
       </BaseCheckbox.Root>
       {focusTarget === 'container' && (
         <span

@@ -5,12 +5,12 @@ import { Columns2, Columns3, RectangleVertical } from 'lucide-react';
 import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { CopyButton, type CopyButtonHandle } from '../../components/CopyButton';
 import { SegmentedControl, type SegmentedControlSize } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import Checkbox from './components/Checkbox';
-import CopyButton, { type CopyButtonHandle } from './components/CopyButton';
 import PathList from './components/PathList';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
 import { defaultTruncation, sampleInput } from './lib/constants';
@@ -730,7 +730,7 @@ export default function JsonlStructureViewer() {
                 {parsed.errors.length} line{parsed.errors.length === 1 ? '' : 's'} failed to parse.
               </div>
             </div>
-            <CopyButton text={errorsReport} idleLabel="Copy Report" className={headerActionClass} />
+            <CopyButton text={errorsReport} idleLabel="Copy Report" />
           </div>
           <div className="flex flex-col gap-2 p-4 text-xs text-[var(--text-muted)]">
             {parsed.errors.map((error) => (
@@ -807,13 +807,7 @@ export default function JsonlStructureViewer() {
             </div>
           </div>
           <div className={panelHeaderActionsClass}>
-            <CopyButton
-              ref={copyButtonRef}
-              text={outputForCopy}
-              idleLabel="Copy Output"
-              className={headerActionClass}
-              disabled={!hasOutput}
-            />
+            <CopyButton ref={copyButtonRef} text={outputForCopy} idleLabel="Copy Output" disabled={!hasOutput} />
           </div>
         </div>
         <div className="flex flex-col gap-4 p-4">

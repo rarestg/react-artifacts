@@ -13,7 +13,6 @@ const migratedFiles = [
   'src/components/Input.tsx',
   'src/components/ArtifactThemeRoot.tsx',
   'src/components/CopyButton.tsx',
-  'src/artifacts/jsonl-structure-viewer/components/CopyButton.tsx',
 ];
 
 function toImportPath(fromDir: string, repoRelativePath: string) {
@@ -49,10 +48,6 @@ import { CopyButton as SharedCopyButton, type CopyButtonHandle as SharedCopyButt
       )}';
 import { Input } from '${toImportPath(tempDir, 'src/components/Input.tsx')}';
 import { Panel } from '${toImportPath(tempDir, 'src/components/Panel.tsx')}';
-import JsonlCopyButton, { type CopyButtonHandle as JsonlCopyButtonHandle } from '${toImportPath(
-        tempDir,
-        'src/artifacts/jsonl-structure-viewer/components/CopyButton.tsx',
-      )}';
 
 const buttonRef = createRef<HTMLButtonElement>();
 createElement(Button, { ref: buttonRef, onClick: () => undefined }, 'Save');
@@ -74,12 +69,6 @@ createElement(SharedCopyButton, { ref: sharedCopyRef, text: 'value' });
 sharedCopyRef.current?.copy();
 // @ts-expect-error Shared CopyButton exposes an imperative handle, not its DOM button.
 createElement(SharedCopyButton, { ref: createRef<HTMLButtonElement>(), text: 'value' });
-
-const jsonlCopyRef = createRef<JsonlCopyButtonHandle>();
-createElement(JsonlCopyButton, { ref: jsonlCopyRef, text: 'value' });
-jsonlCopyRef.current?.copy();
-// @ts-expect-error JSONL CopyButton exposes an imperative handle, not its DOM button.
-createElement(JsonlCopyButton, { ref: createRef<HTMLButtonElement>(), text: 'value' });
 `,
     );
 

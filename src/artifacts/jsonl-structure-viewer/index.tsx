@@ -7,8 +7,10 @@ import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useId, useM
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton, type CopyButtonHandle } from '../../components/CopyButton';
 import { PageHeader } from '../../components/PageHeader';
+import { ReservedWidth } from '../../components/ReservedWidth';
 import { SegmentedControl, type SegmentedControlSize } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
+import { useContainerWidth } from '../../lib/useContainerWidth';
 import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
 import { typo } from '../../ui/recipes';
@@ -209,10 +211,10 @@ export default function JsonlStructureViewer() {
   const [onlyLeaves, setOnlyLeaves] = useLocalStorageState(`${STORAGE_PREFIX}-only-leaves`, false);
   const [searchQuery, setSearchQuery] = useLocalStorageState(`${STORAGE_PREFIX}-path-search`, '');
   const [showHelp, setShowHelp] = useLocalStorageState(`${STORAGE_PREFIX}-help`, false);
-  const [containerWidth, setContainerWidth] = useState(() => {
-    if (typeof window === 'undefined') return THREE_COLUMN_MIN_WIDTH;
-    return window.innerWidth;
-  });
+  const { ref: containerRef, width: measuredContainerWidth } = useContainerWidth<HTMLDivElement>();
+  // Approximate with the viewport width until measured, so first paint doesn't flash one-column.
+  const containerWidth =
+    measuredContainerWidth ?? (typeof window === 'undefined' ? THREE_COLUMN_MIN_WIDTH : window.innerWidth);
   const isDarkTheme = useRootDarkMode();
 
   const [selection, setSelection] = useLocalStorageState<Record<string, boolean>>(`${STORAGE_PREFIX}-selection`, {});
@@ -224,7 +226,6 @@ export default function JsonlStructureViewer() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const copyButtonRef = useRef<CopyButtonHandle>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const panelsGridRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const titlePanelRef = useRef<HTMLElement>(null);
@@ -236,43 +237,47 @@ export default function JsonlStructureViewer() {
   const outputResizeRef = useRef<HTMLDivElement>(null);
   const hasLoggedLayoutRef = useRef(false);
   const hasLoggedOutputRef = useRef(false);
-  const logPanelMetrics = useCallback((reason: string) => {
-    const logPanel = (label: string, element: HTMLElement | null) => {
-      if (!element) {
-        logResize('panel missing', { label });
-        return;
-      }
-      const rect = element.getBoundingClientRect();
-      logResize('panel size', {
-        label,
-        rect: {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-        },
+  const logPanelMetrics = useCallback(
+    (reason: string) => {
+      const logPanel = (label: string, element: HTMLElement | null) => {
+        if (!element) {
+          logResize('panel missing', { label });
+          return;
+        }
+        const rect = element.getBoundingClientRect();
+        logResize('panel size', {
+          label,
+          rect: {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height,
+          },
+        });
+      };
+
+      const root = document.documentElement;
+      const body = document.body;
+
+      logResize(reason, {
+        windowInnerWidth: window.innerWidth,
+        windowInnerHeight: window.innerHeight,
+        rootClientWidth: root.clientWidth,
+        rootClientHeight: root.clientHeight,
+        rootScrollWidth: root.scrollWidth,
+        rootScrollHeight: root.scrollHeight,
+        bodyScrollWidth: body?.scrollWidth,
+        bodyScrollHeight: body?.scrollHeight,
+        containerWidth: containerRef.current?.getBoundingClientRect().width ?? null,
       });
-    };
-
-    const root = document.documentElement;
-    const body = document.body;
-
-    logResize(reason, {
-      windowInnerWidth: window.innerWidth,
-      windowInnerHeight: window.innerHeight,
-      rootClientWidth: root.clientWidth,
-      rootClientHeight: root.clientHeight,
-      rootScrollWidth: root.scrollWidth,
-      rootScrollHeight: root.scrollHeight,
-      bodyScrollWidth: body?.scrollWidth,
-      bodyScrollHeight: body?.scrollHeight,
-      containerWidth: containerRef.current?.getBoundingClientRect().width ?? null,
-    });
-    logPanel('title', titlePanelRef.current);
-    logPanel('input', inputPanelRef.current);
-    logPanel('path', pathPanelRef.current);
-    logPanel('output', outputPanelRef.current);
-  }, []);
+      logPanel('title', titlePanelRef.current);
+      logPanel('input', inputPanelRef.current);
+      logPanel('path', pathPanelRef.current);
+      logPanel('output', outputPanelRef.current);
+      // containerRef comes from useContainerWidth and is stable, but the lint rule can't see that.
+    },
+    [containerRef],
+  );
 
   const debouncedInput = useDebouncedValue(input, debounceDelay);
   const flushRef = useRef(debouncedInput.flush);
@@ -357,21 +362,9 @@ export default function JsonlStructureViewer() {
   }, [logPanelMetrics]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const element = containerRef.current;
-    if (!element) return;
-    const update = () => {
-      const width = element.getBoundingClientRect().width;
-      setContainerWidth(width);
-      logResize('container resize', { width: Math.round(width) });
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(element);
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
+    if (measuredContainerWidth === null) return;
+    logResize('container resize', { width: Math.round(measuredContainerWidth) });
+  }, [measuredContainerWidth]);
 
   const tree = useMemo(() => {
     if (!parsed.data) return null;
@@ -655,12 +648,7 @@ export default function JsonlStructureViewer() {
               Load Sample
             </button>
             <div className={headerStatusClass}>
-              <span className="relative inline-grid">
-                <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                  {parsingReserveLabel}
-                </span>
-                <span className="col-start-1 row-start-1">{parsingLabel}</span>
-              </span>
+              <ReservedWidth reserve={parsingReserveLabel}>{parsingLabel}</ReservedWidth>
             </div>
           </div>
         </div>
@@ -969,12 +957,7 @@ export default function JsonlStructureViewer() {
                 onClick={() => setShowHelp((prev) => !prev)}
                 className={headerHelpButtonClass}
               >
-                <span className="relative inline-grid">
-                  <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-                    Hide Help
-                  </span>
-                  <span className="col-start-1 row-start-1">{showHelp ? 'Hide Help' : 'Show Help'}</span>
-                </span>
+                <ReservedWidth reserve="Hide Help">{showHelp ? 'Hide Help' : 'Show Help'}</ReservedWidth>
               </button>
             </div>
           </div>

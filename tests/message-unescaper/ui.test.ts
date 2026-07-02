@@ -73,8 +73,7 @@ test('Message Unescaper exposes container-aware panel layout controls', async ()
   assert.match(source, /ariaLabel=["']Panel layout["']/);
   assert.match(source, /ariaLabel:\s*["']One column layout["']/);
   assert.match(source, /ariaLabel:\s*["']Two column layout["']/);
-  assert.match(source, /setMainContentWidth\(getElementContentWidth\(element\)\)/);
-  assert.match(source, /entry\.contentRect\.width/);
+  assert.match(source, /const \{ ref: mainRef, width: mainContentWidth \} = useContainerWidth<HTMLElement>\(\)/);
   assert.match(source, /mainContentWidth\s*!==\s*null\s*&&\s*mainContentWidth\s*>=\s*MESSAGE_TWO_COLUMN_MIN_WIDTH/);
   assert.match(source, /MESSAGE_TWO_COLUMN_MIN_WIDTH\s*=\s*MESSAGE_PANEL_MIN_WIDTH\s*\*\s*2\s*\+\s*MESSAGE_PANEL_GAP/);
   assert.match(source, /grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/);

@@ -1,5 +1,5 @@
 import { Columns2, RectangleVertical } from 'lucide-react';
-import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useId, useMemo, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
 import { PageHeader } from '../../components/PageHeader';
@@ -13,6 +13,7 @@ import {
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { Toggle } from '../../components/Toggle';
 import { mergeClassNames } from '../../lib/classNames';
+import { useContainerWidth } from '../../lib/useContainerWidth';
 import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { typo } from '../../ui/recipes';
 
@@ -277,20 +278,12 @@ const MESSAGE_PANEL_GAP = 16;
 const MESSAGE_TWO_COLUMN_MIN_WIDTH = MESSAGE_PANEL_MIN_WIDTH * 2 + MESSAGE_PANEL_GAP;
 const MESSAGE_LAYOUT_STORAGE_KEY = 'message-unescaper-layout';
 
-function getElementContentWidth(element: HTMLElement): number {
-  const styles = window.getComputedStyle(element);
-  const borderX = (Number.parseFloat(styles.borderLeftWidth) || 0) + (Number.parseFloat(styles.borderRightWidth) || 0);
-  const paddingX = (Number.parseFloat(styles.paddingLeft) || 0) + (Number.parseFloat(styles.paddingRight) || 0);
-
-  return Math.max(0, element.getBoundingClientRect().width - borderX - paddingX);
-}
-
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
 export default function MessageUnescaper() {
-  const mainRef = useRef<HTMLElement>(null);
+  const { ref: mainRef, width: mainContentWidth } = useContainerWidth<HTMLElement>();
   const inputLabelId = useId();
   const showDashBreaksDescriptionId = useId();
   const replaceDashBreaksDescriptionId = useId();
@@ -298,30 +291,11 @@ export default function MessageUnescaper() {
     MESSAGE_LAYOUT_STORAGE_KEY,
     'two-column',
   );
-  const [mainContentWidth, setMainContentWidth] = useState<number | null>(null);
   const [input, setInput] = useState('');
   const [direction, setDirection] = useState<Direction>('unescape');
   const [wrapOutput, setWrapOutput] = useState(true);
   const [showDashBreaks, setShowDashBreaks] = useState(false);
   const [replaceDashBreaks, setReplaceDashBreaks] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const element = mainRef.current;
-    if (!element) return;
-
-    setMainContentWidth(getElementContentWidth(element));
-    if (typeof ResizeObserver === 'undefined') return;
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      setMainContentWidth(entry.contentRect.width);
-    });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
 
   const baseOutput = useMemo(() => {
     if (!input) return '';

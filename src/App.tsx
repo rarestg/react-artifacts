@@ -1,3 +1,4 @@
+import { Tooltip } from '@base-ui/react/tooltip';
 import { Monitor, Moon, RectangleHorizontal, RectangleVertical, Smartphone, Sun, Tablet } from 'lucide-react';
 import {
   type KeyboardEvent as ReactKeyboardEvent,
@@ -593,11 +594,13 @@ export default function App() {
         <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
           Artifacts
         </h2>
-        <ul className="space-y-1">
-          {artifacts.map((a) => (
-            <ArtifactListItem key={a.id} artifact={a} selected={selected === a.id} onSelect={handleSelectArtifact} />
-          ))}
-        </ul>
+        <Tooltip.Provider delay={400}>
+          <ul className="space-y-1">
+            {artifacts.map((a) => (
+              <ArtifactListItem key={a.id} artifact={a} selected={selected === a.id} onSelect={handleSelectArtifact} />
+            ))}
+          </ul>
+        </Tooltip.Provider>
       </nav>
       <hr
         aria-orientation="vertical"

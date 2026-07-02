@@ -9,14 +9,17 @@ import { mergeClassNames } from '../lib/classNames';
  * structural layout that carries no design token stays inline at the call site.
  */
 
+/* Keyboard-focus ring shared by every sharp-minimal control. */
+
+export const focusRing =
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+
 /* Control shell (Button, and future Base UI controls that share the shell). */
 
 export type ControlVariant = 'default' | 'primary' | 'ghost' | 'danger';
 export type ControlSize = 'sm' | 'md' | 'lg';
 
-export const controlBase =
-  'inline-flex items-center justify-center gap-2 font-medium transition-colors motion-reduce:transition-none rounded-none ' +
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+export const controlBase = `inline-flex items-center justify-center gap-2 font-medium transition-colors motion-reduce:transition-none rounded-none ${focusRing}`;
 
 export const controlVariant: Record<ControlVariant, { base: string; interactive: string }> = {
   default: {
@@ -244,9 +247,7 @@ type SegmentedSize = 'compact' | 'default';
 // -ml-px, z-index) and cursor stay inline at the call site; per UI note #001 the single separator
 // source is the child border overlap (-ml-px), never a parent gap/divide.
 export const segmentedControl = {
-  item:
-    'inline-flex items-center justify-center border transition-colors motion-reduce:transition-none rounded-none ' +
-    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+  item: `inline-flex items-center justify-center border transition-colors motion-reduce:transition-none rounded-none ${focusRing}`,
   size: {
     compact: 'h-6 px-2 text-xs font-medium',
     default: 'h-8 px-2 text-xs font-medium',

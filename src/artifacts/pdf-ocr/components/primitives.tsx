@@ -3,10 +3,6 @@ import type { ReactNode } from 'react';
 import { ReservedWidth } from '../../../components/ReservedWidth';
 import { mergeClassNames } from '../../../lib/classNames';
 
-/** Tokenized keyboard-focus ring shared by every locally-built control in this artifact. */
-export const focusRing =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
-
 /** Padding for every full-width band inside the guided-flow shell. */
 export const bandClass = 'px-4 py-4';
 export const bandLabelClass = 'text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]';
@@ -42,6 +38,9 @@ const chipToneClass: Record<ChipTone, string> = {
 /**
  * A status chip whose label width is reserved (via an invisible widest-label span) so the surrounding
  * layout never shifts when the label changes between states.
+ *
+ * Kept local (not shared StatusTag): StatusTag is a binary active/inactive dot-tag, while this is a
+ * five-tone semantic chip whose chipToneClass map also feeds PageStateChip.
  */
 export function StateChip({
   label,

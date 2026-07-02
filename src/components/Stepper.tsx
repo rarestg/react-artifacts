@@ -1,14 +1,11 @@
 import { Minus, Plus } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { mergeClassNames } from '../lib/classNames';
-import { inputBase } from '../ui/recipes';
+import { focusRing, inputBase } from '../ui/recipes';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
 
 export type StepperSize = 'default' | 'compact';
 export type StepperLabelPosition = 'top' | 'start';
-
-const focusRing =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 
 const rowSize: Record<StepperSize, string> = {
   default: 'h-8',

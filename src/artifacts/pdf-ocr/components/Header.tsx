@@ -1,4 +1,5 @@
 import { AlertTriangle, Check, Loader2, X } from 'lucide-react';
+import { PageHeader } from '../../../components/PageHeader';
 import { mergeClassNames } from '../../../lib/classNames';
 import { formatCost } from '../core/cost';
 import type { Controller } from '../useController';
@@ -49,31 +50,23 @@ export function Header({ vm }: { vm: Controller }) {
   const showCost = vm.state.status !== 'idle' && vm.hasCost;
 
   return (
-    <header className="border-b border-[var(--border)] bg-[var(--surface)]">
-      <div className="px-4 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-base font-semibold">PDF OCR</h1>
-            <p className="mt-1 max-w-3xl text-xs text-[var(--text-muted)]">
-              Split a PDF and OCR every page in parallel with Gemini.
-            </p>
-          </div>
-          <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
-            <LaneFact filled={keyVerified}>{keyVerified ? 'Key OK' : 'No key'}</LaneFact>
-            <LaneFact filled={!!vm.file}>{vm.file ? `${vm.file.name} · ${vm.file.pageCount}p` : 'no file'}</LaneFact>
-            {showCost && (
-              <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">
-                {formatCost(vm.actualTotal)}
-                {vm.allPriced ? '' : '+'}
-              </span>
-            )}
-            <StateChip label={status.label} reserveLabel="Re-OCR-ing" tone={status.tone} icon={status.icon} />
+    <PageHeader
+      title="PDF OCR"
+      subtitle="Split a PDF and OCR every page in parallel with Gemini."
+      actions={
+        <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
+          <LaneFact filled={keyVerified}>{keyVerified ? 'Key OK' : 'No key'}</LaneFact>
+          <LaneFact filled={!!vm.file}>{vm.file ? `${vm.file.name} · ${vm.file.pageCount}p` : 'no file'}</LaneFact>
+          {showCost && (
             <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">
-              {formatMmSs(vm.jobElapsedMs)}
+              {formatCost(vm.actualTotal)}
+              {vm.allPriced ? '' : '+'}
             </span>
-          </div>
+          )}
+          <StateChip label={status.label} reserveLabel="Re-OCR-ing" tone={status.tone} icon={status.icon} />
+          <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">{formatMmSs(vm.jobElapsedMs)}</span>
         </div>
-      </div>
-    </header>
+      }
+    />
   );
 }

@@ -3,8 +3,10 @@ import { useMemo } from 'react';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { ListboxSelect } from '../../../components/ListboxSelect';
+import { panelHeaderRowClass, panelHeaderTitleClass } from '../../../components/panelHeaderClasses';
 import { SegmentedControl } from '../../../components/SegmentedControl';
 import { mergeClassNames } from '../../../lib/classNames';
+import { panel } from '../../../ui/recipes';
 import { estimateCost, formatCost, formatCostRange, modelPricing } from '../core/cost';
 import type { MediaResolution } from '../core/types';
 import type { Controller } from '../useController';
@@ -72,9 +74,9 @@ export function RetryPanel({ vm }: { vm: Controller }) {
   })();
 
   return (
-    <section className="border border-[var(--border)] bg-[var(--surface)]">
-      <div className="border-b border-[var(--border)] px-4 py-3">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Re-OCR</h2>
+    <section className={panel.default}>
+      <div className={panelHeaderRowClass}>
+        <h2 className={panelHeaderTitleClass}>Re-OCR</h2>
       </div>
 
       <div className="space-y-3 px-4 py-4">

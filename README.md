@@ -15,6 +15,7 @@ A local viewer for developing and refining React artifacts. Drop a folder into `
 - `src/artifacts.ts` — artifact discovery through `import.meta.glob`.
 - `src/artifacts/` — self-contained artifact folders.
 - `src/components/` — shared UI primitives.
+- `src/ui/` — shared skin recipes, portal wrappers, and layout primitives.
 - `src/lib/` — shared non-visual helpers and hooks.
 - `src/theme/` — shared artifact theme tokens.
 - `design/` — design philosophy, artifact design guidance, and UI implementation notes.
@@ -148,7 +149,8 @@ track the actual browser viewport (or when using DevTools device emulation).
 Tokenized artifact primitives live in `src/components/` and must render under `ArtifactThemeRoot`. This includes common
 artifact UI such as `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `FilterCheckbox`, `Toggle`, `SegmentedControl`,
 `ListboxSelect`, `CopyButton`, `CopyableLabel`, `StatusTag`, `ArtifactDialog`, and `panelHeaderClasses` for dense tool
-panel headers.
+panel headers. Shared layout primitives live in `src/ui/layout.tsx`: `Stack` (vertical stack with semantic gap tiers)
+and `Grid` (the responsive auto-fit artifact grid); see UI note 009.
 
 Not every `src/components/` export is an artifact primitive. Shell UI in `src/App.tsx` is not artifact UI; do not pull
 artifact-token components into shell chrome unless the subtree is intentionally wrapped. Prefer headless hooks and

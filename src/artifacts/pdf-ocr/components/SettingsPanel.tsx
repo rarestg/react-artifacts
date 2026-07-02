@@ -2,11 +2,12 @@ import { AlertTriangle, ChevronDown, ChevronRight, ChevronUp } from 'lucide-reac
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { SegmentedControl } from '../../../components/SegmentedControl';
+import { Stepper } from '../../../components/Stepper';
 import { mergeClassNames } from '../../../lib/classNames';
 import { estimateCost, formatCost } from '../core/cost';
 import { DEFAULT_PROMPT, type MediaResolution } from '../core/types';
 import type { Controller } from '../useController';
-import { bandClass, bandLabelClass, focusRing, helperClass, Stepper } from './primitives';
+import { bandClass, bandLabelClass, focusRing, helperClass } from './primitives';
 
 const DETAIL_OPTIONS: { value: MediaResolution; label: string }[] = [
   { value: 'low', label: 'low' },
@@ -60,7 +61,7 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
               value={vm.concurrency}
               min={1}
               max={128}
-              onChange={vm.setConcurrency}
+              onValueChange={vm.setConcurrency}
               maxButton
               helperText="Higher = faster, but may trigger rate-limit backoff."
             />
@@ -116,14 +117,14 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
               min={5}
               max={300}
               step={5}
-              onChange={vm.setTimeoutSec}
+              onValueChange={vm.setTimeoutSec}
             />
             <Stepper
               label="Retries"
               value={vm.retries}
               min={0}
               max={10}
-              onChange={vm.setRetries}
+              onValueChange={vm.setRetries}
               helperText="Back-off retries on rate-limit or overload (429/503)."
             />
           </div>

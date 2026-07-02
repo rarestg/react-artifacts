@@ -1,6 +1,6 @@
 import { Autocomplete } from '@base-ui/react/autocomplete';
 import { Dialog } from '@base-ui/react/dialog';
-import { Minus, Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useReducer, useRef, useState } from 'react';
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
@@ -8,6 +8,7 @@ import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
 import { FilterCheckbox } from '../../components/FilterCheckbox';
 import { SegmentedControl } from '../../components/SegmentedControl';
+import { Stepper } from '../../components/Stepper';
 import { mergeClassNames } from '../../lib/classNames';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { ArtifactDialogPortal } from '../../ui/base-portals';
@@ -17,9 +18,7 @@ import {
   getDefaultPromptModifierOptionId,
   getDefaultPromptToggleOptionIds,
   getPromptTag,
-  normalizePromptNumberInputValue,
   type PromptEntry,
-  type PromptNumberInput,
   type PromptTagColorId,
   type PromptTagId,
   prompts,
@@ -508,106 +507,6 @@ function PromptModifierControl({
   );
 }
 
-function PromptNumberInputControl({
-  input,
-  value,
-  onValueChange,
-}: {
-  input: PromptNumberInput;
-  value: number;
-  onValueChange: (value: number) => void;
-}) {
-  const inputId = useId();
-  const step = input.step ?? 1;
-  const [draftValue, setDraftValue] = useState(String(value));
-  const canDecrease = value > input.min;
-  const canIncrease = value < input.max;
-
-  useEffect(() => {
-    setDraftValue(String(value));
-  }, [value]);
-
-  const commitDraftValue = () => {
-    const nextValue = normalizePromptNumberInputValue(draftValue === '' ? undefined : Number(draftValue), input);
-    setDraftValue(String(nextValue));
-    onValueChange(nextValue);
-  };
-
-  const updateDraftValue = (nextDraftValue: string) => {
-    setDraftValue(nextDraftValue);
-
-    const nextValue = Number(nextDraftValue);
-    if (Number.isInteger(nextValue) && nextValue >= input.min && nextValue <= input.max) {
-      onValueChange(nextValue);
-    }
-  };
-
-  const stepValue = (direction: -1 | 1) => {
-    const nextValue = normalizePromptNumberInputValue(value + direction * step, input);
-    setDraftValue(String(nextValue));
-    onValueChange(nextValue);
-  };
-
-  return (
-    <div className="inline-flex min-w-0 items-center gap-2">
-      <label
-        htmlFor={inputId}
-        className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]"
-      >
-        {input.label}
-      </label>
-      <div className="inline-flex h-6 min-w-0 items-stretch">
-        <button
-          type="button"
-          aria-label={`Decrease ${input.label}`}
-          disabled={!canDecrease}
-          onClick={() => stepValue(-1)}
-          className={mergeClassNames(
-            'inline-flex w-6 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] disabled:cursor-not-allowed disabled:opacity-50',
-            focusClass,
-          )}
-        >
-          <Minus className="size-3.5" aria-hidden="true" />
-        </button>
-        <input
-          id={inputId}
-          type="number"
-          inputMode="numeric"
-          min={input.min}
-          max={input.max}
-          step={step}
-          value={draftValue}
-          onChange={(event) => updateDraftValue(event.currentTarget.value)}
-          onBlur={commitDraftValue}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              commitDraftValue();
-            }
-          }}
-          className={mergeClassNames(
-            '-ml-px h-6 w-12 border border-[var(--border)] bg-[var(--surface)] px-1 text-center text-xs font-medium text-[var(--text)] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
-            'focus:outline-none focus-visible:z-10 focus-visible:border-[var(--border-strong)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-          )}
-        />
-        <button
-          type="button"
-          aria-label={`Increase ${input.label}`}
-          disabled={!canIncrease}
-          onClick={() => stepValue(1)}
-          className={mergeClassNames(
-            '-ml-px inline-flex w-6 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
-            'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-pressed)] disabled:cursor-not-allowed disabled:opacity-50',
-            focusClass,
-          )}
-        >
-          <Plus className="size-3.5" aria-hidden="true" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function PromptToggleModifierControl({
   label,
   selectedOptionIds,
@@ -680,10 +579,15 @@ export function PromptDetailContent({
       />
     ) : undefined;
   const numberInputControl = prompt.numberInput ? (
-    <PromptNumberInputControl
-      input={prompt.numberInput}
+    <Stepper
+      label={prompt.numberInput.label}
       value={selectedNumberInputValue ?? prompt.numberInput.defaultValue}
+      min={prompt.numberInput.min}
+      max={prompt.numberInput.max}
+      step={prompt.numberInput.step}
       onValueChange={onNumberInputChange}
+      size="compact"
+      labelPosition="start"
     />
   ) : undefined;
   const toggleModifierOptions = prompt.toggleModifier?.options.map((option) => ({

@@ -1,5 +1,7 @@
 import { type ReactNode, type RefObject, useMemo } from 'react';
 
+import { mergeClassNames } from '../../../lib/classNames';
+import { focusRing } from '../../../ui/recipes';
 import {
   headerActionClass,
   panelHeaderActionsClass,
@@ -11,10 +13,11 @@ import {
 import type { PathNode } from '../types';
 import Checkbox from './Checkbox';
 
-const actionButtonBase =
-  'cursor-pointer border border-[var(--border)] bg-[var(--surface)] text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]';
-
-const actionButtonCompact = `${actionButtonBase} min-w-10 px-1.5 py-0.5 text-center tabular-nums`;
+// Shared header-action skin, compacted for the inline +N/-N subtree toggle chips in list rows.
+const actionButtonCompact = mergeClassNames(
+  headerActionClass,
+  'min-w-10 px-1.5 py-0.5 text-center tabular-nums tracking-[0.18em]',
+);
 
 type PathListProps = {
   tree: PathNode | null;
@@ -161,7 +164,10 @@ export default function PathList({
                 <button
                   type="button"
                   onClick={() => onToggleExpand(child.key)}
-                  className="cursor-pointer border border-[var(--border)] bg-[var(--surface)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+                  className={mergeClassNames(
+                    'cursor-pointer border border-[var(--border)] bg-[var(--surface)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                    focusRing,
+                  )}
                   aria-label={isExpanded ? 'Collapse' : 'Expand'}
                 >
                   {isExpanded ? '-' : '+'}
@@ -190,7 +196,7 @@ export default function PathList({
                     type="button"
                     onClick={() => onToggleSubtree(child.key, true)}
                     disabled={disabled}
-                    className={`${actionButtonCompact} tracking-[0.18em]`}
+                    className={actionButtonCompact}
                   >
                     +{descendantCount}
                   </button>
@@ -198,7 +204,7 @@ export default function PathList({
                     type="button"
                     onClick={() => onToggleSubtree(child.key, false)}
                     disabled={disabled}
-                    className={`${actionButtonCompact} tracking-[0.18em]`}
+                    className={actionButtonCompact}
                   >
                     -{descendantCount}
                   </button>
@@ -285,13 +291,19 @@ export default function PathList({
             placeholder="Search paths"
             ref={searchInputRef}
             aria-label="Search paths"
-            className="h-9 w-full border border-[var(--border)] bg-[var(--surface-muted)] px-2 text-sm text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+            className={mergeClassNames(
+              'h-9 w-full border border-[var(--border)] bg-[var(--surface-muted)] px-2 text-sm text-[var(--text)]',
+              focusRing,
+            )}
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchQueryChange('')}
-              className="absolute right-2 cursor-pointer text-xs text-[var(--text-muted)] hover:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface)]"
+              className={mergeClassNames(
+                'absolute right-2 cursor-pointer text-xs text-[var(--text-muted)] hover:text-[var(--text)]',
+                focusRing,
+              )}
               aria-label="Clear search"
             >
               x

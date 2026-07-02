@@ -5,14 +5,17 @@ import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useReduc
 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { Button } from '../../components/Button';
 import { CopyButton } from '../../components/CopyButton';
 import { FilterCheckbox } from '../../components/FilterCheckbox';
+import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { Stepper } from '../../components/Stepper';
 import { mergeClassNames } from '../../lib/classNames';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { ArtifactDialogPortal } from '../../ui/base-portals';
-import { popupOverlay, popupSurface } from '../../ui/recipes';
+import { Grid } from '../../ui/layout';
+import { focusRing, panel, popupOverlay, popupSurface } from '../../ui/recipes';
 import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
 import {
   getDefaultPromptModifierOptionId,
@@ -38,9 +41,6 @@ import {
 } from './search';
 
 const rootClass = 'relative min-h-screen overflow-hidden bg-[var(--surface-muted)] text-[var(--text)]';
-const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
-const focusClass =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 const shortcutKeyClass =
   'inline-flex h-5 min-w-5 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-1.5 font-mono text-[10px] font-semibold leading-none text-[var(--text-muted)]';
 // The command glyph has more internal whitespace than Latin letters; size it optically so it balances with "K".
@@ -117,25 +117,16 @@ export default function PromptLibrary() {
   return (
     <ArtifactThemeRoot className={rootClass}>
       <div className="flex min-h-screen flex-col">
-        <header className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-base font-semibold">Prompt Library</h1>
-              <p className="mt-1 text-xs text-[var(--text-muted)]">
-                {visiblePrompts.length} of {prompts.length} prompts
-              </p>
-            </div>
-            <button
+        <PageHeader
+          title="Prompt Library"
+          subtitle={`${visiblePrompts.length} of ${prompts.length} prompts`}
+          actions={
+            <Button
               ref={searchButtonRef}
-              type="button"
               aria-label={`Search (${searchShortcutHint.label})`}
               aria-keyshortcuts="Meta+K Control+K"
               onClick={openSearchPalette}
-              className={mergeClassNames(
-                'inline-flex h-9 cursor-pointer items-center gap-2 border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--text)]',
-                'hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)]',
-                focusClass,
-              )}
+              className="active:bg-[var(--surface-strong)]"
             >
               <Search className="size-4" aria-hidden="true" />
               Search
@@ -156,13 +147,13 @@ export default function PromptLibrary() {
                   </>
                 )}
               </span>
-            </button>
-          </div>
-        </header>
+            </Button>
+          }
+        />
 
         <main className="flex flex-1 flex-col gap-4 p-4">
           <section
-            className={mergeClassNames('flex flex-wrap items-center gap-2 p-3', panelClass)}
+            className={mergeClassNames('flex flex-wrap items-center gap-2 p-3', panel.default)}
             aria-label="Prompt tags"
           >
             {promptTags.map((tag) => {
@@ -186,13 +177,13 @@ export default function PromptLibrary() {
           </section>
 
           {visiblePrompts.length ? (
-            <section className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] gap-3">
+            <Grid min="18rem" className="gap-3">
               {visiblePrompts.map((prompt) => (
                 <PromptCard key={prompt.id} prompt={prompt} onOpen={(opener) => openPromptDetail(prompt, opener)} />
               ))}
-            </section>
+            </Grid>
           ) : (
-            <section className={mergeClassNames('p-6 text-sm text-[var(--text-muted)]', panelClass)}>
+            <section className={mergeClassNames('p-6 text-sm text-[var(--text-muted)]', panel.default)}>
               No prompts match the selected tags.
             </section>
           )}
@@ -225,14 +216,14 @@ export default function PromptLibrary() {
 
 function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: HTMLElement) => void }) {
   return (
-    <article className={mergeClassNames('flex min-h-56 flex-col gap-4 p-4', panelClass)}>
+    <article className={mergeClassNames('flex min-h-56 flex-col gap-4 p-4', panel.default)}>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <button
           type="button"
           onClick={(event) => onOpen(event.currentTarget)}
           className={mergeClassNames(
             'min-w-0 cursor-pointer text-left text-sm font-semibold text-[var(--text)] underline-offset-2 transition-colors hover:underline active:text-[var(--text-muted)] motion-reduce:transition-none',
-            focusClass,
+            focusRing,
           )}
         >
           {prompt.title}

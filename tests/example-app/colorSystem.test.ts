@@ -4,6 +4,7 @@ import { test } from 'node:test';
 
 const artifactThemeUrl = new URL('../../src/theme/artifact-theme.css', import.meta.url);
 const exampleAppUrl = new URL('../../src/artifacts/example-app/App.tsx', import.meta.url);
+const recipesUrl = new URL('../../src/ui/recipes.ts', import.meta.url);
 
 const strongThemeTokenAliases = [
   ['--category-blue', '--accent'],
@@ -134,6 +135,10 @@ test('example app previews message colors in transcript role order', async () =>
     /ArtifactThemeRoot className="[^"]*bg-\[var\(--surface-muted\)\][^"]*"/,
     'Example App should use the muted artifact canvas surface.',
   );
-  assert.match(source, /bg-\[var\(--accent-weak\)\] text-\[var\(--accent-text\)\]/);
+  // The session filter's accent-weak/accent-text pairing now lives in the shared
+  // SegmentedControl accent recipe; the app opts into it via tone="accent".
+  const recipes = await readFile(recipesUrl, 'utf8');
+  assert.match(recipes, /bg-\[var\(--accent-weak\)\] text-\[var\(--accent-text\)\]/);
+  assert.match(source, /tone="accent"/);
   assert.doesNotMatch(source, /bg-\[var\(--accent-weak\)\] text-\[var\(--accent\)\]/);
 });

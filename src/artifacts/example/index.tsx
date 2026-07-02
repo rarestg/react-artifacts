@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
-
 import './theme.css';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { ListboxSelect } from '../../components/ListboxSelect';
+import { Panel } from '../../components/Panel';
+import { useLocalStorageState } from '../../lib/useLocalStorageState';
+import { Stack } from '../../ui/layout';
+import { typo } from '../../ui/recipes';
 import { type ThemeId, themes } from './themes';
 
 const storageKey = 'artifact-theme-example';
@@ -70,23 +72,9 @@ const semanticSwatches = [
 const defaultTheme: ThemeId = 'base';
 
 export default function Example() {
-  const [theme, setTheme] = useState<ThemeId>(() => {
-    if (typeof window === 'undefined') {
-      return defaultTheme;
-    }
-
-    const stored = window.localStorage.getItem(storageKey);
-    const match = themes.find((item) => item.id === stored);
-    return match?.id ?? defaultTheme;
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    window.localStorage.setItem(storageKey, theme);
-  }, [theme]);
+  const [storedTheme, setTheme] = useLocalStorageState<ThemeId>(storageKey, defaultTheme);
+  // Guard against stale/foreign stored values before they reach data-theme.
+  const theme = themes.some((item) => item.id === storedTheme) ? storedTheme : defaultTheme;
 
   const activeTheme = themes.find((item) => item.id === theme) ?? themes[0];
   const themeOptions = themes.map((item) => ({ value: item.id, label: item.label }));
@@ -96,24 +84,19 @@ export default function Example() {
       className="example-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)]"
       data-theme={theme}
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-6 p-8">
-        <div className="flex flex-col gap-5 border border-[var(--border)] bg-[var(--surface)] p-6">
-          <div className="flex flex-col gap-2">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-              Single-file artifact
-            </div>
-            <h1 className="text-2xl font-semibold">Example Artifact</h1>
+      <Stack gap="section" className="mx-auto max-w-3xl p-8">
+        <Panel className="p-6 space-y-4">
+          <Stack gap="row">
+            <div className={typo.controlLabel}>Single-file artifact</div>
+            <h1 className={typo.pageTitle}>Example Artifact</h1>
             <p className="text-sm text-[var(--text-muted)]">
               This artifact uses the shared Sharp UI tokens. The shell theme toggle swaps light/dark tokens, while the
               palette menu overrides the accent/surface mix.
             </p>
-          </div>
+          </Stack>
 
-          <div className="flex flex-col gap-2">
-            <label
-              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]"
-              htmlFor="example-theme"
-            >
+          <Stack gap="row">
+            <label className={typo.controlLabel} htmlFor="example-theme">
               Theme
             </label>
             <div className="flex flex-wrap items-center gap-3">
@@ -132,11 +115,11 @@ export default function Example() {
                 active: {activeTheme.label}
               </div>
             </div>
-          </div>
-        </div>
+          </Stack>
+        </Panel>
 
-        <div className="flex flex-col gap-4 border border-[var(--border)] bg-[var(--surface)] p-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">Preview</div>
+        <Panel className="p-6 space-y-4">
+          <div className={typo.controlLabel}>Preview</div>
 
           <div className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface-muted)] p-4">
             <div className="flex items-center justify-between gap-4">
@@ -148,7 +131,7 @@ export default function Example() {
             <p className="text-sm text-[var(--text-muted)]">
               Accent, border, and muted surfaces are pulled from theme variables; dark mode just flips the tokens.
             </p>
-            <div className="flex flex-col gap-2">
+            <Stack gap="row">
               <div className="flex items-center justify-between gap-3 border border-[var(--border)] border-l-2 border-l-[var(--accent)] bg-[var(--surface)] px-3 py-2">
                 <div className="text-sm font-semibold">Artifact sync</div>
                 <div className="text-xs font-mono text-[var(--text-muted)] tabular-nums">00:42</div>
@@ -157,7 +140,7 @@ export default function Example() {
                 <div className="text-sm font-semibold">Token audit</div>
                 <div className="text-xs font-mono text-[var(--text-muted)] tabular-nums">02:18</div>
               </div>
-            </div>
+            </Stack>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -166,9 +149,7 @@ export default function Example() {
                 key={token.token}
                 className="flex items-center justify-between gap-3 border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2"
               >
-                <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  {token.label}
-                </div>
+                <div className={typo.controlLabel}>{token.label}</div>
                 <div className="flex items-center gap-2 font-mono text-xs text-[var(--text-muted)]">
                   <span>{token.token}</span>
                   <span className={`h-4 w-4 border border-[var(--border)] ${token.swatchClass}`} aria-hidden />
@@ -178,9 +159,7 @@ export default function Example() {
           </div>
 
           <div className="border border-[var(--border)] bg-[var(--surface)] p-4 space-y-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-              Semantic palette
-            </div>
+            <div className={typo.controlLabel}>Semantic palette</div>
             <div className="flex flex-wrap gap-2">
               {semanticSwatches.map((swatch) => (
                 <div
@@ -193,8 +172,8 @@ export default function Example() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </Panel>
+      </Stack>
     </ArtifactThemeRoot>
   );
 }

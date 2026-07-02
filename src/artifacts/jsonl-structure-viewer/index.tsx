@@ -6,10 +6,12 @@ import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useId, useM
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton, type CopyButtonHandle } from '../../components/CopyButton';
+import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl, type SegmentedControlSize } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { useLocalStorageState } from '../../lib/useLocalStorageState';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
+import { typo } from '../../ui/recipes';
 import Checkbox from './components/Checkbox';
 import PathList from './components/PathList';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
@@ -456,7 +458,6 @@ export default function JsonlStructureViewer() {
       : layoutMode === 'three-column'
         ? 'two-column'
         : layoutMode;
-  const headerGridClass = 'flex flex-wrap items-center justify-between gap-3';
   const headerControlsClass = mergeClassNames(
     'flex max-w-full flex-wrap items-center gap-x-4 gap-y-2',
     headerStacked ? 'w-full justify-start' : 'ml-auto justify-end',
@@ -682,10 +683,7 @@ export default function JsonlStructureViewer() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <div className="flex min-w-0 items-center justify-between gap-3 border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
               <div className="min-w-0">
-                <label
-                  htmlFor={truncationInputId}
-                  className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]"
-                >
+                <label htmlFor={truncationInputId} className={mergeClassNames('block', typo.controlLabel)}>
                   Truncation
                 </label>
                 <div className="text-xs text-[var(--text-muted)]">Strings longer than this are shortened.</div>
@@ -710,9 +708,7 @@ export default function JsonlStructureViewer() {
               className="min-w-0 border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2"
               label={
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                    Structure Only
-                  </div>
+                  <div className={typo.controlLabel}>Structure Only</div>
                   <div className="text-xs text-[var(--text-muted)]">Replace values with type labels.</div>
                 </div>
               }
@@ -813,9 +809,7 @@ export default function JsonlStructureViewer() {
         <div className="flex flex-col gap-4 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                View
-              </span>
+              <span className={typo.controlLabel}>View</span>
               <SegmentedControl
                 ariaLabel="Output view"
                 value={outputView}
@@ -830,9 +824,7 @@ export default function JsonlStructureViewer() {
             </div>
             {outputView === 'raw' && (
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Format
-                </span>
+                <span className={typo.controlLabel}>Format</span>
                 <SegmentedControl
                   ariaLabel="Output format"
                   value={outputFormat}
@@ -848,9 +840,7 @@ export default function JsonlStructureViewer() {
             )}
             {outputView === 'highlighted' && (
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Options
-                </span>
+                <span className={typo.controlLabel}>Options</span>
                 <Checkbox
                   checked={showDataTypes}
                   onChange={(event) => setShowDataTypes(event.target.checked)}
@@ -912,20 +902,15 @@ export default function JsonlStructureViewer() {
       ref={containerRef}
       className="jsonl-structure-theme min-h-screen bg-[var(--surface-muted)] text-[var(--text)] flex flex-col"
     >
-      <header ref={titlePanelRef} className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-        <div className={headerGridClass}>
-          <div className="min-w-0">
-            <h1 className="text-base font-semibold">JSONL Structure Viewer</h1>
-            <p className="mt-1 max-w-3xl text-xs text-[var(--text-muted)]">
-              Explore JSON arrays, objects, or JSONL streams; filter paths and copy structure-first output.
-            </p>
-          </div>
+      <PageHeader
+        ref={titlePanelRef}
+        title="JSONL Structure Viewer"
+        subtitle="Explore JSON arrays, objects, or JSONL streams; filter paths and copy structure-first output."
+        actions={
           <div className={headerControlsClass}>
             {canUseTwoColumns && (
               <div className={headerControlGroupClass}>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Layout
-                </span>
+                <span className={typo.controlLabel}>Layout</span>
                 <SegmentedControl
                   ariaLabel="Layout mode"
                   value={visibleLayoutMode}
@@ -964,9 +949,7 @@ export default function JsonlStructureViewer() {
             )}
             <div className={headerControlsRowClass}>
               <div className={headerControlGroupClass}>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Word Wrap
-                </span>
+                <span className={typo.controlLabel}>Word Wrap</span>
                 <SegmentedControl
                   ariaLabel="Word wrap"
                   value={wrapOutput ? 'on' : 'off'}
@@ -995,8 +978,8 @@ export default function JsonlStructureViewer() {
               </button>
             </div>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main className="flex flex-1 flex-col p-4">
         <div ref={contentRef} className="flex flex-col gap-4">

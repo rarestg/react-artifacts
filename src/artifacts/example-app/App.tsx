@@ -2,10 +2,15 @@ import { ArrowBigUpDash as CapsLockIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+import { Button } from '../../components/Button';
+import { PageHeader } from '../../components/PageHeader';
+import { Panel } from '../../components/Panel';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatusTag } from '../../components/StatusTag';
+import { Tag } from '../../components/Tag';
 import { mergeClassNames } from '../../lib/classNames';
-import { AppHeader } from './components/AppHeader';
-import { Button, Panel, Tag } from './components/Primitives';
+import { Grid, Stack } from '../../ui/layout';
+import { focusRing, typo } from '../../ui/recipes';
 import { StatCard } from './components/StatCard';
 
 type SessionStatus = 'active' | 'paused' | 'archived';
@@ -168,7 +173,7 @@ function SwatchToggle<TId extends string>({ swatch, active, onToggle }: SwatchTo
       onClick={() => onToggle(swatch.id)}
       className={mergeClassNames(
         'inline-flex items-center gap-2 border px-2 py-1 text-xs font-medium transition-[background-color] motion-reduce:transition-none cursor-pointer',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+        focusRing,
         active
           ? `${swatch.border} ${swatch.weakBg} text-[var(--text)]`
           : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]',
@@ -327,60 +332,37 @@ export default function ExampleApp() {
 
   return (
     <ArtifactThemeRoot className="min-h-screen border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text)]">
-      <AppHeader
+      <PageHeader
         title="Example App Artifact"
         subtitle="A multi-file artifact (App.tsx + components/) rendered by the shell"
-        status="State: Ready"
+        actions={
+          <Tag variant="muted" className="font-mono">
+            State: Ready
+          </Tag>
+        }
       />
 
-      <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Stack gap="section" className="p-6">
+        <Grid min="14rem" gap="group">
           <StatCard label="Artifacts" value={12} helper="Active in this workspace" />
           <StatCard label="Sessions" value={visibleSessions.length} helper="Visible rows" />
           <StatCard label="Errors" value={<span className="text-[var(--success)]">0</span>} helper="Last 24 hours" />
-        </div>
+        </Grid>
 
         <Panel className="p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                Session filter
-              </div>
-              <fieldset
-                aria-label="Session filter"
-                className="inline-flex border border-[var(--border-strong)] divide-x divide-[color:var(--border)]"
-              >
-                <button
-                  type="button"
-                  aria-pressed={view === 'all'}
-                  onClick={() => setView('all')}
-                  className={mergeClassNames(
-                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none cursor-pointer',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-                    'relative focus-visible:z-10',
-                    view === 'all'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent-text)]'
-                      : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-                  )}
-                >
-                  All
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={view === 'active'}
-                  onClick={() => setView('active')}
-                  className={mergeClassNames(
-                    'h-8 px-2 text-xs font-medium transition-colors motion-reduce:transition-none cursor-pointer',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
-                    'relative focus-visible:z-10',
-                    view === 'active'
-                      ? 'bg-[var(--accent-weak)] text-[var(--accent-text)]'
-                      : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-                  )}
-                >
-                  Active only
-                </button>
-              </fieldset>
+              <div className={typo.sectionTitle}>Session filter</div>
+              <SegmentedControl
+                ariaLabel="Session filter"
+                value={view}
+                onValueChange={setView}
+                tone="accent"
+                options={[
+                  { value: 'all', label: 'All' },
+                  { value: 'active', label: 'Active only' },
+                ]}
+              />
             </div>
             <Button variant="default" size="sm">
               New Session
@@ -423,9 +405,7 @@ export default function ExampleApp() {
         <Panel className="p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                Status Tag
-              </div>
+              <div className={typo.sectionTitle}>Status Tag</div>
               <div className="text-sm font-medium text-[var(--text)]">Caps Lock indicator</div>
             </div>
             <Tag variant="muted" className="font-mono">
@@ -446,9 +426,7 @@ export default function ExampleApp() {
         <Panel className="p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                Theme Colors
-              </div>
+              <div className={typo.sectionTitle}>Theme Colors</div>
               <div className="text-sm font-medium text-[var(--text)]">Accent + status palette preview</div>
             </div>
             <Tag variant="muted" className="font-mono">
@@ -467,9 +445,7 @@ export default function ExampleApp() {
         <Panel className="p-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                Message Colors
-              </div>
+              <div className={typo.sectionTitle}>Message Colors</div>
               <div className="text-sm font-medium text-[var(--text)]">Categorical palette preview</div>
             </div>
             <Tag variant="muted" className="font-mono">
@@ -484,7 +460,7 @@ export default function ExampleApp() {
             chipSuffix="type"
           />
         </Panel>
-      </div>
+      </Stack>
     </ArtifactThemeRoot>
   );
 }

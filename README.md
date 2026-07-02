@@ -105,7 +105,6 @@ src/artifacts/my-artifact/
   meta.ts
   App.tsx
   components/
-    Primitives.tsx
     Header.tsx
     StatCard.tsx
   styles.css

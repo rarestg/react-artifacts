@@ -90,7 +90,7 @@ test('JSONL Structure Viewer local buttons follow cursor affordance contract', a
   // ...and headerActionClass must still resolve to the panelHeader.action recipe.
   assert.match(uiSource, /panelHeaderActionClass as headerActionClass/);
   assert.match(panelHeaderClassesSource, /panelHeaderActionClass = panelHeader\.action/);
-  assert.match(recipesSource, /action:\s*\n?\s*'cursor-pointer[\s\S]*?disabled:cursor-not-allowed/);
+  assert.match(recipesSource, /action:\s*\n?\s*['`]cursor-pointer[\s\S]*?disabled:cursor-not-allowed/);
   assert.match(recipesSource, /action:[\s\S]*?disabled:opacity-40[\s\S]*?disabled:hover:bg-\[var\(--surface\)\]/);
   assert.match(
     pathListSource,

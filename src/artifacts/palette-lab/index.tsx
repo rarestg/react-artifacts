@@ -8,6 +8,7 @@ import { ReservedWidth } from '../../components/ReservedWidth';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
+import { focusRing, panel } from '../../ui/recipes';
 import {
   DARK_LIGHTNESS_CEILING,
   getDarkLiftFraction,
@@ -71,14 +72,13 @@ type PaletteExportColorInput = {
   weakMix: number;
 };
 
-const panelClass = 'border border-[var(--border)] bg-[var(--surface)]';
-const focusClass =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 const maxColorCount = 16;
+// Local by design: mirrors CopyButton's `headerAction` skin for the adjacent plain-button header
+// actions; that skin has no shared class export.
 const headerActionFrameClass = mergeClassNames(
   'inline-flex h-9 shrink-0 cursor-pointer items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)]',
   'transition-colors hover:bg-[var(--surface-muted)] active:bg-[var(--surface-strong)] motion-reduce:transition-none',
-  focusClass,
+  focusRing,
 );
 const headerTextActionClass = mergeClassNames(headerActionFrameClass, 'px-3 text-sm font-medium text-[var(--text)]');
 const headerIconActionClass = mergeClassNames(
@@ -470,7 +470,7 @@ export default function PaletteLab() {
 
         <main className="grid min-w-0 content-start gap-4">
           <section
-            className={mergeClassNames(panelClass, 'flex flex-wrap items-center justify-between gap-3 px-4 py-3')}
+            className={mergeClassNames(panel.default, 'flex flex-wrap items-center justify-between gap-3 px-4 py-3')}
           >
             <div className="min-w-0">
               <h2 className="text-base font-semibold">Generated Toggle Grid</h2>
@@ -506,7 +506,7 @@ export default function PaletteLab() {
 
           <section
             className={mergeClassNames(
-              panelClass,
+              panel.default,
               'grid grid-cols-4 gap-3 p-4 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1',
             )}
             aria-label="Generated color toggles"
@@ -533,7 +533,7 @@ export default function PaletteLab() {
                     selected
                       ? 'border-[color:var(--palette-color)] bg-[var(--palette-color-weak)] text-[var(--text)]'
                       : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-muted)]',
-                    focusClass,
+                    focusRing,
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -600,7 +600,7 @@ function PaletteControlsPanel({
   onLabelModeChange,
 }: PaletteControlsPanelProps) {
   return (
-    <aside className={mergeClassNames(panelClass, 'self-start p-4')}>
+    <aside className={mergeClassNames(panel.default, 'self-start p-4')}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-base font-semibold">Palette Lab</h1>
@@ -682,7 +682,7 @@ function PaletteControlsPanel({
             autoTune
               ? 'border-[var(--border-strong)] bg-[var(--surface-strong)] text-[var(--text)]'
               : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
-            focusClass,
+            focusRing,
           )}
         >
           Auto tune: {autoTune ? 'on' : 'off'}

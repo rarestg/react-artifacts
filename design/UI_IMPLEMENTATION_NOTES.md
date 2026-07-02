@@ -17,7 +17,7 @@
 | 006 | Semantic Control Choice and Action-State Clarity | When adding binary controls that trigger reversible actions or can become no-ops. | status tag, toggle semantics, tooltip copy, disabled controls, layout stability, action state | 159-203 |
 | 007 | Stable Visual State Transitions | When controls or repeated items change selected/checked/active state across icons, indicators, counts, borders, or tone. | DOM stability, transitions, flicker, selected state, checked state, indicators, counts, color fading, category tones, metadata, color-mix | 204-271 |
 | 008 | Composite Expandable Rows | When a disclosure row also needs copy, metadata, timestamp, or detail actions. | disclosure rows, nested buttons, copy controls, timestamps, expandable rows, accessibility | 272-296 |
-| 009 | Semantic Gap Tiers and Demo Layout Primitives | When spacing sibling groups in artifact demo layouts or stacking inline-flex controls vertically. | spacing, gap tiers, Stack, DemoGrid, auto-fit grid, min-w-0, inline-flex stacking, tailwind literal classes | 297-327 |
+| 009 | Semantic Gap Tiers and Demo Layout Primitives | When spacing sibling groups in artifact demo layouts or stacking inline-flex controls vertically. | spacing, gap tiers, Stack, Grid, auto-fit grid, min-w-0, inline-flex stacking, tailwind literal classes | 297-326 |
 
 ## Format for new entries
 - Title
@@ -305,9 +305,9 @@ const actionTooltip = !hasInput
   - `row` = `gap-2` — items inside one control cluster (checkbox list, stacked rows).
   - `group` = `gap-4` — sibling groups inside a section column.
   - `section` = `gap-6` — sub-sections inside a section body.
-- In sharp2, the tiers live in local primitives (`src/artifacts/sharp2/components/layout.tsx`):
+- The tiers live in shared layout primitives (`src/ui/layout.tsx`):
   - `<Stack gap="row|group|section">` — vertical flex stack; `gap` is intentionally explicit.
-  - `<DemoGrid min="12rem|14rem|18rem|20rem" gap>` — owns the `grid-cols-[repeat(auto-fit,minmax(min(M,100%),1fr))]`
+  - `<Grid min="12rem|14rem|18rem|20rem" gap>` — owns the `grid-cols-[repeat(auto-fit,minmax(min(M,100%),1fr))]`
     pattern and applies `*:min-w-0` so children truncate safely.
 - Keep class maps as literal strings (`Record<Tier, 'gap-2' | ...>`). Tailwind v4 only sees classes written out in
   source; template-built class names are never generated.
@@ -324,4 +324,3 @@ const actionTooltip = !hasInput
 ### Exceptions
 - Bespoke density stays bespoke: menu item lists (`space-y-1`), prose/info-box internals, and optical dot alignment
   (`mt-1`, `mt-1.5`) are not forced into tiers.
-- `Stack`/`DemoGrid` are sharp2-local by design; promote to `src/ui` only when a second artifact consumes them.

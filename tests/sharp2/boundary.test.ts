@@ -489,7 +489,10 @@ test('sharp2 avoids viewport breakpoints in preview-sensitive showcase layout', 
 
   assert.doesNotMatch(joined, /\b(?:sm|md|lg|xl|2xl):grid-cols-/);
   assert.doesNotMatch(joined, /grid-cols-\[200px_1fr\]/);
-  assert.match(joined, /auto-fit|minmax\(/);
+
+  // The auto-fit grid pattern lives in the shared layout primitives sharp2 consumes.
+  const sharedLayoutSource = await readFile('src/ui/layout.tsx', 'utf8');
+  assert.match(sharedLayoutSource, /grid-cols-\[repeat\(auto-fit,minmax\(min\(\d+rem,100%\),1fr\)\)\]/);
 });
 
 test('sharp2 SearchInput is a Base UI Autocomplete typeahead, not a hand-rolled combobox', async () => {

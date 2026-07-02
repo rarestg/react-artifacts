@@ -22,9 +22,9 @@ import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatusTag } from '../../components/StatusTag';
 import { Tag } from '../../components/Tag';
 import { Toggle } from '../../components/Toggle';
+import { Grid, Stack } from '../../ui/layout';
 import { typo } from '../../ui/recipes';
 import { CodeBlock } from './components/CodeBlock';
-import { DemoGrid, Stack } from './components/layout';
 import { Popover, popoverActionClass } from './components/Popover';
 import { Row } from './components/Row';
 import { SearchInput } from './components/SearchInput';
@@ -178,7 +178,7 @@ export default function DesignSystem() {
 
         {/* Surfaces */}
         <Section title="Surfaces & Containers">
-          <DemoGrid min="12rem" gap="group">
+          <Grid min="12rem" gap="group">
             <SubSection label="Panel (default)">
               <Panel className="p-4">
                 <p className={typo.bodyMuted}>Bordered, opaque, sharp edges</p>
@@ -194,7 +194,7 @@ export default function DesignSystem() {
                 <p className="text-sm text-[var(--text-subtle)]">Empty/placeholder states</p>
               </Panel>
             </SubSection>
-          </DemoGrid>
+          </Grid>
         </Section>
 
         {/* Tags */}
@@ -388,7 +388,7 @@ export default function DesignSystem() {
 
         {/* Inputs & Controls */}
         <Section title="Inputs & Controls">
-          <DemoGrid min="20rem">
+          <Grid min="20rem">
             <Stack gap="group">
               <SubSection label="Text input">
                 <Input aria-label="Example text input" placeholder="Enter text..." />
@@ -467,12 +467,12 @@ export default function DesignSystem() {
                 </Stack>
               </SubSection>
             </Stack>
-          </DemoGrid>
+          </Grid>
         </Section>
 
         {/* Lists & Rows */}
         <Section title="Lists & Rows">
-          <DemoGrid>
+          <Grid>
             <SubSection label="Interactive list with selection">
               <Panel className="divide-y divide-[color:var(--border)]">
                 {[
@@ -510,7 +510,7 @@ export default function DesignSystem() {
                 ))}
               </Panel>
             </SubSection>
-          </DemoGrid>
+          </Grid>
         </Section>
 
         {/* Conversation Rendering */}
@@ -589,7 +589,7 @@ export default function DesignSystem() {
               <p>
                 <strong>Rendering rules (terminal-adjacent):</strong>
               </p>
-              <DemoGrid min="14rem" gap="row" className="text-[var(--text-subtle)]">
+              <Grid min="14rem" gap="row" className="text-[var(--text-subtle)]">
                 <div className="flex items-start gap-2">
                   <span className="size-2 mt-1 shrink-0 bg-[var(--category-green)]" />
                   User: literal by default (preserves exact input)
@@ -614,7 +614,7 @@ export default function DesignSystem() {
                   <span className="size-2 mt-1 shrink-0 bg-[var(--text-muted)]" />
                   Token Counter: final context row by default
                 </div>
-              </DemoGrid>
+              </Grid>
               <p className="text-[var(--text-subtle)]">
                 Toggle message types above. Thinking, subagents, tools, and token counters are hidden by default; tool
                 rows reveal their own details, and intermediate token counters are an explicit detail mode.
@@ -724,14 +724,14 @@ export default function DesignSystem() {
         <Section title="Layout & Grid">
           <Stack gap="section">
             <SubSection label="Two-column layout">
-              <DemoGrid gap="group">
+              <Grid gap="group">
                 <Panel className="p-4">
                   <div className={typo.bodyMuted}>Left panel</div>
                 </Panel>
                 <Panel className="p-4">
                   <div className={typo.bodyMuted}>Right panel</div>
                 </Panel>
-              </DemoGrid>
+              </Grid>
             </SubSection>
             <SubSection label="Sidebar + content">
               <div className="flex flex-wrap gap-4">
@@ -821,7 +821,7 @@ export default function DesignSystem() {
 
         {/* Design Rules Summary */}
         <Section title="Sharp UI Rules (Summary)">
-          <DemoGrid className="text-sm">
+          <Grid className="text-sm">
             <Stack gap="row">
               <div className="flex items-start gap-2">
                 <span className="size-2 mt-1.5 bg-[var(--success)] shrink-0" />
@@ -850,7 +850,7 @@ export default function DesignSystem() {
                 <span className="text-[var(--text)]">Color is never the only cue</span>
               </div>
             </Stack>
-          </DemoGrid>
+          </Grid>
         </Section>
       </div>
       <div ref={dialogPortalRef} className="pointer-events-none" />

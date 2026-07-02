@@ -2,6 +2,7 @@ import { Columns2, RectangleVertical } from 'lucide-react';
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
+import { PageHeader } from '../../components/PageHeader';
 import {
   panelHeaderActionClass as headerActionClass,
   panelHeaderMetaClass,
@@ -13,6 +14,7 @@ import { SegmentedControl } from '../../components/SegmentedControl';
 import { Toggle } from '../../components/Toggle';
 import { mergeClassNames } from '../../lib/classNames';
 import { useLocalStorageState } from '../../lib/useLocalStorageState';
+import { typo } from '../../ui/recipes';
 
 // ---------------------------------------------------------------------------
 // Transform functions (pure, testable)
@@ -364,20 +366,14 @@ export default function MessageUnescaper() {
 
   return (
     <ArtifactThemeRoot className="flex min-h-screen flex-col bg-[var(--surface-muted)] text-[var(--text)]">
-      <header className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-base font-semibold">Message Unescaper</h1>
-            <p className="mt-1 max-w-3xl text-xs text-[var(--text-muted)]">
-              Convert escaped sequences to characters, or re-escape text for strings.
-            </p>
-          </div>
+      <PageHeader
+        title="Message Unescaper"
+        subtitle="Convert escaped sequences to characters, or re-escape text for strings."
+        actions={
           <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-4 gap-y-2">
             {canUseTwoColumnLayout && (
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Layout
-                </span>
+                <span className={typo.controlLabel}>Layout</span>
                 <SegmentedControl
                   ariaLabel="Panel layout"
                   value={visiblePanelLayout}
@@ -404,9 +400,7 @@ export default function MessageUnescaper() {
               </div>
             )}
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                Wrap
-              </span>
+              <span className={typo.controlLabel}>Wrap</span>
               <SegmentedControl
                 ariaLabel="Word wrap"
                 value={wrapOutput ? 'on' : 'off'}
@@ -420,8 +414,8 @@ export default function MessageUnescaper() {
               />
             </div>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main
         ref={mainRef}
@@ -448,9 +442,7 @@ export default function MessageUnescaper() {
             </div>
             <div className={panelBodyToolbarClass}>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Mode
-                </span>
+                <span className={typo.controlLabel}>Mode</span>
                 <SegmentedControl
                   ariaLabel="Direction"
                   value={direction}

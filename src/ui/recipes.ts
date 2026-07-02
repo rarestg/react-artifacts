@@ -272,6 +272,8 @@ export const typo = {
   pageTitle: 'text-2xl font-semibold text-[var(--text)]',
   sectionTitle: 'text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]',
   subLabel: 'text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]',
+  // Compact uppercase label naming a control cluster in dense tool UIs (vs subLabel: the lighter section/demo sub-label).
+  controlLabel: 'text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]',
   // Secondary body copy; primary body text stays `text-sm text-[var(--text)]` inline.
   bodyMuted: 'text-sm text-[var(--text-muted)]',
   meta: 'text-xs text-[var(--text-subtle)]',

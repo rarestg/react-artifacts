@@ -1,43 +1,14 @@
 # React Artifacts
 
-A local viewer for developing and refining React artifacts. Drop a folder into `src/artifacts/` with an `index.tsx` component and it appears in the sidebar automatically — no registry or config needed.
+A local viewer for developing and refining React artifacts. Drop a folder into `src/artifacts/` with an `index.tsx` component and it appears in the sidebar automatically — no registry or config needed. Deployed as a Cloudflare Worker.
 
 ## Stack
 
 - **Vite** + **React 19** + **TypeScript**
 - **Tailwind CSS v4** (via `@tailwindcss/vite` plugin)
+- **@base-ui/react** — the sole shared widget-primitive dependency (Radix and cmdk are gone); shared primitives wrap it wherever they need real widget behavior
 - **Biome** for linting, formatting, and import organization
 - **lucide-react** for icons
-
-## Repo Map
-
-- `src/App.tsx` — viewer shell, sidebar controls, artifact selection, and device preview.
-- `src/artifacts.ts` — artifact discovery through `import.meta.glob`.
-- `src/artifacts/` — self-contained artifact folders.
-- `src/components/` — shared UI primitives.
-- `src/ui/` — shared skin recipes, portal wrappers, and layout primitives.
-- `src/lib/` — shared non-visual helpers and hooks.
-- `src/theme/` — shared artifact theme tokens.
-- `design/` — design philosophy, artifact design guidance, and UI implementation notes.
-- `worker/` — Cloudflare Worker API entry.
-- `tests/` — Node test runner tests.
-
-## Sources of Truth
-
-- Design philosophy: `design/SHARP_MINIMAL_DESIGN.md`
-- Practical artifact UI guidance: `design/ARTIFACT_DESIGN_GUIDE.md`
-- UI/layout decisions and recurring gotchas: `design/UI_IMPLEMENTATION_NOTES.md`
-- Scripts and local validation commands: `package.json`
-- CI behavior: `.github/workflows/ci.yml`
-- Deployment and Worker runtime config: `wrangler.jsonc`, `worker/index.ts`
-
-## Invariants
-
-- Artifacts export a React component from `index.tsx`; they do not mount to the DOM.
-- `ArtifactThemeRoot` is the default artifact root; any artifact using tokens or shared token primitives must use it.
-- Device preview renders inside a fixed-size container; it is not a real browser viewport.
-- Worker binding or `wrangler.jsonc` changes require `npm run generate-types`.
-- Let Biome handle formatting and import organization instead of hand-formatting large edits.
 
 ## Getting Started
 
@@ -46,71 +17,73 @@ npm install
 npm run dev
 ```
 
-## Adding an Artifact
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Type-check + production build |
+| `npm run check` | Combined pre-PR gate: lint + typecheck + knip + test |
+| `npm run lint` / `npm run lint:fix` | Biome check (format + lint + imports) / with auto-fix |
+| `npm run typecheck` | Type-check app + worker (`npm run typecheck:worker` for worker only) |
+| `npm run knip` / `npm run knip:ci` | Unused files/exports/deps — local (exports warn) / CI (exports error) |
+| `npm run test` | Node test runner (`tests/**/*.test.ts`) |
+| `npm run hooks:pre-commit` / `npm run hooks:pre-push` | Run the Lefthook suites manually |
+| `npm run generate-types` | Regenerate Worker types after `wrangler.jsonc`/binding changes |
+| `npm run preview` / `npm run deploy` | Preview production build / deploy Worker |
+
+`npm run format` is an alias for `lint:fix`.
+
+## Repo Map
+
+Where imports come from:
+
+- `src/artifacts/` — self-contained artifact folders. `example` and `example-app` are the canonical copy-targets.
+- `src/components/` — tokenized artifact primitives (Base UI-backed where they need widget behavior).
+- `src/ui/` — skin recipes (`recipes.ts`), layout primitives (`layout.tsx`), portal wrappers (`base-portals.tsx`).
+- `src/lib/` — non-visual hooks and helpers.
+- `src/theme/artifact-theme.css` — the `.artifact-theme` design tokens (light + dark).
+- `src/App.tsx` — viewer shell (sidebar, theme/device controls); `src/artifacts.ts` — discovery via `import.meta.glob`.
+- `design/` — design philosophy, artifact design guidance, and UI implementation notes.
+- `worker/` + `wrangler.jsonc` — Cloudflare Worker deployment; `tests/` — Node test runner tests.
+
+## Invariants
+
+- Artifacts export a React component from `index.tsx`; they do not mount to the DOM.
+- `ArtifactThemeRoot` is the default artifact root; anything using tokens or shared token primitives must render under it.
+- Device preview renders inside a fixed-size container; it is not a real browser viewport.
+- Worker binding or `wrangler.jsonc` changes require `npm run generate-types`.
+- Let Biome handle formatting and import organization instead of hand-formatting large edits.
+
+## Building an Artifact
 
 Create a folder in `src/artifacts/` with an `index.tsx` default export:
 
 ```tsx
 // src/artifacts/my-artifact/index.tsx
+import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
+
 export default function MyArtifact() {
-  return <div>Hello</div>;
+  return <ArtifactThemeRoot className="p-6">Hello</ArtifactThemeRoot>;
 }
 ```
 
-The viewer picks it up via `import.meta.glob` — just refresh the page.
+The viewer picks it up via `import.meta.glob` — just refresh the page. A bare `<div>` also works, but `ArtifactThemeRoot` is the default root: it provides the `.artifact-theme` token scope that shared primitives and `var(--*)` classes rely on.
 
-## Artifact "Apps" (multi-file)
-
-Artifacts can be full apps with their own folders (components, hooks, styles, etc.). The only rule is that
-`index.tsx` must export a React component (not mount to the DOM).
-
-**Convert a typical Vite entry to an artifact entry:**
-
-Before (DOM mounting):
-
-```tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
-
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-```
-
-After (artifact entry):
+**Multi-file apps.** Artifacts can be full apps with their own components, hooks, and styles. The only rule is that `index.tsx` exports a React component. If you are porting a typical Vite app, replace the `ReactDOM.createRoot(...)` entry with a re-export:
 
 ```tsx
 // src/artifacts/my-artifact/index.tsx
 export { default } from './App';
 ```
 
-Notes:
 - Per-artifact `index.html` files are not used by this shell.
 - If you need titles/body classes, set them inside the component with `useEffect`.
 
-Example folder layout:
+**Copy-targets.** Start from the examples instead of a blank folder:
 
-```
-src/artifacts/my-artifact/
-  index.tsx
-  meta.ts
-  App.tsx
-  components/
-    Header.tsx
-    StatCard.tsx
-  styles.css
-```
+- `src/artifacts/example/` — minimal single-file artifact: `ArtifactThemeRoot`, tokens, shared primitives, `meta.ts`.
+- `src/artifacts/example-app/` — fuller multi-file app: `App.tsx`, a `components/` folder, layout primitives, recipes.
 
-Optional metadata (`meta.ts`) lets the shell display friendly names and labels:
+**Metadata (optional).** A `meta.ts` controls the sidebar label:
 
 ```ts
 const meta = {
@@ -124,55 +97,70 @@ const meta = {
 export default meta;
 ```
 
-## Theme Toggle (Light / System / Dark)
+**Device preview is not a viewport.** The sidebar's device preview (iPhone/iPad, portrait/landscape) renders the artifact inside a fixed-size container, so Tailwind `sm:`/`md:`/`lg:` breakpoints still follow the browser window, not the preview size. For artifacts meant to match the preview, use container-driven responsiveness (container queries, or `useContainerWidth` from `src/lib/`). Reserve viewport breakpoints for full-page prototypes tracked against the real browser window (or DevTools device emulation).
 
-The sidebar includes a theme toggle that sets the page theme by adding a `dark` class
-to the `<html>` element and syncing to localStorage (`artifact-theme`).
+## UI Decision Ladder
 
-Notes:
-- `system` respects `prefers-color-scheme`.
-- An inline script in `index.html` applies the saved/system theme early to avoid FOUC.
+When an artifact needs a piece of UI, walk down and stop at the first rung that holds:
 
-## Device Preview & Responsive Styling
+1. **Shared kit** — `src/components/`, `src/ui/recipes.ts`, `src/ui/layout.tsx`. Use a shared primitive or recipe when behavior and visual contract match.
+2. **Native HTML** — a plain element (`<button>`, `<details>`, `<input type="date">`) styled with tokens/recipes.
+3. **Base UI** — the moment you are about to write keydown handling, aria state, focus management, outside-click, or positioning code: stop, that is a Base UI component. Skin it with recipes; portal overlays through `src/ui/base-portals.tsx`.
+4. **Build it local** — keep it in the artifact folder. Promote to `src/components/` only when a second consumer appears.
 
-The sidebar includes device preview controls (iPhone/iPad + portrait/landscape) that render the artifact inside a
-fixed-size container. This is **not** a real viewport, so Tailwind `sm:`/`md:`/`lg:` breakpoints will still follow the
-browser window size, not the preview size.
+**Asking Base UI what it has:**
 
-**Recommendation:** for artifacts meant to match the preview, use container-driven responsiveness (container queries or
-container-width logic) instead of viewport breakpoints. Reserve `sm:`/`lg:` for full-page prototypes that are meant to
-track the actual browser viewport (or when using DevTools device emulation).
+```bash
+ls node_modules/@base-ui/react/
+```
 
-## Shared Components And Helpers
+Each kebab-case directory is an importable module (`@base-ui/react/<name>`); most are components, and the listing is exact for the installed version. Docs are agent-friendly markdown: `https://base-ui.com/llms.txt` is the index, with per-component pages at `https://base-ui.com/react/components/{name}.md`.
 
-Tokenized artifact primitives live in `src/components/` and must render under `ArtifactThemeRoot`. This includes common
-artifact UI such as `Button`, `Input`, `Tag`, `Panel`, `Checkbox`, `FilterCheckbox`, `Toggle`, `SegmentedControl`,
-`ListboxSelect`, `CopyButton`, `CopyableLabel`, `StatusTag`, `ArtifactDialog`, and `panelHeaderClasses` for dense tool
-panel headers. Shared layout primitives live in `src/ui/layout.tsx`: `Stack` (vertical stack with semantic gap tiers)
-and `Grid` (the responsive auto-fit artifact grid); see UI note 009.
+## UI System
 
-Not every `src/components/` export is an artifact primitive. Shell UI in `src/App.tsx` is not artifact UI; do not pull
-artifact-token components into shell chrome unless the subtree is intentionally wrapped. Prefer headless hooks and
-shell-specific classes in shell chrome.
+Layered, outermost first:
 
-Shared non-visual helpers live in `src/lib/`: `mergeClassNames`, `useCopyToClipboard`, `useLocalStorageState`,
-`useRootDarkMode`, `getPlatformShortcutHint`, and `assignRef`.
+1. **Token boundary** — `ArtifactThemeRoot` (`src/components/ArtifactThemeRoot.tsx`) renders the `.artifact-theme` scope; all tokens live in `src/theme/artifact-theme.css` (light + dark). Token primitives guard against rendering outside it.
+2. **Skin recipes** — `src/ui/recipes.ts`: the single source of truth for the Tailwind class strings encoding the sharp-minimal skin (control, panel, badge, status, input, popup, collection item, typography, focus ring).
+3. **Primitives** — `src/components/`: `Button`, `Input`, `Tag`, `StatusTag`, `Panel`, `PageHeader`, `Checkbox`, `FilterCheckbox`, `Toggle`, `SegmentedControl`, `ListboxSelect`, `Stepper`, `CopyButton`, `CopyableLabel`, `ReservedWidth`, `ArtifactDialog`, plus `panelHeaderClasses` for dense tool-panel headers. Primitives that need widget behavior wrap Base UI; simpler ones are native HTML plus recipes.
+4. **Layout** — `src/ui/layout.tsx`: `Stack` and `Grid` with semantic gap tiers (`row`/`group`/`section`); see UI note 009.
+5. **Portals** — `src/ui/base-portals.tsx`: `Artifact{Dialog,Select,Autocomplete,Popover}Portal` mount Base UI overlays inside the theme boundary so scoped tokens resolve. Never portal an artifact overlay to `document.body`.
 
-Use shared primitives when behavior and visual contract match. Keep artifact-local components local when semantics are
-domain-specific or experimental.
+Non-visual helpers live in `src/lib/`: `mergeClassNames`, `useCopyToClipboard`, `useLocalStorageState`, `useRootDarkMode`/`isRootDarkMode`, `useContainerWidth`, `getPlatformShortcutHint`, `assignRef`.
 
-## UI Implementation Notes (Living Guide)
+Not every `src/components/` export is an artifact primitive (`ArtifactListItem` is shell UI). Shell chrome in `src/App.tsx` is not artifact UI; do not pull artifact-token components into it unless the subtree is intentionally wrapped — prefer headless hooks and shell-specific classes there.
 
-Before making UI/layout changes, read `design/SHARP_MINIMAL_DESIGN.md` and `design/ARTIFACT_DESIGN_GUIDE.md`.
-Then skim the index in `design/UI_IMPLEMENTATION_NOTES.md` and read any relevant entries. Each index row includes a line
-range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
+Deeper detail (geometry, focus behavior, recurring gotchas) lives in `design/`, not here.
 
-Add a new implementation note only when a recurring decision or gotcha emerges, such as layout behavior,
-responsiveness, Tailwind patterns, or shared component usage that took back-and-forth to settle.
+## Viewer Features
 
-To add a new entry:
-1) Draft the entry body as raw markdown in a temporary `.md` file (no top-level `##` heading).
-2) Run:
+**Theme toggle (Light / System / Dark).** The sidebar toggle sets the page theme by adding a `dark` class to `<html>`. Explicit light/dark is stored in localStorage (`artifact-theme`); `system` removes the key and follows `prefers-color-scheme`. An inline script in `index.html` applies the saved/system theme early to avoid FOUC.
+
+**Device preview.** iPhone/iPad + portrait/landscape frames — see the caveat under [Building an Artifact](#building-an-artifact).
+
+**Artifact URLs.** The selected artifact is reflected in the URL, so reloads and sharing keep context:
+
+```
+/?artifact=sharp2
+```
+
+**Standalone view.** Open an artifact full-page (no shell UI) at:
+
+```
+/artifact/<id>
+```
+
+Standalone view always follows the OS/browser theme (`prefers-color-scheme`) and ignores any saved shell theme. The theme is applied on load and does not live-update if the OS theme changes while the page stays open.
+
+## Design Docs
+
+- Design philosophy: `design/SHARP_MINIMAL_DESIGN.md`
+- Practical artifact UI guidance: `design/ARTIFACT_DESIGN_GUIDE.md`
+- UI/layout decisions and recurring gotchas: `design/UI_IMPLEMENTATION_NOTES.md`
+
+Before making UI/layout changes, read the first two, then skim the index in `UI_IMPLEMENTATION_NOTES.md` and read relevant entries. Each index row includes a line range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
+
+Add a new implementation note only when a recurring decision or gotcha emerges (layout behavior, responsiveness, Tailwind patterns, shared component usage that took back-and-forth to settle). To add one, draft the entry body as raw markdown in a temporary `.md` file (no top-level `##` heading), then run:
 
 ```bash
 python3 design/update_ui_implementation_notes.py \
@@ -182,141 +170,46 @@ python3 design/update_ui_implementation_notes.py \
   --keywords "comma, separated, keywords"
 ```
 
-## Artifact URLs
+## Quality Gates
 
-The selected artifact is reflected in the URL as a query param, so reloads and sharing keep context:
+Before opening a PR:
 
-```
-/?artifact=sharp2
-```
-
-## Standalone Artifact View
-
-You can open an artifact as a full-page view (no shell UI) at:
-
-```
-/artifact/<id>
+```bash
+npm run check   # lint + typecheck + knip + test
 ```
 
-Notes:
-- Standalone view always follows the OS/browser theme (`prefers-color-scheme`) and ignores any saved shell theme.
-- The theme is applied on load and will not live-update if the OS theme changes while the page stays open.
+**Knip is stricter in CI.** Locally, `npm run knip` reports unused exports as warnings; CI runs `npm run knip:ci` (`knip.ci.json`), where unused exports are **errors**. If you add an export nothing consumes yet, CI fails — export it only when something imports it, or keep it local until then.
+
+**Git hooks (Lefthook).** Installed automatically on `npm install` via the `prepare` script (`npx lefthook install` if needed):
+
+- **pre-commit:** Biome on staged files (auto-fixes and re-stages) — stage files first.
+- **pre-push:** `lint`, `typecheck`, `knip`, and `test` in parallel.
+
+Run them manually with `npm run hooks:pre-commit` / `npm run hooks:pre-push` (the latter passes `--force` so manual runs are not skipped for "no matching push files").
+
+**Cleaning up rough artifacts.** Dropped-in artifacts often arrive with untyped props, a11y issues, and lint violations. Drop the folder in, run `npm run lint` and `npm run typecheck`, then fix iteratively — `npm run lint:fix` for the auto-fixable issues, manual passes for the rest.
+
+**Screenshot smoke (manual, not in CI).** `scripts/screenshot.mjs` renders an artifact route at 768/1024/1440px in light + dark and saves full-page PNGs. It needs a running dev server and `playwright-core` (not a repo dependency; Chromium comes from `~/.cache/ms-playwright`):
+
+```bash
+npm run dev
+npm i --no-save playwright-core
+node scripts/screenshot.mjs [--url http://localhost:5173/artifact/sharp2] [--out /tmp/artifact-shots]
+```
 
 ## Cloudflare Workers Deployment
 
-This app is deployed as a Cloudflare Worker with static assets + SPA routing.
-Configuration lives in `wrangler.jsonc`, and the Worker entry is `worker/index.ts` (handles `/api/*`).
+Deployed as a Cloudflare Worker with static assets + SPA routing. Configuration lives in `wrangler.jsonc`; the Worker entry is `worker/index.ts` (handles `/api/*`). Deploy with `npm run deploy`.
 
-TypeScript for the Worker uses Wrangler-generated types:
-- Run `npm run generate-types` after changing `wrangler.jsonc` or bindings.
-- The generated file is `worker-configuration.d.ts`.
+Worker TypeScript uses Wrangler-generated types:
+
+- Run `npm run generate-types` after changing `wrangler.jsonc` or bindings; it writes `worker-configuration.d.ts`.
 - `npm run typecheck` runs `wrangler types --check` and will not write types.
 
-## Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server |
-| `npm run build` | Type-check + production build |
-| `npm run generate-types` | Generate Worker runtime types (Wrangler) |
-| `npm run format` | Run Biome with auto-fix (format + lint + imports) |
-| `npm run lint` | Run Biome (format + lint + imports check) |
-| `npm run lint:fix` | Run Biome and auto-fix |
-| `npm run knip` | Detect unused files, exports, and dependencies |
-| `npm run test` | Run Node test runner |
-| `npm run typecheck` | Type-check app + worker |
-| `npm run typecheck:worker` | Type-check Worker code |
-| `npm run preview` | Preview production build |
-| `npm run deploy` | Deploy Worker |
-
-## Pre-PR Checks
-
-Before opening a PR, run the combined check:
-
-```bash
-npm run check
-```
-
-Equivalent individual commands:
-
-```bash
-npm run lint
-npm run typecheck
-npm run knip
-npm run test
-```
-
-## Git Hooks
-
-This repo uses Lefthook to keep commits clean:
-
-- **pre-commit:** runs Biome on staged files (auto-fixes and re-stages).
-- **pre-push:** runs `lint`, `typecheck`, `knip`, and `test`.
-
-Hooks are installed automatically on `npm install` via the `prepare` script. If needed, run:
-
-```bash
-npx lefthook install
-```
-
-You can run hooks manually without committing/pushing:
-
-```bash
-npx lefthook run pre-commit
-npx lefthook run pre-push
-```
-
-Notes:
-- `pre-commit` operates on staged files, so run `git add` first.
-- `pre-push` uses the push file list; when running manually, add `--force` (or `--all-files`) to avoid “no matching push files” skips.
-
-## Workflow for Cleaning Up Artifacts
-
-Artifacts often come in rough — untyped props, accessibility issues, lint violations. The setup is designed to surface all of that:
-
-1. **Drop the artifact** into `src/artifacts/` (folder with `index.tsx` entry; optional `meta.ts`)
-2. **Run `npm run lint`** to see Biome errors (a11y, suspicious patterns, style)
-3. **Run `npm run typecheck`** to see TypeScript errors (implicit `any`, missing types)
-4. **Fix iteratively** — use `npm run lint:fix` for auto-fixable issues, then address the rest manually
-
-Example `meta.ts`:
-
-```ts
-const meta = {
-  name: 'My Artifact',
-  subtitle: 'Short description',
-  kind: 'single',
-  model: 'model-name',
-} as const;
-
-export default meta;
-```
-
-## Biome Configuration
+## Appendix: Biome
 
 Configured in `biome.json`:
 
-- **Formatter**: 2-space indent, 120 line width, single quotes, trailing commas, semicolons
-- **Linter**: recommended rules with a few overrides:
-  - `noExplicitAny` — off (artifacts often use `any` liberally)
-  - `noUnusedVariables` / `noUnusedFunctionParameters` — off (work-in-progress artifacts have these)
-  - `useTemplate` — off
-- **CSS**: Tailwind directives enabled
-- **Imports**: auto-organized on fix
-
-## Formatting Workflow
-
-When making code changes — especially wrapping large sections or adjusting structure that affects indentation — insert the
-syntactically correct pieces and let Biome handle formatting. Do not manually reformat unrelated surrounding code.
-
-For targeted files:
-
-```bash
-npx biome check --write <file>
-```
-
-For broader cleanup:
-
-```bash
-npm run lint:fix
-```
+- **Formatter:** 2-space indent, 120 line width, single quotes, trailing commas, semicolons; imports auto-organized on fix.
+- **Linter:** recommended rules, with `noExplicitAny`, `noUnusedVariables`/`noUnusedFunctionParameters`, and `useTemplate` off (work-in-progress artifacts trip them constantly).
+- **Workflow:** when a change affects indentation or wraps large sections, insert syntactically correct code and let Biome format it (`npx biome check --write <file>` for targeted files, `npm run lint:fix` for broader cleanup). Do not manually reformat unrelated surrounding code.

@@ -2,8 +2,9 @@ import { FileText, Loader2, Upload, X } from 'lucide-react';
 import { type DragEvent, useRef, useState } from 'react';
 import { Button } from '../../../components/Button';
 import { mergeClassNames } from '../../../lib/classNames';
+import { focusRing } from '../../../ui/recipes';
 import type { Controller } from '../useController';
-import { bandClass, bandLabelClass, focusRing, formatBytes } from './primitives';
+import { bandClass, bandLabelClass, formatBytes } from './primitives';
 
 export function Dropzone({ vm }: { vm: Controller }) {
   const inputRef = useRef<HTMLInputElement>(null);

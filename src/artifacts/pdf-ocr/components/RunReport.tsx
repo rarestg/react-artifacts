@@ -1,5 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import { Button } from '../../../components/Button';
+import { Panel } from '../../../components/Panel';
+import { panelHeaderRowClass, panelHeaderTitleClass } from '../../../components/panelHeaderClasses';
 import { actualCost, estimateCost, formatCost, formatCostRange } from '../core/cost';
 import type { Controller } from '../useController';
 import { PageStateChip, PageStateMark, ProgressBar } from './primitives';
@@ -167,9 +169,9 @@ export function RunReport({ vm }: { vm: Controller }) {
   const totalTokens = vm.ledgerRows.reduce((sum, row) => sum + row.inputTokens + row.outputTokens, 0);
 
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)]">
-      <div className="border-b border-[var(--border)] px-4 py-3">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">Run report</h2>
+    <Panel>
+      <div className={panelHeaderRowClass}>
+        <h2 className={panelHeaderTitleClass}>Run report</h2>
       </div>
 
       <div className="space-y-4 px-4 py-4">
@@ -335,28 +337,16 @@ export function RunReport({ vm }: { vm: Controller }) {
             <table className="w-full min-w-[26rem] border-collapse text-xs">
               <thead className="bg-[var(--surface-muted)]">
                 <tr className="border-b border-[var(--border)]">
-                  <th
-                    scope="col"
-                    className="px-3 py-1.5 text-left font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]"
-                  >
+                  <th scope="col" className={thLeft}>
                     Model
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-1.5 text-right font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]"
-                  >
+                  <th scope="col" className={thRight}>
                     Pages
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-1.5 text-right font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]"
-                  >
+                  <th scope="col" className={thRight}>
                     Tokens
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-1.5 text-right font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]"
-                  >
+                  <th scope="col" className={thRight}>
                     Cost
                   </th>
                 </tr>
@@ -397,6 +387,6 @@ export function RunReport({ vm }: { vm: Controller }) {
           <p className="text-xs text-[var(--text-subtle)]">Pages = work performed, may exceed doc pages.</p>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }

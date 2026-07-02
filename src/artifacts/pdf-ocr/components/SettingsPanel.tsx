@@ -4,10 +4,11 @@ import { Input } from '../../../components/Input';
 import { SegmentedControl } from '../../../components/SegmentedControl';
 import { Stepper } from '../../../components/Stepper';
 import { mergeClassNames } from '../../../lib/classNames';
+import { focusRing } from '../../../ui/recipes';
 import { estimateCost, formatCost } from '../core/cost';
 import { DEFAULT_PROMPT, type MediaResolution } from '../core/types';
 import type { Controller } from '../useController';
-import { bandClass, bandLabelClass, focusRing, helperClass } from './primitives';
+import { bandClass, bandLabelClass, helperClass } from './primitives';
 
 const DETAIL_OPTIONS: { value: MediaResolution; label: string }[] = [
   { value: 'low', label: 'low' },

@@ -1,6 +1,7 @@
 import { Check, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { mergeClassNames } from '../../../lib/classNames';
+import { focusRing } from '../../../ui/recipes';
 import { estimateCost, formatCost, modelPricing } from '../core/cost';
 import type { Controller } from '../useController';
 import { bandClass, bandLabelClass, helperClass } from './primitives';
@@ -89,7 +90,8 @@ export function ModelTable({ vm }: { vm: Controller }) {
           type="button"
           onClick={() => toggleSort(sortKey)}
           className={mergeClassNames(
-            'inline-flex cursor-pointer items-center gap-1 hover:text-[var(--text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]',
+            'inline-flex cursor-pointer items-center gap-1 hover:text-[var(--text)]',
+            focusRing,
             active && 'text-[var(--text)]',
             numeric && 'flex-row-reverse',
           )}

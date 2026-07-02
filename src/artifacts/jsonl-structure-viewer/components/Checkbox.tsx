@@ -1,6 +1,7 @@
 // Intentional divergence from the shared Checkbox: supports ariaLabel-only mode, rich ReactNode labels, and a `between` layout.
 import { Check as CheckIcon } from 'lucide-react';
 import type { ChangeEventHandler, ReactNode } from 'react';
+import { ReservedWidth } from '../../../components/ReservedWidth';
 import { mergeClassNames } from '../../../lib/classNames';
 
 type CheckboxLayout = 'inline' | 'between';
@@ -73,12 +74,9 @@ export default function Checkbox({
         />
       </span>
       {layout === 'inline' && labelText && (
-        <span className="relative inline-grid min-w-0">
-          <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-            {resolvedReserveLabel}
-          </span>
-          <span className="col-start-1 row-start-1 min-w-0 truncate">{labelText}</span>
-        </span>
+        <ReservedWidth reserve={resolvedReserveLabel} className="min-w-0" contentClassName="min-w-0 truncate">
+          {labelText}
+        </ReservedWidth>
       )}
       {layout === 'inline' && !labelText && label}
     </label>

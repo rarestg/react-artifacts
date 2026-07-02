@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '../../../components/Button';
 import { Checkbox } from '../../../components/Checkbox';
 import { Input } from '../../../components/Input';
+import { ReservedWidth } from '../../../components/ReservedWidth';
 import { mergeClassNames } from '../../../lib/classNames';
 import type { Controller } from '../useController';
 import { bandClass, bandLabelClass, helperClass } from './primitives';
@@ -74,12 +75,9 @@ export function ApiKeyPanel({ vm }: { vm: Controller }) {
           )}
         </Button>
         <Button onClick={() => void vm.runTest()} disabled={vm.test.status === 'testing' || !vm.apiKey.trim()}>
-          <span className="relative inline-grid">
-            <span aria-hidden="true" className="col-start-1 row-start-1 opacity-0 pointer-events-none">
-              Retry test
-            </span>
-            <span className="col-start-1 row-start-1 whitespace-nowrap">{TEST_LABEL[vm.test.status]}</span>
-          </span>
+          <ReservedWidth reserve="Retry test" contentClassName="whitespace-nowrap">
+            {TEST_LABEL[vm.test.status]}
+          </ReservedWidth>
         </Button>
       </div>
       {vm.test.message && <p className={mergeClassNames('text-xs', messageTone)}>{vm.test.message}</p>}

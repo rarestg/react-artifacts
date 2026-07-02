@@ -2,6 +2,7 @@ import { AlertTriangle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Button } from '../../components/Button';
+import { ReservedWidth } from '../../components/ReservedWidth';
 import { mergeClassNames } from '../../lib/classNames';
 import { ApiKeyPanel } from './components/ApiKeyPanel';
 import { Dropzone } from './components/Dropzone';
@@ -33,17 +34,9 @@ function RunRow({ vm }: { vm: Controller }) {
     <section className={mergeClassNames(bandClass, 'space-y-2')}>
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="primary" disabled={!vm.canConvert} onClick={vm.convert}>
-          <span className="relative inline-grid">
-            <span
-              aria-hidden="true"
-              className="col-start-1 row-start-1 whitespace-nowrap opacity-0 pointer-events-none"
-            >
-              {reserve}
-            </span>
-            <span className="col-start-1 row-start-1 whitespace-nowrap">
-              Convert {count} page{count === 1 ? '' : 's'}
-            </span>
-          </span>
+          <ReservedWidth reserve={reserve} contentClassName="whitespace-nowrap">
+            Convert {count} page{count === 1 ? '' : 's'}
+          </ReservedWidth>
         </Button>
         {!vm.canConvert ? (
           <span className="text-xs text-[var(--text-muted)]">{vm.convertReason}</span>

@@ -1,5 +1,6 @@
 import { AlertTriangle, Check, X } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { ReservedWidth } from '../../../components/ReservedWidth';
 import { mergeClassNames } from '../../../lib/classNames';
 
 /** Tokenized keyboard-focus ring shared by every locally-built control in this artifact. */
@@ -64,12 +65,13 @@ export function StateChip({
       )}
     >
       {icon && <span className="shrink-0">{icon}</span>}
-      <span className="relative inline-grid min-w-0">
-        <span aria-hidden="true" className="col-start-1 row-start-1 whitespace-nowrap opacity-0 pointer-events-none">
-          {reserveLabel ?? label}
-        </span>
-        <span className="col-start-1 row-start-1 min-w-0 truncate text-center">{label}</span>
-      </span>
+      <ReservedWidth
+        reserve={reserveLabel ?? label}
+        className="min-w-0"
+        contentClassName="min-w-0 truncate text-center"
+      >
+        {label}
+      </ReservedWidth>
     </span>
   );
 }

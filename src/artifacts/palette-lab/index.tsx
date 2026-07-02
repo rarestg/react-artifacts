@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useId, useMemo, useRef, useState } from 
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { CopyButton } from '../../components/CopyButton';
+import { ReservedWidth } from '../../components/ReservedWidth';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { mergeClassNames } from '../../lib/classNames';
 import { useRootDarkMode } from '../../lib/useRootDarkMode';
@@ -479,12 +480,9 @@ export default function PaletteLab() {
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2 max-sm:w-full max-sm:justify-start">
               <button type="button" onClick={toggleAll} className={headerTextActionClass}>
-                <span className="relative inline-grid min-w-0">
-                  <span aria-hidden="true" className="pointer-events-none col-start-1 row-start-1 opacity-0">
-                    Select all
-                  </span>
-                  <span className="col-start-1 row-start-1">{allVisibleSelected ? 'Clear' : 'Select all'}</span>
-                </span>
+                <ReservedWidth reserve="Select all" className="min-w-0">
+                  {allVisibleSelected ? 'Clear' : 'Select all'}
+                </ReservedWidth>
               </button>
               <CopyButton
                 text={paletteExportCss}

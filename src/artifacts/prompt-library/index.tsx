@@ -6,16 +6,18 @@ import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useReduc
 import { ArtifactDialog } from '../../components/ArtifactDialog';
 import { ArtifactThemeRoot } from '../../components/ArtifactThemeRoot';
 import { Button } from '../../components/Button';
-import { CopyButton } from '../../components/CopyButton';
+import { CopyButton, type CopyButtonHandle } from '../../components/CopyButton';
 import { FilterCheckbox } from '../../components/FilterCheckbox';
 import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { Stepper } from '../../components/Stepper';
 import { mergeClassNames } from '../../lib/classNames';
+import { isEditableEventTarget } from '../../lib/isEditableEventTarget';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { ArtifactDialogPortal } from '../../ui/base-portals';
 import { Grid } from '../../ui/layout';
 import { focusRing, panel, popupOverlay, popupSurface } from '../../ui/recipes';
+import { countResolvedGridColumns, getNextCardIndex } from './cardKeyNavigation';
 import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
 import {
   getDefaultPromptModifierOptionId,
@@ -114,6 +116,45 @@ export default function PromptLibrary() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Vim-style card navigation (h/j/k/l) plus c-to-copy. Detached while the search
+  // palette or the detail dialog is open so overlay typing is never intercepted.
+  useEffect(() => {
+    if (searchOpen || activePrompt) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isEditableEventTarget(event.target)) return;
+
+      const focusedCard = document.activeElement?.closest('[data-prompt-card]') ?? null;
+
+      if (event.key === 'c') {
+        if (event.repeat) return;
+        const copyButton = focusedCard?.querySelector<HTMLButtonElement>('[data-prompt-card-copy]');
+        if (!copyButton) return;
+        event.preventDefault();
+        copyButton.click();
+        return;
+      }
+
+      if (event.key !== 'h' && event.key !== 'j' && event.key !== 'k' && event.key !== 'l') return;
+
+      // Cards re-order and disappear under tag filters, so derive the list per keypress.
+      const titleButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-prompt-card-title]')];
+      const currentIndex = focusedCard ? titleButtons.findIndex((button) => focusedCard.contains(button)) : -1;
+      const grid = titleButtons[0]?.closest('[data-prompt-card]')?.parentElement;
+      const columnCount = grid ? countResolvedGridColumns(getComputedStyle(grid).gridTemplateColumns) : 1;
+      const nextIndex = getNextCardIndex(event.key, currentIndex, titleButtons.length, columnCount);
+      if (nextIndex === null) return;
+
+      event.preventDefault();
+      titleButtons[nextIndex]?.focus();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen, activePrompt]);
+
   return (
     <ArtifactThemeRoot className={rootClass}>
       <div className="flex min-h-screen flex-col">
@@ -196,6 +237,7 @@ export default function PromptLibrary() {
           prompt={activePrompt}
           searchResult={activeSearchResult}
           searchQuery={activeSearchQuery}
+          searchOpen={searchOpen}
           returnFocusTo={detailReturnFocusRef.current}
           fallbackFocusTo={searchButtonRef.current}
           onClose={closePromptDetail}
@@ -216,10 +258,11 @@ export default function PromptLibrary() {
 
 function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: HTMLElement) => void }) {
   return (
-    <article className={mergeClassNames('flex min-h-56 flex-col gap-4 p-4', panel.default)}>
+    <article data-prompt-card="" className={mergeClassNames('flex min-h-56 flex-col gap-4 p-4', panel.default)}>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <button
           type="button"
+          data-prompt-card-title=""
           onClick={(event) => onOpen(event.currentTarget)}
           className={mergeClassNames(
             'min-w-0 cursor-pointer text-left text-sm font-semibold text-[var(--text)] underline-offset-2 transition-colors hover:underline active:text-[var(--text-muted)] motion-reduce:transition-none',
@@ -228,7 +271,12 @@ function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: 
         >
           {prompt.title}
         </button>
-        <CopyButton text={renderPromptText(prompt)} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy" />
+        <CopyButton
+          text={renderPromptText(prompt)}
+          ariaLabel={`Copy ${prompt.title}`}
+          idleLabel="Copy"
+          dataAttributes={{ 'data-prompt-card-copy': '' }}
+        />
       </div>
       <p className="text-sm text-[var(--text)]">{prompt.summary}</p>
       <p className="line-clamp-4 text-xs leading-5 text-[var(--text-muted)]">{prompt.context}</p>
@@ -628,6 +676,7 @@ function PromptDetailDialog({
   prompt,
   searchResult,
   searchQuery,
+  searchOpen,
   returnFocusTo,
   fallbackFocusTo = null,
   onClose,
@@ -635,10 +684,12 @@ function PromptDetailDialog({
   prompt: PromptEntry;
   searchResult?: PromptSearchResult | null;
   searchQuery: string;
+  searchOpen: boolean;
   returnFocusTo: HTMLElement | null;
   fallbackFocusTo?: HTMLElement | null;
   onClose: () => void;
 }) {
+  const footerCopyRef = useRef<CopyButtonHandle>(null);
   const defaultModifierOptionId = getDefaultPromptModifierOptionId(prompt);
   const defaultNumberInputValue = prompt.numberInput?.defaultValue;
   const defaultToggleOptionIds = useMemo(() => getDefaultPromptToggleOptionIds(prompt), [prompt]);
@@ -689,6 +740,26 @@ function PromptDetailDialog({
     setSelectedToggleOptionIds(defaultToggleOptionIds);
   }, [defaultToggleOptionIds]);
 
+  // c copies the rendered prompt via the footer button so its feedback and
+  // aria-live announcement stay visible. Detached while the search palette is
+  // stacked on top; the editable guard keeps the Stepper's number input usable.
+  useEffect(() => {
+    if (searchOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'c' || event.repeat) return;
+      if (event.defaultPrevented || event.isComposing) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isEditableEventTarget(event.target)) return;
+
+      event.preventDefault();
+      footerCopyRef.current?.copy();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen]);
+
   const handleToggleOptionChange = (optionId: string, checked: boolean) => {
     setSelectedToggleOptionIds((current) =>
       checked
@@ -707,7 +778,14 @@ function PromptDetailDialog({
       }}
       title={<HighlightedText text={prompt.title} indices={titleIndices} />}
       description={<HighlightedText text={prompt.summary} indices={summaryIndices} />}
-      footer={<CopyButton text={renderedPrompt} ariaLabel={`Copy ${prompt.title}`} idleLabel="Copy Prompt" />}
+      footer={
+        <CopyButton
+          ref={footerCopyRef}
+          text={renderedPrompt}
+          ariaLabel={`Copy ${prompt.title}`}
+          idleLabel="Copy Prompt"
+        />
+      }
       closeLabel="Close prompt details"
       placement="viewport"
       align="center"

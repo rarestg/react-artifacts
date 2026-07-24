@@ -76,7 +76,7 @@ export { default } from './App';
 ```
 
 - Per-artifact `index.html` files are not used by this shell.
-- If you need body classes, set them inside the component with `useEffect`. Page titles come from `meta.ts` — the shell and Worker set them per route.
+- If you need body classes, set them inside the component with `useEffect`. Page titles come from the `meta.ts` name when present, falling back to the folder name — the shell and Worker set them per route.
 
 **Copy-targets.** Start from the examples instead of a blank folder:
 

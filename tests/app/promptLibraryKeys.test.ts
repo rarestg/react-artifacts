@@ -335,3 +335,64 @@ test('detail dialog scopes c to its footer copy button without hijacking the Ste
     assert.equal(copiedTexts.length, 2, 'closing the palette re-arms the dialog copy key');
   });
 });
+
+test('focus polish: card-level ring, header legend, and contextual C chip classes are wired', async () => {
+  await withPromptLibrary(async ({ window, titleButtons }) => {
+    // The moving ring belongs to the card, scoped to the title's :focus-visible only, and offsets
+    // against the page background the card actually sits on.
+    const cards = [...window.document.querySelectorAll('[data-prompt-card]')];
+    assert.equal(cards.length, prompts.length, 'every prompt renders a card');
+    for (const card of cards) {
+      const cardClasses = (card.getAttribute('class') ?? '').split(/\s+/);
+      assert.ok(cardClasses.includes('group/prompt-card'), 'the card is the named group for the chip reveal');
+      for (const ringClass of [
+        'has-[[data-prompt-card-title]:focus-visible]:ring-2',
+        'has-[[data-prompt-card-title]:focus-visible]:ring-[var(--ring)]',
+        'has-[[data-prompt-card-title]:focus-visible]:ring-offset-1',
+        'has-[[data-prompt-card-title]:focus-visible]:ring-offset-[color:var(--surface-muted)]',
+      ]) {
+        assert.ok(cardClasses.includes(ringClass), `the card carries ${ringClass}`);
+      }
+    }
+    for (const title of titleButtons()) {
+      const titleClasses = (title.getAttribute('class') ?? '').split(/\s+/);
+      assert.ok(titleClasses.includes('focus:outline-none'), 'the title button still suppresses the UA outline');
+      assert.ok(
+        !titleClasses.some((className) => className.includes('focus-visible:ring')),
+        'the title button no longer draws its own focus ring',
+      );
+    }
+
+    // The header legend is decorative, sits in the header, and hides where a keyboard is unlikely.
+    const legend = window.document.querySelector('[data-prompt-keys-legend]');
+    assert.ok(legend, 'the header renders the keyboard legend');
+    assert.ok(window.document.querySelector('header')?.contains(legend), 'the legend lives in the page header');
+    assert.equal(legend.getAttribute('aria-hidden'), 'true', 'the legend is decorative');
+    const legendClasses = (legend.getAttribute('class') ?? '').split(/\s+/);
+    assert.ok(legendClasses.includes('max-md:hidden'), 'the legend hides on narrow viewports');
+    assert.ok(legendClasses.includes('pointer-coarse:hidden'), 'the legend hides for coarse pointers');
+    assert.deepEqual(
+      [...legend.querySelectorAll('kbd')].map((chip) => chip.textContent),
+      ['H', 'J', 'K', 'L', 'C'],
+      'the legend lists the movement keys and the copy key',
+    );
+    assert.match(legend.textContent ?? '', /move/, 'the legend labels the movement cluster');
+    assert.match(legend.textContent ?? '', /copy/, 'the legend labels the copy key');
+
+    // Every card copy button carries the C chip, revealed only while its own card holds focus.
+    for (const card of cards) {
+      const chip = card.querySelector('[data-prompt-card-copy] kbd');
+      assert.ok(chip, 'the card copy button carries the C chip');
+      assert.equal(chip.textContent, 'C');
+      assert.equal(chip.getAttribute('aria-hidden'), 'true', 'the chip is decorative');
+      const chipClasses = (chip.getAttribute('class') ?? '').split(/\s+/);
+      assert.ok(chipClasses.includes('hidden'), 'the chip is hidden at rest');
+      for (const revealClass of [
+        'group-has-[[data-prompt-card-title]:focus-visible]/prompt-card:inline-flex',
+        'group-has-[[data-prompt-card-copy]:focus-visible]/prompt-card:inline-flex',
+      ]) {
+        assert.ok(chipClasses.includes(revealClass), `the chip carries ${revealClass}`);
+      }
+    }
+  });
+});

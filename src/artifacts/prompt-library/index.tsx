@@ -16,7 +16,7 @@ import { isEditableEventTarget } from '../../lib/isEditableEventTarget';
 import { getPlatformShortcutHint } from '../../lib/keyboardShortcutHint';
 import { ArtifactDialogPortal } from '../../ui/base-portals';
 import { Grid } from '../../ui/layout';
-import { focusRing, panel, popupOverlay, popupSurface } from '../../ui/recipes';
+import { panel, popupOverlay, popupSurface } from '../../ui/recipes';
 import { countResolvedGridColumns, getNextCardIndex } from './cardKeyNavigation';
 import { initialPromptLibraryInteractionState, promptLibraryInteractionReducer } from './interactionState';
 import {
@@ -47,6 +47,19 @@ const shortcutKeyClass =
   'inline-flex h-5 min-w-5 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-1.5 font-mono text-[10px] font-semibold leading-none text-[var(--text-muted)]';
 // The command glyph has more internal whitespace than Latin letters; size it optically so it balances with "K".
 const commandGlyphClass = 'text-[13px]';
+const legendLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]';
+// Focus moves between title buttons, but the moving ring draws around the whole card so it reads
+// as card focus, not a text highlight. Scoped to the title's :focus-visible only: tabbing to
+// the card's Copy button keeps that button's own local ring without lighting the card. The offset
+// gap matches the page background (--surface-muted), not the recipe's --surface, because the card
+// sits directly on the page.
+const cardFocusRingClass =
+  'has-[[data-prompt-card-title]:focus-visible]:ring-2 has-[[data-prompt-card-title]:focus-visible]:ring-[var(--ring)] has-[[data-prompt-card-title]:focus-visible]:ring-offset-1 has-[[data-prompt-card-title]:focus-visible]:ring-offset-[color:var(--surface-muted)]';
+// The C chip on a card's Copy button reveals only while the card contains keyboard focus — the
+// two places where the c key works. The named group keeps a future outer .group from revealing
+// every card's chip at once.
+const copyKeyChipClass =
+  'hidden h-4 min-w-4 items-center justify-center border border-[var(--border)] bg-[var(--surface-muted)] px-1 font-mono text-[9px] font-bold leading-none text-[var(--text-muted)] group-has-[[data-prompt-card-title]:focus-visible]/prompt-card:inline-flex group-has-[[data-prompt-card-copy]:focus-visible]/prompt-card:inline-flex';
 
 type HighlightIndices = readonly (readonly [number, number])[];
 
@@ -162,33 +175,55 @@ export default function PromptLibrary() {
           title="Prompt Library"
           subtitle={`${visiblePrompts.length} of ${prompts.length} prompts`}
           actions={
-            <Button
-              ref={searchButtonRef}
-              aria-label={`Search (${searchShortcutHint.label})`}
-              aria-keyshortcuts="Meta+K Control+K"
-              onClick={openSearchPalette}
-              className="active:bg-[var(--surface-strong)]"
-            >
-              <Search className="size-4" aria-hidden="true" />
-              Search
-              <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-muted)]" aria-hidden="true">
-                {searchShortcutHint.modifier === 'command' ? (
-                  <>
-                    <kbd className={shortcutKeyClass}>
-                      <span className={commandGlyphClass}>⌘</span>
-                    </kbd>
-                    <span>+</span>
-                    <kbd className={shortcutKeyClass}>{searchShortcutHint.key}</kbd>
-                  </>
-                ) : (
-                  <>
-                    <kbd className={shortcutKeyClass}>Ctrl</kbd>
-                    <span>+</span>
-                    <kbd className={shortcutKeyClass}>{searchShortcutHint.key}</kbd>
-                  </>
-                )}
-              </span>
-            </Button>
+            <div className="flex items-center gap-3">
+              {/* Decorative duplicate of the hjkl/c scheme; hidden where a keyboard is unlikely. */}
+              <div
+                data-prompt-keys-legend=""
+                aria-hidden="true"
+                className="flex items-center gap-2 max-md:hidden pointer-coarse:hidden"
+              >
+                <span className="flex items-center gap-1">
+                  <kbd className={shortcutKeyClass}>H</kbd>
+                  <kbd className={shortcutKeyClass}>J</kbd>
+                  <kbd className={shortcutKeyClass}>K</kbd>
+                  <kbd className={shortcutKeyClass}>L</kbd>
+                </span>
+                <span className={legendLabelClass}>move</span>
+                <span className="text-[10px] text-[var(--text-muted)]">·</span>
+                <kbd className={shortcutKeyClass}>C</kbd>
+                <span className={legendLabelClass}>copy</span>
+              </div>
+              <Button
+                ref={searchButtonRef}
+                aria-label={`Search (${searchShortcutHint.label})`}
+                aria-keyshortcuts="Meta+K Control+K"
+                onClick={openSearchPalette}
+                className="active:bg-[var(--surface-strong)]"
+              >
+                <Search className="size-4" aria-hidden="true" />
+                Search
+                <span
+                  className="inline-flex items-center gap-1 text-[10px] text-[var(--text-muted)]"
+                  aria-hidden="true"
+                >
+                  {searchShortcutHint.modifier === 'command' ? (
+                    <>
+                      <kbd className={shortcutKeyClass}>
+                        <span className={commandGlyphClass}>⌘</span>
+                      </kbd>
+                      <span>+</span>
+                      <kbd className={shortcutKeyClass}>{searchShortcutHint.key}</kbd>
+                    </>
+                  ) : (
+                    <>
+                      <kbd className={shortcutKeyClass}>Ctrl</kbd>
+                      <span>+</span>
+                      <kbd className={shortcutKeyClass}>{searchShortcutHint.key}</kbd>
+                    </>
+                  )}
+                </span>
+              </Button>
+            </div>
           }
         />
 
@@ -258,16 +293,20 @@ export default function PromptLibrary() {
 
 function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: HTMLElement) => void }) {
   return (
-    <article data-prompt-card="" className={mergeClassNames('flex min-h-56 flex-col gap-4 p-4', panel.default)}>
+    <article
+      data-prompt-card=""
+      className={mergeClassNames(
+        'group/prompt-card flex min-h-56 flex-col gap-4 p-4',
+        cardFocusRingClass,
+        panel.default,
+      )}
+    >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <button
           type="button"
           data-prompt-card-title=""
           onClick={(event) => onOpen(event.currentTarget)}
-          className={mergeClassNames(
-            'min-w-0 cursor-pointer text-left text-sm font-semibold text-[var(--text)] underline-offset-2 transition-colors hover:underline active:text-[var(--text-muted)] motion-reduce:transition-none',
-            focusRing,
-          )}
+          className="min-w-0 cursor-pointer text-left text-sm font-semibold text-[var(--text)] underline-offset-2 transition-colors hover:underline focus:outline-none active:text-[var(--text-muted)] motion-reduce:transition-none"
         >
           {prompt.title}
         </button>
@@ -276,6 +315,12 @@ function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: 
           ariaLabel={`Copy ${prompt.title}`}
           idleLabel="Copy"
           dataAttributes={{ 'data-prompt-card-copy': '' }}
+          trailingAddon={
+            // biome-ignore lint/a11y/noAriaHiddenOnFocusable: <kbd> is not focusable; the chip is decorative and the shortcut already triggers the labelled button it sits on.
+            <kbd aria-hidden="true" className={copyKeyChipClass}>
+              C
+            </kbd>
+          }
         />
       </div>
       <p className="text-sm text-[var(--text)]">{prompt.summary}</p>

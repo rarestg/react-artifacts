@@ -445,3 +445,23 @@ test('StatusTag supports named export markup', async () => {
   const markup = renderToStaticMarkup(createElement(StatusTag, { label: 'Connected', active: true }));
   assert.match(markup, /Connected/);
 });
+
+test('shared copy button renders a trailing addon after the label and nothing extra without one', () => {
+  const markup = renderToStaticMarkup(
+    createElement(CopyButton, {
+      text: 'value',
+      idleLabel: 'Copy',
+      trailingAddon: createElement('kbd', { 'aria-hidden': true, 'data-test-addon': '' }, 'C'),
+    }),
+  );
+
+  const addonTag = markup.match(/<kbd\b[^>]*data-test-addon[^>]*>/)?.[0];
+  assert.ok(addonTag, `Expected the trailing addon in markup: ${markup}`);
+  assert.match(addonTag, /aria-hidden="true"/, 'the addon stays aria-hidden (decorative, caller-supplied)');
+  const labelIndex = markup.indexOf('>Copy<');
+  assert.ok(labelIndex !== -1, `Expected the visible label in markup: ${markup}`);
+  assert.ok(markup.indexOf(addonTag) > labelIndex, 'the addon renders after the label');
+
+  const bare = renderToStaticMarkup(createElement(CopyButton, { text: 'value' }));
+  assert.doesNotMatch(bare, /<kbd/, 'no addon markup renders when the prop is omitted');
+});

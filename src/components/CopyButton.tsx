@@ -1,5 +1,5 @@
 import { Check, Copy, X } from 'lucide-react';
-import { type CSSProperties, type Ref, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { type CSSProperties, type ReactNode, type Ref, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 import { type CopyStatus, useCopyToClipboard } from '../lib/useCopyToClipboard';
 import { useArtifactThemeGuard } from './ArtifactThemeRoot';
@@ -23,6 +23,12 @@ export type CopyButtonProps = {
   dataAttributes?: CopyButtonDataAttributes;
   disabled?: boolean;
   variant?: 'default' | 'headerAction' | 'icon' | 'headerText' | 'tag';
+  /**
+   * Decorative content rendered after the label (e.g. a shortcut chip). Rendered as a direct
+   * child of the button's flex row, so a display-hidden addon contributes no gap; the caller
+   * must mark it aria-hidden.
+   */
+  trailingAddon?: ReactNode;
 };
 
 const COPIED_LABEL = 'Copied';
@@ -41,6 +47,7 @@ export function CopyButton({
   dataAttributes,
   disabled,
   variant = 'default',
+  trailingAddon,
 }: CopyButtonProps) {
   const { status, copy, announcement } = useCopyToClipboard();
   const rootRef = useRef<HTMLButtonElement>(null);
@@ -150,6 +157,7 @@ export function CopyButton({
           <span className={labelClass}>{labels[status]}</span>
         </span>
       )}
+      {trailingAddon}
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </span>

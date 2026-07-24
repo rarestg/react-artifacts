@@ -72,12 +72,12 @@ test('self-contained execution plan uses planning instead of risk', () => {
   assert.equal(getPromptTag('planning').color, 'amber');
 });
 
-test('founder transcript synthesis prompt uses planning and synthesis tags', () => {
+test('founder transcript synthesis prompt uses the synthesis workflow tag', () => {
   const prompt = prompts.find((entry) => entry.id === 'founder-transcript-synthesis');
 
   assert.ok(prompt);
   assert.equal(prompt.title, 'Founder Transcript Synthesis');
-  assert.deepEqual(prompt.tags, ['planning', 'synthesis']);
+  assert.deepEqual(prompt.tags, ['synthesis']);
   assert.equal(getPromptTag('synthesis').color, 'pink');
 });
 
@@ -159,7 +159,7 @@ test('session-to-blog article prompt renders technical article checks by default
 
   assert.ok(prompt);
   assert.equal(prompt.title, 'Session-To-Blog Article Polisher');
-  assert.deepEqual(prompt.tags, ['blog']);
+  assert.deepEqual(prompt.tags, ['blog', 'subagents']);
   assert.equal(prompt.modifier?.label, 'Article type');
   assert.equal(prompt.modifier.defaultOptionId, 'technical');
   assert.deepEqual(
@@ -427,6 +427,7 @@ test('goal statement writer prompt uses a plain concision bar', () => {
   const prompt = prompts.find((entry) => entry.id === 'goal-statement-writer');
 
   assert.ok(prompt);
+  assert.deepEqual(prompt.tags, ['implementation', 'planning', 'synthesis']);
 
   const renderedPrompt = renderPromptText(prompt);
 
@@ -454,6 +455,27 @@ test('stacked PR comment triage prompt stays portable and stack-aware', () => {
   assert.doesNotMatch(renderedPrompt, /review bundles/i);
   assert.doesNotMatch(renderedPrompt, /reply queue/i);
   assert.doesNotMatch(renderedPrompt, /mini-PM/i);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('fresh session handoff prompt produces a paste-ready successor prompt', () => {
+  const prompt = prompts.find((entry) => entry.id === 'fresh-session-handoff');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Fresh Session Handoff');
+  assert.deepEqual(prompt.tags, ['implementation', 'synthesis']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /handoff prompt I can paste at the start of a new session/);
+  assert.match(renderedPrompt, /instructions to act on rather than a status report about the work/);
+  assert.match(renderedPrompt, /how they will know it is done/);
+  assert.match(renderedPrompt, /shortest path to finishing well/);
+  assert.match(renderedPrompt, /rather than recapping the session or assigning material to re-read/);
+  assert.match(renderedPrompt, /only where the next agent will actually work or verify/);
+  assert.match(renderedPrompt, /review them with fresh eyes before building on them/);
+  assert.match(renderedPrompt, /context to check rather than conclusions to trust/);
+  assert.match(renderedPrompt, /Output only the handoff prompt/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 

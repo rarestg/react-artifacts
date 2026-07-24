@@ -312,7 +312,7 @@ Use the structure that best fits this work. Do not force a rigid template if ano
     id: 'goal-statement-writer',
     title: 'Goal Statement Writer',
     summary: 'Distill a plan or recent change discussion into a concise objective and done condition.',
-    tags: ['implementation', 'planning'],
+    tags: ['implementation', 'planning', 'synthesis'],
     context:
       'Use after a plan has been written or a change has been discussed, when you want a short goal statement for an autonomous coding session.',
     prompt: `Please distill the plan or change we just discussed into a concise goal statement for an autonomous coding session.
@@ -332,17 +332,19 @@ Return only the goal statement unless I ask for explanation.`,
   {
     id: 'fresh-session-handoff',
     title: 'Fresh Session Handoff',
-    summary: 'Prepare a concise handoff for continuing work in a new session.',
-    tags: ['implementation'],
+    summary: 'Produce a paste-ready handoff prompt that briefs a fresh agent to continue the work.',
+    tags: ['implementation', 'synthesis'],
     context:
       'Use before ending or transferring a work session, especially after meaningful exploration, debugging, design decisions, branch work, or environment setup.',
-    prompt: `Please write a fresh-session handoff for a future agent who will continue this work with no prior conversation context.
+    prompt: `Please write a handoff prompt I can paste at the start of a new session so a fresh agent can continue this work with no prior conversation context.
 
-Focus on the information that would materially shorten their ramp-up: the current goal and status, relevant files or modules, active branch or PR state, important decisions and why they were made, commands or setup details, verification already run, known risks, open questions, and the next sensible steps.
+Address it directly to that agent, as instructions to act on rather than a status report about the work: what we are trying to accomplish, where things stand, and what remains to finish, including how they will know it is done.
 
-Prioritize hard-won context over a chronological transcript. Include concrete paths, names, commands, URLs, and dates when useful. Distinguish confirmed facts from assumptions or recommendations.
+The next agent does not need everything you know; they need the shortest path to finishing well. Include the decisions, discoveries, and ruled-out paths that affect the remaining work, and the reasoning that prevents backtracking, rather than recapping the session or assigning material to re-read. Point to specific files, diffs, or commands only where the next agent will actually work or verify. Prefer exact paths, names, commands, and URLs over descriptions, and distinguish confirmed facts from assumptions.
 
-Keep it concise and scannable so it can be pasted at the start of a new session.`,
+If this session produced substantive changes, tell the next agent to review them with fresh eyes before building on them, treating those changes as context to check rather than conclusions to trust.
+
+Keep it concise and scannable. Output only the handoff prompt.`,
   },
   {
     id: 'reconstructed-brief',
@@ -365,7 +367,7 @@ Make it concise but sufficient for someone who has never seen this conversation.
     id: 'session-to-blog-article-polisher',
     title: 'Session-To-Blog Article Polisher',
     summary: 'Turn a finished work session into a polished blog article with staged review.',
-    tags: ['blog'],
+    tags: ['blog', 'subagents'],
     context:
       'Use at the end of a substantial work session when the conversation produced a useful lesson, resolved a tricky problem, or surfaced insight worth sharing as a down-to-earth blog article.',
     modifier: {
@@ -476,7 +478,7 @@ Return only the frontmatter block unless I ask for explanation.`,
     title: 'Founder Transcript Synthesis',
     summary:
       'Extract actionable founder-oriented insight from a video, talk, interview, podcast, or lecture transcript.',
-    tags: ['planning', 'synthesis'],
+    tags: ['synthesis'],
     context:
       'Use when you have a transcript from a video, talk, interview, podcast, or lecture and want concise strategic synthesis for a technically minded startup founder.',
     prompt: `Analyze the transcript I provide as source material from a video, talk, interview, podcast, or lecture.

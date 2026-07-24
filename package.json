@@ -20,7 +20,7 @@
     "typecheck": "wrangler types --check && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json",
     "typecheck:worker": "wrangler types --check && tsc --noEmit -p tsconfig.worker.json",
     "preview": "vite preview",
-    "deploy": "wrangler deploy"
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

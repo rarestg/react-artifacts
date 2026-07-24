@@ -1,6 +1,7 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { type ArtifactEntry, findArtifactById } from './artifacts';
 import StandaloneFallback from './StandaloneFallback';
+import { formatPageTitle, NOT_FOUND_TITLE } from './site';
 
 const StandaloneNotFound = ({ id }: { id: string }) => (
   <div className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -22,6 +23,11 @@ const StandaloneNotFound = ({ id }: { id: string }) => (
 
 export default function StandaloneRoot({ id }: { id: string }) {
   const artifact: ArtifactEntry | undefined = findArtifactById(id);
+
+  // Matches the worker-injected title for this route.
+  useEffect(() => {
+    document.title = artifact ? formatPageTitle(artifact.name) : NOT_FOUND_TITLE;
+  }, [artifact]);
 
   if (!artifact) {
     return <StandaloneNotFound id={id} />;

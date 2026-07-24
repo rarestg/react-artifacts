@@ -4,6 +4,7 @@ const meta = {
   kind: 'app',
   model: 'claude',
   version: 'opus 4.5',
+  noindex: true,
 } as const;
 
 export default meta;

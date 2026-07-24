@@ -14,6 +14,7 @@ import { type ArtifactEntry, artifacts } from './artifacts';
 import { ArtifactListItem } from './components/ArtifactListItem';
 import { mergeClassNames } from './lib/classNames';
 import { useCopyToClipboard } from './lib/useCopyToClipboard';
+import { formatPageTitle, HOME_TITLE } from './site';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
 type DeviceOrientation = 'portrait' | 'landscape';
@@ -61,6 +62,10 @@ export default function App() {
     const ids = artifacts.map((a) => a.id);
     return getArtifactIdFromUrl(ids) ?? artifacts[0]?.id;
   });
+  // The artifact the URL explicitly names (initial ?artifact=, clicks, popstate). Stays
+  // undefined on a bare "/" even though the app auto-selects a default artifact, so the tab
+  // title keeps matching the worker-injected home metadata.
+  const [explicitArtifactId, setExplicitArtifactId] = useState(() => getArtifactIdFromUrl(artifacts.map((a) => a.id)));
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_SIDEBAR_WIDTH;
     let stored: string | null = null;
@@ -94,8 +99,14 @@ export default function App() {
   const dragCleanupRef = useRef<(() => void) | null>(null);
   const handleSelectArtifact = useCallback((id: string) => {
     setSelected(id);
+    setExplicitArtifactId(id);
     updateArtifactUrl(id, 'push');
   }, []);
+
+  useEffect(() => {
+    const entry = explicitArtifactId ? artifacts.find((a) => a.id === explicitArtifactId) : undefined;
+    document.title = entry ? formatPageTitle(entry.name) : HOME_TITLE;
+  }, [explicitArtifactId]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -141,8 +152,9 @@ export default function App() {
     if (typeof window === 'undefined') return;
     const ids = artifacts.map((a) => a.id);
     const handlePopState = () => {
-      const idFromUrl = getArtifactIdFromUrl(ids) ?? artifacts[0]?.id;
-      setSelected(idFromUrl);
+      const idFromUrl = getArtifactIdFromUrl(ids);
+      setExplicitArtifactId(idFromUrl);
+      setSelected(idFromUrl ?? artifacts[0]?.id);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);

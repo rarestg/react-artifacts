@@ -83,7 +83,7 @@ export { default } from './App';
 - `src/artifacts/example/` — minimal single-file artifact: `ArtifactThemeRoot`, tokens, shared primitives, `meta.ts`.
 - `src/artifacts/example-app/` — fuller multi-file app: `App.tsx`, a `components/` folder, layout primitives, recipes.
 
-**Metadata (optional).** A `meta.ts` controls the sidebar label:
+**Metadata (optional).** A `meta.ts` controls the sidebar label and the page's search metadata:
 
 ```ts
 const meta = {
@@ -92,10 +92,13 @@ const meta = {
   kind: 'single', // or 'app'
   model: 'model-name', // optional
   version: 'model-version', // optional
+  noindex: true, // optional: exclude from the sitemap and add a robots noindex tag
 } as const;
 
 export default meta;
 ```
+
+**Manifest registration.** Every artifact folder must also be listed in `src/artifactManifest.ts` (one import + one entry). The Worker uses it for per-page meta tags and the sitemap — it cannot use `import.meta.glob` — and `tests/app/artifactManifest.test.ts` fails when the list drifts from the folders on disk.
 
 **Device preview is not a viewport.** The sidebar's device preview (iPhone/iPad, portrait/landscape) renders the artifact inside a fixed-size container, so Tailwind `sm:`/`md:`/`lg:` breakpoints still follow the browser window, not the preview size. For artifacts meant to match the preview, use container-driven responsiveness (container queries, or `useContainerWidth` from `src/lib/`). Reserve viewport breakpoints for full-page prototypes tracked against the real browser window (or DevTools device emulation).
 
@@ -199,7 +202,7 @@ node scripts/screenshot.mjs [--url http://localhost:5173/artifact/sharp2] [--out
 
 ## Cloudflare Workers Deployment
 
-Deployed as a Cloudflare Worker with static assets + SPA routing. Configuration lives in `wrangler.jsonc`; the Worker entry is `worker/index.ts` (handles `/api/*`). Deploy with `npm run deploy`.
+Deployed as a Cloudflare Worker with static assets + SPA routing. Configuration lives in `wrangler.jsonc`; the Worker entry is `worker/index.ts` (handles `/api/*`, injects per-page meta tags into the SPA HTML for `/` and `/artifact/*`, and serves `/sitemap.xml` + `/robots.txt`). Deploy with `npm run deploy` (builds first — `wrangler deploy` reads the Vite-generated config in `dist/`).
 
 Worker TypeScript uses Wrangler-generated types:
 

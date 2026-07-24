@@ -1,14 +1,7 @@
 import { type ComponentType, lazy } from 'react';
 
+import type { ArtifactMeta } from './artifactManifest';
 import { sortArtifactsForSidebar } from './artifactOrdering';
-
-export type ArtifactMeta = {
-  name?: string;
-  subtitle?: string;
-  kind?: 'single' | 'app';
-  model?: string;
-  version?: string;
-};
 
 const modules = import.meta.glob<{ default: ComponentType }>('./artifacts/*/index.tsx');
 const metaModules = import.meta.glob<{ default: ArtifactMeta }>('./artifacts/*/meta.ts', { eager: true });

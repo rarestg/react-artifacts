@@ -14,6 +14,7 @@ import { type ArtifactEntry, artifacts } from './artifacts';
 import { ArtifactListItem } from './components/ArtifactListItem';
 import { mergeClassNames } from './lib/classNames';
 import { useCopyToClipboard } from './lib/useCopyToClipboard';
+import { formatPageTitle, SITE_TITLE } from './site';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
 type DeviceOrientation = 'portrait' | 'landscape';
@@ -96,6 +97,16 @@ export default function App() {
     setSelected(id);
     updateArtifactUrl(id, 'push');
   }, []);
+
+  // Derive the tab title from the URL, not `selected`: on a bare "/" the app auto-selects a
+  // default artifact (and a later effect appends ?artifact=), but the page should keep the site
+  // title to match the worker-injected metadata. Declared before the URL-sync effect below so
+  // the initial run still observes the bare URL.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlId = getArtifactIdFromUrl(artifacts.map((a) => a.id));
+    document.title = urlId && current?.id === urlId ? formatPageTitle(current.name) : SITE_TITLE;
+  }, [current]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

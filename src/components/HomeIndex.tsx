@@ -1,5 +1,5 @@
 import { getArtifactSidebarGroupIndex } from '../artifactOrdering';
-import { SITE_TITLE } from '../site';
+import { SITE_EXPLAINER, SITE_TITLE } from '../site';
 import { IndexEntry, type IndexEntryArtifact } from './IndexEntry';
 
 type HomeIndexProps = {
@@ -18,10 +18,7 @@ export function HomeIndex({ artifacts, onSelectArtifact }: HomeIndexProps) {
           Index · {tools.length} tools
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-gray-900 dark:text-slate-100">{SITE_TITLE}</h1>
-        <p className="mt-4 max-w-[62ch] text-sm leading-relaxed text-gray-600 dark:text-slate-400">
-          Small, single-purpose web tools — unescape a message, inspect a JSONL file, generate a color palette, and a
-          few more. Each was built with an AI model; the note beside it says which. Pick one to open it.
-        </p>
+        <p className="mt-4 max-w-[62ch] text-sm leading-relaxed text-gray-600 dark:text-slate-400">{SITE_EXPLAINER}</p>
       </header>
       <ul className="mt-12 divide-y divide-gray-200 dark:divide-slate-800">
         {tools.map((artifact) => (

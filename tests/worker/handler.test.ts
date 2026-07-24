@@ -106,13 +106,31 @@ test('unknown artifact ids get the SPA HTML with a 404 and a noindex tag', async
   assert.ok(html.includes('<title>Artifact not found · tools.rares.blog</title>'));
 });
 
-test('example artifacts are served with a robots noindex tag', async () => {
+test('example artifacts are served with robots noindex as both meta tag and header', async () => {
   const { env } = createEnv();
   const response = await dispatch(new Request('https://tools.rares.blog/artifact/example'), env);
 
   assert.equal(response.status, 200);
+  assert.equal(response.headers.get('X-Robots-Tag'), 'noindex');
   const html = await response.text();
   assert.ok(html.includes('<meta name="robots" content="noindex" />'));
+});
+
+test('indexable pages carry no X-Robots-Tag header', async () => {
+  const { env } = createEnv();
+  const response = await dispatch(new Request('https://tools.rares.blog/artifact/message-unescaper'), env);
+
+  assert.equal(response.headers.get('X-Robots-Tag'), null);
+});
+
+test('a failing asset fetch is passed through instead of being masked with a page status', async () => {
+  const env = {
+    ASSETS: { fetch: async () => new Response('asset layer broke', { status: 500 }) },
+  } as unknown as WorkerEnv;
+  const response = await dispatch(new Request('https://tools.rares.blog/artifact/message-unescaper'), env);
+
+  assert.equal(response.status, 500);
+  assert.equal(await response.text(), 'asset layer broke');
 });
 
 test('GET /sitemap.xml lists indexable artifacts and excludes noindexed examples', async () => {

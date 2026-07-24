@@ -24,8 +24,7 @@ const StandaloneNotFound = ({ id }: { id: string }) => (
 export default function StandaloneRoot({ id }: { id: string }) {
   const artifact: ArtifactEntry | undefined = findArtifactById(id);
 
-  // Matches the worker-injected title; artifacts that set their own title still win because
-  // their effects run after this one mounts them.
+  // Matches the worker-injected title for this route.
   useEffect(() => {
     document.title = artifact ? formatPageTitle(artifact.name) : NOT_FOUND_TITLE;
   }, [artifact]);

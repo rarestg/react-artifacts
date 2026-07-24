@@ -28,16 +28,21 @@ export default {
         // Fetch the SPA shell with a fresh, header-free GET: forwarding the incoming request's
         // conditional/range headers could yield a 304 or partial body, which cannot be injected.
         const assetResponse = await env.ASSETS.fetch(new Request(new URL('/', url)));
+        if (!assetResponse.ok) return assetResponse;
         const html = await assetResponse.text();
         let body: string;
         try {
           body = injectMeta(html, page);
-        } catch {
-          // Marker drift in the built HTML: serve the SPA untouched instead of failing the page.
-          // tests/worker/seo.test.ts guards the markers in the source index.html.
+        } catch (error) {
+          // Marker drift in the built HTML: log and serve the SPA untouched instead of failing
+          // the page. tests/worker/seo.test.ts guards the markers in the source index.html.
+          console.error('SEO metadata injection failed', error);
           body = html;
         }
-        return textResponse(body, 'text/html; charset=utf-8', request.method, page.status);
+        const headers: Record<string, string> = { 'Content-Type': 'text/html; charset=utf-8' };
+        // Header form survives the injection fallback, so noindex pages can never lose the tag.
+        if (page.noindex) headers['X-Robots-Tag'] = 'noindex';
+        return new Response(request.method === 'HEAD' ? null : body, { status: page.status, headers });
       }
     }
 

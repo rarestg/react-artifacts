@@ -1,6 +1,6 @@
 # React Artifacts
 
-A local viewer for developing and refining React artifacts. Drop a folder into `src/artifacts/` with an `index.tsx` component and it appears in the sidebar automatically — no registry or config needed. Deployed as a Cloudflare Worker.
+A local viewer for developing and refining React artifacts. Drop a folder into `src/artifacts/` with an `index.tsx` component and it appears in the sidebar automatically; a one-line entry in `src/artifactManifest.ts` registers it for search metadata. Deployed as a Cloudflare Worker.
 
 ## Stack
 
@@ -76,7 +76,7 @@ export { default } from './App';
 ```
 
 - Per-artifact `index.html` files are not used by this shell.
-- If you need titles/body classes, set them inside the component with `useEffect`.
+- If you need body classes, set them inside the component with `useEffect`. Page titles come from `meta.ts` — the shell and Worker set them per route.
 
 **Copy-targets.** Start from the examples instead of a blank folder:
 
@@ -98,7 +98,7 @@ const meta = {
 export default meta;
 ```
 
-**Manifest registration.** Every artifact folder must also be listed in `src/artifactManifest.ts` (one import + one entry). The Worker uses it for per-page meta tags and the sitemap — it cannot use `import.meta.glob` — and `tests/app/artifactManifest.test.ts` fails when the list drifts from the folders on disk.
+**Manifest registration.** Every artifact folder must also be listed in `src/artifactManifest.ts` — an entry plus a `meta.ts` import when the artifact has one; metadata-less artifacts need only `{ id: 'folder-name' }`. The Worker uses it for per-page meta tags and the sitemap — it cannot use `import.meta.glob` — and `tests/app/artifactManifest.test.ts` fails when the list drifts from the folders on disk.
 
 **Device preview is not a viewport.** The sidebar's device preview (iPhone/iPad, portrait/landscape) renders the artifact inside a fixed-size container, so Tailwind `sm:`/`md:`/`lg:` breakpoints still follow the browser window, not the preview size. For artifacts meant to match the preview, use container-driven responsiveness (container queries, or `useContainerWidth` from `src/lib/`). Reserve viewport breakpoints for full-page prototypes tracked against the real browser window (or DevTools device emulation).
 

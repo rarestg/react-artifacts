@@ -13,9 +13,11 @@ type IndexEntryProps = {
    * Omit to keep native navigation (mobile index).
    */
   onSelect?: (id: string) => void;
+  /** Digit that jumps to this entry from the keyboard; renders the kbd chip. Omit on mobile. */
+  jumpKey?: string;
 };
 
-export function IndexEntry({ artifact, onSelect }: IndexEntryProps) {
+export function IndexEntry({ artifact, onSelect, jumpKey }: IndexEntryProps) {
   const byline = [artifact.kind, artifact.model, artifact.version].filter(Boolean).join(' · ');
 
   const handleClick = onSelect
@@ -33,11 +35,24 @@ export function IndexEntry({ artifact, onSelect }: IndexEntryProps) {
       <a
         href={getStandaloneArtifactUrl(artifact.id)}
         onClick={handleClick}
+        aria-keyshortcuts={jumpKey}
         className="group block py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white active:bg-gray-50 dark:focus-visible:ring-offset-slate-950 dark:active:bg-slate-900"
       >
         <div className="@xl:grid @xl:grid-cols-[minmax(0,1fr)_auto] @xl:items-baseline @xl:gap-x-6">
-          <span className="block text-[17px] font-medium tracking-tight text-gray-900 decoration-gray-300 underline-offset-4 group-hover:underline @xl:col-start-1 @xl:row-start-1 dark:text-slate-100 dark:decoration-slate-600">
-            {artifact.name}
+          <span className="block text-[17px] font-medium tracking-tight text-gray-900 @xl:col-start-1 @xl:row-start-1 dark:text-slate-100">
+            {jumpKey && (
+              // biome-ignore lint/a11y/noAriaHiddenOnFocusable: <kbd> is not focusable; the chip is decorative and the shortcut is exposed via aria-keyshortcuts on the link.
+              <kbd
+                aria-hidden="true"
+                className="mr-2.5 inline-flex h-5 min-w-5 -translate-y-0.5 items-center justify-center border border-gray-300 bg-gray-50 px-1 font-mono text-[10px] font-semibold leading-none text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
+              >
+                {jumpKey}
+              </kbd>
+            )}
+            {/* Inner span keeps the hover underline off the chip. */}
+            <span className="decoration-gray-300 underline-offset-4 group-hover:underline dark:decoration-slate-600">
+              {artifact.name}
+            </span>
           </span>
           {artifact.subtitle && (
             <p className="mt-1 max-w-[62ch] text-[13px] leading-relaxed text-gray-600 @xl:col-start-1 @xl:row-start-2 dark:text-slate-400">

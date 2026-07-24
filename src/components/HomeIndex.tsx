@@ -1,6 +1,11 @@
+import { useEffect, useMemo } from 'react';
+
 import { getArtifactSidebarGroupIndex } from '../artifactOrdering';
+import { isEditableEventTarget } from '../lib/isEditableEventTarget';
 import { SITE_EXPLAINER, SITE_TITLE } from '../site';
 import { IndexEntry, type IndexEntryArtifact } from './IndexEntry';
+
+const MAX_JUMP_KEYS = 6;
 
 type HomeIndexProps = {
   artifacts: readonly IndexEntryArtifact[];
@@ -8,8 +13,29 @@ type HomeIndexProps = {
 };
 
 export function HomeIndex({ artifacts, onSelectArtifact }: HomeIndexProps) {
-  const tools = artifacts.filter((artifact) => getArtifactSidebarGroupIndex(artifact.id) !== 2);
+  const tools = useMemo(
+    () => artifacts.filter((artifact) => getArtifactSidebarGroupIndex(artifact.id) !== 2),
+    [artifacts],
+  );
   const examples = artifacts.filter((artifact) => getArtifactSidebarGroupIndex(artifact.id) === 2);
+
+  // Jump keys live here so the shortcut exists exactly while the home index is on screen.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat || event.isComposing) return;
+      // Shift is allowed: some keyboard layouts produce digits with it.
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isEditableEventTarget(event.target)) return;
+      const index = Number(event.key) - 1;
+      if (!Number.isInteger(index) || index < 0 || index >= MAX_JUMP_KEYS) return;
+      const artifact = tools[index];
+      if (!artifact) return;
+      event.preventDefault();
+      onSelectArtifact(artifact.id);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [tools, onSelectArtifact]);
 
   return (
     <div className="mx-auto max-w-3xl px-8 py-16 md:px-12">
@@ -21,8 +47,13 @@ export function HomeIndex({ artifacts, onSelectArtifact }: HomeIndexProps) {
         <p className="mt-4 max-w-[62ch] text-sm leading-relaxed text-gray-600 dark:text-slate-400">{SITE_EXPLAINER}</p>
       </header>
       <ul className="mt-12 divide-y divide-gray-200 dark:divide-slate-800">
-        {tools.map((artifact) => (
-          <IndexEntry key={artifact.id} artifact={artifact} onSelect={onSelectArtifact} />
+        {tools.map((artifact, index) => (
+          <IndexEntry
+            key={artifact.id}
+            artifact={artifact}
+            onSelect={onSelectArtifact}
+            jumpKey={index < MAX_JUMP_KEYS ? String(index + 1) : undefined}
+          />
         ))}
       </ul>
       {examples.length > 0 && (

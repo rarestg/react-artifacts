@@ -87,24 +87,25 @@ export function MobileDisclaimer({ onDone }: MobileDisclaimerProps) {
         phase === 'skipping' && 'opacity-0 motion-safe:duration-200 motion-safe:ease-in',
       )}
     >
+      {/* Buttons allow only phrasing content, so the copy is block-styled spans, not <p>. */}
       <button
         type="button"
         onClick={skip}
-        className="flex h-full w-full flex-col items-center justify-center px-6 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-600"
+        className="flex h-full w-full cursor-pointer flex-col items-center justify-center px-6 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-600"
       >
-        <p className="max-w-[26ch] text-lg font-medium tracking-tight text-neutral-100">
+        <span className="block max-w-[26ch] text-lg font-medium tracking-tight text-neutral-100">
           The tools that follow were designed for larger screens.
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-neutral-400">They will still run on this one.</p>
-        <p
+        </span>
+        <span className="mt-3 block text-sm leading-relaxed text-neutral-400">They will still run on this one.</span>
+        <span
           className={mergeClassNames(
-            'mt-10 font-mono text-[11px] uppercase tracking-[0.12em] text-neutral-500',
+            'mt-10 block font-mono text-[11px] uppercase tracking-[0.12em] text-neutral-500',
             'motion-safe:transition-opacity motion-safe:duration-500 motion-safe:delay-[600ms]',
             phase === 'enter' ? 'opacity-0' : 'opacity-100',
           )}
         >
           Tap to continue
-        </p>
+        </span>
       </button>
     </output>
   );

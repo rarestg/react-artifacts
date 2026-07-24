@@ -85,6 +85,19 @@ test('useIsMobile reads the 768px query synchronously and follows change events'
       root.unmount();
     });
     assert.equal(listeners.size, 0, 'unmount removes the change listener');
+
+    // Mounting while the query already matches must read true synchronously — no
+    // desktop-first flash on phones.
+    const mobileFirstContainer = window.document.createElement('div');
+    window.document.body.append(mobileFirstContainer);
+    const mobileFirstRoot = createRoot(mobileFirstContainer);
+    await act(async () => {
+      mobileFirstRoot.render(createElement(Probe));
+    });
+    assert.equal(mobileFirstContainer.textContent, 'true', 'initially-matching mount reads true');
+    await act(async () => {
+      mobileFirstRoot.unmount();
+    });
   } finally {
     globalThis.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
     for (const [key, descriptor] of previousGlobals) {

@@ -20,6 +20,7 @@ import { mergeClassNames } from './lib/classNames';
 import { useMobileDisclaimerGate } from './lib/mobileDisclaimerGate';
 import { useCopyToClipboard } from './lib/useCopyToClipboard';
 import { useIsMobile } from './lib/useIsMobile';
+import { useLocationSearch } from './lib/useLocationSearch';
 import { formatPageTitle, HOME_TITLE, SITE_TITLE } from './site';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
@@ -713,11 +714,15 @@ function Workbench() {
 
 function MobileHome() {
   const [showDisclaimer, dismissDisclaimer] = useMobileDisclaimerGate();
+  const search = useLocationSearch();
 
   // Workbench never mounts on phones, so its URL-sync effect can't drop a bogus ?artifact=.
+  // Re-runs on history navigation (App redirects valid ids away before this can see them).
   useEffect(() => {
-    clearUnknownArtifactParam();
-  }, []);
+    if (new URLSearchParams(search).has('artifact')) {
+      updateArtifactUrl(undefined, 'replace');
+    }
+  }, [search]);
 
   return (
     <>
@@ -729,12 +734,14 @@ function MobileHome() {
 
 // The switch: phones get the full-screen index (no workbench hooks run there), and a valid
 // mobile deep link hard-navigates to the standalone page instead of mounting either tree.
-// main.tsx already handles the initial-load redirect; this guard covers viewport crossings.
+// main.tsx already handles the initial-load redirect; this guard covers viewport crossings
+// and, because search is popstate-reactive, Back/Forward on mobile too.
 export default function App() {
   const isMobile = useIsMobile();
+  const search = useLocationSearch();
   const redirectUrl = isMobile
     ? getMobileArtifactRedirectUrl(
-        window.location.search,
+        search,
         artifacts.map((a) => a.id),
       )
     : undefined;

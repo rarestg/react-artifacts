@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'tools:mobile-disclaimer:v1';
+export const MOBILE_DISCLAIMER_STORAGE_KEY = 'tools:mobile-disclaimer:v1';
+
+// index.html pre-paints <html> this color before React loads when this session's notice
+// will show (see the inline boot script there; tests/app/mobileBootPaint.test.ts pins its
+// literals to these constants).
+export const MOBILE_BOOT_PAINT_COLOR = '#0a0a0a';
+
+export const clearMobileBootPaint = (): void => {
+  if (typeof document === 'undefined') return;
+  document.documentElement.style.backgroundColor = '';
+};
 
 type GateStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
@@ -18,7 +28,7 @@ const getSessionStorage = (): GateStorage | undefined => {
 export const hasSeenMobileDisclaimer = (storage: GateStorage | undefined = getSessionStorage()): boolean => {
   if (!storage) return true;
   try {
-    return storage.getItem(STORAGE_KEY) !== null;
+    return storage.getItem(MOBILE_DISCLAIMER_STORAGE_KEY) !== null;
   } catch {
     return true;
   }
@@ -27,7 +37,7 @@ export const hasSeenMobileDisclaimer = (storage: GateStorage | undefined = getSe
 export const markMobileDisclaimerSeen = (storage: GateStorage | undefined = getSessionStorage()): void => {
   if (!storage) return;
   try {
-    storage.setItem(STORAGE_KEY, '1');
+    storage.setItem(MOBILE_DISCLAIMER_STORAGE_KEY, '1');
   } catch {
     // ignore storage failures
   }
@@ -39,6 +49,18 @@ export function useMobileDisclaimerGate(): [boolean, () => void] {
   const [show, setShow] = useState(() => !hasSeenMobileDisclaimer());
   useEffect(() => {
     if (show) markMobileDisclaimerSeen();
+  }, [show]);
+  // While the notice is up, own the boot paint index.html may have applied (re-applying
+  // makes this StrictMode-safe: the dev double-invoke's cleanup would otherwise strip it
+  // mid-notice). Every exit — gate closed on mount, dismiss, abnormal unmount — clears it
+  // so light mode never overscrolls black afterwards.
+  useEffect(() => {
+    if (!show) {
+      clearMobileBootPaint();
+      return;
+    }
+    document.documentElement.style.backgroundColor = MOBILE_BOOT_PAINT_COLOR;
+    return clearMobileBootPaint;
   }, [show]);
   const dismiss = useCallback(() => setShow(false), []);
   return [show, dismiss];

@@ -560,6 +560,18 @@ test('getMatchedPromptSearchVariant maps non-default prompt matches to modifier 
   assert.match(variant?.text ?? '', /proposed paths/i);
 });
 
+test('getMatchedPromptSearchVariant maps residual risk matches to the residual risks option', () => {
+  const query = 'residual risks';
+  const [result] = searchPrompts(prompts, query);
+
+  assert.equal(result?.prompt.id, 'proposal-review-subagent');
+
+  const variant = getMatchedPromptSearchVariant(result, query);
+
+  assert.equal(variant?.optionId, 'residual-risks');
+  assert.match(variant?.text ?? '', /residual risks identified in the current work/i);
+});
+
 test('getMatchedPromptSearchVariant maps general article matches to the article modifier option', () => {
   const query = 'broad life lessons';
   const [result] = searchPrompts(prompts, query);

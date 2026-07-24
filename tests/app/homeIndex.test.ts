@@ -75,6 +75,38 @@ test('home index renders the wordmark, explainer, and blog footer link', () => {
   assert.match(html, /href="https:\/\/rares\.blog"/);
 });
 
+test('home index prefixes tool titles with jump-key chips and aria-keyshortcuts', () => {
+  const html = render();
+
+  assert.match(html, /<a href="\/artifact\/message-unescaper" aria-keyshortcuts="1"/);
+  assert.match(html, /<a href="\/artifact\/palette-lab" aria-keyshortcuts="2"/);
+  assert.match(html, /<kbd aria-hidden="true"[^>]*>1<\/kbd>/);
+  assert.match(html, /<kbd aria-hidden="true"[^>]*>2<\/kbd>/);
+  assert.ok(html.indexOf('>1</kbd>') < html.indexOf('Message Unescaper'), 'chip leads the title');
+});
+
+test('home index gives examples no jump keys and stops handing out keys after six tools', () => {
+  const manyTools: IndexEntryArtifact[] = Array.from({ length: 7 }, (_, index) => ({
+    id: `tool-${index + 1}`,
+    name: `Tool ${index + 1}`,
+    subtitle: undefined,
+    kind: 'single',
+    model: undefined,
+    version: undefined,
+  }));
+  const html = renderToStaticMarkup(
+    React.createElement(HomeIndex, {
+      artifacts: [...manyTools, ...fixtures.slice(2)],
+      onSelectArtifact: () => undefined,
+    }),
+  );
+
+  assert.match(html, /<a href="\/artifact\/tool-6" aria-keyshortcuts="6"/);
+  assert.doesNotMatch(html, /<a href="\/artifact\/tool-7" aria-keyshortcuts=/);
+  assert.doesNotMatch(html, /<kbd aria-hidden="true"[^>]*>7<\/kbd>/);
+  assert.doesNotMatch(html, /<a href="\/artifact\/example[^"]*" aria-keyshortcuts=/);
+});
+
 test('index entries join present metadata and omit missing fields cleanly', () => {
   const html = render();
 

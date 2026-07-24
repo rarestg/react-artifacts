@@ -55,6 +55,13 @@ test('mobile index excludes the examples group entirely', () => {
   assert.doesNotMatch(html, /Examples/);
 });
 
+test('mobile index renders no jump-key chips or shortcut attributes', () => {
+  const html = render();
+
+  assert.doesNotMatch(html, /<kbd/);
+  assert.doesNotMatch(html, /aria-keyshortcuts/);
+});
+
 test('mobile index overline counts only the non-example tools', () => {
   const html = render();
 

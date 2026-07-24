@@ -7,6 +7,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -17,7 +18,7 @@ import { MobileDisclaimer } from './components/MobileDisclaimer';
 import { MobileIndex } from './components/MobileIndex';
 import { getMobileArtifactRedirectUrl } from './lib/artifactUrl';
 import { mergeClassNames } from './lib/classNames';
-import { useMobileDisclaimerGate } from './lib/mobileDisclaimerGate';
+import { clearMobileBootPaint, useMobileDisclaimerGate } from './lib/mobileDisclaimerGate';
 import { useCopyToClipboard } from './lib/useCopyToClipboard';
 import { useIsMobile } from './lib/useIsMobile';
 import { useLocationSearch } from './lib/useLocationSearch';
@@ -745,6 +746,13 @@ export default function App() {
         artifacts.map((a) => a.id),
       )
     : undefined;
+
+  // The boot script in index.html paints <html> black ahead of the mobile notice. If the
+  // viewport crossed to desktop between that script and this first snapshot, MobileHome
+  // (the paint's owner) never mounts to clear it — clear before the desktop tree paints.
+  useLayoutEffect(() => {
+    if (!isMobile) clearMobileBootPaint();
+  }, [isMobile]);
 
   useEffect(() => {
     if (redirectUrl) window.location.replace(redirectUrl);

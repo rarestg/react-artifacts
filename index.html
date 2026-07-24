@@ -16,6 +16,25 @@
           const stripped = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
           const isStandalone = /^\/artifact\/[^/]+\/?$/.test(stripped);
 
+          // First-visit mobile boots straight into the black session notice; pre-paint the
+          // page so the pre-React frames match instead of flashing white. Own try/catch:
+          // blocked storage means the notice never shows (treated as seen), so skip the
+          // paint but keep theming. React clears this via clearMobileBootPaint in
+          // src/lib/mobileDisclaimerGate.ts; tests/app/mobileBootPaint.test.ts pins the
+          // literals below to the TS constants.
+          try {
+            if (
+              !isStandalone &&
+              window.matchMedia('(max-width: 767.98px)').matches &&
+              !new URLSearchParams(window.location.search).has('artifact') &&
+              sessionStorage.getItem('tools:mobile-disclaimer:v1') === null
+            ) {
+              document.documentElement.style.backgroundColor = '#0a0a0a';
+            }
+          } catch {
+            // no-op
+          }
+
           const stored = localStorage.getItem('artifact-theme');
           const storedTheme =
             stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';

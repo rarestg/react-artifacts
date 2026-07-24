@@ -109,9 +109,13 @@ export default function App() {
   const handleHomeClick = (event: ReactMouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    if (selected === undefined) return;
+    if (selected === undefined) {
+      // Already home: normalize a noncanonical URL without stacking a history entry.
+      window.history.replaceState({}, '', '/');
+      return;
+    }
     setSelected(undefined);
-    updateArtifactUrl(undefined, 'push');
+    window.history.pushState({}, '', '/');
   };
 
   useEffect(() => {
@@ -408,7 +412,9 @@ export default function App() {
   const sizeCopyFailed = sizeCopyStatus === 'failed';
   const sizeCopyActive = sizeCopyStatus !== 'idle';
   const sizeCopyFeedback = sizeCopied ? 'Copied' : sizeCopyFailed ? 'Failed' : 'Copy';
-  const isDevicePreviewActive = devicePreview !== 'none';
+  // The stored preference survives visiting home, but no preview exists there: buttons
+  // render unpressed/disabled and <main> drops the preview layout until an artifact mounts.
+  const isDevicePreviewActive = devicePreview !== 'none' && current !== undefined;
   const activePreset = isDevicePreviewActive ? DEVICE_PRESETS[devicePreview] : null;
   const previewWidth = activePreset ? (deviceOrientation === 'portrait' ? activePreset.width : activePreset.height) : 0;
   const previewHeight = activePreset
@@ -507,13 +513,15 @@ export default function App() {
           <div className="grid w-full grid-cols-2 gap-1">
             <button
               type="button"
-              aria-pressed={devicePreview === 'iphone'}
+              aria-pressed={isDevicePreviewActive && devicePreview === 'iphone'}
               onClick={() => setDevicePreview((prev) => (prev === 'iphone' ? 'none' : 'iphone'))}
+              disabled={!current}
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
-                devicePreview === 'iphone'
+                isDevicePreviewActive && devicePreview === 'iphone'
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                !current && 'cursor-not-allowed opacity-50',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -523,13 +531,15 @@ export default function App() {
             </button>
             <button
               type="button"
-              aria-pressed={devicePreview === 'ipad'}
+              aria-pressed={isDevicePreviewActive && devicePreview === 'ipad'}
               onClick={() => setDevicePreview((prev) => (prev === 'ipad' ? 'none' : 'ipad'))}
+              disabled={!current}
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
-                devicePreview === 'ipad'
+                isDevicePreviewActive && devicePreview === 'ipad'
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                !current && 'cursor-not-allowed opacity-50',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -669,7 +679,7 @@ export default function App() {
           current
             ? 'p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]'
             : 'overflow-y-auto bg-white dark:bg-slate-950',
-          isDevicePreviewActive && current !== undefined && 'flex items-center justify-center',
+          isDevicePreviewActive && 'flex items-center justify-center',
         )}
       >
         {current ? (

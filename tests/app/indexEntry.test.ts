@@ -98,6 +98,14 @@ test('index entry intercepts only plain primary clicks and leaves the rest to th
     assert.deepEqual(selections, ['message-unescaper'], 'meta-click must not select in-workbench');
     assert.equal(lastClickPrevented, false, 'meta-click falls through to the native link');
 
+    await dispatchClick({ button: 0, shiftKey: true });
+    assert.deepEqual(selections, ['message-unescaper'], 'shift-click must not select in-workbench');
+    assert.equal(lastClickPrevented, false, 'shift-click falls through to the native link');
+
+    await dispatchClick({ button: 0, altKey: true });
+    assert.deepEqual(selections, ['message-unescaper'], 'alt-click must not select in-workbench');
+    assert.equal(lastClickPrevented, false, 'alt-click falls through to the native link');
+
     await dispatchClick({ button: 1 });
     assert.deepEqual(selections, ['message-unescaper'], 'middle click must not select in-workbench');
     assert.equal(lastClickPrevented, false, 'middle click falls through to the native link');

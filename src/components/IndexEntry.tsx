@@ -27,23 +27,25 @@ export function IndexEntry({ artifact, onSelect }: IndexEntryProps) {
     : undefined;
 
   return (
-    <li>
+    // @container: the row promotes the byline beside the name based on its own width (the
+    // resizable sidebar can squeeze <main> well below any viewport breakpoint).
+    <li className="@container">
       <a
         href={getStandaloneArtifactUrl(artifact.id)}
         onClick={handleClick}
         className="group block py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white active:bg-gray-50 dark:focus-visible:ring-offset-slate-950 dark:active:bg-slate-900"
       >
-        <div className="md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-baseline md:gap-x-6">
-          <span className="block text-[17px] font-medium tracking-tight text-gray-900 decoration-gray-300 underline-offset-4 group-hover:underline md:col-start-1 md:row-start-1 dark:text-slate-100 dark:decoration-slate-600">
+        <div className="@xl:grid @xl:grid-cols-[minmax(0,1fr)_auto] @xl:items-baseline @xl:gap-x-6">
+          <span className="block text-[17px] font-medium tracking-tight text-gray-900 decoration-gray-300 underline-offset-4 group-hover:underline @xl:col-start-1 @xl:row-start-1 dark:text-slate-100 dark:decoration-slate-600">
             {artifact.name}
           </span>
           {artifact.subtitle && (
-            <p className="mt-1 max-w-[62ch] text-[13px] leading-relaxed text-gray-600 md:col-start-1 md:row-start-2 dark:text-slate-400">
+            <p className="mt-1 max-w-[62ch] text-[13px] leading-relaxed text-gray-600 @xl:col-start-1 @xl:row-start-2 dark:text-slate-400">
               {artifact.subtitle}
             </p>
           )}
           {byline && (
-            <span className="mt-2 block font-mono text-[11px] uppercase tracking-[0.12em] text-gray-500 md:col-start-2 md:row-start-1 md:mt-0 dark:text-slate-400">
+            <span className="mt-2 block font-mono text-[11px] uppercase tracking-[0.12em] text-gray-500 @xl:col-start-2 @xl:row-start-1 @xl:mt-0 dark:text-slate-400">
               {byline}
             </span>
           )}

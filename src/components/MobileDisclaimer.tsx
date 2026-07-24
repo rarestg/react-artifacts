@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { mergeClassNames } from '../lib/classNames';
 
-// Spec timeline (motion-safe, opacity only): fade in 0→0.5s ease-out, hold to 2.0s, fade out
-// 2.0→2.6s ease-in, unmount; the hint fades in ~0.6s late. Tap anywhere or Escape skips with a
-// fast ~200ms fade. Reduced motion: instant show, ~1.4s hold, instant remove, still dismissable.
+// Spec timeline (motion-safe, opacity only): the scrim is solid black from the first painted
+// frame; the copy fades in 0→0.5s ease-out (hint ~0.6s late), holds to 2.0s, then the copy fades
+// out in 250ms while the scrim takes 600ms — the text is gone before the index underneath is
+// legible. Tap anywhere or Escape skips with a fast ~200ms fade of both. Reduced motion: instant
+// show, ~1.4s hold, instant remove, still dismissable.
 const HOLD_MS = 2000;
-const FADE_OUT_MS = 600;
+const FADE_OUT_MS = 600; // scrim; the copy exits in 250ms (see the leaving classes below)
 const SKIP_FADE_MS = 200;
 const REDUCED_HOLD_MS = 1400;
 
@@ -75,14 +77,14 @@ export function MobileDisclaimer({ onDone }: MobileDisclaimerProps) {
   }, [skip]);
 
   return (
-    // Committed dark in both themes: house lights down before the index appears. <output>
-    // carries the implicit status role (aria-live polite) the spec asks for.
+    // Committed dark in both themes. The index mounts beneath in the same commit, so the scrim is
+    // fully opaque from the first painted frame; only the copy fades. On exit the copy clears in
+    // 250ms while the scrim takes 600ms, so the text is gone before the index shows through.
+    // <output> carries the implicit status role (aria-live polite) the spec asks for.
     <output
       aria-live="polite"
       className={mergeClassNames(
-        'fixed inset-0 z-[100] block bg-[#0a0a0a] motion-safe:transition-opacity',
-        phase === 'enter' && 'opacity-0',
-        phase === 'shown' && 'opacity-100 motion-safe:duration-500 motion-safe:ease-out',
+        'fixed inset-0 z-[100] block bg-[#0a0a0a] opacity-100 motion-safe:transition-opacity',
         phase === 'leaving' && 'opacity-0 motion-safe:duration-[600ms] motion-safe:ease-in',
         phase === 'skipping' && 'opacity-0 motion-safe:duration-200 motion-safe:ease-in',
       )}
@@ -91,7 +93,14 @@ export function MobileDisclaimer({ onDone }: MobileDisclaimerProps) {
       <button
         type="button"
         onClick={skip}
-        className="flex h-full w-full cursor-pointer flex-col items-center justify-center px-6 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-600"
+        className={mergeClassNames(
+          'flex h-full w-full cursor-pointer flex-col items-center justify-center px-6 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-600',
+          'motion-safe:transition-opacity',
+          phase === 'enter' && 'opacity-0',
+          phase === 'shown' && 'opacity-100 motion-safe:duration-500 motion-safe:ease-out',
+          phase === 'leaving' && 'opacity-0 motion-safe:duration-[250ms] motion-safe:ease-in',
+          phase === 'skipping' && 'opacity-0 motion-safe:duration-200 motion-safe:ease-in',
+        )}
       >
         <span className="block max-w-[26ch] text-lg font-medium tracking-tight text-neutral-100">
           The tools that follow were designed for larger screens.

@@ -26,6 +26,7 @@ const globalKeys = [
 type Harness = {
   window: InstanceType<typeof Window>;
   overlay: () => Element;
+  copy: () => Element;
   clickOverlay: () => Promise<void>;
   pressEscape: () => Promise<void>;
   flushRaf: () => Promise<void>;
@@ -35,7 +36,8 @@ type Harness = {
 };
 
 // Mounts MobileDisclaimer with mocked setTimeout and a controllable rAF queue so the spec
-// timeline (0.5s in / 2.0s hold / 0.6s out, 200ms skip, 1.4s reduced hold) runs deterministically.
+// timeline (0.5s copy fade-in / exit at 2.0s as 0.6s scrim + 0.25s copy fades, 200ms skip,
+// 1.4s reduced hold) runs deterministically.
 async function withDisclaimer(
   t: TestContext,
   { reduceMotion }: { reduceMotion: boolean },
@@ -99,6 +101,13 @@ async function withDisclaimer(
     return element as unknown as Element;
   };
 
+  // The full-overlay <button> doubles as the copy wrapper: it fades while the scrim stays solid.
+  const copy = () => {
+    const element = window.document.querySelector('button');
+    assert.ok(element, 'expected the overlay button to render');
+    return element as unknown as Element;
+  };
+
   try {
     await act(async () => {
       root.render(createElement(MobileDisclaimer, { onDone: () => doneCount++ }));
@@ -107,6 +116,7 @@ async function withDisclaimer(
     await run({
       window,
       overlay,
+      copy,
       clickOverlay: async () => {
         const button = window.document.querySelector('button');
         assert.ok(button, 'expected the overlay button to render');
@@ -150,23 +160,28 @@ async function withDisclaimer(
   }
 }
 
-test('motion timeline: rAF flips into the fade, holds 2s, fades 600ms, calls onDone once', async (t) => {
+test('motion timeline: solid scrim from mount, copy fades in, exits at 2s, calls onDone once', async (t) => {
   await withDisclaimer(t, { reduceMotion: false }, async (h) => {
-    assert.match(h.overlay().className, /opacity-0/, 'mounts transparent before the rAF flip');
+    // The regression this pins: the scrim must never be transparent while entering.
+    assert.doesNotMatch(h.overlay().className, /opacity-0/, 'the scrim is opaque from the first frame');
+    assert.match(h.copy().className, /opacity-0/, 'only the copy mounts transparent');
     assert.match(h.overlay().textContent ?? '', /designed for larger screens/);
     assert.match(h.overlay().textContent ?? '', /They will still run on this one\./);
     assert.match(h.overlay().textContent ?? '', /Tap to continue/);
 
     await h.flushRaf();
-    assert.match(h.overlay().className, /opacity-100/, 'the mount rAF starts the fade-in');
+    assert.match(h.copy().className, /opacity-100/, 'the mount rAF starts the copy fade-in');
+    assert.doesNotMatch(h.overlay().className, /opacity-0/, 'the scrim stays opaque through the fade-in');
 
     await h.tick(1999);
-    assert.match(h.overlay().className, /opacity-100/, 'still holding just before 2s');
+    assert.match(h.copy().className, /opacity-100/, 'still shown just before 2s');
     assert.equal(h.doneCount(), 0);
 
     await h.tick(1);
-    assert.match(h.overlay().className, /opacity-0/, 'fade-out starts at the 2s mark');
+    assert.match(h.overlay().className, /opacity-0/, 'the scrim fade-out starts at the 2s mark');
     assert.match(h.overlay().className, /duration-\[600ms\]/);
+    assert.match(h.copy().className, /opacity-0/, 'the copy fades out with the scrim');
+    assert.match(h.copy().className, /duration-\[250ms\]/, 'the copy exits faster than the 600ms scrim');
     assert.equal(h.doneCount(), 0, 'not done until the fade-out ends');
 
     await h.tick(600);
@@ -182,7 +197,9 @@ test('tap before the mount rAF cancels the fade-in and skips fast', async (t) =>
   await withDisclaimer(t, { reduceMotion: false }, async (h) => {
     await h.clickOverlay();
     assert.match(h.overlay().className, /opacity-0/);
-    assert.match(h.overlay().className, /duration-200/, 'skip uses the fast fade');
+    assert.match(h.overlay().className, /duration-200/, 'skip fades the scrim fast');
+    assert.match(h.copy().className, /opacity-0/);
+    assert.match(h.copy().className, /duration-200/, 'skip fades the copy at the same speed');
     assert.equal(h.pendingRafCount(), 0, 'the pending mount rAF was cancelled');
 
     await h.flushRaf();
@@ -199,6 +216,8 @@ test('Escape skips with the fast fade', async (t) => {
     await h.pressEscape();
     assert.match(h.overlay().className, /opacity-0/);
     assert.match(h.overlay().className, /duration-200/);
+    assert.match(h.copy().className, /opacity-0/);
+    assert.match(h.copy().className, /duration-200/);
     await h.tick(200);
     assert.equal(h.doneCount(), 1);
   });
@@ -207,6 +226,7 @@ test('Escape skips with the fast fade', async (t) => {
 test('reduced motion: instant show, 1.4s hold, instant remove', async (t) => {
   await withDisclaimer(t, { reduceMotion: true }, async (h) => {
     assert.match(h.overlay().className, /opacity-100/, 'no fade-in under reduced motion');
+    assert.match(h.copy().className, /opacity-100/, 'the copy shows instantly under reduced motion');
     assert.equal(h.pendingRafCount(), 0, 'no rAF flip is scheduled');
 
     await h.tick(1399);

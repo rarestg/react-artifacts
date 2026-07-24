@@ -233,7 +233,7 @@ test('session-to-blog article prompt renders general article checks', () => {
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
-test('article frontmatter prompt derives strict New York metadata without editing the body', () => {
+test('article frontmatter prompt derives strict local-time metadata without editing the body', () => {
   const prompt = prompts.find((entry) => entry.id === 'article-frontmatter-generator');
 
   assert.ok(prompt);
@@ -244,23 +244,22 @@ test('article frontmatter prompt derives strict New York metadata without editin
 
   assert.match(renderedPrompt, /Return only YAML frontmatter/);
   assert.match(renderedPrompt, /leave the article text unchanged/);
-  assert.match(renderedPrompt, /America\/New_York/);
   assert.match(renderedPrompt, /±HH:MM/);
-  assert.match(renderedPrompt, /Verify the New York local time/);
+  assert.match(renderedPrompt, /reported by the system clock/);
+  assert.match(renderedPrompt, /IANA timezone name/);
   assert.match(renderedPrompt, /semantic_triples/);
   assert.match(renderedPrompt, /Base the metadata on the final article/);
   assert.match(renderedPrompt, /Use the article H1 or title/);
   assert.match(renderedPrompt, /explicit, article-supported claims/);
-  assert.match(renderedPrompt, /not a keyword pairing/);
-  assert.match(renderedPrompt, /Do not generalize a one-off observation into a class-level fact/);
-  assert.match(renderedPrompt, /one app, one session, one machine, or one configuration/);
-  assert.match(renderedPrompt, /the observed app process PATH/);
-  assert.match(renderedPrompt, /broader subjects only when the article itself explicitly establishes/);
+  assert.match(renderedPrompt, /not a keyword pairing, title restatement, summary fragment, or vague theme/);
+  assert.match(renderedPrompt, /do not generalize a one-off observation into a class-level fact/);
+  assert.match(renderedPrompt, /one app, one session, or one machine/);
   assert.match(renderedPrompt, /supported, non-obvious, reusable, and more informative than a tag/);
   assert.match(renderedPrompt, /Prefer 2-6 high-signal triples/);
   assert.match(renderedPrompt, /use \[\] when none are warranted/);
   assert.match(renderedPrompt, /Quote or escape YAML strings/);
   assert.match(renderedPrompt, /Return only the frontmatter block/);
+  assert.doesNotMatch(renderedPrompt, /New.York/);
   assert.doesNotMatch(renderedPrompt, /2-4 fresh subagents/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
@@ -315,6 +314,27 @@ After they report back, compare their assessment with yours. Synthesize the stro
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
+test('proposal review prompt renders residual risk modifier text', () => {
+  const prompt = prompts.find((entry) => entry.id === 'proposal-review-subagent');
+
+  assert.ok(prompt);
+  assert.deepEqual(prompt.tags, ['review', 'implementation', 'subagents', 'architecture', 'risk']);
+  assert.deepEqual(
+    prompt.modifier?.options.map((option) => option.id),
+    ['plan', 'proposal', 'multiple-proposals', 'residual-risks'],
+  );
+
+  const renderedPrompt = renderPromptText(prompt, 'residual-risks');
+
+  assert.match(renderedPrompt, /review the residual risks identified in the current work/);
+  assert.match(renderedPrompt, /the work's underlying goal and each risk in depth/);
+  assert.match(renderedPrompt, /the plausible fixes are context, not conclusions/);
+  assert.match(renderedPrompt, /whether each risk stems from a real constraint or an accidental one/);
+  assert.match(renderedPrompt, /"a couple of small de-risking changes are enough"/);
+  assert.match(renderedPrompt, /weighing the opportunity honestly against complexity, churn, and risk/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
 test('minimal code review team prompt defaults to all focused lenses', () => {
   const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
 
@@ -340,6 +360,7 @@ test('minimal code review team prompt defaults to all focused lenses', () => {
   assert.match(renderedPrompt, /Readability\/maintainability/);
   assert.match(renderedPrompt, /Small checks/);
   assert.match(renderedPrompt, /synthesize one ranked action list/);
+  assert.doesNotMatch(renderedPrompt, /hardware calibration/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
@@ -400,6 +421,59 @@ test('validatePrompts rejects unused number input tokens', () => {
   } as const satisfies PromptEntry;
 
   assert.throws(() => validatePrompts([invalidEntry], validTags), /number input token is not used/);
+});
+
+test('goal statement writer prompt uses a plain concision bar', () => {
+  const prompt = prompts.find((entry) => entry.id === 'goal-statement-writer');
+
+  assert.ok(prompt);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /a few short paragraphs at most/);
+  assert.doesNotMatch(renderedPrompt, /3000/);
+});
+
+test('stacked PR comment triage prompt stays portable and stack-aware', () => {
+  const prompt = prompts.find((entry) => entry.id === 'stacked-pr-comment-triage');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Stacked PR Comment Triage');
+  assert.deepEqual(prompt.tags, ['review', 'implementation']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /checkout pointed at the top of the stack/);
+  assert.match(renderedPrompt, /Triage bottom to top/);
+  assert.match(renderedPrompt, /potentially superseded by later changes/);
+  assert.match(renderedPrompt, /ask me instead of guessing/);
+  assert.match(renderedPrompt, /new branch created from the top branch/);
+  assert.match(renderedPrompt, /do not open an empty follow-up PR/);
+  assert.match(renderedPrompt, /already addressed, obsolete, declined, and fixed/);
+  assert.doesNotMatch(renderedPrompt, /SKILL\.md/);
+  assert.doesNotMatch(renderedPrompt, /review bundles/i);
+  assert.doesNotMatch(renderedPrompt, /reply queue/i);
+  assert.doesNotMatch(renderedPrompt, /mini-PM/i);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('reconstructed brief prompt rebuilds the request behind the latest answer', () => {
+  const prompt = prompts.find((entry) => entry.id === 'reconstructed-brief');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Reconstructed Brief');
+  assert.deepEqual(prompt.tags, ['synthesis']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /ideal request behind your immediately preceding response/);
+  assert.match(renderedPrompt, /pasted directly above that response when sharing it/);
+  assert.match(renderedPrompt, /Work backward from that response/);
+  assert.match(renderedPrompt, /message I would have sent if I had asked perfectly the first time/);
+  assert.match(renderedPrompt, /not a summary of the conversation/);
+  assert.match(renderedPrompt, /only known because of your answer/);
+  assert.match(renderedPrompt, /Output only the brief/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
 test('PM orchestrator mode prompt renders the default Codex reviewer modifier', () => {

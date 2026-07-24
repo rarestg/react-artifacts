@@ -111,7 +111,8 @@ export const promptTags = [
   {
     id: 'synthesis',
     label: 'Synthesis',
-    description: 'Prompts that compress source material into insights, implications, and actionable takeaways.',
+    description:
+      'Prompts that combine, reconstruct, or distill source material into coherent briefs, insights, or directions.',
     color: 'pink',
   },
   {
@@ -124,34 +125,17 @@ export const promptTags = [
 
 const promptTagColorIds = new Set<PromptTagColorId>(promptTagColorIdValues);
 
-const workflowTagIds = new Set<PromptTagId>(['review', 'implementation', 'planning', 'blog']);
+const workflowTagIds = new Set<PromptTagId>(['review', 'implementation', 'planning', 'blog', 'synthesis']);
 
 export const prompts = [
   {
-    id: 'risk-challenging-discovery',
-    title: 'Risk-Challenging Discovery',
-    summary: 'Dispatch a fresh subagent to challenge residual-risk assumptions.',
-    tags: ['review', 'subagents', 'risk'],
-    context:
-      'Use after an implementation or review signoff identifies residual risks and you want a fresh reviewer to test whether those risks can be reduced without unnecessary churn.',
-    prompt: `Please dispatch a fresh subagent to do a first-principles review of the residual risks you identified.
-
-Give them enough context to understand each risk deeply: where it lives, why it arose, what assumptions or constraints shaped the current implementation, and what fixes you currently think are plausible.
-Make clear that those fixes are context, not conclusions.
-
-Ask them to challenge the assumptions behind the risks and look for whether there is a cleaner way to eliminate or reduce them. They should distinguish real constraints from accidental ones, and consider both small targeted changes and larger design shifts.
-
-They should not manufacture work. "No changes necessary," "the current architecture is already the right fit," or "a couple of small de-risking changes are enough" are all valid answers if the evidence supports them. The point is to weigh the opportunity honestly against complexity, churn, and risk.
-
-After they report back, compare their findings with your own view and recommend the best path forward.`,
-  },
-  {
     id: 'proposal-review-subagent',
     title: 'Proposal Review Subagent',
-    summary: 'Ask a fresh subagent to review or validate a proposal or written plan before acting on it.',
-    tags: ['review', 'implementation', 'subagents', 'architecture'],
+    summary:
+      'Ask a fresh subagent to review or validate a proposal, written plan, or identified residual risks before acting.',
+    tags: ['review', 'implementation', 'subagents', 'architecture', 'risk'],
     context:
-      'Use after an agent proposes a solution, design, or implementation plan, especially before implementation or when design tradeoffs are subtle.',
+      'Use after an agent proposes a solution, design, or implementation plan, or identifies residual risks at signoff, especially before implementation or when design tradeoffs are subtle.',
     modifier: {
       label: 'Source type',
       defaultOptionId: 'plan',
@@ -204,6 +188,25 @@ After they report back, compare their findings with your own view and recommend 
               '"The proposals are solid," "some proposals should change," and "none of the proposals are needed"',
             synthesisInstruction:
               'compare their assessment with yours. Synthesize the strongest path forward, including combining, narrowing, changing, or rejecting proposals as warranted.',
+          },
+        },
+        {
+          id: 'residual-risks',
+          label: 'Residual risks',
+          replacements: {
+            reviewSubjectClause: 'the residual risks identified in the current work',
+            contextOverview:
+              "the work's underlying goal and each risk in depth: where it lives, why it arose, what assumptions or constraints shaped the current implementation, and what fixes currently seem plausible",
+            sourceInstruction:
+              'If the risks are written up somewhere, point them to it; otherwise summarize each risk clearly.',
+            contextRoleStatement: 'the plausible fixes are context, not conclusions',
+            soundnessQuestion:
+              'each risk stems from a real constraint or an accidental one, and whether it can be eliminated or reduced more cleanly',
+            changeOutcome: 'the risks are acceptable as they stand',
+            validOutcomeExamples:
+              '"No changes necessary," "the current architecture is already the right fit," and "a couple of small de-risking changes are enough"',
+            synthesisInstruction:
+              'compare their findings with your own view and recommend the best path forward, weighing the opportunity honestly against complexity, churn, and risk.',
           },
         },
       ],
@@ -271,7 +274,7 @@ After they report back, {{synthesisInstruction}}`,
 
 If I have not provided a script path, gist, pasted code, or clear target, ask me for that before spawning anyone.
 
-Shared goal for every subagent: make the code minimal, still correct, and still understandable. Prefer deletion, standard-library/native features, already-installed dependencies, fewer branches, fewer files, and simpler control flow. Do not sacrifice trust-boundary validation, data-loss handling, security, accessibility, hardware calibration, or behavior I explicitly asked to keep.
+Shared goal for every subagent: make the code minimal, still correct, and still understandable. Prefer deletion, standard-library/native features, already-installed dependencies, fewer branches, fewer files, and simpler control flow. Do not sacrifice trust-boundary validation, data-loss handling, security, accessibility, or behavior I explicitly asked to keep.
 
 Spawn one fresh subagent per enabled lens below. Give each subagent only the context needed for that lens, tell them they are reviewing only and must not edit files, and ask them to report uncertainty instead of guessing.
 
@@ -314,7 +317,7 @@ Use the structure that best fits this work. Do not force a rigid template if ano
       'Use after a plan has been written or a change has been discussed, when you want a short goal statement for an autonomous coding session.',
     prompt: `Please distill the plan or change we just discussed into a concise goal statement for an autonomous coding session.
 
-The goal statement must be brief: under 3000 characters, ideally much shorter. It should name one objective and one stopping condition: what we are trying to accomplish and how we know the work is done.
+The goal statement must be brief: a few short paragraphs at most, ideally shorter. It should name one objective and one stopping condition: what we are trying to accomplish and how we know the work is done.
 
 Use the current conversation, any referenced plan document or file path, and the plan's "What Done Looks Like" section if one exists. Do not restate the whole plan. Distill the real objective, what to read first, important context, constraints, non-goals, risks, and verification signals an agent would need to execute autonomously.
 
@@ -340,6 +343,23 @@ Focus on the information that would materially shorten their ramp-up: the curren
 Prioritize hard-won context over a chronological transcript. Include concrete paths, names, commands, URLs, and dates when useful. Distinguish confirmed facts from assumptions or recommendations.
 
 Keep it concise and scannable so it can be pasted at the start of a new session.`,
+  },
+  {
+    id: 'reconstructed-brief',
+    title: 'Reconstructed Brief',
+    summary: 'Reconstruct the precise request your latest answer addresses, as a standalone shareable brief.',
+    tags: ['synthesis'],
+    context:
+      "Use when you want to share an agent's answer with someone and need the paste-ready request it actually answers, reconstructed from the full conversation rather than your last scattered message.",
+    prompt: `Please reconstruct the ideal request behind your immediately preceding response: a standalone user message, in my voice, that can be pasted directly above that response when sharing it.
+
+Work backward from that response using the whole conversation. The message I sent immediately before that response may carry only a fragment of the real request; earlier messages may hold the background, constraints, decisions, and clarifications that shaped what you produced. Reconstruct the clearest, most precise request that response answers: not a copy of that message, and not a summary of the conversation.
+
+Write it as the message I would have sent if I had asked perfectly the first time. Include the context a reader needs: relevant background, artifacts, paths, constraints, and decisions, but only what was established before your response. Do not include anything that is only known because of your answer, do not fold your conclusions into the request, and do not invent missing context.
+
+Do not narrate the conversation, mention that my request was vague, include process chatter, or summarize the response itself.
+
+Make it concise but sufficient for someone who has never seen this conversation. Output only the brief.`,
   },
   {
     id: 'session-to-blog-article-polisher',
@@ -429,7 +449,7 @@ Use this exact shape:
 title: ""
 summary: ""
 published_at: "YYYY-MM-DDTHH:mm:ss±HH:MM"
-timezone: "America/New_York"
+timezone: ""
 tags: []
 keywords: []
 entities:
@@ -441,11 +461,11 @@ semantic_triples:
     object: ""
 ---
 
-Use the actual current date and local time in America/New_York for published_at, including the correct UTC offset for that date. Verify the New York local time with the system clock or available tooling when possible. Write the summary after reading the whole article. Choose tags, keywords, entities, and semantic triples from the finished piece, not from everything that happened around it.
+Use the current local date and time reported by the system clock for published_at, including the correct UTC offset for that date, and use the system's configured IANA timezone name for timezone. Write the summary after reading the whole article. Choose tags, keywords, entities, and semantic triples from the finished piece, not from everything that happened around it.
 
 Keep the summary specific and useful, not promotional. Use the article H1 or title unless it is clearly a placeholder. Prefer a small, high-signal tag and keyword set over an exhaustive list. Entities should be concrete people, products, technologies, organizations, projects, concepts, or documents that matter to the article.
 
-Semantic triples should capture only explicit, article-supported claims that would still be useful in a future knowledge graph. Each triple must express a real relationship, not a keyword pairing, title restatement, summary fragment, or vague theme. Use stable, specific subjects and objects, preferably entities or concrete concepts named in the article. Use predicates as concise relationship phrases such as "depends on", "causes", "contrasts with", "is used to", "was chosen over", or "creates risk for". Do not infer facts from outside the article, do not turn opinions into facts, and do not include triples whose only support is generic background knowledge. Do not generalize a one-off observation into a class-level fact. If the article only observed one app, one session, one machine, or one configuration, scope the subject and object to that case, such as "the observed app process PATH" or "this session's launchctl setenv result". Use broader subjects only when the article itself explicitly establishes the broader claim. Before emitting a triple, check that it is supported, non-obvious, reusable, and more informative than a tag. Prefer 2-6 high-signal triples. Fewer is better than noisy. If none pass that bar, use [].
+Semantic triples should capture only explicit, article-supported claims that would still be useful in a future knowledge graph. Each triple must express a real relationship, not a keyword pairing, title restatement, summary fragment, or vague theme. Use stable, specific subjects and objects, preferably entities or concrete concepts named in the article, with predicates as concise relationship phrases such as "depends on", "causes", "contrasts with", or "was chosen over". Do not infer facts from outside the article, do not turn opinions into facts, and do not generalize a one-off observation into a class-level fact. If the article only observed one app, one session, or one machine, scope the triple to that case. Before emitting a triple, check that it is supported, non-obvious, reusable, and more informative than a tag. Prefer 2-6 high-signal triples; fewer is better than noisy. If none pass that bar, use [].
 
 Do not include placeholder entities or triples; use [] when none are warranted. Quote or escape YAML strings as needed.
 
@@ -513,31 +533,28 @@ Then decide the next step:
 Return the result in the structure that best fits the work. Keep the report concise: explain which subagent approaches were used, what survived synthesis, what was rejected, and any remaining assumptions or decisions needed.`,
   },
   {
-    id: 'stacked-pr-review-orchestrator',
-    title: 'Stacked PR Review Orchestrator',
-    summary: 'Coordinate stacked PR review-comment triage, follow-up fixes, and durable replies.',
-    tags: ['review', 'implementation', 'planning', 'subagents'],
+    id: 'stacked-pr-comment-triage',
+    title: 'Stacked PR Comment Triage',
+    summary:
+      'Triage review comments across a PR stack against the current top of stack, landing fixes in a new PR above it.',
+    tags: ['review', 'implementation'],
     context:
-      'Use when a stack of dependent pull requests has accumulated review comments across multiple PRs, and fixes should land in a new PR above the current stack rather than by amending older reviewed branches.',
-    prompt: `Please dispatch a fresh subagent as the mini-PM for stacked PR review-comment cleanup.
+      'Use when a stack of dependent pull requests has accumulated review comments across multiple PRs, and fixes should land in a new PR on top of the stack rather than by amending older reviewed branches.',
+    prompt: `Please triage the review comments that have accumulated across this stack of dependent PRs, then land any fixes in a new PR on top of the stack.
 
-The mini-PM must first read the installed GitHub review workflow skill at ~/.agents/skills/github-review-workflow/SKILL.md and its referenced SOP, then use its export scripts and durable reply queue.
+Use the GitHub tooling available to you to identify the PRs in the stack, their order, and the top branch, and to collect the review comments from every PR. If you cannot determine the stack membership or its top branch reliably, ask me instead of guessing.
 
-Give the mini-PM the PR stack, current branch context, and top-of-stack branch if known. They own exporting review bundles for every PR, stack-aware triage, implementation coordination, follow-up PR creation, queued replies, review-file moves per SOP, and the final report.
+Work with the checkout pointed at the top of the stack so every comment is judged against the code as it exists now, not as it was when the comment was written.
 
-Triage bottom to top. Treat lower-PR comments as potentially superseded by later changes: each may already be addressed, now live in another file or branch, be obsolete, be intentionally declined, or still identify a real issue at the current location. Do not assume a comment remains valid just because it was proposed when written.
+Triage bottom to top. Treat lower-PR comments as potentially superseded by later changes: each one may already be addressed, apply to code that has since moved to another file or branch, be obsolete, be worth declining, or still identify a real issue at its current location. Do not assume a comment remains valid just because it was valid when written. For each comment, decide: already addressed, obsolete, decline with rationale, or fix.
 
-Fan out triage to additional subagents only when stack size or comment volume justifies the coordination cost. For each comment, decide: already addressed, obsolete, will not take with rationale, or will fix.
+For each comment worth fixing, implement the best fix against the current code, which is not necessarily the fix the comment originally suggested.
 
-For each still-valid comment, propose the best current-codebase fix. Before implementation, a fresh subagent must review the proposal with enough context to assess the original comment, current location, rationale, constraints, smaller alternatives, whether no change is justified, and relevant risks or tests.
+Do not amend, rebase, force-push, or otherwise rewrite older reviewed branches. All fixes land on a new branch created from the top branch, in a PR that uses the top branch as its base, scoped to review resolution. Run the relevant checks before opening it. If nothing needs fixing, do not open an empty follow-up PR.
 
-Create durable reply-queue drafts as decisions are made. Implement only accepted fixes. Do not amend, rebase, force-push, or otherwise update older reviewed PR branches. All code fixes must land on a new branch and PR stacked above the current highest PR. Keep changes scoped to review resolution.
+Once the follow-up PR exists, or triage ends with nothing to fix, reply to each original comment with its outcome, linking the follow-up PR for fixed comments.
 
-If implementation is delegated, avoid overlapping file edits, review diffs, run relevant checks, commit, push, and open the new top-of-stack PR according to the workflow.
-
-After the follow-up PR exists, use the workflow's reply queue to post replies to the original comments, referencing the new PR for fixed comments. Leave outside-diff or nitpick items local-only unless the SOP says otherwise.
-
-Return a concise report with the PR stack, comments reviewed, comments fixed, comments declined or obsolete, files changed, checks run, follow-up PR URL, and remaining risks.`,
+Return a concise report: comments already addressed, obsolete, declined, and fixed; files changed; checks run; and the follow-up PR URL or a note that none was needed.`,
   },
   {
     id: 'pm-orchestrator-mode',

@@ -3,6 +3,7 @@ import { Layers, Square, SquareArrowOutUpRight } from 'lucide-react';
 import React from 'react';
 
 import type { ArtifactEntry } from '../artifacts';
+import { getStandaloneArtifactUrl } from '../lib/artifactUrl';
 import { mergeClassNames } from '../lib/classNames';
 
 type ArtifactListItemArtifact = Pick<ArtifactEntry, 'id' | 'name' | 'subtitle' | 'kind' | 'model' | 'version'>;
@@ -11,12 +12,6 @@ type ArtifactListItemProps = {
   artifact: ArtifactListItemArtifact;
   selected: boolean;
   onSelect: (id: string) => void;
-};
-
-const getStandaloneUrl = (id: string) => {
-  const base = import.meta.env?.BASE_URL ?? '/';
-  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
-  return `${normalizedBase}artifact/${encodeURIComponent(id)}`;
 };
 
 export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListItemProps) {
@@ -86,7 +81,7 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
         button
       )}
       <a
-        href={getStandaloneUrl(artifact.id)}
+        href={getStandaloneArtifactUrl(artifact.id)}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`Open ${artifact.name} standalone`}

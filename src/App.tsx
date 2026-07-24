@@ -12,9 +12,10 @@ import {
 } from 'react';
 import { type ArtifactEntry, artifacts } from './artifacts';
 import { ArtifactListItem } from './components/ArtifactListItem';
+import { HomeIndex } from './components/HomeIndex';
 import { mergeClassNames } from './lib/classNames';
 import { useCopyToClipboard } from './lib/useCopyToClipboard';
-import { formatPageTitle, HOME_TITLE } from './site';
+import { formatPageTitle, HOME_TITLE, SITE_TITLE } from './site';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
 type DeviceOrientation = 'portrait' | 'landscape';
@@ -51,6 +52,15 @@ const updateArtifactUrl = (id: string | undefined, mode: 'push' | 'replace') => 
   window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url);
 };
 
+// Drop a leftover ?artifact= param that names no known artifact, so home never shows under
+// a URL that claims a tool.
+const clearUnknownArtifactParam = () => {
+  if (typeof window === 'undefined') return;
+  if (new URLSearchParams(window.location.search).has('artifact')) {
+    updateArtifactUrl(undefined, 'replace');
+  }
+};
+
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     if (typeof window === 'undefined') return 'light';
@@ -58,14 +68,8 @@ export default function App() {
     if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
     return 'system';
   });
-  const [selected, setSelected] = useState(() => {
-    const ids = artifacts.map((a) => a.id);
-    return getArtifactIdFromUrl(ids) ?? artifacts[0]?.id;
-  });
-  // The artifact the URL explicitly names (initial ?artifact=, clicks, popstate). Stays
-  // undefined on a bare "/" even though the app auto-selects a default artifact, so the tab
-  // title keeps matching the worker-injected home metadata.
-  const [explicitArtifactId, setExplicitArtifactId] = useState(() => getArtifactIdFromUrl(artifacts.map((a) => a.id)));
+  // undefined = home index; a string selects that artifact in the workbench.
+  const [selected, setSelected] = useState<string | undefined>(() => getArtifactIdFromUrl(artifacts.map((a) => a.id)));
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_SIDEBAR_WIDTH;
     let stored: string | null = null;
@@ -99,14 +103,24 @@ export default function App() {
   const dragCleanupRef = useRef<(() => void) | null>(null);
   const handleSelectArtifact = useCallback((id: string) => {
     setSelected(id);
-    setExplicitArtifactId(id);
     updateArtifactUrl(id, 'push');
   }, []);
 
+  const handleHomeClick = (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if (selected === undefined) {
+      // Already home: normalize a noncanonical URL without stacking a history entry.
+      window.history.replaceState({}, '', '/');
+      return;
+    }
+    setSelected(undefined);
+    window.history.pushState({}, '', '/');
+  };
+
   useEffect(() => {
-    const entry = explicitArtifactId ? artifacts.find((a) => a.id === explicitArtifactId) : undefined;
-    document.title = entry ? formatPageTitle(entry.name) : HOME_TITLE;
-  }, [explicitArtifactId]);
+    document.title = current ? formatPageTitle(current.name) : HOME_TITLE;
+  }, [current]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -153,8 +167,10 @@ export default function App() {
     const ids = artifacts.map((a) => a.id);
     const handlePopState = () => {
       const idFromUrl = getArtifactIdFromUrl(ids);
-      setExplicitArtifactId(idFromUrl);
-      setSelected(idFromUrl ?? artifacts[0]?.id);
+      // Cleanup must happen here: setSelected(undefined → undefined) bails out, so the
+      // URL-sync effect never sees an invalid ?artifact= reached via history navigation.
+      if (!idFromUrl) clearUnknownArtifactParam();
+      setSelected(idFromUrl);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -165,13 +181,17 @@ export default function App() {
     const urlId = getArtifactIdFromUrl(ids);
     if (selected && selected !== urlId) {
       updateArtifactUrl(selected, 'replace');
+    } else if (!selected) {
+      clearUnknownArtifactParam();
     }
   }, [selected]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const isPreviewActive = devicePreview !== 'none';
+    // Home unmounts the preview container, so re-run when the mounted artifact changes and
+    // only treat the preview as active while an artifact is on screen.
+    const isPreviewActive = devicePreview !== 'none' && current !== undefined;
     const resolveTarget = () => (isPreviewActive && previewRef.current ? previewRef.current : null) ?? mainRef.current;
 
     const updateSize = () => {
@@ -201,7 +221,7 @@ export default function App() {
       observer.disconnect();
       window.removeEventListener('resize', updateSize);
     };
-  }, [devicePreview]);
+  }, [devicePreview, current]);
 
   const getClampBounds = useCallback(() => {
     const layoutWidth = layoutRef.current?.getBoundingClientRect().width ?? window.innerWidth;
@@ -392,7 +412,9 @@ export default function App() {
   const sizeCopyFailed = sizeCopyStatus === 'failed';
   const sizeCopyActive = sizeCopyStatus !== 'idle';
   const sizeCopyFeedback = sizeCopied ? 'Copied' : sizeCopyFailed ? 'Failed' : 'Copy';
-  const isDevicePreviewActive = devicePreview !== 'none';
+  // The stored preference survives visiting home, but no preview exists there: buttons
+  // render unpressed/disabled and <main> drops the preview layout until an artifact mounts.
+  const isDevicePreviewActive = devicePreview !== 'none' && current !== undefined;
   const activePreset = isDevicePreviewActive ? DEVICE_PRESETS[devicePreview] : null;
   const previewWidth = activePreset ? (deviceOrientation === 'portrait' ? activePreset.width : activePreset.height) : 0;
   const previewHeight = activePreset
@@ -412,6 +434,20 @@ export default function App() {
         style={{ width: sidebarWidth }}
         className="shrink-0 border-r border-gray-200 bg-gray-50 p-4 max-h-screen overflow-y-auto sticky top-0 dark:border-slate-800 dark:bg-slate-900"
       >
+        <a
+          href="/"
+          aria-current={selected === undefined ? 'page' : undefined}
+          onClick={handleHomeClick}
+          className={mergeClassNames(
+            'mb-4 block border-l-2 px-3 py-2 text-sm font-semibold tracking-tight transition-colors',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 focus-visible:ring-offset-gray-50 dark:focus-visible:ring-offset-slate-900',
+            selected === undefined
+              ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
+              : 'border-transparent text-gray-600 hover:bg-gray-200 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100',
+          )}
+        >
+          {SITE_TITLE}
+        </a>
         <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2 dark:text-slate-400">
           Controls
         </div>
@@ -477,13 +513,15 @@ export default function App() {
           <div className="grid w-full grid-cols-2 gap-1">
             <button
               type="button"
-              aria-pressed={devicePreview === 'iphone'}
+              aria-pressed={isDevicePreviewActive && devicePreview === 'iphone'}
               onClick={() => setDevicePreview((prev) => (prev === 'iphone' ? 'none' : 'iphone'))}
+              disabled={!current}
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
-                devicePreview === 'iphone'
+                isDevicePreviewActive && devicePreview === 'iphone'
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                !current && 'cursor-not-allowed opacity-50',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -493,13 +531,15 @@ export default function App() {
             </button>
             <button
               type="button"
-              aria-pressed={devicePreview === 'ipad'}
+              aria-pressed={isDevicePreviewActive && devicePreview === 'ipad'}
               onClick={() => setDevicePreview((prev) => (prev === 'ipad' ? 'none' : 'ipad'))}
+              disabled={!current}
               className={mergeClassNames(
                 'px-2 py-1.5 text-xs font-medium border transition-colors',
-                devicePreview === 'ipad'
+                isDevicePreviewActive && devicePreview === 'ipad'
                   ? 'border-gray-900 bg-white text-gray-900 dark:border-slate-100 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-gray-600 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800',
+                !current && 'cursor-not-allowed opacity-50',
               )}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -635,7 +675,10 @@ export default function App() {
       <main
         ref={mainRef}
         className={mergeClassNames(
-          'relative flex-1 min-w-0 p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]',
+          'relative flex-1 min-w-0',
+          current
+            ? 'p-6 bg-[repeating-linear-gradient(315deg,#ffffff,#ffffff_8px,#f87171_8px,#f87171_10px)] dark:bg-[repeating-linear-gradient(315deg,#0f172a,#0f172a_8px,#ef4444_8px,#ef4444_10px)]'
+            : 'overflow-y-auto bg-white dark:bg-slate-950',
           isDevicePreviewActive && 'flex items-center justify-center',
         )}
       >
@@ -656,7 +699,7 @@ export default function App() {
             </Suspense>
           )
         ) : (
-          <div className="text-gray-400">Select an artifact</div>
+          <HomeIndex artifacts={artifacts} onSelectArtifact={handleSelectArtifact} />
         )}
       </main>
     </div>

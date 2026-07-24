@@ -13,8 +13,13 @@ import {
 import { type ArtifactEntry, artifacts } from './artifacts';
 import { ArtifactListItem } from './components/ArtifactListItem';
 import { HomeIndex } from './components/HomeIndex';
+import { MobileDisclaimer } from './components/MobileDisclaimer';
+import { MobileIndex } from './components/MobileIndex';
+import { getMobileArtifactRedirectUrl } from './lib/artifactUrl';
 import { mergeClassNames } from './lib/classNames';
+import { useMobileDisclaimerGate } from './lib/mobileDisclaimerGate';
 import { useCopyToClipboard } from './lib/useCopyToClipboard';
+import { useIsMobile } from './lib/useIsMobile';
 import { formatPageTitle, HOME_TITLE, SITE_TITLE } from './site';
 
 type DevicePreview = 'none' | 'iphone' | 'ipad';
@@ -61,7 +66,7 @@ const clearUnknownArtifactParam = () => {
   }
 };
 
-export default function App() {
+function Workbench() {
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     if (typeof window === 'undefined') return 'light';
     const stored = window.localStorage.getItem('artifact-theme');
@@ -704,4 +709,41 @@ export default function App() {
       </main>
     </div>
   );
+}
+
+function MobileHome() {
+  const [showDisclaimer, dismissDisclaimer] = useMobileDisclaimerGate();
+
+  // Workbench never mounts on phones, so its URL-sync effect can't drop a bogus ?artifact=.
+  useEffect(() => {
+    clearUnknownArtifactParam();
+  }, []);
+
+  return (
+    <>
+      <MobileIndex artifacts={artifacts} />
+      {showDisclaimer && <MobileDisclaimer onDone={dismissDisclaimer} />}
+    </>
+  );
+}
+
+// The switch: phones get the full-screen index (no workbench hooks run there), and a valid
+// mobile deep link hard-navigates to the standalone page instead of mounting either tree.
+// main.tsx already handles the initial-load redirect; this guard covers viewport crossings.
+export default function App() {
+  const isMobile = useIsMobile();
+  const redirectUrl = isMobile
+    ? getMobileArtifactRedirectUrl(
+        window.location.search,
+        artifacts.map((a) => a.id),
+      )
+    : undefined;
+
+  useEffect(() => {
+    if (redirectUrl) window.location.replace(redirectUrl);
+  }, [redirectUrl]);
+
+  if (!isMobile) return <Workbench />;
+  if (redirectUrl) return null;
+  return <MobileHome />;
 }

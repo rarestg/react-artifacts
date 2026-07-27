@@ -498,6 +498,31 @@ test('reconstructed brief prompt rebuilds the request behind the latest answer',
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
+test('request clarifier resolves ambiguity before rewriting', () => {
+  const prompt = prompts.find((entry) => entry.id === 'request-clarifier');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'Request Clarifier (use with /btw)');
+  assert.deepEqual(prompt.tags, ['synthesis']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /Do not answer or carry out the request yet/);
+  assert.match(renderedPrompt, /hypotheses to check, not conclusions about my intent/);
+  assert.match(renderedPrompt, /Do not impose a standard template/);
+  assert.match(renderedPrompt, /ask me a small number of focused clarifying questions first, then wait/);
+  assert.match(renderedPrompt, /If the request is already clear enough, you may skip the questions/);
+  assert.match(renderedPrompt, /preserve it and make only changes that materially improve it/);
+  assert.match(renderedPrompt, /Preserve my actual intent, priorities, and voice/);
+  assert.match(renderedPrompt, /Do not invent preferences, restrictions, or goals/);
+  assert.match(renderedPrompt, /one strong final version rather than unnecessary variations/);
+  assert.match(renderedPrompt, /wrap the complete, ready-to-use request in <refined_request> tags/);
+  assert.match(renderedPrompt, /Keep any explanation outside the tags/);
+  assert.match(renderedPrompt, /wrap each ready-to-use request separately/);
+  assert.match(renderedPrompt, /<original-request>\n\[PASTE YOUR ORIGINAL REQUEST HERE\]\n<\/original-request>/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
 test('PM orchestrator mode prompt renders the default Codex reviewer modifier', () => {
   const prompt = prompts.find((entry) => entry.id === 'pm-orchestrator-mode');
 

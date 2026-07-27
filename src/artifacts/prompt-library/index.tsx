@@ -58,8 +58,10 @@ const cardFocusRingClass =
 // The C chip on a card's Copy button reveals only while the card contains keyboard focus — the
 // two places where the c key works. The named group keeps a future outer .group from revealing
 // every card's chip at once.
-const copyKeyChipClass =
-  'hidden h-4 min-w-4 items-center justify-center border border-[var(--border)] bg-[var(--surface-muted)] px-1 font-mono text-[9px] font-bold leading-none text-[var(--text-muted)] group-has-[[data-prompt-card-title]:focus-visible]/prompt-card:inline-flex group-has-[[data-prompt-card-copy]:focus-visible]/prompt-card:inline-flex';
+const copyKeyChipBaseClass =
+  'h-4 min-w-4 items-center justify-center border border-[var(--border)] bg-[var(--surface-muted)] px-1 font-mono text-[9px] font-bold leading-none text-[var(--text-muted)]';
+const cardCopyKeyChipClass = `${copyKeyChipBaseClass} hidden group-has-[[data-prompt-card-title]:focus-visible]/prompt-card:inline-flex group-has-[[data-prompt-card-copy]:focus-visible]/prompt-card:inline-flex`;
+const detailCopyKeyChipClass = `${copyKeyChipBaseClass} inline-flex pointer-coarse:hidden`;
 
 type HighlightIndices = readonly (readonly [number, number])[];
 
@@ -317,7 +319,7 @@ function PromptCard({ prompt, onOpen }: { prompt: PromptEntry; onOpen: (opener: 
           dataAttributes={{ 'data-prompt-card-copy': '' }}
           trailingAddon={
             // biome-ignore lint/a11y/noAriaHiddenOnFocusable: <kbd> is not focusable; the chip is decorative and the shortcut already triggers the labelled button it sits on.
-            <kbd aria-hidden="true" className={copyKeyChipClass}>
+            <kbd aria-hidden="true" className={cardCopyKeyChipClass}>
               C
             </kbd>
           }
@@ -829,6 +831,12 @@ function PromptDetailDialog({
           text={renderedPrompt}
           ariaLabel={`Copy ${prompt.title}`}
           idleLabel="Copy Prompt"
+          trailingAddon={
+            // biome-ignore lint/a11y/noAriaHiddenOnFocusable: <kbd> is not focusable; the chip is decorative and the shortcut already triggers the labelled button it sits on.
+            <kbd aria-hidden="true" className={detailCopyKeyChipClass}>
+              C
+            </kbd>
+          }
         />
       }
       closeLabel="Close prompt details"

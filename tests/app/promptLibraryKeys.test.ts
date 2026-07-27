@@ -306,12 +306,26 @@ test('detail dialog scopes c to its footer copy button without hijacking the Ste
       'no background card steals focus while the dialog is open',
     );
 
+    // The footer advertises the shortcut with a stable decorative chip, hidden where a keyboard is unlikely.
+    const footerCopyButton = dialog.querySelector(`[aria-label="Copy ${stepperPrompt.title}"]`);
+    assert.ok(footerCopyButton, 'the dialog renders its footer copy button');
+    const footerCopyKeyChip = footerCopyButton.querySelector('kbd');
+    assert.ok(footerCopyKeyChip, 'the footer copy button carries the C chip');
+    assert.equal(footerCopyKeyChip.textContent, 'C');
+    assert.equal(footerCopyKeyChip.getAttribute('aria-hidden'), 'true', 'the footer chip is decorative');
+    const footerCopyKeyChipClasses = (footerCopyKeyChip.getAttribute('class') ?? '').split(/\s+/);
+    assert.ok(footerCopyKeyChipClasses.includes('inline-flex'), 'the footer chip is visible by default');
+    assert.ok(
+      footerCopyKeyChipClasses.includes('pointer-coarse:hidden'),
+      'the footer chip hides where a keyboard is unlikely',
+    );
+
     // c triggers the footer Copy Prompt button with the currently rendered prompt.
     await dispatchKey({ key: 'c' });
     const renderedPrompt = dialog.querySelector('[data-prompt-detail-section="prompt"] pre')?.textContent;
     assert.ok(renderedPrompt);
     assert.deepEqual(copiedTexts, [renderedPrompt], 'c copies exactly what the dialog displays');
-    const footerCopy = dialog.querySelector(`[aria-label="Copy ${stepperPrompt.title}"] [aria-live]`);
+    const footerCopy = footerCopyButton.querySelector('[aria-live]');
     assert.equal(footerCopy?.textContent, 'Copied to clipboard', 'feedback lands on the footer button');
 
     // Guards: held key, native shortcut, and the Stepper's editable number input.

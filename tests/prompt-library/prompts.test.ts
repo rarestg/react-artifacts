@@ -516,6 +516,9 @@ test('request clarifier resolves ambiguity before rewriting', () => {
   assert.match(renderedPrompt, /Preserve my actual intent, priorities, and voice/);
   assert.match(renderedPrompt, /Do not invent preferences, restrictions, or goals/);
   assert.match(renderedPrompt, /one strong final version rather than unnecessary variations/);
+  assert.match(renderedPrompt, /wrap the complete, ready-to-use request in <refined_request> tags/);
+  assert.match(renderedPrompt, /Keep any explanation outside the tags/);
+  assert.match(renderedPrompt, /wrap each ready-to-use request separately/);
   assert.match(renderedPrompt, /<original-request>\n\[PASTE YOUR ORIGINAL REQUEST HERE\]\n<\/original-request>/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });

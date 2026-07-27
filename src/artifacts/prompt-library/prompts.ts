@@ -388,6 +388,8 @@ Once you understand what I want, write the best version of the request for me: c
 
 If there are genuinely different good ways to frame the request, briefly explain the distinction and offer alternatives. Otherwise, give me one strong final version rather than unnecessary variations.
 
+When you are ready to share a refined request and confident it accurately captures my intent, wrap the complete, ready-to-use request in <refined_request> tags. Keep any explanation outside the tags. If you offer multiple alternatives, wrap each ready-to-use request separately.
+
 Here is my original, loosely expressed request:
 
 <original-request>

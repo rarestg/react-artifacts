@@ -390,12 +390,12 @@ If ambiguity would meaningfully change the rewrite, ask a few focused questions 
 </original-request>`,
   },
   {
-    id: 'easy-to-read-writing',
-    title: "Writing That's Easy To Read",
-    summary: 'Standing guidance for plain, precise, concrete prose that readers can follow without decoding.',
+    id: 'unslop',
+    title: 'Unslop',
+    summary:
+      'Make writing clear and easy to understand. Use plain, precise language, cut unnecessary wording, and preserve the meaning and intended tone.',
     tags: ['writing'],
-    context:
-      'Use when you want an agent to write or revise prose (answers, docs, PR descriptions, commit messages, articles) so it reads clearly without padding, vague claims, or over-compressed fragments. Works as a one-off instruction or pasted into standing instructions such as AGENTS.md.',
+    context: 'Works as a one-off instruction or pasted into standing instructions such as AGENTS.md.',
     prompt: `Follow these guidelines when writing or revising prose for me.
 
 Write so the reader can understand your point without having to decode the wording. Use enough words to explain it clearly. Preserve the meaning and match the intended tone.

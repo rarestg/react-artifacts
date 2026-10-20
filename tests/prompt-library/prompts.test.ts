@@ -531,11 +531,11 @@ test('request clarifier resolves ambiguity before rewriting', () => {
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
-test('easy-to-read writing prompt renders the plain-writing guidelines', () => {
-  const prompt = prompts.find((entry) => entry.id === 'easy-to-read-writing');
+test('unslop prompt renders the plain-writing guidelines', () => {
+  const prompt = prompts.find((entry) => entry.id === 'unslop');
 
   assert.ok(prompt);
-  assert.equal(prompt.title, "Writing That's Easy To Read");
+  assert.equal(prompt.title, 'Unslop');
   assert.deepEqual(prompt.tags, ['writing']);
 
   const renderedPrompt = renderPromptText(prompt);

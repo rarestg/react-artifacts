@@ -145,7 +145,7 @@ test('shared checkbox keeps the check icon mounted and fades via the indicator (
 });
 
 test('FilterCheckbox exposes category tones, selected chip color, and a stable count badge', () => {
-  const categoryTones = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime'] as const;
+  const categoryTones = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime', 'orange'] as const;
 
   for (const tone of categoryTones) {
     const checkedMarkup = renderToStaticMarkup(

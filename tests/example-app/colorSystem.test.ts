@@ -42,6 +42,7 @@ const extraCategoryTextTokens = [
   ['--category-cyan-text', '#0e7490', '#a5f3fc'],
   ['--category-pink-text', '#be185d', '#fbcfe8'],
   ['--category-lime-text', '#3f6212', '#d9f99d'],
+  ['--category-orange-text', '#9a3412', '#fed7aa'],
 ] as const;
 
 function getBlock(source: string, selector: string) {

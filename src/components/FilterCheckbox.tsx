@@ -11,6 +11,7 @@ const filterCheckboxTones = {
   cyan: { color: 'var(--category-cyan)', weak: 'var(--category-cyan-weak)' },
   pink: { color: 'var(--category-pink)', weak: 'var(--category-pink-weak)' },
   lime: { color: 'var(--category-lime)', weak: 'var(--category-lime-weak)' },
+  orange: { color: 'var(--category-orange)', weak: 'var(--category-orange-weak)' },
   metadata: { color: 'var(--text-muted)', weak: 'color-mix(in srgb, var(--text-muted) 22%, var(--surface) 78%)' },
 } as const;
 

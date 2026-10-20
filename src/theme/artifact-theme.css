@@ -55,6 +55,9 @@
   --category-lime: #65a30d;
   --category-lime-text: #3f6212;
   --category-lime-weak: #ecfccb;
+  --category-orange: #ea580c;
+  --category-orange-text: #9a3412;
+  --category-orange-weak: #ffedd5;
 
   /* Component tokens. */
   --primary: var(--text);
@@ -145,6 +148,9 @@
   --category-lime: #a3e635;
   --category-lime-text: #d9f99d;
   --category-lime-weak: #365314;
+  --category-orange: #fb923c;
+  --category-orange-text: #fed7aa;
+  --category-orange-weak: #7c2d12;
 
   /* Component tokens. */
   --primary: var(--text);

@@ -6,9 +6,10 @@ export type PromptTagId =
   | 'risk'
   | 'architecture'
   | 'synthesis'
-  | 'blog';
+  | 'blog'
+  | 'writing';
 
-const promptTagColorIdValues = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime'] as const;
+const promptTagColorIdValues = ['blue', 'green', 'amber', 'violet', 'red', 'cyan', 'pink', 'lime', 'orange'] as const;
 
 export type PromptTagColorId = (typeof promptTagColorIdValues)[number];
 
@@ -121,11 +122,17 @@ export const promptTags = [
     description: 'Prompts that write, polish, or prepare prose for blog publishing.',
     color: 'lime',
   },
+  {
+    id: 'writing',
+    label: 'Writing',
+    description: 'Prompts that set or apply standards for clear, readable prose.',
+    color: 'orange',
+  },
 ] as const satisfies readonly PromptTag[];
 
 const promptTagColorIds = new Set<PromptTagColorId>(promptTagColorIdValues);
 
-const workflowTagIds = new Set<PromptTagId>(['review', 'implementation', 'planning', 'blog', 'synthesis']);
+const workflowTagIds = new Set<PromptTagId>(['review', 'implementation', 'planning', 'blog', 'synthesis', 'writing']);
 
 export const prompts = [
   {
@@ -383,10 +390,41 @@ If ambiguity would meaningfully change the rewrite, ask a few focused questions 
 </original-request>`,
   },
   {
+    id: 'easy-to-read-writing',
+    title: "Writing That's Easy To Read",
+    summary: 'Standing guidance for plain, precise, concrete prose that readers can follow without decoding.',
+    tags: ['writing'],
+    context:
+      'Use when you want an agent to write or revise prose (answers, docs, PR descriptions, commit messages, articles) so it reads clearly without padding, vague claims, or over-compressed fragments. Works as a one-off instruction or pasted into standing instructions such as AGENTS.md.',
+    prompt: `Follow these guidelines when writing or revising prose for me.
+
+Write so the reader can understand your point without having to decode the wording. Use enough words to explain it clearly. Preserve the meaning and match the intended tone.
+
+Use plain, precise words. "Use" instead of "utilize" or "leverage." "Help" instead of "facilitate." "Many" instead of "numerous." Say "is" or "has" when that's what you mean. Keep technical terms when they express a distinction the reader needs, and explain unfamiliar ones.
+
+Be concrete. Describe specific behavior instead of relying on vague impressions. "SQL you can read" is vague. "\`.toSQL()\` returns the generated SQL" is useful. Name sources when making attributed claims. Replace vague descriptions like "significantly faster" with measurements when you have them. Don't invent precision the evidence doesn't support.
+
+Make sentences easy to follow. If the reader has to backtrack, split the sentence or simplify its structure. Keep related ideas together. Don't over-compress into fragments, abbreviations, or symbols that make the reader decode instead of read.
+
+Prefer active voice when naming the actor helps. "The compiler validates queries" makes responsibility clear. Passive voice is useful when the actor is unknown or doesn't matter.
+
+Cut filler. "In order to" becomes "to." "Due to the fact that" becomes "because." Delete introductions like "It is important to note that." Keep qualifications that communicate real uncertainty or limits.
+
+Drop conversational padding. Remove automatic praise, canned sign-offs, and excessive pleasantries when they add nothing. A greeting or acknowledgment can serve the intended tone. The problem is padding that's reflexive rather than purposeful.
+
+State the point directly. Avoid stock comparisons like "not just X but Y," rhetorical flourishes, and metaphors that obscure the explanation. Describe what is useful about a feature instead of merely calling it powerful or intuitive.
+
+Be consistent. Pick one term for a thing and stick with it. Switching between synonyms can make readers wonder whether you mean something different.
+
+Give each sentence a purpose. Useful purposes include explaining a fact, providing context, or helping the reader decide what to do. Remove repetition, empty praise, and conclusions that add nothing.
+
+Use formatting and punctuation to support understanding. Lists help readers compare or follow steps. Bold text can help them find important information. Avoid redundant labels and unnecessary decoration, and let the content determine how many points you need.`,
+  },
+  {
     id: 'session-to-blog-article-polisher',
     title: 'Session-To-Blog Article Polisher',
     summary: 'Turn a finished work session into a polished blog article with staged review.',
-    tags: ['blog', 'subagents'],
+    tags: ['blog', 'writing', 'subagents'],
     context:
       'Use at the end of a substantial work session when the conversation produced a useful lesson, resolved a tricky problem, or surfaced insight worth sharing as a down-to-earth blog article.',
     modifier: {

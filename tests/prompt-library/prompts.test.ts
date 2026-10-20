@@ -44,7 +44,7 @@ test('validatePrompts rejects prompt tag metadata with unknown color ids', () =>
   const invalidTags = [
     {
       ...validTags[0],
-      color: 'orange',
+      color: 'ultraviolet',
     },
     validTags[1],
   ] as unknown as readonly PromptTag[];
@@ -154,12 +154,19 @@ test('blog tag is available for prose publishing prompts', () => {
   assert.equal(tag.color, 'lime');
 });
 
+test('writing tag is available for prose standards prompts', () => {
+  const tag = getPromptTag('writing');
+
+  assert.equal(tag.label, 'Writing');
+  assert.equal(tag.color, 'orange');
+});
+
 test('session-to-blog article prompt renders technical article checks by default', () => {
   const prompt = prompts.find((entry) => entry.id === 'session-to-blog-article-polisher');
 
   assert.ok(prompt);
   assert.equal(prompt.title, 'Session-To-Blog Article Polisher');
-  assert.deepEqual(prompt.tags, ['blog', 'subagents']);
+  assert.deepEqual(prompt.tags, ['blog', 'writing', 'subagents']);
   assert.equal(prompt.modifier?.label, 'Article type');
   assert.equal(prompt.modifier.defaultOptionId, 'technical');
   assert.deepEqual(
@@ -521,6 +528,27 @@ test('request clarifier resolves ambiguity before rewriting', () => {
   assert.match(renderedPrompt, /return one strong rewrite inside <refined_request> tags/);
   assert.match(renderedPrompt, /change only what materially improves it/);
   assert.match(renderedPrompt, /<original-request>\n\[PASTE YOUR ORIGINAL REQUEST HERE\]\n<\/original-request>/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('easy-to-read writing prompt renders the plain-writing guidelines', () => {
+  const prompt = prompts.find((entry) => entry.id === 'easy-to-read-writing');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, "Writing That's Easy To Read");
+  assert.deepEqual(prompt.tags, ['writing']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /^Follow these guidelines when writing or revising prose for me\./);
+  assert.match(renderedPrompt, /"Use" instead of "utilize" or "leverage\."/);
+  assert.match(renderedPrompt, /"`\.toSQL\(\)` returns the generated SQL" is useful/);
+  assert.match(renderedPrompt, /Prefer active voice when naming the actor helps/);
+  assert.match(renderedPrompt, /The problem is padding that's reflexive rather than purposeful/);
+  assert.match(renderedPrompt, /Pick one term for a thing and stick with it/);
+  assert.match(renderedPrompt, /Give each sentence a purpose/);
+  assert.match(renderedPrompt, /Keep qualifications that communicate real uncertainty or limits/);
+  assert.match(renderedPrompt, /let the content determine how many points you need\.$/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 

@@ -231,73 +231,107 @@ They should not manufacture objections. {{validOutcomeExamples}} are valid answe
 After they report back, {{synthesisInstruction}}`,
   },
   {
-    id: 'minimal-code-review-team',
-    title: 'Minimal Code Review Team',
+    id: 'code-review-lenses',
+    title: 'Code Review Lenses',
     summary:
-      'Spawn focused subagents to find ways to simplify existing code without breaking correctness or readability.',
+      'Review a PR or other code through focused lenses, with one reviewer for a single lens or a read-only subagent team for several.',
     tags: ['review', 'subagents', 'architecture'],
     context:
-      'Use when a script, gist, one-off tool, or already-written implementation should be reviewed from multiple lenses for the smallest version that still works and stays understandable.',
+      'Use on a PR, branch, script, or other already-written code. The default lenses give a full PR review. Signatures alone gives a solo senior-engineer read. YAGNI, Stdlib/native, and Readability, with Behavior and Tests, look for the minimal version that still works. Add "and fix" to have real, in-scope findings applied.',
     toggleModifier: {
       label: 'Lenses',
       token: 'enabledLenses',
       emptyReplacement: 'No lenses are selected. Ask me which review lenses to use before spawning subagents.',
       options: [
         {
-          id: 'minimalism',
-          label: 'YAGNI',
+          id: 'trust-boundary',
+          label: 'Trust boundary',
           defaultEnabled: true,
           replacement:
-            'Minimalism/YAGNI: find code, abstractions, options, config, helpers, branches, files, or behavior that can be deleted, collapsed, or deferred. Prefer exact deletion/replacement suggestions and estimate net line reduction when obvious.',
+            'Trust boundary and scope: untrusted input paths, uniform public errors, what leaks in logs or responses, and changes not described in the PR body.',
+        },
+        {
+          id: 'behavior-regression',
+          label: 'Behavior',
+          defaultEnabled: true,
+          replacement:
+            'Behavior and regression: compare against the base when there is one. Existing behavior, permissions, policies, precedence, and every caller of a changed function, plus edge cases a change must not lose: data-loss handling, filesystem or network failure, idempotency, ordering, and encoding.',
+        },
+        {
+          id: 'structure-drift',
+          label: 'Structure',
+          defaultEnabled: true,
+          replacement:
+            'Structure and drift: one home per predicate or policy; import direction and module cohesion; unused parameters and their callers; assumptions that break on the second instance (`[0]`, a single literal, a stale dependency list); a test that cannot fail. Name the scenario in which the drift bites.',
+        },
+        {
+          id: 'signatures-seams',
+          label: 'Signatures',
+          defaultEnabled: true,
+          replacement: `Signatures and seams: review the way a senior engineer who reads signatures before bodies would. Skip what other lenses own: duplicated logic, module coupling, dead code, test redundancy, trust boundaries. Walk every new or changed function signature, its call sites, its branches, and every new field. The checks below are strong defaults, not requirements: raise one only when you can say what it costs here, and weight it to match:
+   - Optional and defaults. For each optional parameter or return, can every production caller guarantee a value? Ask why it is optional and propose the narrow type. If an empty value stands for more than one condition, ask for distinct outcomes.
+   - Fields need readers. For each new field on a DTO, model, event, or table, name what reads it, checking persistence, serialization, and external consumers first. With no reader, ask to drop it until a consumer exists. A database field must outweigh the migration its removal would cost. If it records user behavior, ask whether it belongs in analytics rather than the database, on the entity's existing event so it joins.
+   - Dependency supply. A parameter that exists only so tests can inject it is a mixed style: ask to commit to one direction, and prefer the surrounding code's pattern. If you want the better pattern, ask for the full migration; an in-between state needs a stated reason. For a boolean or optional parameter that switches behavior, ask whether it should be two functions. A function of booleans wants the struct they came from, unless it takes two parameters.
+   - Parallel branches. When two branches call the same function with different arguments, compute the arguments and call once so they cannot drift, keeping side effects and failure order intact. A comment needed to explain a branch means the structure is unintuitive: propose the declarative shape (a named predicate, a small factored method, data instead of control flow), not a better comment.
+   - Boundaries and layers. For a function coordinating more than one layer's details (persistence shape, hydration, policy, orchestration), write the current \`layer → responsibility\` split and redraw it; accept the behavior and contest the ownership. A consumer parsing a storage shape or hydrating persistence is at the wrong layer: ask the owning layer for a use-case operation that returns the hydrated typed model with the parsed value, absence, or a neutral malformed-data error. Leave live policy and failure ordering where they live. A private function called across modules is a broken contract: rename it or replace it with that typed operation. Is each check at the layer that owns the decision? Would the next plausible requirement force it to move? If a new pattern appears, ask for the intended end state.
+   - Names and comments for the casual reader. Would someone new to this module know the term? Does the name say what the code does, not what the caller hopes? Propose the explicit name and weight it as a nit. Comments are for a future engineer on the team: do not explain shared tools; name the constraint or the intentional divergence from neighboring code, in one line. Ask to delete comments written for reviewers or LLMs.
+   - Delete. Fallbacks, guards, and conditional spreads the type already permits, and logic the stated behavior does not need: "why not just X?" Types do not make external input safe, so keep validation at trust boundaries.`,
+        },
+        {
+          id: 'tests-checks',
+          label: 'Tests',
+          defaultEnabled: true,
+          replacement:
+            'Tests and checks: the smallest set that protects the stated behavior. For an important guard, ask which test fails if it is deleted, and report a gap only if you can name the behavior at risk. Flag brittle order assertions and missing false-branch cases. Where no test setup exists, prefer one assert, demo, or smoke command over adding a framework.',
+        },
+        {
+          id: 'minimalism',
+          label: 'YAGNI',
+          defaultEnabled: false,
+          replacement:
+            'Minimalism/YAGNI: find code, abstractions, options, config, helpers, branches, files, or behavior that can be deleted, collapsed, or deferred when that reduces total complexity. Prefer exact deletion/replacement suggestions and estimate net line reduction when obvious. Name the smallest final shape that still works and remains readable; if the code is already close, say so rather than stretching for changes.',
         },
         {
           id: 'stdlib-native',
           label: 'Stdlib/native',
-          defaultEnabled: true,
+          defaultEnabled: false,
           replacement:
-            'Stdlib/native/deps: find hand-rolled logic, new dependencies, wrappers, or glue that the standard library, native platform, shell, database, browser, or already-installed packages can replace. Name the replacement directly.',
-        },
-        {
-          id: 'correctness-safety',
-          label: 'Safety',
-          defaultEnabled: true,
-          replacement:
-            'Correctness/safety: identify edge cases and guardrails that must survive simplification: trust-boundary validation, data-loss handling, security, filesystem/network failure, idempotency, ordering, encoding, and user-visible behavior.',
+            'Stdlib/native/deps: find hand-rolled logic, new dependencies, wrappers, or glue that the standard library, native platform, shell, database, browser, or already-installed packages can replace. Name the replacement directly and the behavior it must preserve.',
         },
         {
           id: 'readability',
           label: 'Readability',
-          defaultEnabled: true,
+          defaultEnabled: false,
           replacement:
             'Readability/maintainability: check whether shorter code would become obscure. Prefer boring names, direct control flow, clear boundaries, and the simplest shape another engineer can understand quickly.',
         },
-        {
-          id: 'checks',
-          label: 'Checks',
-          defaultEnabled: true,
-          replacement:
-            'Small checks: identify the smallest runnable check that proves the simplified code still works. Prefer one assert/demo/smoke command over a test framework unless the repo already has one and using it is cheaper.',
-        },
       ],
     },
-    prompt: `Please spawn a focused subagent review team for the already-written code I provide or reference.
+    prompt: `Please review the PR or code I provide or reference through the lenses below. If I have not given you a clear target, ask me for one first.
 
-If I have not provided a script path, gist, pasted code, or clear target, ask me for that before spawning anyone.
+If one lens is listed, do that review yourself without spawning anyone.
 
-Shared goal for every subagent: make the code minimal, still correct, and still understandable. Prefer deletion, standard-library/native features, already-installed dependencies, fewer branches, fewer files, and simpler control flow. Do not sacrifice trust-boundary validation, data-loss handling, security, accessibility, or behavior I explicitly asked to keep.
+If several are listed, spawn one fresh subagent per lens. Give each its lens word for word, the review rules below, the target, and the repo instructions, but not the plan or PR description until it has recorded its findings. Do not run a review of your own, but inspect the code behind each finding to confirm or reject it. Each reviewer reports all blocking and should-change findings, at most three principle or personal-preference findings, and three nits. If the change is too small to justify separate reviewers, review it yourself and say so.
 
-Spawn one fresh subagent per enabled lens below. Give each subagent only the context needed for that lens, tell them they are reviewing only and must not edit files, and ask them to report uncertainty instead of guessing.
+Review rules:
+- Scope: for a PR or branch, establish the base and head, including any uncommitted changes. Review the changes and the callers and contracts they affect, not the whole repo, and report older issues only when this change exposes or worsens them. When there is no diff, treat all the code as changed.
+- Order: read the code and record findings before reading the plan or PR description. Then drop a finding only if the rationale would satisfy you as a reader of the code alone, and list what you dropped. Add any finding the plan or description reveals, such as a missed requirement or an undescribed change. A design the plan endorses is still fair to question.
+- Read-only: no edits, branch changes, commits, PR comments, or thread resolutions. Safe local checks are fine; say which you ran and which you only recommend.
+- Lens: stay inside your lens, but report anything serious outside it in one line, even where a lens says to skip it.
+- Findings: report only concrete findings at file:line, or with quoted code when there are no line numbers. Raise uncertainty as a question rather than a confirmed finding. "Clean" is a valid answer when nothing concrete survives.
 
 {{enabledLenses}}
 
-Ask each subagent to return:
-- Findings worth acting on, most valuable first, or a plain statement that this lens found none.
-- File/line references when available.
-- Exact suggested deletion, replacement, or simplification.
-- Whether the change is safe now or needs verification.
-- Net line/dependency reduction when obvious.
+For each finding, give:
+- A 1-3 sentence comment to the author: a question when you want the reason, a directive plus a concrete alternative when you have one.
+- The exact suggested change when there is one, and whether it is safe now or needs verification.
+- A weight: blocking, should change, principle: <one line>, personal preference, or nit.
 
-After they report back, synthesize one ranked action list. Deduplicate overlapping findings, call out disagreements between lenses, separate "safe now" from "verify first", and name the smallest final shape that still works and remains readable. If the code is already close to that shape, say so rather than stretching for changes.`,
+Rank findings by leverage and say which matters most. No suggestion should give up trust-boundary validation, data-loss handling, security, accessibility, or behavior I explicitly asked to keep. With several lenses, deduplicate by root cause and keep the strongest framing, call out disagreements, and list dropped findings in one line.
+
+For a PR, end with a verdict. Block only for a regression or correctness bug, architecture that diverges from codebase convention without an intentional decision, an unclear end state, a test plan where no test fails if an important guard is deleted, or a safety issue, and name the consequence. Otherwise approve with comments and ask for a ticket for any deferred follow-up. For a follow-up PR of mechanical fixes, ask the author to name any decision that differs from what was discussed and review only that section. If the author gives a reason you would accept, concede in one line; do not insist on preferences.
+
+Stop at the report unless I asked you to fix. If I did, fix only real, in-scope issues and report what changed, what you declined, and why. When there is a PR, name in its body every decision that differs from the plan or prior review discussion.`,
   },
   {
     id: 'self-contained-execution-plan',

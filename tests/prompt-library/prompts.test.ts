@@ -311,51 +311,80 @@ test('proposal review prompt renders residual risk modifier text', () => {
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
-test('minimal code review team prompt defaults to all focused lenses', () => {
-  const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
+test('code review lenses prompt defaults to the five PR review lenses', () => {
+  const prompt = prompts.find((entry) => entry.id === 'code-review-lenses');
 
   assert.ok(prompt);
-  assert.equal(prompt.title, 'Minimal Code Review Team');
+  assert.equal(prompt.title, 'Code Review Lenses');
   assert.deepEqual(prompt.tags, ['review', 'subagents', 'architecture']);
   assert.equal(prompt.toggleModifier?.label, 'Lenses');
   assert.deepEqual(getDefaultPromptToggleOptionIds(prompt), [
-    'minimalism',
-    'stdlib-native',
-    'correctness-safety',
-    'readability',
-    'checks',
+    'trust-boundary',
+    'behavior-regression',
+    'structure-drift',
+    'signatures-seams',
+    'tests-checks',
   ]);
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /focused subagent review team/);
-  assert.match(renderedPrompt, /minimal, still correct, and still understandable/);
-  assert.match(renderedPrompt, /Minimalism\/YAGNI/);
-  assert.match(renderedPrompt, /Stdlib\/native\/deps/);
-  assert.match(renderedPrompt, /Correctness\/safety/);
-  assert.match(renderedPrompt, /Readability\/maintainability/);
-  assert.match(renderedPrompt, /Small checks/);
-  assert.match(renderedPrompt, /synthesize one ranked action list/);
-  assert.match(renderedPrompt, /a plain statement that this lens found none/);
-  assert.match(renderedPrompt, /say so rather than stretching for changes/);
-  assert.doesNotMatch(renderedPrompt, /Top findings only/);
-  assert.doesNotMatch(renderedPrompt, /hardware calibration/);
+  assert.match(renderedPrompt, /Trust boundary and scope/);
+  assert.match(renderedPrompt, /Behavior and regression/);
+  assert.match(renderedPrompt, /Structure and drift/);
+  assert.match(renderedPrompt, /Signatures and seams/);
+  assert.match(renderedPrompt, /Tests and checks/);
+  assert.doesNotMatch(renderedPrompt, /Minimalism\/YAGNI/);
+  assert.doesNotMatch(renderedPrompt, /Stdlib\/native\/deps/);
+  assert.doesNotMatch(renderedPrompt, /Readability\/maintainability/);
+  assert.match(renderedPrompt, /If one lens is listed, do that review yourself/);
+  assert.match(renderedPrompt, /spawn one fresh subagent per lens/);
+  assert.match(renderedPrompt, /Give each its lens word for word/);
+  assert.match(renderedPrompt, /inspect the code behind each finding to confirm or reject it/);
+  assert.match(renderedPrompt, /all blocking and should-change findings, at most three principle/);
+  assert.match(renderedPrompt, /too small to justify separate reviewers/);
+  assert.match(renderedPrompt, /When there is no diff, treat all the code as changed/);
+  assert.match(renderedPrompt, /record findings before reading the plan or PR description/);
+  assert.match(renderedPrompt, /Add any finding the plan or description reveals/);
+  assert.match(renderedPrompt, /Safe local checks are fine/);
+  assert.match(renderedPrompt, /report anything serious outside it in one line/);
+  assert.match(renderedPrompt, /Raise uncertainty as a question/);
+  assert.match(renderedPrompt, /"Clean" is a valid answer/);
+  assert.match(renderedPrompt, /The checks below are strong defaults, not requirements/);
+  assert.match(renderedPrompt, /Types do not make external input safe/);
+  assert.match(renderedPrompt, /report a gap only if you can name the behavior at risk/);
+  assert.match(renderedPrompt, /deduplicate by root cause/);
+  assert.match(renderedPrompt, /Block only for a regression or correctness bug/);
+  assert.match(renderedPrompt, /Stop at the report unless I asked you to fix/);
+  assert.match(renderedPrompt, /When there is a PR, name in its body every decision/);
+  assert.doesNotMatch(renderedPrompt, /smallest final shape/);
+  assert.doesNotMatch(renderedPrompt, /enabled/);
+  assert.doesNotMatch(renderedPrompt, /Superset/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
-test('minimal code review team prompt can omit the checks lens', () => {
-  const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
+test('code review lenses prompt can run a single lens or the simplification lenses', () => {
+  const prompt = prompts.find((entry) => entry.id === 'code-review-lenses');
 
   assert.ok(prompt);
 
-  const renderedPrompt = renderPromptText(prompt, undefined, {
-    enabledToggleOptionIds: ['minimalism', 'stdlib-native', 'correctness-safety', 'readability'],
+  const signaturesOnly = renderPromptText(prompt, undefined, { enabledToggleOptionIds: ['signatures-seams'] });
+
+  assert.match(signaturesOnly, /^1\. Signatures and seams/m);
+  assert.match(signaturesOnly, /Optional and defaults/);
+  assert.match(signaturesOnly, /layer → responsibility/);
+  assert.doesNotMatch(signaturesOnly, /Trust boundary and scope/);
+  assert.doesNotMatch(signaturesOnly, /\{\{/);
+
+  const simplification = renderPromptText(prompt, undefined, {
+    enabledToggleOptionIds: ['minimalism', 'stdlib-native', 'readability'],
   });
 
-  assert.match(renderedPrompt, /Minimalism\/YAGNI/);
-  assert.match(renderedPrompt, /Readability\/maintainability/);
-  assert.doesNotMatch(renderedPrompt, /Small checks/);
-  assert.doesNotMatch(renderedPrompt, /\{\{/);
+  assert.match(simplification, /Minimalism\/YAGNI/);
+  assert.match(simplification, /Readability\/maintainability/);
+  assert.match(simplification, /smallest final shape/);
+  assert.match(simplification, /say so rather than stretching for changes/);
+  assert.doesNotMatch(simplification, /Tests and checks/);
+  assert.doesNotMatch(simplification, /\{\{/);
 });
 
 test('validatePrompts rejects modifier options with missing replacements', () => {

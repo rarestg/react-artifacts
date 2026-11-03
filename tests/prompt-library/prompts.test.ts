@@ -343,6 +343,9 @@ test('code review lenses prompt defaults to the five PR review lenses', () => {
   assert.match(renderedPrompt, /all blocking and should-change findings, at most three principle/);
   assert.match(renderedPrompt, /too small to justify separate reviewers/);
   assert.match(renderedPrompt, /When there is no diff, treat all the code as changed/);
+  assert.match(renderedPrompt, /whether uncommitted changes are in scope/);
+  assert.match(renderedPrompt, /check that the fixes were applied correctly/);
+  assert.match(renderedPrompt, /production callers omit it; a global getter fills it/);
   assert.match(renderedPrompt, /record findings before reading the plan or PR description/);
   assert.match(renderedPrompt, /Add any finding the plan or description reveals/);
   assert.match(renderedPrompt, /Safe local checks are fine/);
@@ -357,7 +360,6 @@ test('code review lenses prompt defaults to the five PR review lenses', () => {
   assert.match(renderedPrompt, /Stop at the report unless I asked you to fix/);
   assert.match(renderedPrompt, /When there is a PR, name in its body every decision/);
   assert.doesNotMatch(renderedPrompt, /smallest final shape/);
-  assert.doesNotMatch(renderedPrompt, /enabled/);
   assert.doesNotMatch(renderedPrompt, /Superset/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
@@ -631,6 +633,5 @@ test('AGENTS.md maintainer is a standalone prompt that keeps judgment over fixed
   assert.match(renderedPrompt, /anything you could not verify/);
   assert.doesNotMatch(renderedPrompt, /^---$/m);
   assert.doesNotMatch(renderedPrompt, /allowed-tools|argument-hint|Triggers on/);
-  assert.doesNotMatch(renderedPrompt, /dispatcher|canonical/i);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });

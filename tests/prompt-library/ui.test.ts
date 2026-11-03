@@ -172,7 +172,7 @@ test('prompt detail number controls stay in the prompt section header', async ()
   assert.equal(optionsLabel.parentElement?.contains(optionsInput), true);
   assert.equal(optionsLabel.parentElement?.contains(decreaseButton), true);
   assert.equal(optionsLabel.parentElement?.contains(increaseButton), true);
-  assert.match(promptPre.textContent ?? '', /Please orchestrate 7 independent drafts/);
+  assert.match(promptPre.textContent ?? '', /Orchestrate 7 independent drafts/);
   assert.match(promptPre.textContent ?? '', /Dispatch 7 fresh subagents in parallel/);
 });
 

@@ -220,7 +220,7 @@ export const prompts = [
         },
       ],
     },
-    prompt: `Please dispatch a fresh subagent to review {{reviewSubjectClause}}.
+    prompt: `Dispatch a fresh subagent to review {{reviewSubjectClause}}.
 
 Give them enough context to understand {{contextOverview}}. {{sourceInstruction}} Make clear that {{contextRoleStatement}}.
 
@@ -241,7 +241,8 @@ After they report back, {{synthesisInstruction}}`,
     toggleModifier: {
       label: 'Lenses',
       token: 'enabledLenses',
-      emptyReplacement: 'No lenses are selected. Ask me which review lenses to use before spawning subagents.',
+      emptyReplacement:
+        'No lenses are selected. Ask the requester which review lenses to use before spawning subagents.',
       options: [
         {
           id: 'trust-boundary',
@@ -307,7 +308,7 @@ After they report back, {{synthesisInstruction}}`,
         },
       ],
     },
-    prompt: `Please review the PR or code I provide or reference through the lenses below. If I have not given you a clear target, ask me for one first.
+    prompt: `Review the provided or referenced PR or code through the lenses below. If the target is unclear, ask the requester to identify it before reviewing.
 
 If one lens is listed, do that review yourself without spawning anyone.
 
@@ -327,11 +328,11 @@ For each finding, give:
 - The exact suggested change when there is one, and whether it is safe now or needs verification.
 - A weight: blocking, should change, principle: <one line>, personal preference, or nit.
 
-Rank findings by leverage and say which matters most. No suggestion should give up trust-boundary validation, data-loss handling, security, accessibility, or behavior I explicitly asked to keep. With several lenses, deduplicate by root cause and keep the strongest framing, call out disagreements, and list dropped findings in one line.
+Rank findings by leverage and say which matters most. No suggestion should give up trust-boundary validation, data-loss handling, security, accessibility, or behavior the task explicitly requires preserving. With several lenses, deduplicate by root cause and keep the strongest framing, call out disagreements, and list dropped findings in one line.
 
 For a PR, end with a verdict. Block only for a regression or correctness bug, architecture that diverges from codebase convention without an intentional decision, an unclear end state, a test plan where no test fails if an important guard is deleted, or a safety issue, and name the consequence. Otherwise approve with comments and ask for a ticket for any deferred follow-up. For a follow-up PR of mechanical fixes, check that the fixes were applied correctly, and limit design discussion to any decision that differs from what was discussed. If the author gives a reason you would accept, concede in one line; do not insist on preferences.
 
-Stop at the report unless I asked you to fix. If I did, fix only real, in-scope issues and report what changed, what you declined, and why. When there is a PR, name in its body every decision that differs from the plan or prior review discussion.`,
+Stop at the report unless fixes were requested. If they were, fix only real, in-scope issues and report what changed, what you declined, and why. When there is a PR, name in its body every decision that differs from the plan or prior review discussion.`,
   },
   {
     id: 'self-contained-execution-plan',
@@ -340,7 +341,7 @@ Stop at the report unless I asked you to fix. If I did, fix only real, in-scope 
     tags: ['implementation', 'planning', 'architecture'],
     context:
       'Use after agreeing on a direction and before implementation, especially when another engineer or future session needs enough context to execute without the prior conversation.',
-    prompt: `Please write a self-contained execution plan for the change we just discussed.
+    prompt: `Write a self-contained execution plan for the change we just discussed.
 
 Include enough context for an engineer to understand the problem area without relying on this conversation: what prompted the work, the real goal, the relevant files or systems, the proposed direction, and why that direction is preferable. Distinguish confirmed decisions from provisional recommendations or open questions.
 
@@ -359,7 +360,7 @@ Use the structure that best fits this work. Do not force a rigid template if ano
     tags: ['implementation', 'planning', 'synthesis'],
     context:
       'Use after a plan has been written or a change has been discussed, when you want a short goal statement for an autonomous coding session.',
-    prompt: `Please distill the plan or change we just discussed into a concise goal statement for an autonomous coding session.
+    prompt: `Distill the plan or change we just discussed into a concise goal statement for an autonomous coding session.
 
 The goal statement must be brief: a few short paragraphs at most, ideally shorter. It should name one objective and one stopping condition: what we are trying to accomplish and how we know the work is done.
 
@@ -369,9 +370,9 @@ Make the objective concrete: name the plan path or relevant files when useful, d
 
 For the done condition, prefer observable criteria over feelings: name the end state and the checks that demonstrate it, specifically enough that the agent's own output can show they were met. A quality bar like being ready for rigorous senior-engineer review, or being comfortable defending the implementation in review, is fine, but anchor it in concrete verification.
 
-If the plan contains open questions or risky assumptions, say which ones the agent may settle itself and which need my decision, and what it should do if one of those blocks progress. If the plan is too vague to define a safe stopping condition, say what is missing instead of inventing certainty.
+If the plan contains open questions or risky assumptions, say which ones the agent may settle itself and which need a decision from the requester, and what it should do if one of those blocks progress. If the plan is too vague to define a safe stopping condition, say what is missing instead of inventing certainty.
 
-Return only the goal statement unless I ask for explanation.`,
+Return only the goal statement unless an explanation is requested.`,
   },
   {
     id: 'fresh-session-handoff',
@@ -380,7 +381,7 @@ Return only the goal statement unless I ask for explanation.`,
     tags: ['implementation', 'synthesis'],
     context:
       'Use before ending or transferring a work session, especially after meaningful exploration, debugging, design decisions, branch work, or environment setup.',
-    prompt: `Please write a handoff prompt I can paste at the start of a new session so a fresh agent can continue this work with no prior conversation context.
+    prompt: `Write a handoff prompt to paste at the start of a new session so a fresh agent can continue this work with no prior conversation context.
 
 Address it directly to that agent, as instructions to act on rather than a status report about the work: what we are trying to accomplish, where things stand, and what remains to finish, including how they will know it is done.
 
@@ -397,7 +398,7 @@ Keep it concise and scannable. Output only the handoff prompt.`,
     tags: ['synthesis'],
     context:
       "Use when you want to share an agent's answer with someone and need the paste-ready request it actually answers, reconstructed from the full conversation rather than your last scattered message.",
-    prompt: `Please reconstruct the ideal request behind your immediately preceding response: a standalone user message, in my voice, that can be pasted directly above that response when sharing it.
+    prompt: `Reconstruct the ideal request behind your immediately preceding response: a standalone user message, in my voice, that can be pasted directly above that response when sharing it.
 
 Work backward from that response using the whole conversation. The message I sent immediately before that response may carry only a fragment of the real request; earlier messages may hold the background, constraints, decisions, and clarifications that shaped what you produced. Reconstruct the clearest, most precise request that response answers: not a copy of that message, and not a summary of the conversation.
 
@@ -501,7 +502,7 @@ Separate what happened, what you inferred, and what you now believe. Prefer mode
         },
       ],
     },
-    prompt: `Please turn the session we just finished into a polished Markdown blog article that I can publish or revise further.
+    prompt: `Turn the session we just finished into a polished Markdown blog article that I can publish or revise further.
 
 Start by reflecting on the conversation as source material. Identify what was learned, solved, clarified, or usefully reframed. Extract the durable lesson for a reader; do not write a transcript recap. Separate confirmed facts from assumptions, unresolved questions, and opinions.
 
@@ -535,9 +536,9 @@ Review the final draft yourself after the final subagent returns. Make any last 
     tags: ['synthesis'],
     context:
       'Use when you have a transcript from a video, talk, interview, podcast, or lecture and want concise strategic synthesis for a technically minded startup founder.',
-    prompt: `Analyze the transcript I provide as source material from a video, talk, interview, podcast, or lecture.
+    prompt: `Analyze the provided transcript as source material from a video, talk, interview, podcast, or lecture.
 
-Give me a deep but concise synthesis of what is presented. Write for a technically minded startup founder who is hungry for knowledge, opportunity, and better strategic judgment.
+Produce a deep but concise synthesis of what is presented. Write for a technically minded startup founder who is hungry for knowledge, opportunity, and better strategic judgment.
 
 Focus on:
 
@@ -567,7 +568,7 @@ Use whatever structure best fits the material, but keep the result concise enoug
       max: 10,
       step: 1,
     },
-    prompt: `Please orchestrate {{draftCount}} independent drafts, options, or mockups for the task we are working on, then synthesize the strongest path forward.
+    prompt: `Orchestrate {{draftCount}} independent drafts, options, or mockups for the task we are working on, then synthesize the strongest path forward.
 
 First clarify the actual goal, audience, constraints, source material, and success criteria from the current context. If something essential is missing, ask before dispatching subagents. Otherwise proceed.
 
@@ -596,21 +597,21 @@ Return the result in the structure that best fits the work. Keep the report conc
     tags: ['review', 'implementation'],
     context:
       'Use when a stack of dependent pull requests has accumulated review comments across multiple PRs, and fixes should land in a new PR on top of the stack rather than by amending older reviewed branches.',
-    prompt: `Please triage the review comments that have accumulated across this stack of dependent PRs, then land any fixes in a new PR on top of the stack.
+    prompt: `Triage the review comments that have accumulated across this stack of dependent PRs, then land any fixes in a new PR on top of the stack.
 
-Use the GitHub tooling available to you to identify the PRs in the stack, their order, and the top branch, and to collect the review feedback from every PR: inline review threads, review summaries, and any review comments in the PR conversation. Note anything you could not retrieve. If you cannot determine the stack membership or its top branch reliably, ask me instead of guessing.
+Use the GitHub tooling available to you to identify the PRs in the stack, their order, and the top branch, and to collect the review feedback from every PR: inline review threads, review summaries, and any review comments in the PR conversation. Note anything you could not retrieve. If you cannot determine the stack membership or its top branch reliably, ask the requester instead of guessing.
 
 Work with the checkout pointed at the top of the stack so every comment is judged against the code as it exists now, not as it was when the comment was written.
 
-Triage bottom to top. Treat lower-PR comments as potentially superseded by later changes: each one may already be addressed, apply to code that has since moved to another file or branch, be obsolete, be worth declining, or still identify a real issue at its current location. Do not assume a comment remains valid just because it was valid when written. Treat threads already marked resolved as addressed, with no reply needed, unless the issue is visibly still present. For each comment, decide: already addressed, obsolete, decline with rationale, fix, or needs my decision. Use the last when the answer turns on product intent or a tradeoff the code cannot settle.
+Triage bottom to top. Treat lower-PR comments as potentially superseded by later changes: each one may already be addressed, apply to code that has since moved to another file or branch, be obsolete, be worth declining, or still identify a real issue at its current location. Do not assume a comment remains valid just because it was valid when written. Treat threads already marked resolved as addressed, with no reply needed, unless the issue is visibly still present. For each comment, decide: already addressed, obsolete, decline with rationale, fix, or needs a decision. Use the last when the answer turns on product intent or a tradeoff the code cannot settle.
 
 For each comment worth fixing, implement the best fix against the current code, which is not necessarily the fix the comment originally suggested.
 
 Do not amend, rebase, force-push, or otherwise rewrite older reviewed branches. All fixes land on a new branch created from the top branch, in a PR that uses the top branch as its base, scoped to review resolution. Run the relevant checks before opening it. If nothing needs fixing, do not open an empty follow-up PR.
 
-Once the follow-up PR exists, or triage ends with nothing to fix, reply to each comment that was still open or that you fixed with its outcome, linking the follow-up PR for fixed comments. Leave comments that need my decision unanswered and list them in your report.
+Once the follow-up PR exists, or triage ends with nothing to fix, reply to each comment that was still open or that you fixed with its outcome, linking the follow-up PR for fixed comments. Leave comments that need a decision unanswered and list them in your report to the requester.
 
-Return a concise report: comments already addressed, obsolete, declined, fixed, and awaiting my decision; files changed; checks run; and the follow-up PR URL or a note that none was needed.`,
+Return a concise report: comments already addressed, obsolete, declined, fixed, and awaiting a decision; files changed; checks run; and the follow-up PR URL or a note that none was needed.`,
   },
   {
     id: 'pm-orchestrator-mode',
@@ -640,7 +641,7 @@ Return a concise report: comments already addressed, obsolete, declined, fixed, 
         },
       ],
     },
-    prompt: `Please step back from the keyboard and act as the PM on this work: orchestrate it rather than build it yourself, and trust your subagents to do the implementation. Hand each large-scoped chunk to a fresh subagent, scoped to whatever unit of work makes sense (a PR, a phase, a feature), but shape the delegation however fits the task. Ask each subagent to work with {{reviewer}} on its approach before it implements, and again on the changes once they're built. If a subagent can't reach {{reviewer}}, it should tell you rather than skip the review. When a subagent reports back, review its work, give any feedback or follow-up, then launch the next, one in flight at a time.`,
+    prompt: `Step back from the keyboard and act as the PM on this work: orchestrate it rather than build it yourself, and trust your subagents to do the implementation. Hand each large-scoped chunk to a fresh subagent, scoped to whatever unit of work makes sense (a PR, a phase, a feature), but shape the delegation however fits the task. Ask each subagent to work with {{reviewer}} on its approach before it implements, and again on the changes once they're built. If a subagent can't reach {{reviewer}}, it should tell you rather than skip the review. When a subagent reports back, review its work, give any feedback or follow-up, then launch the next, one in flight at a time.`,
   },
   {
     id: 'agents-md-maintainer',
@@ -649,8 +650,8 @@ Return a concise report: comments already addressed, obsolete, declined, fixed, 
       "Create, audit, update, or shrink repository AGENTS.md instructions so they hold guidance that improves an agent's decisions or saves repeated discovery.",
     tags: ['implementation', 'review'],
     context:
-      'Use when a repository needs agent instructions, or its existing ones have gone stale, grown noisy, or started contradicting the code. Say which change you want; without one, the agent recommends without editing.',
-    prompt: `Please create, audit, update, or shrink this repository's AGENTS.md instructions, whichever I asked for. If I asked only for an audit or did not say which, report what you would change and why without editing files.
+      'Use when a repository needs agent instructions, or its existing ones have gone stale, grown noisy, or started contradicting the code. Say which change you want; without one, the agent audits and recommends without editing.',
+    prompt: `Create, update, or shrink this repository's AGENTS.md instructions when requested. Otherwise, audit them and report recommended changes without editing files.
 
 AGENTS.md should contain repository-specific guidance that helps an agent make good decisions or avoids meaningful repeated discovery. Include guidance when it:
 
@@ -667,13 +668,13 @@ Put guidance at the narrowest useful scope the intended tools support. A nested 
 
 Preserve useful exceptions. If the code contains a misleading legacy pattern an agent might copy, say so and name the preferred alternative if there is one.
 
-Remove stale, contradictory, generic, or low-value guidance, after checking that removal does not lose knowledge someone still needs. Do not invent conventions. If you only inferred a convention from code patterns, list it as a question in your report instead of writing it as a rule, and finish the rest. Report conflicts with other instruction files, but do not edit them unless I ask.
+Remove stale, contradictory, generic, or low-value guidance, after checking that removal does not lose knowledge someone still needs. Do not invent conventions. If you only inferred a convention from code patterns, list it as a question in your report instead of writing it as a rule, and finish the rest. Report conflicts with other instruction files, but do not edit them unless requested.
 
-Use only the structure this repository needs, and judge the result by whether it improves an agent's decisions, not by its length. If a requirement could be enforced mechanically, you may suggest that, but do not build tooling unless I ask. If the existing instructions already do their job, say so and leave them alone.
+Use only the structure this repository needs, and judge the result by whether it improves an agent's decisions, not by its length. If a requirement could be enforced mechanically, you may suggest that, but do not build tooling unless requested. If the existing instructions already do their job, say so and leave them alone.
 
-Confirm that the paths you cite exist and that commands work where running them is safe and cheap. When your work depends on how a tool loads instructions, such as a new, nested, moved, or split file, check that tool's current documentation or observe it directly rather than relying on memory, because this varies by tool and changes often. If you do not know which tools matter, look for signs in the repository, and ask me if the answer would change the result.
+Confirm that the paths you cite exist and that commands work where running them is safe and cheap. When your work depends on how a tool loads instructions, such as a new, nested, moved, or split file, check that tool's current documentation or observe it directly rather than relying on memory, because this varies by tool and changes often. If you do not know which tools matter, look for signs in the repository, and ask the requester if the answer would change the result.
 
-Finish with what changed and why, including what you removed; what you verified; anything you could not verify; and any questions only I can answer.`,
+Finish with what changed and why, including what you removed; what you verified; anything you could not verify; and any unresolved questions for the requester.`,
   },
 ] as const satisfies readonly PromptEntry[];
 

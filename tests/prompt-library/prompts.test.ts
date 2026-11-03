@@ -99,9 +99,9 @@ test('parallel draft synthesis prompt renders the selected draft count', () => {
   const defaultRenderedPrompt = renderPromptText(prompt);
   const customRenderedPrompt = renderPromptText(prompt, undefined, { numberInputValue: 7 });
 
-  assert.match(defaultRenderedPrompt, /Please orchestrate 5 independent drafts/);
+  assert.match(defaultRenderedPrompt, /Orchestrate 5 independent drafts/);
   assert.match(defaultRenderedPrompt, /Dispatch 5 fresh subagents in parallel/);
-  assert.match(customRenderedPrompt, /Please orchestrate 7 independent drafts/);
+  assert.match(customRenderedPrompt, /Orchestrate 7 independent drafts/);
   assert.match(customRenderedPrompt, /Dispatch 7 fresh subagents in parallel/);
   assert.match(customRenderedPrompt, /same prompt for every subagent/);
   assert.match(customRenderedPrompt, /different lenses/);
@@ -277,7 +277,7 @@ test('proposal review prompt renders multiple proposal modifier text', () => {
 
   assert.equal(
     renderedPrompt,
-    `Please dispatch a fresh subagent to review the current proposals before we act on them.
+    `Dispatch a fresh subagent to review the current proposals before we act on them.
 
 Give them enough context to understand the goal, what led to these proposals, the relevant code or architecture areas they touch, and why these directions were proposed. If the proposals are written up somewhere, point them to it; otherwise summarize the proposals and assumptions clearly. Make clear that the proposals are context, not conclusions.
 
@@ -357,7 +357,7 @@ test('code review lenses prompt defaults to the five PR review lenses', () => {
   assert.match(renderedPrompt, /report a gap only if you can name the behavior at risk/);
   assert.match(renderedPrompt, /deduplicate by root cause/);
   assert.match(renderedPrompt, /Block only for a regression or correctness bug/);
-  assert.match(renderedPrompt, /Stop at the report unless I asked you to fix/);
+  assert.match(renderedPrompt, /Stop at the report unless fixes were requested/);
   assert.match(renderedPrompt, /When there is a PR, name in its body every decision/);
   assert.doesNotMatch(renderedPrompt, /smallest final shape/);
   assert.doesNotMatch(renderedPrompt, /Superset/);
@@ -443,7 +443,7 @@ test('goal statement writer prompt uses a plain concision bar', () => {
 
   assert.match(renderedPrompt, /a few short paragraphs at most/);
   assert.match(renderedPrompt, /the agent's own output can show they were met/);
-  assert.match(renderedPrompt, /which ones the agent may settle itself and which need my decision/);
+  assert.match(renderedPrompt, /which ones the agent may settle itself and which need a decision from the requester/);
   assert.match(renderedPrompt, /say what is missing instead of inventing certainty/);
   assert.doesNotMatch(renderedPrompt, /3000/);
 });
@@ -460,14 +460,14 @@ test('stacked PR comment triage prompt stays portable and stack-aware', () => {
   assert.match(renderedPrompt, /checkout pointed at the top of the stack/);
   assert.match(renderedPrompt, /Triage bottom to top/);
   assert.match(renderedPrompt, /potentially superseded by later changes/);
-  assert.match(renderedPrompt, /ask me instead of guessing/);
+  assert.match(renderedPrompt, /ask the requester instead of guessing/);
   assert.match(renderedPrompt, /new branch created from the top branch/);
   assert.match(renderedPrompt, /do not open an empty follow-up PR/);
   assert.match(renderedPrompt, /inline review threads, review summaries/);
   assert.match(renderedPrompt, /marked resolved as addressed, with no reply needed/);
-  assert.match(renderedPrompt, /fix, or needs my decision/);
-  assert.match(renderedPrompt, /Leave comments that need my decision unanswered/);
-  assert.match(renderedPrompt, /already addressed, obsolete, declined, fixed, and awaiting my decision/);
+  assert.match(renderedPrompt, /fix, or needs a decision/);
+  assert.match(renderedPrompt, /Leave comments that need a decision unanswered/);
+  assert.match(renderedPrompt, /already addressed, obsolete, declined, fixed, and awaiting a decision/);
   assert.doesNotMatch(renderedPrompt, /SKILL\.md/);
   assert.doesNotMatch(renderedPrompt, /review bundles/i);
   assert.doesNotMatch(renderedPrompt, /reply queue/i);
@@ -484,7 +484,7 @@ test('fresh session handoff prompt produces a paste-ready successor prompt', () 
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /handoff prompt I can paste at the start of a new session/);
+  assert.match(renderedPrompt, /handoff prompt to paste at the start of a new session/);
   assert.match(renderedPrompt, /instructions to act on rather than a status report about the work/);
   assert.match(renderedPrompt, /how they will know it is done/);
   assert.match(renderedPrompt, /shortest path to finishing well/);
@@ -615,8 +615,8 @@ test('AGENTS.md maintainer is a standalone prompt that keeps judgment over fixed
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /^Please create, audit, update, or shrink this repository's AGENTS\.md instructions/);
-  assert.match(renderedPrompt, /report what you would change and why without editing files/);
+  assert.match(renderedPrompt, /^Create, update, or shrink this repository's AGENTS\.md instructions when requested/);
+  assert.match(renderedPrompt, /Otherwise, audit them and report recommended changes without editing files/);
   assert.match(renderedPrompt, /helps an agent make good decisions or avoids meaningful repeated discovery/);
   assert.match(renderedPrompt, /Inspect as much of the repository as the request needs/);
   assert.match(renderedPrompt, /report it rather than adding it/);
@@ -627,7 +627,7 @@ test('AGENTS.md maintainer is a standalone prompt that keeps judgment over fixed
   assert.match(renderedPrompt, /misleading legacy pattern/);
   assert.match(renderedPrompt, /Do not invent conventions/);
   assert.match(renderedPrompt, /not by its length/);
-  assert.match(renderedPrompt, /do not build tooling unless I ask/);
+  assert.match(renderedPrompt, /do not build tooling unless requested/);
   assert.match(renderedPrompt, /say so and leave them alone/);
   assert.match(renderedPrompt, /rather than relying on memory/);
   assert.match(renderedPrompt, /anything you could not verify/);

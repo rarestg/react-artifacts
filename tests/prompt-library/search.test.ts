@@ -513,7 +513,7 @@ test('pickResultSnippet anchors manufacture search on the exact prompt-body word
 
   assert.equal(snippet.field, 'prompt');
   assert.match(snippet.text, /manufacture/i);
-  assert.doesNotMatch(snippet.text, /^Please dispatch/i);
+  assert.doesNotMatch(snippet.text, /^Dispatch a fresh/i);
   assert.deepEqual(
     snippet.indices.map(([start, end]) => snippet.text.slice(start, end + 1)),
     ['manufacture'],

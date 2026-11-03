@@ -11,11 +11,12 @@ Use this checklist before adding a prompt to the curated library.
 - The prompt does not name irrelevant concepts just to ban them.
 - Negative constraints target likely mistakes for this task; omit bans that only name mistakes an agent would not realistically make.
 - The prompt distinguishes context from conclusions.
-- The prompt makes room for "no change needed" or "this needs a person's decision" when that can be the honest result.
+- The prompt makes room for "no change needed" or "this needs a decision" when that can be the honest result.
 - The prompt avoids forcing an output format that may not fit the task.
 - The prompt avoids unnecessary process ceremony.
 - The prompt does not present one shape or method as the best way unless that workflow or sequence is the reason the prompt exists.
 - The prompt treats advice for one model as evidence, not a rule, and names a current model only for a task-specific reason.
+- The prompt assumes a particular speaker or shared conversation only when the task needs it, and preserves decision and permission boundaries.
 - The prompt optimizes for honest assessment rather than manufactured work.
 
 ## Before Committing

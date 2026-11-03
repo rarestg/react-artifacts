@@ -51,9 +51,9 @@ async function renderParallelDraftPromptDetailContent(numberInputValue = 5) {
   );
 }
 
-async function renderMinimalCodeReviewPromptDetailContent(selectedToggleOptionIds?: readonly string[]) {
+async function renderCodeReviewPromptDetailContent(selectedToggleOptionIds?: readonly string[]) {
   const { PromptDetailContent } = await import('../../src/artifacts/prompt-library');
-  const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
+  const prompt = prompts.find((entry) => entry.id === 'code-review-lenses');
 
   assert.ok(prompt);
   assert.ok(prompt.toggleModifier);
@@ -195,14 +195,9 @@ test('prompt detail content can render a search-matched non-default modifier var
   assert.doesNotMatch(promptPre.textContent ?? '', /this is the best path/i);
 });
 
-test('prompt detail content renders lens toggles for minimal code review prompt', async () => {
+test('prompt detail content renders lens toggles for code review prompt', async () => {
   const document = parseMarkup(
-    await renderMinimalCodeReviewPromptDetailContent([
-      'minimalism',
-      'stdlib-native',
-      'correctness-safety',
-      'readability',
-    ]),
+    await renderCodeReviewPromptDetailContent(['minimalism', 'stdlib-native', 'readability']),
   );
   const promptSection = document.querySelector('[data-prompt-detail-section="prompt"]');
 
@@ -220,5 +215,5 @@ test('prompt detail content renders lens toggles for minimal code review prompt'
   assert.ok(promptHeader.contains(lensControl));
   assert.equal(promptBody.contains(lensControl), false);
   assert.match(promptPre.textContent ?? '', /Minimalism\/YAGNI/);
-  assert.doesNotMatch(promptPre.textContent ?? '', /Small checks/);
+  assert.doesNotMatch(promptPre.textContent ?? '', /Tests and checks/);
 });

@@ -5,15 +5,17 @@ Use this checklist before adding a prompt to the curated library.
 ## Ready To Add
 
 - The prompt is clear about who should do what.
-- The prompt is generalizable beyond one conversation.
+- The prompt's value carries to other repos and kinds of work within its scope, not only the conversation, tool, or machine it came from.
 - The usage context explains when to use the prompt and why it exists.
 - The prompt gives enough context guidance without embedding stale specifics.
 - The prompt does not name irrelevant concepts just to ban them.
 - Negative constraints target likely mistakes for this task; omit bans that only name mistakes an agent would not realistically make.
 - The prompt distinguishes context from conclusions.
-- The prompt makes room for "no change needed" when evidence supports that.
+- The prompt makes room for "no change needed" or "this needs a person's decision" when that can be the honest result.
 - The prompt avoids forcing an output format that may not fit the task.
 - The prompt avoids unnecessary process ceremony.
+- The prompt does not present one shape or method as the best way unless that workflow or sequence is the reason the prompt exists.
+- The prompt treats advice for one model as evidence, not a rule, and names a current model only for a task-specific reason.
 - The prompt optimizes for honest assessment rather than manufactured work.
 
 ## Before Committing

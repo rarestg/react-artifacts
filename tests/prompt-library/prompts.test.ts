@@ -105,6 +105,7 @@ test('parallel draft synthesis prompt renders the selected draft count', () => {
   assert.match(customRenderedPrompt, /Dispatch 7 fresh subagents in parallel/);
   assert.match(customRenderedPrompt, /same prompt for every subagent/);
   assert.match(customRenderedPrompt, /different lenses/);
+  assert.match(customRenderedPrompt, /give each its own path or workspace/);
   assert.match(customRenderedPrompt, /If the user should inspect distinct variants/);
   assert.match(customRenderedPrompt, /optionally run one focused follow-up round/);
   assert.doesNotMatch(customRenderedPrompt, /artificial lenses/);
@@ -189,10 +190,12 @@ test('session-to-blog article prompt renders technical article checks by default
   assert.match(renderedPrompt, /compression pass/);
   assert.match(renderedPrompt, /If a paragraph's point can be made in one sentence/);
   assert.match(renderedPrompt, /Do not invent stakes/);
+  assert.match(renderedPrompt, /Treat the session as private source material/);
+  assert.match(renderedPrompt, /Leave out credentials\./);
   assert.match(renderedPrompt, /reproducibility pass before review/);
   assert.match(renderedPrompt, /command, log line, observed output, source text, or explicit inference/);
   assert.match(renderedPrompt, /copy-paste-dangerous placeholder commands/);
-  assert.match(renderedPrompt, /PID, service label, bundle ID/);
+  assert.match(renderedPrompt, /environment-specific value such as a PID, account name, host, or path/);
   assert.match(renderedPrompt, /ellipses inside a runnable command block/);
   assert.match(renderedPrompt, /observed in this session/);
   assert.match(renderedPrompt, /generally true/);
@@ -203,14 +206,9 @@ test('session-to-blog article prompt renders technical article checks by default
   assert.match(renderedPrompt, /Command safety: placeholders/);
   assert.match(renderedPrompt, /Aggressive concision/);
   assert.match(renderedPrompt, /rather than direct edits/);
-  assert.doesNotMatch(renderedPrompt, /over-disclosing private context/);
   assert.doesNotMatch(renderedPrompt, /broad life lessons/);
   assert.doesNotMatch(renderedPrompt, /frontmatter/i);
   assert.doesNotMatch(renderedPrompt, /metadata/i);
-  assert.doesNotMatch(renderedPrompt, /keywords/i);
-  assert.doesNotMatch(renderedPrompt, /entities/i);
-  assert.doesNotMatch(renderedPrompt, /America\/New_York/);
-  assert.doesNotMatch(renderedPrompt, /semantic_triples/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
@@ -224,9 +222,11 @@ test('session-to-blog article prompt renders general article checks', () => {
   assert.match(renderedPrompt, /Markdown blog article/);
   assert.match(renderedPrompt, /durable reader-facing lesson/);
   assert.match(renderedPrompt, /Write for a useful blog/);
-  assert.match(renderedPrompt, /natural language of the session/);
+  assert.match(renderedPrompt, /session's own everyday terms/);
+  assert.match(renderedPrompt, /Treat the session as private source material/);
+  assert.match(renderedPrompt, /Leave out credentials\./);
   assert.match(renderedPrompt, /Do not impose debugging, implementation, or process scaffolding/);
-  assert.match(renderedPrompt, /avoid over-disclosing private context/);
+  assert.match(renderedPrompt, /avoid turning one personal observation into universal advice/);
   assert.match(renderedPrompt, /Separate what happened, what you inferred, and what you now believe/);
   assert.match(renderedPrompt, /modest, specific claims over broad life lessons/);
   assert.match(renderedPrompt, /Specificity, honesty/);
@@ -237,37 +237,6 @@ test('session-to-blog article prompt renders general article checks', () => {
   assert.doesNotMatch(renderedPrompt, /reproducibility pass before review/);
   assert.doesNotMatch(renderedPrompt, /copy-paste-dangerous placeholder commands/);
   assert.doesNotMatch(renderedPrompt, /Command safety: placeholders/);
-  assert.doesNotMatch(renderedPrompt, /\{\{/);
-});
-
-test('article frontmatter prompt derives strict local-time metadata without editing the body', () => {
-  const prompt = prompts.find((entry) => entry.id === 'article-frontmatter-generator');
-
-  assert.ok(prompt);
-  assert.equal(prompt.title, 'Article Frontmatter Generator');
-  assert.deepEqual(prompt.tags, ['blog']);
-
-  const renderedPrompt = renderPromptText(prompt);
-
-  assert.match(renderedPrompt, /Return only YAML frontmatter/);
-  assert.match(renderedPrompt, /leave the article text unchanged/);
-  assert.match(renderedPrompt, /±HH:MM/);
-  assert.match(renderedPrompt, /reported by the system clock/);
-  assert.match(renderedPrompt, /IANA timezone name/);
-  assert.match(renderedPrompt, /semantic_triples/);
-  assert.match(renderedPrompt, /Base the metadata on the final article/);
-  assert.match(renderedPrompt, /Use the article H1 or title/);
-  assert.match(renderedPrompt, /explicit, article-supported claims/);
-  assert.match(renderedPrompt, /not a keyword pairing, title restatement, summary fragment, or vague theme/);
-  assert.match(renderedPrompt, /do not generalize a one-off observation into a class-level fact/);
-  assert.match(renderedPrompt, /one app, one session, or one machine/);
-  assert.match(renderedPrompt, /supported, non-obvious, reusable, and more informative than a tag/);
-  assert.match(renderedPrompt, /Prefer 2-6 high-signal triples/);
-  assert.match(renderedPrompt, /use \[\] when none are warranted/);
-  assert.match(renderedPrompt, /Quote or escape YAML strings/);
-  assert.match(renderedPrompt, /Return only the frontmatter block/);
-  assert.doesNotMatch(renderedPrompt, /New.York/);
-  assert.doesNotMatch(renderedPrompt, /2-4 fresh subagents/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
@@ -294,7 +263,7 @@ test('proposal review prompt renders singular proposal modifier text', () => {
   const renderedPrompt = renderPromptText(prompt, 'proposal');
 
   assert.match(renderedPrompt, /review the current proposal before we act on it/);
-  assert.match(renderedPrompt, /Summarize the proposal and assumptions clearly/);
+  assert.match(renderedPrompt, /If the proposal is written up somewhere, point them to it/);
   assert.match(renderedPrompt, /"The proposal is solid,"/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
@@ -310,7 +279,7 @@ test('proposal review prompt renders multiple proposal modifier text', () => {
     renderedPrompt,
     `Please dispatch a fresh subagent to review the current proposals before we act on them.
 
-Give them enough context to understand the goal, what led to these proposals, the relevant code or architecture areas they touch, and why these directions were proposed. Summarize the proposals and assumptions clearly. Make clear that the proposals are context, not conclusions.
+Give them enough context to understand the goal, what led to these proposals, the relevant code or architecture areas they touch, and why these directions were proposed. If the proposals are written up somewhere, point them to it; otherwise summarize the proposals and assumptions clearly. Make clear that the proposals are context, not conclusions.
 
 Ask them to evaluate from first principles whether the proposed paths are sound independently or in combination. They should extract the real intent, identify assumptions or inherited requirements, challenge whether any can be removed rather than satisfied, and look for failure modes, hidden coupling, simpler targeted fixes, unnecessary complexity, better long-term designs, or reasons no changes are needed.
 
@@ -342,48 +311,82 @@ test('proposal review prompt renders residual risk modifier text', () => {
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
-test('minimal code review team prompt defaults to all focused lenses', () => {
-  const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
+test('code review lenses prompt defaults to the five PR review lenses', () => {
+  const prompt = prompts.find((entry) => entry.id === 'code-review-lenses');
 
   assert.ok(prompt);
-  assert.equal(prompt.title, 'Minimal Code Review Team');
+  assert.equal(prompt.title, 'Code Review Lenses');
   assert.deepEqual(prompt.tags, ['review', 'subagents', 'architecture']);
   assert.equal(prompt.toggleModifier?.label, 'Lenses');
   assert.deepEqual(getDefaultPromptToggleOptionIds(prompt), [
-    'minimalism',
-    'stdlib-native',
-    'correctness-safety',
-    'readability',
-    'checks',
+    'trust-boundary',
+    'behavior-regression',
+    'structure-drift',
+    'signatures-seams',
+    'tests-checks',
   ]);
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /focused subagent review team/);
-  assert.match(renderedPrompt, /minimal, still correct, and still understandable/);
-  assert.match(renderedPrompt, /Minimalism\/YAGNI/);
-  assert.match(renderedPrompt, /Stdlib\/native\/deps/);
-  assert.match(renderedPrompt, /Correctness\/safety/);
-  assert.match(renderedPrompt, /Readability\/maintainability/);
-  assert.match(renderedPrompt, /Small checks/);
-  assert.match(renderedPrompt, /synthesize one ranked action list/);
-  assert.doesNotMatch(renderedPrompt, /hardware calibration/);
+  assert.match(renderedPrompt, /Trust boundary and scope/);
+  assert.match(renderedPrompt, /Behavior and regression/);
+  assert.match(renderedPrompt, /Structure and drift/);
+  assert.match(renderedPrompt, /Signatures and seams/);
+  assert.match(renderedPrompt, /Tests and checks/);
+  assert.doesNotMatch(renderedPrompt, /Minimalism\/YAGNI/);
+  assert.doesNotMatch(renderedPrompt, /Stdlib\/native\/deps/);
+  assert.doesNotMatch(renderedPrompt, /Readability\/maintainability/);
+  assert.match(renderedPrompt, /If one lens is listed, do that review yourself/);
+  assert.match(renderedPrompt, /spawn one fresh subagent per lens/);
+  assert.match(renderedPrompt, /Give each its lens word for word/);
+  assert.match(renderedPrompt, /inspect the code behind each finding to confirm or reject it/);
+  assert.match(renderedPrompt, /all blocking and should-change findings, at most three principle/);
+  assert.match(renderedPrompt, /too small to justify separate reviewers/);
+  assert.match(renderedPrompt, /When there is no diff, treat all the code as changed/);
+  assert.match(renderedPrompt, /whether uncommitted changes are in scope/);
+  assert.match(renderedPrompt, /check that the fixes were applied correctly/);
+  assert.match(renderedPrompt, /production callers omit it; a global getter fills it/);
+  assert.match(renderedPrompt, /record findings before reading the plan or PR description/);
+  assert.match(renderedPrompt, /Add any finding the plan or description reveals/);
+  assert.match(renderedPrompt, /Safe local checks are fine/);
+  assert.match(renderedPrompt, /report anything serious outside it in one line/);
+  assert.match(renderedPrompt, /Raise uncertainty as a question/);
+  assert.match(renderedPrompt, /"Clean" is a valid answer/);
+  assert.match(renderedPrompt, /The checks below are strong defaults, not requirements/);
+  assert.match(renderedPrompt, /Types do not make external input safe/);
+  assert.match(renderedPrompt, /report a gap only if you can name the behavior at risk/);
+  assert.match(renderedPrompt, /deduplicate by root cause/);
+  assert.match(renderedPrompt, /Block only for a regression or correctness bug/);
+  assert.match(renderedPrompt, /Stop at the report unless I asked you to fix/);
+  assert.match(renderedPrompt, /When there is a PR, name in its body every decision/);
+  assert.doesNotMatch(renderedPrompt, /smallest final shape/);
+  assert.doesNotMatch(renderedPrompt, /Superset/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
 
-test('minimal code review team prompt can omit the checks lens', () => {
-  const prompt = prompts.find((entry) => entry.id === 'minimal-code-review-team');
+test('code review lenses prompt can run a single lens or the simplification lenses', () => {
+  const prompt = prompts.find((entry) => entry.id === 'code-review-lenses');
 
   assert.ok(prompt);
 
-  const renderedPrompt = renderPromptText(prompt, undefined, {
-    enabledToggleOptionIds: ['minimalism', 'stdlib-native', 'correctness-safety', 'readability'],
+  const signaturesOnly = renderPromptText(prompt, undefined, { enabledToggleOptionIds: ['signatures-seams'] });
+
+  assert.match(signaturesOnly, /^1\. Signatures and seams/m);
+  assert.match(signaturesOnly, /Optional and defaults/);
+  assert.match(signaturesOnly, /layer → responsibility/);
+  assert.doesNotMatch(signaturesOnly, /Trust boundary and scope/);
+  assert.doesNotMatch(signaturesOnly, /\{\{/);
+
+  const simplification = renderPromptText(prompt, undefined, {
+    enabledToggleOptionIds: ['minimalism', 'stdlib-native', 'readability'],
   });
 
-  assert.match(renderedPrompt, /Minimalism\/YAGNI/);
-  assert.match(renderedPrompt, /Readability\/maintainability/);
-  assert.doesNotMatch(renderedPrompt, /Small checks/);
-  assert.doesNotMatch(renderedPrompt, /\{\{/);
+  assert.match(simplification, /Minimalism\/YAGNI/);
+  assert.match(simplification, /Readability\/maintainability/);
+  assert.match(simplification, /smallest final shape/);
+  assert.match(simplification, /say so rather than stretching for changes/);
+  assert.doesNotMatch(simplification, /Tests and checks/);
+  assert.doesNotMatch(simplification, /\{\{/);
 });
 
 test('validatePrompts rejects modifier options with missing replacements', () => {
@@ -439,6 +442,9 @@ test('goal statement writer prompt uses a plain concision bar', () => {
   const renderedPrompt = renderPromptText(prompt);
 
   assert.match(renderedPrompt, /a few short paragraphs at most/);
+  assert.match(renderedPrompt, /the agent's own output can show they were met/);
+  assert.match(renderedPrompt, /which ones the agent may settle itself and which need my decision/);
+  assert.match(renderedPrompt, /say what is missing instead of inventing certainty/);
   assert.doesNotMatch(renderedPrompt, /3000/);
 });
 
@@ -457,7 +463,11 @@ test('stacked PR comment triage prompt stays portable and stack-aware', () => {
   assert.match(renderedPrompt, /ask me instead of guessing/);
   assert.match(renderedPrompt, /new branch created from the top branch/);
   assert.match(renderedPrompt, /do not open an empty follow-up PR/);
-  assert.match(renderedPrompt, /already addressed, obsolete, declined, and fixed/);
+  assert.match(renderedPrompt, /inline review threads, review summaries/);
+  assert.match(renderedPrompt, /marked resolved as addressed, with no reply needed/);
+  assert.match(renderedPrompt, /fix, or needs my decision/);
+  assert.match(renderedPrompt, /Leave comments that need my decision unanswered/);
+  assert.match(renderedPrompt, /already addressed, obsolete, declined, fixed, and awaiting my decision/);
   assert.doesNotMatch(renderedPrompt, /SKILL\.md/);
   assert.doesNotMatch(renderedPrompt, /review bundles/i);
   assert.doesNotMatch(renderedPrompt, /reply queue/i);
@@ -521,6 +531,7 @@ test('request clarifier resolves ambiguity before rewriting', () => {
   assert.match(renderedPrompt, /add only details that materially clarify the request/);
   assert.match(renderedPrompt, /Do not invent facts, goals, preferences, or constraints/);
   assert.match(renderedPrompt, /Treat inferred intent as a hypothesis, not a fact/);
+  assert.match(renderedPrompt, /Do not add steps or checks I did not ask for/);
   assert.match(
     renderedPrompt,
     /If ambiguity would meaningfully change the rewrite, ask a few focused questions and stop/,
@@ -540,9 +551,10 @@ test('unslop prompt renders the plain-writing guidelines', () => {
 
   const renderedPrompt = renderPromptText(prompt);
 
-  assert.match(renderedPrompt, /^Follow these guidelines when writing or revising prose for me\./);
+  assert.match(renderedPrompt, /^Follow these guidelines when writing or revising prose\./);
+  assert.match(renderedPrompt, /leave passages that already read clearly as they are/);
   assert.match(renderedPrompt, /"Use" instead of "utilize" or "leverage\."/);
-  assert.match(renderedPrompt, /"`\.toSQL\(\)` returns the generated SQL" is useful/);
+  assert.match(renderedPrompt, /"Every change is logged with its author and time" is useful/);
   assert.match(renderedPrompt, /Prefer active voice when naming the actor helps/);
   assert.match(renderedPrompt, /The problem is padding that's reflexive rather than purposeful/);
   assert.match(renderedPrompt, /Pick one term for a thing and stick with it/);
@@ -576,6 +588,7 @@ test('PM orchestrator mode prompt renders the default Codex reviewer modifier', 
   assert.match(renderedPrompt, /shape the delegation however fits the task/);
   assert.match(renderedPrompt, /work with Codex on its approach before it implements/);
   assert.match(renderedPrompt, /again on the changes once they're built/);
+  assert.match(renderedPrompt, /If a subagent can't reach Codex, it should tell you rather than skip the review/);
   assert.match(renderedPrompt, /launch the next, one in flight at a time/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });
@@ -588,6 +601,37 @@ test('PM orchestrator mode prompt renders the independent reviewer modifier', ()
   const renderedPrompt = renderPromptText(prompt, 'independent-reviewer');
 
   assert.match(renderedPrompt, /work with an independent reviewer on its approach before it implements/);
+  assert.match(renderedPrompt, /can't reach an independent reviewer/);
   assert.doesNotMatch(renderedPrompt, /Codex/);
+  assert.doesNotMatch(renderedPrompt, /\{\{/);
+});
+
+test('AGENTS.md maintainer is a standalone prompt that keeps judgment over fixed rules', () => {
+  const prompt = prompts.find((entry) => entry.id === 'agents-md-maintainer');
+
+  assert.ok(prompt);
+  assert.equal(prompt.title, 'AGENTS.md Maintainer');
+  assert.deepEqual(prompt.tags, ['implementation', 'review']);
+
+  const renderedPrompt = renderPromptText(prompt);
+
+  assert.match(renderedPrompt, /^Please create, audit, update, or shrink this repository's AGENTS\.md instructions/);
+  assert.match(renderedPrompt, /report what you would change and why without editing files/);
+  assert.match(renderedPrompt, /helps an agent make good decisions or avoids meaningful repeated discovery/);
+  assert.match(renderedPrompt, /Inspect as much of the repository as the request needs/);
+  assert.match(renderedPrompt, /report it rather than adding it/);
+  assert.match(renderedPrompt, /can live inline, even if nothing enforces them/);
+  assert.match(renderedPrompt, /say when to consult it/);
+  assert.match(renderedPrompt, /narrowest useful scope the intended tools support/);
+  assert.match(renderedPrompt, /keep it or a pointer to it at a scope that does load/);
+  assert.match(renderedPrompt, /misleading legacy pattern/);
+  assert.match(renderedPrompt, /Do not invent conventions/);
+  assert.match(renderedPrompt, /not by its length/);
+  assert.match(renderedPrompt, /do not build tooling unless I ask/);
+  assert.match(renderedPrompt, /say so and leave them alone/);
+  assert.match(renderedPrompt, /rather than relying on memory/);
+  assert.match(renderedPrompt, /anything you could not verify/);
+  assert.doesNotMatch(renderedPrompt, /^---$/m);
+  assert.doesNotMatch(renderedPrompt, /allowed-tools|argument-hint|Triggers on/);
   assert.doesNotMatch(renderedPrompt, /\{\{/);
 });

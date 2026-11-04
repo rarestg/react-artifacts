@@ -118,7 +118,7 @@ export function ModelTable({ vm }: { vm: Controller }) {
       </div>
       <div className="overflow-x-auto border border-[var(--border)]">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
-          <thead className="bg-[var(--surface-muted)] text-[10px]">
+          <thead className="bg-[var(--surface-muted)] text-[11px]">
             <tr className="border-b border-[var(--border)]">
               <Th label="Model" sortKey="model" />
               <Th label="$/1M in" sortKey="in" numeric />

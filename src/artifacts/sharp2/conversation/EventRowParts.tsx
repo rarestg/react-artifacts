@@ -178,7 +178,7 @@ function getAgentIdentityTagStyle(tone: AgentIdentityTone): AgentIdentityTagStyl
 }
 
 const agentIdentityTagBaseClasses =
-  'inline-flex h-6 min-w-0 shrink-0 items-center border border-transparent px-1.5 font-mono text-[10px] font-semibold';
+  'inline-flex h-6 min-w-0 shrink-0 items-center border border-transparent px-1.5 font-mono text-[11px] font-semibold';
 const agentIdentityTagToneClasses = 'bg-[var(--agent-tag-bg)] text-[var(--agent-tag-text)]';
 
 function AgentIdentityDisplayTag({ tag, tone }: { tag: AgentIdentityTagModel; tone: AgentIdentityTone }) {
@@ -351,7 +351,7 @@ export function SubagentNotificationStatusBadge({ status }: { status: SubagentNo
 
 function EventStatusBadge({ label, className }: { label: string; className: string }) {
   return (
-    <span className={mergeClassNames('shrink-0 border px-1.5 py-0.5 text-[10px] font-semibold', className)}>
+    <span className={mergeClassNames('shrink-0 border px-1.5 py-0.5 text-[11px] font-semibold', className)}>
       {label}
     </span>
   );

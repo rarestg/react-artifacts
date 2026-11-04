@@ -53,7 +53,7 @@ function getMissingDetailMessage(
   return undefined;
 }
 
-const detailLabelClasses = 'text-[10px] font-semibold uppercase tracking-wider';
+const detailLabelClasses = 'text-[11px] font-semibold uppercase tracking-wider';
 const detailPreClasses =
   'font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5';
 const detailStateClasses =

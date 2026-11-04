@@ -44,7 +44,7 @@ export function IndexEntry({ artifact, onSelect, jumpKey }: IndexEntryProps) {
               // biome-ignore lint/a11y/noAriaHiddenOnFocusable: <kbd> is not focusable; the chip is decorative and the shortcut is exposed via aria-keyshortcuts on the link.
               <kbd
                 aria-hidden="true"
-                className="mr-2.5 inline-flex h-5 min-w-5 -translate-y-0.5 items-center justify-center border border-gray-300 bg-gray-50 px-1 font-mono text-[10px] font-semibold leading-none text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
+                className="mr-2.5 inline-flex h-5 min-w-5 -translate-y-0.5 items-center justify-center border border-gray-300 bg-gray-50 px-1 font-mono text-[11px] font-semibold leading-none text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
               >
                 {jumpKey}
               </kbd>

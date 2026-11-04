@@ -24,7 +24,7 @@ export type SubagentNotificationProps = {
 };
 
 const detailLabelClasses =
-  'text-[10px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]';
+  'text-[11px] font-semibold uppercase tracking-wider text-[color:var(--transcript-row-accent)]';
 const detailPreClasses =
   'font-mono text-sm text-[var(--text)] whitespace-pre-wrap break-words bg-[var(--surface-muted)] border border-[var(--border)] px-2 py-1.5';
 
@@ -90,7 +90,7 @@ export function SubagentNotification({
       {showRawDebug && rawPayload && (
         <div>
           <div className="mb-1 flex items-center justify-between gap-2">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">
               Raw Payload
             </div>
             <CopyButton

@@ -96,7 +96,7 @@ export function ListboxSelect<T extends string>({
                   )}
                   <Select.ItemIndicator className={itemIndicator}>
                     <Check className="size-3.5" aria-hidden="true" />
-                    <span className="text-[10px] uppercase tracking-[0.2em]">{selectedLabel}</span>
+                    <span className="text-[11px] uppercase tracking-[0.2em]">{selectedLabel}</span>
                   </Select.ItemIndicator>
                 </span>
               </Select.Item>

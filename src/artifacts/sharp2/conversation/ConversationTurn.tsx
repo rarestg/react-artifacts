@@ -26,7 +26,7 @@ function TurnMetaBadge({
   return (
     <span
       title={title}
-      className={`inline-flex h-6 items-center border border-[var(--border)] bg-[var(--surface)] px-1.5 text-[10px] font-semibold ${
+      className={`inline-flex h-6 items-center border border-[var(--border)] bg-[var(--surface)] px-1.5 text-[11px] font-semibold ${
         uppercase ? 'uppercase' : 'normal-case'
       } text-[var(--text-muted)] tabular-nums`}
     >

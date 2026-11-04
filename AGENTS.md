@@ -12,6 +12,8 @@ Start with `README.md`. It is the main orientation doc for the stack, repo map, 
 - Restart `npm run preview` after every build. A running server answers new asset hashes with the HTML fallback, so the page renders blank and rendered scans falsely report no findings.
 - When a useful repo-specific discovery takes real effort or multiple steps, add a concise note here so future agents do not rediscover it. Keep this file terse and under 100 lines.
 - Run `npm run check` before opening a PR. CI also runs `npm run knip:ci`, which treats unused exports as errors where the local check only warns.
+- Node 22 or later is required, because the installed Wrangler needs it. CI uses Node 24.
+- `@base-ui/react` is held at 1.6.0 in the lockfile, and `npm update` will try to raise it. 1.7 fails a Prompt Library Space-toggle test. 1.9 lets an overlay that is open on first render escape to `document.body`, because `ArtifactThemeRoot` passes a ref that is still empty when the portal resolves it. Fix both before upgrading.
 
 ## exe.dev
 

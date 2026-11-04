@@ -128,7 +128,7 @@ export function RetryPanel({ vm }: { vm: Controller }) {
             {vm.retrying ? (
               <div className="flex h-9 items-center justify-between gap-2 border border-[var(--border)] bg-[var(--surface-muted)] px-3 text-[var(--text-muted)]">
                 <span className="min-w-0 truncate font-mono text-xs">{vm.retryModel}</span>
-                <span className="shrink-0 text-[10px] uppercase tracking-[0.1em]">locked</span>
+                <span className="shrink-0 text-[11px] uppercase tracking-[0.1em]">locked</span>
               </div>
             ) : (
               <ListboxSelect

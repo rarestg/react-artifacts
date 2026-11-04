@@ -124,7 +124,7 @@ export function PageStateChip({ state }: { state: 'suspect' | 'failed' }) {
   return (
     <span
       className={mergeClassNames(
-        'inline-flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] leading-none',
+        'inline-flex items-center gap-1 border px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] leading-none',
         chipToneClass[tone],
       )}
     >

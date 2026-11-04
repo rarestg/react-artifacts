@@ -95,6 +95,7 @@ createElement(SharedCopyButton, { ref: createRef<HTMLButtonElement>(), text: 'va
         '--verbatimModuleSyntax',
         '--moduleDetection',
         'force',
+        '--ignoreConfig',
         assertionsFile,
       ],
       { cwd: repoRoot, encoding: 'utf8', stdio: 'pipe' },

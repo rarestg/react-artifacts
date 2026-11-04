@@ -86,7 +86,7 @@ export const panelHeader = {
   title: 'text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]',
   meta: 'flex flex-wrap items-center gap-2 text-[11px] font-mono text-[var(--text-muted)]',
   actions: 'flex flex-wrap items-center gap-2 min-w-0 basis-full sm:basis-auto',
-  action: `cursor-pointer px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] ${focusRing} disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]`,
+  action: `cursor-pointer px-2 py-1 text-[11px] font-mono uppercase tracking-[0.2em] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] ${focusRing} disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--surface)]`,
 };
 
 /* Inline badge (Tag). */
@@ -271,9 +271,9 @@ export const segmentedControl = {
 export const typo = {
   pageTitle: 'text-2xl font-semibold text-[var(--text)]',
   sectionTitle: 'text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]',
-  subLabel: 'text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]',
+  subLabel: 'text-[11px] font-medium uppercase tracking-wide text-[var(--text-subtle)]',
   // Compact uppercase label naming a control cluster in dense tool UIs (vs subLabel: the lighter section/demo sub-label).
-  controlLabel: 'text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]',
+  controlLabel: 'text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]',
   // Secondary body copy; primary body text stays `text-sm text-[var(--text)]` inline.
   bodyMuted: 'text-sm text-[var(--text-muted)]',
   meta: 'text-xs text-[var(--text-subtle)]',

@@ -44,10 +44,10 @@ import {
 
 const rootClass = 'relative min-h-screen overflow-hidden bg-[var(--surface-muted)] text-[var(--text)]';
 const shortcutKeyClass =
-  'inline-flex h-5 min-w-5 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-1.5 font-mono text-[10px] font-semibold leading-none text-[var(--text-muted)]';
+  'inline-flex h-5 min-w-5 items-center justify-center border border-[var(--border)] bg-[var(--surface)] px-1.5 font-mono text-[11px] font-semibold leading-none text-[var(--text-muted)]';
 // The command glyph has more internal whitespace than Latin letters; size it optically so it balances with "K".
 const commandGlyphClass = 'text-[13px]';
-const legendLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]';
+const legendLabelClass = 'text-[11px] uppercase tracking-[0.14em] text-[var(--text-muted)]';
 // Focus moves between title buttons, but the moving ring draws around the whole card so it reads
 // as card focus, not a text highlight. Scoped to the title's :focus-visible only: tabbing to
 // the card's Copy button keeps that button's own local ring without lighting the card. The offset
@@ -59,7 +59,7 @@ const cardFocusRingClass =
 // two places where the c key works. The named group keeps a future outer .group from revealing
 // every card's chip at once.
 const copyKeyChipBaseClass =
-  'h-4 min-w-4 items-center justify-center border border-[var(--border)] bg-[var(--surface-muted)] px-1 font-mono text-[9px] font-bold leading-none text-[var(--text-muted)]';
+  'h-4 min-w-4 items-center justify-center border border-[var(--border)] bg-[var(--surface-muted)] px-1 font-mono text-[11px] font-bold leading-none text-[var(--text-muted)]';
 const cardCopyKeyChipClass = `${copyKeyChipBaseClass} hidden group-has-[[data-prompt-card-title]:focus-visible]/prompt-card:inline-flex group-has-[[data-prompt-card-copy]:focus-visible]/prompt-card:inline-flex`;
 const detailCopyKeyChipClass = `${copyKeyChipBaseClass} inline-flex pointer-coarse:hidden`;
 
@@ -191,7 +191,7 @@ export default function PromptLibrary() {
                   <kbd className={shortcutKeyClass}>L</kbd>
                 </span>
                 <span className={legendLabelClass}>move</span>
-                <span className="text-[10px] text-[var(--text-muted)]">·</span>
+                <span className="text-[11px] text-[var(--text-muted)]">·</span>
                 <kbd className={shortcutKeyClass}>C</kbd>
                 <span className={legendLabelClass}>copy</span>
               </div>
@@ -205,7 +205,7 @@ export default function PromptLibrary() {
                 <Search className="size-4" aria-hidden="true" />
                 Search
                 <span
-                  className="inline-flex items-center gap-1 text-[10px] text-[var(--text-muted)]"
+                  className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)]"
                   aria-hidden="true"
                 >
                   {searchShortcutHint.modifier === 'command' ? (
@@ -451,7 +451,7 @@ function PromptTags({
             key={tag.id}
             style={tagColorStyle}
             className={mergeClassNames(
-              'inline-flex items-center gap-1.5 border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em]',
+              'inline-flex items-center gap-1.5 border px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em]',
               highlighted
                 ? 'border-[color:var(--prompt-tag-color)] bg-[var(--surface-muted)] text-[var(--text)]'
                 : 'border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]',
@@ -471,7 +471,7 @@ function ResultSnippet({ result, query }: { result: PromptSearchResult; query: s
 
   return (
     <p className="text-xs leading-5 text-[var(--text-muted)]">
-      <span className="mr-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+      <span className="mr-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
         {snippet.field}
       </span>
       {snippet.leadingEllipsis && <span aria-hidden="true">...</span>}
@@ -552,7 +552,7 @@ function PromptDetailSection({
         data-prompt-detail-section-header=""
         className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2"
       >
-        <h3 id={titleId} className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+        <h3 id={titleId} className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
           {title}
         </h3>
         {controls && (
@@ -581,7 +581,7 @@ function PromptModifierControl({
 }) {
   return (
     <div className="inline-flex min-w-0 items-center gap-2">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
       <SegmentedControl
         ariaLabel={label}
         value={value}
@@ -608,7 +608,7 @@ function PromptToggleModifierControl({
 
   return (
     <>
-      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
       <fieldset className="m-0 flex min-w-0 flex-wrap items-center gap-1.5 border-0 p-0" aria-label={label}>
         {options.map((option) => (
           <FilterCheckbox

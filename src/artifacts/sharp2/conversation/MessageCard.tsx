@@ -6,7 +6,7 @@ import { TranscriptRow, TranscriptRowActionCluster } from './TranscriptRow';
 import type { MessageRole, RenderMode } from './types';
 
 const headerActionClasses =
-  'h-6 place-items-center border border-transparent bg-transparent px-1.5 py-0 text-[10px] font-semibold uppercase leading-none text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
+  'h-6 place-items-center border border-transparent bg-transparent px-1.5 py-0 text-[11px] font-semibold uppercase leading-none text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:bg-[var(--surface-pressed)] motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[color:var(--surface)]';
 const renderToggleSlotClasses = 'w-[4.75rem]';
 
 export type MessageCardProps = {
@@ -112,7 +112,7 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
                     <div key={partKey} className="border border-[var(--border)] bg-[var(--surface-muted)]">
                       {part.lang && (
                         <div className="px-2 py-1 border-b border-[var(--border)] bg-[var(--surface-strong)]">
-                          <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">
+                          <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-subtle)]">
                             {part.lang}
                           </span>
                         </div>

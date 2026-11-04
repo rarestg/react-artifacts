@@ -12,6 +12,12 @@
   }
 }
 
+@layer base {
+  body {
+    text-wrap-style: pretty;
+  }
+}
+
 @layer components {
   .decision-frame {
     @apply relative;
@@ -21,7 +27,7 @@
     --decision-ring-offset-color: var(--surface);
     --decision-ring: var(--warning);
     --decision-bg: var(--warning-weak);
-    --decision-text: var(--warning);
+    --decision-text: var(--warning-text);
   }
 
   .decision-ring {
@@ -57,13 +63,13 @@
   .decision-theme-amber {
     --decision-ring: var(--warning);
     --decision-bg: var(--warning-weak);
-    --decision-text: var(--warning);
+    --decision-text: var(--warning-text);
   }
 
   .decision-theme-emerald {
     --decision-ring: var(--success);
     --decision-bg: var(--success-weak);
-    --decision-text: var(--success);
+    --decision-text: var(--success-text);
   }
 
   .decision-theme-slate {

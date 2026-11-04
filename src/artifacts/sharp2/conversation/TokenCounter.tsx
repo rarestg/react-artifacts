@@ -122,7 +122,7 @@ export function TokenCounter({ used, limit, label = 'Context Window', cached }: 
   return (
     <div className="bg-[var(--surface-muted)] px-3 py-2 font-mono text-xs">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span className="font-semibold text-[var(--text-muted)] uppercase tracking-wide text-[10px]">{label}</span>
+        <span className="font-semibold text-[var(--text-muted)] uppercase tracking-wide text-[11px]">{label}</span>
         <div className="flex min-w-0 items-center">
           <span className="text-[var(--text-subtle)]">[</span>
           <span className="text-[var(--accent)]">{'▮'.repeat(filledBlocks)}</span>

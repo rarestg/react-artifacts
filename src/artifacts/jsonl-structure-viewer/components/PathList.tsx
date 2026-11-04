@@ -165,7 +165,7 @@ export default function PathList({
                   type="button"
                   onClick={() => onToggleExpand(child.key)}
                   className={mergeClassNames(
-                    'cursor-pointer border border-[var(--border)] bg-[var(--surface)] px-1 text-[10px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
+                    'cursor-pointer border border-[var(--border)] bg-[var(--surface)] px-1 text-[11px] font-mono text-[var(--text-muted)] hover:bg-[var(--surface-strong)]',
                     focusRing,
                   )}
                   aria-label={isExpanded ? 'Collapse' : 'Expand'}
@@ -211,9 +211,9 @@ export default function PathList({
                 </div>
               )}
               <span className="font-mono">{highlightText(child.path, normalizedQuery)}</span>
-              {disabled && <span className="text-[10px] uppercase">parent off</span>}
+              {disabled && <span className="text-[11px] uppercase">parent off</span>}
               {!disabled && matches === false && normalizedQuery && (
-                <span className="text-[10px] uppercase">hidden</span>
+                <span className="text-[11px] uppercase">hidden</span>
               )}
             </div>
           </div>,
@@ -292,7 +292,7 @@ export default function PathList({
             ref={searchInputRef}
             aria-label="Search paths"
             className={mergeClassNames(
-              'h-9 w-full border border-[var(--border)] bg-[var(--surface-muted)] px-2 text-sm text-[var(--text)]',
+              'h-9 w-full border border-[var(--border)] bg-[var(--surface-muted)] px-2 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)]',
               focusRing,
             )}
           />

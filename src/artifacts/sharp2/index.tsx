@@ -338,7 +338,7 @@ export default function DesignSystem() {
                 <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-[var(--surface-muted)]">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold text-[var(--text)]">Turn 1</span>
-                    <span className="text-[10px] text-[var(--text-subtle)] tabular-nums">10:42:15</span>
+                    <span className="text-[11px] text-[var(--text-subtle)] tabular-nums">10:42:15</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CopyableLabel value="~/projects/app" icon={<FolderIcon className="size-3" />} />

@@ -629,7 +629,7 @@ export default function JsonlStructureViewer() {
             </div>
             <div className={panelHeaderMetaClass}>
               {parsed.error ? (
-                <span className="border border-[var(--danger)] bg-[var(--danger-weak)] px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--danger)]">
+                <span className="border border-[var(--danger)] bg-[var(--danger-weak)] px-2 py-0.5 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--danger)]">
                   {parsed.error || errorReserveLabel}
                 </span>
               ) : (
@@ -836,19 +836,19 @@ export default function JsonlStructureViewer() {
                   checked={showDataTypes}
                   onChange={(event) => setShowDataTypes(event.target.checked)}
                   label="Types"
-                  className="text-[10px] uppercase tracking-[0.2em]"
+                  className="text-[11px] uppercase tracking-[0.2em]"
                 />
                 <Checkbox
                   checked={showObjectSize}
                   onChange={(event) => setShowObjectSize(event.target.checked)}
                   label="Sizes"
-                  className="text-[10px] uppercase tracking-[0.2em]"
+                  className="text-[11px] uppercase tracking-[0.2em]"
                 />
                 <Checkbox
                   checked={enableInlineClipboard}
                   onChange={(event) => setEnableInlineClipboard(event.target.checked)}
                   label="Clipboard"
-                  className="text-[10px] uppercase tracking-[0.2em]"
+                  className="text-[11px] uppercase tracking-[0.2em]"
                 />
               </div>
             )}
@@ -976,7 +976,7 @@ export default function JsonlStructureViewer() {
               className="grid gap-3 border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-muted)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,auto)]"
             >
               <div className="min-w-0">
-                <div className="font-semibold uppercase tracking-[0.2em] text-[10px] text-[var(--text-muted)]">
+                <div className="font-semibold uppercase tracking-[0.2em] text-[11px] text-[var(--text-muted)]">
                   How to use
                 </div>
                 <div className="mt-1">
@@ -985,7 +985,7 @@ export default function JsonlStructureViewer() {
                 </div>
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Shortcuts
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">

@@ -115,9 +115,9 @@ export function CopyButton({
       : variant === 'icon'
         ? 'size-6 justify-center p-0 text-[11px] font-medium'
         : variant === 'tag'
-          ? 'h-6 min-w-0 justify-center px-2 py-0 font-mono text-[10px] font-semibold'
+          ? 'h-6 min-w-0 justify-center px-2 py-0 font-mono text-[11px] font-semibold'
           : variant === 'headerText'
-            ? 'h-6 justify-center px-1.5 py-0 text-[10px] font-semibold normal-case'
+            ? 'h-6 justify-center px-1.5 py-0 text-[11px] font-semibold normal-case'
             : 'px-2 py-1 text-[11px] font-medium';
   const activeClass =
     variant === 'headerAction'

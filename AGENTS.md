@@ -8,7 +8,8 @@ Start with `README.md`. It is the main orientation doc for the stack, repo map, 
 - `src/main.tsx`, `src/StandaloneRoot.tsx`, and `src/StandaloneFallback.tsx` handle standalone `/artifact/<id>` routes.
 - Some files run past 700 lines, such as `src/App.tsx`. When a task needs a file's full context, make sure you have read to the end rather than assuming a partial read covered it.
 - Keep changes scoped. Avoid mixing unrelated cleanup into feature work; call out unrelated dirty files instead of normalizing them silently.
-- Follow the design docs for UI choices. `design/SHARP_MINIMAL_DESIGN.md` and `design/ARTIFACT_DESIGN_GUIDE.md` are the source of truth for geometry, layout, focus, and interaction details.
+- Follow `DESIGN.md` for UI choices. It is the source of truth for geometry, layout, focus, and interaction details. `PRODUCT.md` holds product context.
+- Restart `npm run preview` after every build. A running server answers new asset hashes with the HTML fallback, so the page renders blank and rendered scans falsely report no findings.
 - When a useful repo-specific discovery takes real effort or multiple steps, add a concise note here so future agents do not rediscover it. Keep this file terse and under 100 lines.
 - Run `npm run check` before opening a PR. CI also runs `npm run knip:ci`, which treats unused exports as errors where the local check only warns.
 

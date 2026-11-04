@@ -42,7 +42,8 @@ Where imports come from:
 - `src/lib/` — non-visual hooks and helpers.
 - `src/theme/artifact-theme.css` — the `.artifact-theme` design tokens (light + dark).
 - `src/App.tsx` — viewer shell (sidebar, theme/device controls); `src/artifacts.ts` — discovery via `import.meta.glob`.
-- `design/` — design philosophy, artifact design guidance, and UI implementation notes.
+- `DESIGN.md` — the design language and practical artifact UI guidance; `PRODUCT.md` — product context.
+- `design/` — numbered UI implementation notes.
 - `worker/` + `wrangler.jsonc` — Cloudflare Worker deployment; `tests/` — Node test runner tests.
 
 ## Invariants
@@ -133,7 +134,7 @@ Non-visual helpers live in `src/lib/`: `mergeClassNames`, `useCopyToClipboard`, 
 
 Not every `src/components/` export is an artifact primitive (`ArtifactListItem` is shell UI). Shell chrome in `src/App.tsx` is not artifact UI; do not pull artifact-token components into it unless the subtree is intentionally wrapped — prefer headless hooks and shell-specific classes there.
 
-Deeper detail (geometry, focus behavior, recurring gotchas) lives in `design/`, not here.
+Deeper detail (geometry, focus behavior, recurring gotchas) lives in `DESIGN.md` and `design/UI_IMPLEMENTATION_NOTES.md`, not here.
 
 ## Viewer Features
 
@@ -157,11 +158,10 @@ Standalone view always follows the OS/browser theme (`prefers-color-scheme`) and
 
 ## Design Docs
 
-- Design philosophy: `design/SHARP_MINIMAL_DESIGN.md`
-- Practical artifact UI guidance: `design/ARTIFACT_DESIGN_GUIDE.md`
+- Design language and practical artifact UI guidance: `DESIGN.md`
 - UI/layout decisions and recurring gotchas: `design/UI_IMPLEMENTATION_NOTES.md`
 
-Before making UI/layout changes, read the first two, then skim the index in `UI_IMPLEMENTATION_NOTES.md` and read relevant entries. Each index row includes a line range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
+Before making UI/layout changes, read `DESIGN.md`, then skim the index in `UI_IMPLEMENTATION_NOTES.md` and read relevant entries. Each index row includes a line range so you can jump directly with `sed -n 'START,ENDp' design/UI_IMPLEMENTATION_NOTES.md`.
 
 Add a new implementation note only when a recurring decision or gotcha emerges (layout behavior, responsiveness, Tailwind patterns, shared component usage that took back-and-forth to settle). To add one, draft the entry body as raw markdown in a temporary `.md` file (no top-level `##` heading), then run:
 

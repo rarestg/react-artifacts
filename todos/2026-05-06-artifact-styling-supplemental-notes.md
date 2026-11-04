@@ -11,8 +11,7 @@ captured_by: []
 Most styling guidance already lives in:
 
 - `README.md` for artifact structure, device preview behavior, and shared component usage.
-- `design/SHARP_MINIMAL_DESIGN.md` for visual language.
-- `design/ARTIFACT_DESIGN_GUIDE.md` for practical artifact UI rules.
+- `DESIGN.md` for visual language and practical artifact UI rules.
 - `design/UI_IMPLEMENTATION_NOTES.md` for recurring implementation gotchas.
 
 Keep this file only for narrow, repo-specific reminders that do not belong in those docs.

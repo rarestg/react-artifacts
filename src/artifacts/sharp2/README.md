@@ -13,8 +13,7 @@ Use this ownership model when resolving conflicts:
 | Area | Owner |
 |------|-------|
 | Repo orientation, artifact conventions, scripts | `README.md` |
-| Visual philosophy | `design/SHARP_MINIMAL_DESIGN.md` |
-| Practical artifact UI rules | `design/ARTIFACT_DESIGN_GUIDE.md` |
+| Visual language and practical artifact UI rules | `DESIGN.md` |
 | Token values | `src/theme/artifact-theme.css` |
 | Shared primitive APIs | `src/components/*` |
 | Sharp2-specific structure, local inventory, demonstrated patterns, intentional exceptions | `src/artifacts/sharp2/README.md` |
@@ -136,7 +135,7 @@ For CodexScope UI/product handoff, start here:
 
 ## Before Changing Sharp2
 
-1. Read the root `README.md`, `design/SHARP_MINIMAL_DESIGN.md`, and `design/ARTIFACT_DESIGN_GUIDE.md`.
+1. Read the root `README.md` and `DESIGN.md`.
 2. Check whether the change belongs in a shared primitive, a token, a sharp2-local example, or fixture data.
 3. Keep local examples local unless there is a clear shared API need.
 4. Verify light and dark mode when changing tokens, surfaces, status colors, category colors, or focus styling.

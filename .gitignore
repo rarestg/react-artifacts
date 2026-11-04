@@ -18,6 +18,7 @@ pnpm-debug.log*
 .claude/
 
 # Local agent artifacts
+.impeccable/hook.cache.json
 .agents/
 .tmp/
 GitHub Reviews/

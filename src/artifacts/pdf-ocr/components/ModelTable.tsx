@@ -20,9 +20,9 @@ const headCellClass = 'px-3 py-2 font-semibold uppercase tracking-[0.1em] text-[
 type RelTone = 'success' | 'warning' | 'danger' | 'none';
 
 const relToneClass: Record<RelTone, string> = {
-  success: 'text-[var(--success)]',
-  warning: 'text-[var(--warning)]',
-  danger: 'text-[var(--danger)]',
+  success: 'text-[var(--success-text)]',
+  warning: 'text-[var(--warning-text)]',
+  danger: 'text-[var(--danger-text)]',
   none: 'text-[var(--text-subtle)]',
 };
 

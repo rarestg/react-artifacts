@@ -198,7 +198,7 @@ export function RunReport({ vm }: { vm: Controller }) {
           {annotation && <span className="text-xs tabular-nums text-[var(--text-muted)]">{annotation}</span>}
           {vm.running && vm.activity.retrying > 0 && (
             // Auto 429/503 back-off — distinct from the manual "re-OCR-ing"; never color-alone (spinner + label).
-            <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-[var(--warning)]">
+            <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-[var(--warning-text)]">
               <Loader2 className={spin} aria-hidden="true" />
               {vm.activity.retrying} backing off
             </span>

@@ -99,12 +99,12 @@ const palettes = readdirSync('src/artifacts', { recursive: true, encoding: 'utf8
     })),
   );
 
-const assertReadable = (theme: Record<string, string>) => {
+const assertReadable = (theme: Record<string, string>, extraText: string[] = []) => {
   const check = (text: string, surface: string) => {
     const ratio = contrast(resolve(theme, text), resolve(theme, surface));
     assert.ok(ratio >= MIN_TEXT_CONTRAST, `--${text} on --${surface} is ${ratio.toFixed(2)}:1`);
   };
-  for (const text of ['text', 'text-muted', 'text-subtle', 'accent-text']) {
+  for (const text of ['text', 'text-muted', 'text-subtle', 'accent-text', ...extraText]) {
     for (const surface of ['surface', 'surface-muted', 'surface-strong', 'surface-pressed']) check(text, surface);
   }
   for (const role of ['accent', 'success', 'warning', 'danger', 'info']) check(`${role}-text`, `${role}-weak`);
@@ -115,7 +115,14 @@ for (const [mode, selector] of [
   ['dark', '.dark .artifact-theme'],
 ]) {
   test(`${mode} base theme text reaches 4.5:1 on computed surfaces`, () => {
-    assertReadable(baseTheme(selector));
+    assertReadable(baseTheme(selector), [
+      'success-text',
+      'warning-text',
+      'danger-text',
+      'category-green-text',
+      'category-amber-text',
+      'category-blue-text',
+    ]);
   });
 }
 

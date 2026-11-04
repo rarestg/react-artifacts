@@ -137,7 +137,7 @@ export default function DesignSystem() {
         <div className="border-b border-[var(--border-strong)] pb-6">
           <h1 className={typo.pageTitle}>Sharp UI System</h1>
           <p className="text-sm text-[var(--text-subtle)] mt-1">
-            Design primitives for Codex Conversation Manager — scan-first, dense, accessible
+            Design primitives for Codex Conversation Manager: scan-first, dense, accessible
           </p>
         </div>
 
@@ -146,9 +146,9 @@ export default function DesignSystem() {
           <Stack gap="group">
             <SubSection label="Text hierarchy">
               <Stack gap="row">
-                <p className="text-[var(--text)] text-base">text-0 — Primary content (var(--text))</p>
-                <p className="text-[var(--text-muted)] text-base">text-1 — Secondary content (var(--text-muted))</p>
-                <p className="text-[var(--text-subtle)] text-base">text-2 — Muted content (var(--text-subtle))</p>
+                <p className="text-[var(--text)] text-base">text-0: Primary content (var(--text))</p>
+                <p className="text-[var(--text-muted)] text-base">text-1: Secondary content (var(--text-muted))</p>
+                <p className="text-[var(--text-subtle)] text-base">text-2: Muted content (var(--text-subtle))</p>
               </Stack>
             </SubSection>
             <SubSection label="Label styles">
@@ -301,7 +301,7 @@ export default function DesignSystem() {
         {/* Copyable Labels */}
         <Section title="Copyable Labels">
           <Stack gap="section">
-            <SubSection label="Session metadata (hover to see copy affordance)">
+            <SubSection label="Session metadata (hover to see the copy action)">
               <div className="flex flex-wrap gap-2">
                 <CopyableLabel value="/users/rares/projects/codex-manager" icon={<FolderIcon className="size-3.5" />} />
                 <CopyableLabel value="rarestg/codex-manager" icon={<GitRepoIcon className="size-3.5" />} />
@@ -587,7 +587,7 @@ export default function DesignSystem() {
 
             <div className="p-3 border border-[var(--border)] bg-[var(--surface-muted)] text-xs text-[var(--text-muted)] space-y-2">
               <p>
-                <strong>Rendering rules (terminal-adjacent):</strong>
+                <strong>Rendering rules:</strong>
               </p>
               <Grid min="14rem" gap="row" className="text-[var(--text-subtle)]">
                 <div className="flex items-start gap-2">
@@ -616,8 +616,8 @@ export default function DesignSystem() {
                 </div>
               </Grid>
               <p className="text-[var(--text-subtle)]">
-                Toggle message types above. Thinking, subagents, tools, and token counters are hidden by default; tool
-                rows reveal their own details, and intermediate token counters are an explicit detail mode.
+                Toggle message types above. Thinking, subagents, tools, and token counters are hidden by default. Tool
+                rows reveal their own details, and intermediate token counters have their own toggle.
               </p>
             </div>
 
@@ -808,7 +808,7 @@ export default function DesignSystem() {
                 <strong>Clickability indicators:</strong> All clickable elements must have:
                 <div className="mt-1 ml-3 space-y-0.5">
                   <div>
-                    • <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">cursor-pointer</code> —
+                    • <code className="px-1 bg-[var(--surface)] border border-[var(--border)]">cursor-pointer</code>:
                     pointer cursor on hover
                   </div>
                   <div>• Visible hover state (background shift, border change, or text change)</div>

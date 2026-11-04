@@ -366,7 +366,7 @@ function PromptCommandPalette({
           >
             <Dialog.Title className="sr-only">Search prompts</Dialog.Title>
             <Dialog.Description className="sr-only">
-              Search the curated prompt library and open a prompt to copy or review.
+              Search the prompt library and open a prompt to copy or review.
             </Dialog.Description>
             <Autocomplete.Root
               open

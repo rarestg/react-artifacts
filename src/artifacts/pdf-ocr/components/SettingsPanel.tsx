@@ -64,7 +64,7 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
               max={128}
               onValueChange={vm.setConcurrency}
               maxButton
-              helperText="Higher = faster, but may trigger rate-limit backoff."
+              helperText="Higher is faster, but may trigger rate-limit back-off."
             />
             <div className="flex min-w-[11rem] flex-col gap-1">
               <span className={mergeClassNames(bandLabelClass, 'text-center')}>Image detail</span>
@@ -85,7 +85,7 @@ export function SettingsPanel({ vm }: { vm: Controller }) {
                 </div>
               ) : (
                 <p className={mergeClassNames(helperClass, 'text-center')}>
-                  Higher detail reads dense scans better, at more tokens.
+                  Higher detail reads dense scans better, but uses more tokens.
                 </p>
               )}
             </div>

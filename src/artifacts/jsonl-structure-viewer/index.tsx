@@ -896,7 +896,7 @@ export default function JsonlStructureViewer() {
       <PageHeader
         ref={titlePanelRef}
         title="JSONL Structure Viewer"
-        subtitle="Explore JSON arrays, objects, or JSONL streams; filter paths and copy structure-first output."
+        subtitle="Explore JSON arrays, objects, or JSONL streams. Filter paths and copy trimmed output."
         actions={
           <div className={headerControlsClass}>
             {canUseTwoColumns && (

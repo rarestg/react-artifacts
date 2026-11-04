@@ -45,7 +45,7 @@ test('GET / serves injected home HTML via a sanitized asset subrequest', async (
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
   const html = await response.text();
-  assert.ok(html.includes('<title>tools.rares.blog — small self-contained web tools</title>'));
+  assert.ok(html.includes('<title>tools.rares.blog · small, single-purpose web tools</title>'));
   assert.ok(html.includes('<link rel="canonical" href="https://tools.rares.blog/" />'));
 
   assert.equal(assetRequests.length, 1);
@@ -62,7 +62,7 @@ test('conditional GET is not forwarded to the assets layer', async () => {
 
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.ok(html.includes('<title>tools.rares.blog — small self-contained web tools</title>'));
+  assert.ok(html.includes('<title>tools.rares.blog · small, single-purpose web tools</title>'));
 });
 
 test('HEAD requests get the injected status and headers with an empty body', async () => {
@@ -103,7 +103,7 @@ test('unknown artifact ids get the SPA HTML with a 404 and a noindex tag', async
   assert.equal(response.status, 404);
   const html = await response.text();
   assert.ok(html.includes('<meta name="robots" content="noindex" />'));
-  assert.ok(html.includes('<title>Artifact not found · tools.rares.blog</title>'));
+  assert.ok(html.includes('<title>Tool not found · tools.rares.blog</title>'));
 });
 
 test('example artifacts are served with robots noindex as both meta tag and header', async () => {

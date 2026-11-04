@@ -12,7 +12,7 @@ const EXTERNAL_TOOLS = [
   {
     name: 'Lease PDF',
     domain: 'leasepdf.com',
-    description: 'Make a print-ready sublease PDF from a short form, nothing uploaded',
+    description: 'Make a print-ready sublease PDF from a short form, with nothing uploaded',
   },
   {
     name: 'PDF → Split → Markdown',

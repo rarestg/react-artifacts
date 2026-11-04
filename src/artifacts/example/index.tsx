@@ -129,7 +129,7 @@ export default function Example() {
               </div>
             </div>
             <p className="text-sm text-[var(--text-muted)]">
-              Accent, border, and muted surfaces are pulled from theme variables; dark mode just flips the tokens.
+              Accent, border, and muted surfaces come from theme variables. Dark mode flips the tokens.
             </p>
             <Stack gap="row">
               <div className="flex items-center justify-between gap-3 border border-[var(--border)] border-l-2 border-l-[var(--accent)] bg-[var(--surface)] px-3 py-2">

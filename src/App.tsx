@@ -651,7 +651,7 @@ function Workbench() {
         </div>
         <div className="my-3 h-px w-full bg-gray-200 dark:bg-slate-800" />
         <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-          Artifacts
+          Tools
         </h2>
         <Tooltip.Provider delay={400}>
           <ul className="space-y-1">

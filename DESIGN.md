@@ -43,7 +43,7 @@ These rules cover artifacts and shared primitives. The viewer shell (`src/App.ts
 
 ## Colors
 
-**The Readable Text Rule.** Text people need to read reaches 4.5:1 against its background in light and dark. `--text`, `--text-muted`, and `--text-subtle` pass on every neutral surface, and `tests/design/legibility.test.ts` checks them. Disabled controls and invisible width-reserving labels are exempt.
+**The Readable Text Rule.** Text people need to read reaches 4.5:1 against its background in light and dark. `--text`, `--text-muted`, and `--text-subtle` pass on every neutral surface in the base theme. `tests/design/legibility.test.ts` checks their literal values, so check computed colors and palette overrides separately. Disabled controls and invisible width-reserving labels are exempt.
 
 - Start with strong neutrals and add accents sparingly.
 - Avoid mixing unrelated gray families or competing accents.
@@ -253,6 +253,7 @@ Use these rules for artifacts that render conversations, logs, commands, code, m
 
 ### Copy
 
+- Keep copy concise and precise.
 - Use direct labels.
 - Prefer specific verbs: copy, filter, reset, export, compare, expand.
 - Empty states should say what happened and the next useful action.

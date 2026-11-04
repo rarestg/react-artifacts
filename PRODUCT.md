@@ -29,7 +29,7 @@ A working toolbox published as it is used. The owner's own work leads what gets 
 
 Tools run in the browser, and the site is served from Cloudflare.
 
-**Rule: user data stays in the browser.** The server does no processing of user files or keys. A tool that needs an outside service calls it directly from the browser with the visitor's own key.
+**Rule: this site's server never processes user files or keys.** Tools process data in the browser. When an outside service is needed, the browser sends the required data directly to it using the visitor's own key.
 
 Terminology: "tool" is the public word. "Artifact" is the repo word for a folder under `src/artifacts/`.
 
@@ -49,4 +49,4 @@ The repo holds no usage data, testimonials, or user counts. Do not claim adoptio
 - **Owner first, visitors welcome.** The owner's daily work comes first. Making a tool easier for visitors to find and use is worthwhile work in its own right.
 - **Keep the build loop short.** Changes to the shell and shared kit should make a new tool easier to add and refine, or at least no harder.
 - **Keep it usable by outsiders.** A tool or prompt should make sense to someone who does not share the owner's private context.
-- **Keep user data off the server.** New tools work within the browser-only rule rather than adding server processing.
+- **Keep user data off this site's server.** New tools process data in the browser or call outside services directly.

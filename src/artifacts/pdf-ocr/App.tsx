@@ -61,7 +61,7 @@ function SetupSummary({ vm }: { vm: Controller }) {
       <span className="inline-flex min-w-0 items-center gap-2 text-xs tabular-nums text-[var(--text)]">
         <span className={bandLabelClass}>Setup</span>
         <span className="min-w-0 truncate font-mono">
-          {snap.fileName} · {snap.model} · {selectionLabel(snap)} · conc {snap.concurrency}
+          {snap.fileName} · {snap.model} · {selectionLabel(snap)} · {snap.concurrency} parallel
         </span>
       </span>
       <span className="flex shrink-0 items-center gap-2">
@@ -80,7 +80,7 @@ function LargeJobHint({ vm }: { vm: Controller }) {
     <p className="flex items-start gap-2 border-l-2 border-[color:var(--warning)] bg-[var(--warning-weak)] px-3 py-2 text-xs text-[var(--warning-text)]">
       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span className="tabular-nums">
-        Large job: {vm.selectedCount} pages; this can take a while at concurrency {vm.concurrency}
+        Large job: {vm.selectedCount} pages; this can take a while at {vm.concurrency} parallel pages
         {estPriced && `, est ${formatCostRange(vm.estimate?.costLow as number, vm.estimate?.costHigh as number)}`}.
       </span>
     </p>

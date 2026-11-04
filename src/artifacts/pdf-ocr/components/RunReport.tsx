@@ -384,7 +384,9 @@ export function RunReport({ vm }: { vm: Controller }) {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-[var(--text-subtle)]">Pages = work performed, may exceed doc pages.</p>
+          <p className="text-xs text-[var(--text-subtle)]">
+            The Pages column counts work performed, so it can exceed the document’s page count.
+          </p>
         </div>
       </div>
     </Panel>

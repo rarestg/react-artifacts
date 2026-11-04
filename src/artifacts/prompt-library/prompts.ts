@@ -237,7 +237,7 @@ After they report back, {{synthesisInstruction}}`,
       'Review a PR or other code through focused lenses, with one reviewer for a single lens or a read-only subagent team for several.',
     tags: ['review', 'subagents', 'architecture'],
     context:
-      'Use on a PR, branch, script, or other already-written code. The default lenses give a full PR review. Signatures alone gives a solo senior-engineer read. YAGNI, Stdlib/native, and Readability, with Behavior and Tests, look for the minimal version that still works. Add "and fix" to have real, in-scope findings applied.',
+      'Use on a PR, branch, script, or other already-written code. The default lenses give a full PR review. The Signatures lens alone gives a solo senior-engineer read. YAGNI, Stdlib/native, and Readability, with Behavior and Tests, look for the minimal version that still works. Add "and fix" to have real, in-scope findings applied.',
     toggleModifier: {
       label: 'Lenses',
       token: 'enabledLenses',

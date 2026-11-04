@@ -17,7 +17,7 @@ const at = (path: string) => new URL(`https://tools.rares.blog${path}`);
 test('resolvePage: bare / gets the site metadata with a self canonical', () => {
   const page = resolvePage(at('/'), entries);
   assert.ok(page);
-  assert.equal(page.title, 'tools.rares.blog — small self-contained web tools');
+  assert.equal(page.title, 'tools.rares.blog · small, single-purpose web tools');
   assert.equal(page.canonicalPath, '/');
   assert.equal(page.noindex, false);
   assert.equal(page.status, 200);
@@ -59,7 +59,10 @@ test('resolvePage: manifest entry without meta falls back to id and site descrip
   const page = resolvePage(at('/artifact/bare'), entries);
   assert.ok(page);
   assert.equal(page.title, 'bare · tools.rares.blog');
-  assert.equal(page.description, 'A small gallery of self-contained web tools built as React artifacts.');
+  assert.equal(
+    page.description,
+    'Small, single-purpose web tools: unescape a message, inspect a JSONL file, generate a color palette, and a few more.',
+  );
 });
 
 test('resolvePage: noindex flag carries through to the page', () => {
@@ -75,7 +78,7 @@ test('resolvePage: unknown artifact id is a noindexed 404 without canonical', ()
   assert.equal(page.status, 404);
   assert.equal(page.noindex, true);
   assert.equal(page.canonicalPath, undefined);
-  assert.equal(page.title, 'Artifact not found · tools.rares.blog');
+  assert.equal(page.title, 'Tool not found · tools.rares.blog');
 });
 
 test('resolvePage: multi-segment and unrelated paths are not pages', () => {

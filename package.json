@@ -42,13 +42,13 @@
     "@types/node": "^26.6.6",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react": "^6.2.1",
     "happy-dom": "^21.0.4",
     "knip": "^6.44.1",
     "lefthook": "^2.1.0",
     "tsx": "^4.21.0",
     "typescript": "~7.0.2",
-    "vite": "^7.2.4",
+    "vite": "^8.3.5",
     "wrangler": "^4.61.1"
   }
 }

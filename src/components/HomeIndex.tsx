@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { getArtifactSidebarGroupIndex } from '../artifactOrdering';
 import { isEditableEventTarget } from '../lib/isEditableEventTarget';
 import { SITE_EXPLAINER, SITE_TITLE } from '../site';
+import { ExternalTools } from './ExternalTools';
 import { IndexEntry, type IndexEntryArtifact } from './IndexEntry';
 
 const MAX_JUMP_KEYS = 6;
@@ -56,6 +57,7 @@ export function HomeIndex({ artifacts, onSelectArtifact }: HomeIndexProps) {
           />
         ))}
       </ul>
+      <ExternalTools />
       {examples.length > 0 && (
         <section className="mt-12">
           <h2 className="border-b border-gray-200 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:border-slate-800 dark:text-slate-400">

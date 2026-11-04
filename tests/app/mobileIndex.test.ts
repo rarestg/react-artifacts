@@ -55,6 +55,15 @@ test('mobile index excludes the examples group entirely', () => {
   assert.doesNotMatch(html, /Examples/);
 });
 
+test('mobile index links the external tools', () => {
+  const html = render();
+
+  assert.match(html, /External tools/);
+  for (const domain of ['byobanana.com', 'mdprint.net', 'leasepdf.com', 'pdfsplitparse.com']) {
+    assert.match(html, new RegExp(`href="https://${domain.replace('.', '\\.')}"`));
+  }
+});
+
 test('mobile index renders no jump-key chips or shortcut attributes', () => {
   const html = render();
 

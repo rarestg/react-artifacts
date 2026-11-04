@@ -1,5 +1,6 @@
 import { getArtifactSidebarGroupIndex } from '../artifactOrdering';
 import { SITE_EXPLAINER, SITE_TITLE } from '../site';
+import { ExternalTools } from './ExternalTools';
 import { IndexEntry, type IndexEntryArtifact } from './IndexEntry';
 
 type MobileIndexProps = {
@@ -28,6 +29,7 @@ export function MobileIndex({ artifacts }: MobileIndexProps) {
             <IndexEntry key={artifact.id} artifact={artifact} />
           ))}
         </ul>
+        <ExternalTools />
         <footer className="mt-12 border-t border-gray-200 pt-6 dark:border-slate-800">
           <a
             href="https://rares.blog"

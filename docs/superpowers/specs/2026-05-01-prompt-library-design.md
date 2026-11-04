@@ -56,13 +56,13 @@ Tags are a small curated set defined once in code. Workflow stage is represented
 
 Initial curated tags, in display order:
 
-| ID | Label | Description |
-| --- | --- | --- |
-| `review` | Review | Prompts used while assessing completed work, code feedback, risks, or proposed changes. |
-| `implementation` | Implementation | Prompts used while planning, executing, or changing implementation work. |
-| `subagents` | Subagents | Prompts that dispatch or coordinate a fresh subagent. |
-| `risk` | Risk | Prompts that examine residual risk, assumptions, constraints, and mitigation paths. |
-| `architecture` | Architecture | Prompts that evaluate design cleanliness, maintainability, and larger structural alternatives. |
+| ID               | Label          | Description                                                                                    |
+| ---------------- | -------------- | ---------------------------------------------------------------------------------------------- |
+| `review`         | Review         | Prompts used while assessing completed work, code feedback, risks, or proposed changes.        |
+| `implementation` | Implementation | Prompts used while planning, executing, or changing implementation work.                       |
+| `subagents`      | Subagents      | Prompts that dispatch or coordinate a fresh subagent.                                          |
+| `risk`           | Risk           | Prompts that examine residual risk, assumptions, constraints, and mitigation paths.            |
+| `architecture`   | Architecture   | Prompts that evaluate design cleanliness, maintainability, and larger structural alternatives. |
 
 Every prompt must have at least one high-level workflow tag such as `review` or `implementation`. Topical tags such as `subagents`, `risk`, and `architecture` are optional. This is a validation convention, not a separate category field.
 

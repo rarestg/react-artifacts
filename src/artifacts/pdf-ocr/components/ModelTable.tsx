@@ -35,6 +35,43 @@ function relCell(combined: number | null, min: number, max: number): { glyph: st
   return { glyph: '$$$', tone: 'danger' };
 }
 
+const Th = ({
+  label,
+  sortKey,
+  numeric,
+  sort,
+  onToggle,
+}: {
+  label: string;
+  sortKey: SortKey;
+  numeric?: boolean;
+  sort: { key: SortKey; dir: 'asc' | 'desc' };
+  onToggle: (key: SortKey) => void;
+}) => {
+  const active = sort.key === sortKey;
+  return (
+    <th
+      scope="col"
+      aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      className={mergeClassNames(headCellClass, numeric ? 'text-right' : 'text-left')}
+    >
+      <button
+        type="button"
+        onClick={() => onToggle(sortKey)}
+        className={mergeClassNames(
+          'inline-flex cursor-pointer items-center gap-1 hover:text-[var(--text)]',
+          focusRing,
+          active && 'text-[var(--text)]',
+          numeric && 'flex-row-reverse',
+        )}
+      >
+        {label}
+        {active && (sort.dir === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
+      </button>
+    </th>
+  );
+};
+
 export function ModelTable({ vm }: { vm: Controller }) {
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'est', dir: 'asc' });
 
@@ -78,31 +115,6 @@ export function ModelTable({ vm }: { vm: Controller }) {
   const toggleSort = (key: SortKey) =>
     setSort((prev) => (prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
 
-  const Th = ({ label, sortKey, numeric }: { label: string; sortKey: SortKey; numeric?: boolean }) => {
-    const active = sort.key === sortKey;
-    return (
-      <th
-        scope="col"
-        aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
-        className={mergeClassNames(headCellClass, numeric ? 'text-right' : 'text-left')}
-      >
-        <button
-          type="button"
-          onClick={() => toggleSort(sortKey)}
-          className={mergeClassNames(
-            'inline-flex cursor-pointer items-center gap-1 hover:text-[var(--text)]',
-            focusRing,
-            active && 'text-[var(--text)]',
-            numeric && 'flex-row-reverse',
-          )}
-        >
-          {label}
-          {active && (sort.dir === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
-        </button>
-      </th>
-    );
-  };
-
   const locked = vm.models.length === 0;
 
   return (
@@ -120,10 +132,10 @@ export function ModelTable({ vm }: { vm: Controller }) {
         <table className="w-full min-w-[34rem] border-collapse text-sm">
           <thead className="bg-[var(--surface-muted)] text-[11px]">
             <tr className="border-b border-[var(--border)]">
-              <Th label="Model" sortKey="model" />
-              <Th label="$/1M in" sortKey="in" numeric />
-              <Th label="$/1M out" sortKey="out" numeric />
-              <Th label="Est. cost" sortKey="est" numeric />
+              <Th sort={sort} onToggle={toggleSort} label="Model" sortKey="model" />
+              <Th sort={sort} onToggle={toggleSort} label="$/1M in" sortKey="in" numeric />
+              <Th sort={sort} onToggle={toggleSort} label="$/1M out" sortKey="out" numeric />
+              <Th sort={sort} onToggle={toggleSort} label="Est. cost" sortKey="est" numeric />
               <th scope="col" className={mergeClassNames(headCellClass, 'text-right')}>
                 Rel
               </th>

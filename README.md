@@ -17,18 +17,18 @@ npm install
 npm run dev
 ```
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server |
-| `npm run build` | Type-check + production build |
-| `npm run check` | Combined pre-PR gate: lint + typecheck + knip + test |
-| `npm run lint` / `npm run lint:fix` | Biome check (format + lint + imports) / with auto-fix |
-| `npm run typecheck` | Type-check app + worker (`npm run typecheck:worker` for worker only) |
-| `npm run knip` / `npm run knip:ci` | Unused files/exports/deps — local (exports warn) / CI (exports error) |
-| `npm run test` | Node test runner (`tests/**/*.test.ts`) |
-| `npm run hooks:pre-commit` / `npm run hooks:pre-push` | Run the Lefthook suites manually |
-| `npm run generate-types` | Regenerate Worker types after `wrangler.jsonc`/binding changes |
-| `npm run preview` / `npm run deploy` | Preview production build / deploy Worker |
+| Command                                               | Description                                                           |
+| ----------------------------------------------------- | --------------------------------------------------------------------- |
+| `npm run dev`                                         | Start dev server                                                      |
+| `npm run build`                                       | Type-check + production build                                         |
+| `npm run check`                                       | Combined pre-PR gate: lint + typecheck + knip + test                  |
+| `npm run lint` / `npm run lint:fix`                   | Biome check (format + lint + imports) / with auto-fix                 |
+| `npm run typecheck`                                   | Type-check app + worker (`npm run typecheck:worker` for worker only)  |
+| `npm run knip` / `npm run knip:ci`                    | Unused files/exports/deps — local (exports warn) / CI (exports error) |
+| `npm run test`                                        | Node test runner (`tests/**/*.test.ts`)                               |
+| `npm run hooks:pre-commit` / `npm run hooks:pre-push` | Run the Lefthook suites manually                                      |
+| `npm run generate-types`                              | Regenerate Worker types after `wrangler.jsonc`/binding changes        |
+| `npm run preview` / `npm run deploy`                  | Preview production build / deploy Worker                              |
 
 `npm run format` is an alias for `lint:fix`.
 
@@ -213,6 +213,6 @@ Worker TypeScript uses Wrangler-generated types:
 
 Configured in `biome.json`:
 
-- **Formatter:** 2-space indent, 120 line width, single quotes, trailing commas, semicolons; imports auto-organized on fix.
+- **Formatter:** 2-space indent, 120 line width, single quotes, trailing commas, semicolons; imports auto-organized on fix. Markdown is formatted too, with two exceptions: fenced code stays as written, because Biome adds semicolons to sample fragments, and `design/UI_IMPLEMENTATION_NOTES.md` is excluded, because its script finds the index by exact text and stores line numbers in it.
 - **Linter:** recommended rules, with `noExplicitAny`, `noUnusedVariables`/`noUnusedFunctionParameters`, and `useTemplate` off (work-in-progress artifacts trip them constantly).
 - **Workflow:** when a change affects indentation or wraps large sections, insert syntactically correct code and let Biome format it (`npx biome check --write <file>` for targeted files, `npm run lint:fix` for broader cleanup). Do not manually reformat unrelated surrounding code.

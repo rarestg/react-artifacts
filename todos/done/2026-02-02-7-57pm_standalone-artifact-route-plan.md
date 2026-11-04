@@ -22,9 +22,11 @@
 ## 1) Problem & Motivation
 
 ### What we're solving and why now
+
 Artifacts can only be viewed inside the shell (sidebar + resize handle + size overlay). There's no way to open an artifact as a full-page app. This matters for mobile testing, sharing direct links, and embedding artifacts without shell chrome.
 
 ### Success criteria / desired outcomes
+
 - Navigating to `/artifact/<id>` renders only the artifact component, full-page, no shell UI.
 - The existing shell at `/?artifact=<id>` continues to work unchanged.
 - No new dependencies introduced.
@@ -34,11 +36,13 @@ Artifacts can only be viewed inside the shell (sidebar + resize handle + size ov
 ## 2) System Context
 
 ### Relevant code
+
 - **`src/main.tsx`** — Entry point. Currently imports `App` eagerly and mounts it.
 - **`src/App.tsx`** — Defines the artifact registry inline (`import.meta.glob` calls for `./artifacts/*/index.tsx` and `./artifacts/*/meta.ts`), plus all shell UI (sidebar, resize handle, theme toggle, size overlay).
 - **`src/index.css`** — Global styles, imported by `main.tsx`.
 
 ### How affected code connects to other subsystems
+
 - Artifact discovery is done via `import.meta.glob` at module scope in `App.tsx`. Both the shell and standalone route need this registry, so it must be extracted.
 - Theme handling (dark class on `<html>`, localStorage sync, system media query) lives inside the `App` component. Standalone mode won't have this unless explicitly added.
 - URL-based artifact selection (`?artifact=` query param, `popstate` listener) is shell-only and irrelevant to the standalone route.
@@ -239,40 +243,47 @@ createRoot(rootElement).render(
 
 ## 4) Key Decisions & Tradeoffs
 
-| Decision | Why | Alternative considered |
-|---|---|---|
-| Path-based routing (`/artifact/:id`) over query params | Clean URLs, conventional for distinct views | `?mode=standalone&artifact=id` — muddier, mixes concerns with existing `?artifact=` |
-| Route gate in `main.tsx`, not inside `App` | Avoids initializing shell state/effects then bailing out; no hook-order hazards from early returns | Early return inside `App` — simpler but wasteful |
-| Lazy-load both roots | Standalone doesn't bundle sidebar/resize code; shell doesn't bundle StandaloneRoot | Eager imports — simpler but standalone loads unused code |
-| No `?artifact=` backward-compat redirect | This is a local dev tool, not a public API. No users to migrate. | Add redirect logic — unnecessary complexity |
-| Force system theme for standalone | Standalone should inherit OS/browser theme and ignore shell’s stored theme | Apply stored theme everywhere — simpler but violates “system only” requirement |
-| No react-router | One route fork doesn't justify a dependency | react-router — overkill |
+| Decision                                               | Why                                                                                                | Alternative considered                                                              |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Path-based routing (`/artifact/:id`) over query params | Clean URLs, conventional for distinct views                                                        | `?mode=standalone&artifact=id` — muddier, mixes concerns with existing `?artifact=` |
+| Route gate in `main.tsx`, not inside `App`             | Avoids initializing shell state/effects then bailing out; no hook-order hazards from early returns | Early return inside `App` — simpler but wasteful                                    |
+| Lazy-load both roots                                   | Standalone doesn't bundle sidebar/resize code; shell doesn't bundle StandaloneRoot                 | Eager imports — simpler but standalone loads unused code                            |
+| No `?artifact=` backward-compat redirect               | This is a local dev tool, not a public API. No users to migrate.                                   | Add redirect logic — unnecessary complexity                                         |
+| Force system theme for standalone                      | Standalone should inherit OS/browser theme and ignore shell’s stored theme                         | Apply stored theme everywhere — simpler but violates “system only” requirement      |
+| No react-router                                        | One route fork doesn't justify a dependency                                                        | react-router — overkill                                                             |
 
 ## 5) Risks & Landmines
 
 ### Vite SPA fallback
+
 - Vite's dev server already serves `index.html` for unknown paths, so `/artifact/foo` works in dev with no config change.
 - **Production builds**: your hosting/server must be configured to serve `index.html` for all paths (standard SPA fallback). If using `vite preview`, this works by default. If deploying behind nginx/Vercel/etc., ensure the fallback rule is in place.
 
 ### `import.meta.glob` path sensitivity
+
 - The glob patterns in `src/artifacts.ts` use relative paths (`./artifacts/*/index.tsx`). This works because the file lives in `src/`. If someone moves `artifacts.ts` to a different directory, the globs break silently (no artifacts found, no error).
 
 ### Theme in standalone mode
+
 - Standalone mode forces **system** theme via the inline script. Stored `artifact-theme` is ignored on `/artifact/*`, so shell theme choices won’t leak into standalone previews. Note: the inline script sets the theme once on load; it will not live-update if the OS theme changes while the page stays open.
 
 ### Artifact IDs with special characters
+
 - `decodeURIComponent` handles encoded slashes/spaces. If an artifact folder name contains characters that are invalid in URL paths (unlikely given filesystem conventions), the match will fail silently and show "Artifact not found."
 
 ## 6) Verification & Validation
 
 ### After Step 1
+
 - `npm run typecheck` passes.
 - `npx biome check src/artifacts.ts` passes.
 
 ### After Step 2
+
 - `npm run typecheck` passes.
 
 ### After Steps 3–5
+
 - `npm run typecheck` passes.
 - `npx biome check --write .` for formatting.
 - **Manual test — shell**: `npm run dev`, open `http://localhost:<vite-port>/?artifact=example`. Sidebar, theme toggle, resize handle, size overlay all work as before.
@@ -284,6 +295,7 @@ createRoot(rootElement).render(
 - `npm run build` succeeds. Check that the production build includes two lazy chunks (one for App, one for StandaloneRoot).
 
 ### Rollback
+
 All changes are additive except the extraction from `App.tsx`. To rollback: revert `index.html` and `main.tsx`, delete `artifacts.ts` and `StandaloneRoot.tsx`, restore the inline registry in `App.tsx`.
 
 ## 7) Open Questions / Follow-ups

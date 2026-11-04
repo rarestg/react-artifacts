@@ -1,12 +1,12 @@
 DONE Folder How-To
 
 When a plan is completed:
-1) Move the plan file into this folder.
-2) Add a new "Implementation Summary (Completed)" section at the very top of the file with:
+1. Move the plan file into this folder.
+2. Add a new "Implementation Summary (Completed)" section at the very top of the file with:
    - Implemented changes
    - Notes / deviations from plan
    - Validation steps run (commands)
-3) Prefix the filename with a New York timestamp.
+3. Prefix the filename with a New York timestamp.
 
 Timestamp format:
 YYYY-MM-DD-H-Mpm_<original-filename>

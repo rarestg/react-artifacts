@@ -32,7 +32,7 @@ const semanticSwatches = [
     label: 'Accent',
     weakBg: 'bg-[var(--accent-weak)]',
     strongBg: 'bg-[var(--accent)]',
-    text: 'text-[var(--accent)]',
+    text: 'text-[var(--accent-text)]',
     border: 'border-[color:var(--accent)]',
   },
   {
@@ -40,7 +40,7 @@ const semanticSwatches = [
     label: 'Success',
     weakBg: 'bg-[var(--success-weak)]',
     strongBg: 'bg-[var(--success)]',
-    text: 'text-[var(--success)]',
+    text: 'text-[var(--success-text)]',
     border: 'border-[color:var(--success)]',
   },
   {
@@ -48,7 +48,7 @@ const semanticSwatches = [
     label: 'Warning',
     weakBg: 'bg-[var(--warning-weak)]',
     strongBg: 'bg-[var(--warning)]',
-    text: 'text-[var(--warning)]',
+    text: 'text-[var(--warning-text)]',
     border: 'border-[color:var(--warning)]',
   },
   {
@@ -56,7 +56,7 @@ const semanticSwatches = [
     label: 'Danger',
     weakBg: 'bg-[var(--danger-weak)]',
     strongBg: 'bg-[var(--danger)]',
-    text: 'text-[var(--danger)]',
+    text: 'text-[var(--danger-text)]',
     border: 'border-[color:var(--danger)]',
   },
   {
@@ -64,7 +64,7 @@ const semanticSwatches = [
     label: 'Info',
     weakBg: 'bg-[var(--info-weak)]',
     strongBg: 'bg-[var(--info)]',
-    text: 'text-[var(--info)]',
+    text: 'text-[var(--info-text)]',
     border: 'border-[color:var(--info)]',
   },
 ] as const;
@@ -124,7 +124,7 @@ export default function Example() {
           <div className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface-muted)] p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="text-sm font-semibold">Deployment Queue</div>
-              <div className="border border-[var(--accent)] px-2 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--accent)]">
+              <div className="border border-[var(--accent)] px-2 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--accent-text)]">
                 Active
               </div>
             </div>

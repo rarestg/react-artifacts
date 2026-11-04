@@ -43,7 +43,7 @@ These rules cover artifacts and shared primitives. The viewer shell (`src/App.ts
 
 ## Colors
 
-**The Readable Text Rule.** Text people need to read reaches 4.5:1 against its background in light and dark. `--text`, `--text-muted`, and `--text-subtle` pass on every neutral surface in the base theme. `tests/design/legibility.test.ts` checks their literal values, so check computed colors and palette overrides separately. Disabled controls and invisible width-reserving labels are exempt.
+**The Readable Text Rule.** Text people need to read reaches 4.5:1 against its background in light and dark. `--text`, `--text-muted`, and `--text-subtle` pass on every neutral surface. `tests/design/legibility.test.ts` checks them on literal and computed surfaces, including palette overrides under `src/artifacts/`. Disabled controls and invisible width-reserving labels are exempt.
 
 - Start with strong neutrals and add accents sparingly.
 - Avoid mixing unrelated gray families or competing accents.
@@ -69,9 +69,9 @@ These rules cover artifacts and shared primitives. The viewer shell (`src/App.ts
   themes must define the full token contract in steady state.
 - Missing-token fallbacks are temporary and must be documented.
 - Required token groups: surfaces, text, borders, accent, ring, highlight, overlay, primary, semantic status, semantic text, category, category text, and shared component tokens.
-- If `--accent` changes, also define `--accent-text`, `--accent-weak`, and `--ring`.
+- If `--accent` changes, also define `--accent-text` and `--accent-weak`. `--ring` and `--highlight` derive from it.
 - If semantic or category colors change, also define the matching `*-text` and `*-weak` tokens.
-- If `--surface` or `--border` changes, also define derived surface and border tokens.
+- If `--surface` or `--border` changes, also define `--text-muted` and `--text-subtle` that pass on the new surfaces. Derived surface and border tokens follow on their own.
 - Light and dark modes should preserve the same spacing, border weight, geometry, and state behavior.
 - When colors look wrong, inspect computed values. `color-mix()` may change what source code appears to say (note 004).
 

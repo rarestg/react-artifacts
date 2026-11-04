@@ -33,10 +33,10 @@ const contrast = (a: string, b: string) => {
 
 const css = readFileSync('src/theme/artifact-theme.css', 'utf8');
 
-const themeBlock = (selector: string) => {
-  const start = css.indexOf(`${selector} {`);
+const themeBlock = (selector: string, source = css) => {
+  const start = source.indexOf(`${selector} {`);
   assert.notEqual(start, -1, `missing theme block ${selector}`);
-  return css.slice(start, css.indexOf('\n}', start));
+  return source.slice(start, source.indexOf('}', start));
 };
 
 const hexToken = (block: string, name: string) => {
@@ -59,3 +59,72 @@ for (const [mode, selector] of [
     }
   });
 }
+
+const tokens = (block: string) =>
+  Object.fromEntries([...block.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((match) => [match[1], match[2]]));
+
+// Resolves var() and color-mix() the way the browser does, down to a hex color.
+const resolve = (theme: Record<string, string>, name: string): string => {
+  const value = theme[name];
+  assert.ok(value, `missing --${name}`);
+  const alias = value.match(/^var\(--([\w-]+)\)$/);
+  if (alias) return resolve(theme, alias[1]);
+  const mixed = value.match(/^color-mix\(in srgb, var\(--([\w-]+)\) (\d+)%, var\(--([\w-]+)\) (\d+)%\)$/);
+  if (!mixed) return value;
+  const [a, b] = [resolve(theme, mixed[1]), resolve(theme, mixed[3])];
+  const channels = [1, 3, 5].map((start) => {
+    const channel = (hex: string) => Number.parseInt(hex.slice(start, start + 2), 16);
+    return Math.round((channel(a) * Number(mixed[2]) + channel(b) * Number(mixed[4])) / 100);
+  });
+  return `#${channels.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+};
+
+const derivedCss = css.slice(css.indexOf('@supports'));
+const baseTheme = (selector: string) => ({
+  ...tokens(themeBlock(selector)),
+  ...tokens(themeBlock(selector, derivedCss)),
+});
+
+const palettes = readdirSync('src/artifacts', { recursive: true, encoding: 'utf8' })
+  .filter((file) => file.endsWith('.css'))
+  .flatMap((file) =>
+    [
+      ...readFileSync(join('src/artifacts', file), 'utf8').matchAll(
+        /^(\.dark )?(\S+\[data-theme="\w+"\]) \{([^}]*)\}/gm,
+      ),
+    ].map((match) => ({
+      name: `${file} ${match[1] ?? ''}${match[2]}`,
+      base: match[1] ? '.dark .artifact-theme' : '.artifact-theme',
+      own: tokens(match[3]),
+    })),
+  );
+
+const assertReadable = (theme: Record<string, string>) => {
+  const check = (text: string, surface: string) => {
+    const ratio = contrast(resolve(theme, text), resolve(theme, surface));
+    assert.ok(ratio >= MIN_TEXT_CONTRAST, `--${text} on --${surface} is ${ratio.toFixed(2)}:1`);
+  };
+  for (const text of ['text', 'text-muted', 'text-subtle', 'accent-text']) {
+    for (const surface of ['surface', 'surface-muted', 'surface-strong', 'surface-pressed']) check(text, surface);
+  }
+  for (const role of ['accent', 'success', 'warning', 'danger', 'info']) check(`${role}-text`, `${role}-weak`);
+};
+
+for (const [mode, selector] of [
+  ['light', '.artifact-theme'],
+  ['dark', '.dark .artifact-theme'],
+]) {
+  test(`${mode} base theme text reaches 4.5:1 on computed surfaces`, () => {
+    assertReadable(baseTheme(selector));
+  });
+}
+
+test('every palette override stays readable and sets its own text and accent tokens', () => {
+  assert.ok(palettes.length > 0, 'found no palette overrides to check');
+  for (const { name, base, own } of palettes) {
+    for (const token of ['text-muted', 'text-subtle', 'accent-text', 'accent-weak']) {
+      assert.ok(token in own, `${name} must set --${token}`);
+    }
+    assert.doesNotThrow(() => assertReadable({ ...baseTheme(base), ...own }), name);
+  }
+});

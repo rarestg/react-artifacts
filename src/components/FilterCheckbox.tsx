@@ -95,7 +95,7 @@ export function FilterCheckbox({
         count === undefined || count === null ? undefined : (
           <span
             className={mergeClassNames(
-              'min-w-4 bg-[var(--surface-strong)] px-1.5 py-0.5 text-center text-[10px] font-medium tabular-nums',
+              'min-w-4 bg-[var(--surface-strong)] px-1.5 py-0.5 text-center text-[11px] font-medium tabular-nums',
               checked ? 'text-[var(--text)]' : 'text-[var(--text-muted)]',
               countClassName,
             )}

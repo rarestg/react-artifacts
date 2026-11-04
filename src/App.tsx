@@ -631,7 +631,7 @@ function Workbench() {
               {hasCanvasSize && (
                 <span
                   className={mergeClassNames(
-                    'col-start-1 row-start-1 text-[10px] font-semibold uppercase tracking-[0.18em] opacity-0 transition-opacity',
+                    'col-start-1 row-start-1 text-[11px] font-semibold uppercase tracking-[0.18em] opacity-0 transition-opacity',
                     sizeCopied
                       ? 'text-emerald-700 opacity-100 dark:text-emerald-300'
                       : sizeCopyFailed

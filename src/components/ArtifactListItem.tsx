@@ -44,12 +44,12 @@ export function ArtifactListItem({ artifact, selected, onSelect }: ArtifactListI
       {(artifact.model || artifact.version) && (
         <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
           {artifact.model && (
-            <span className="inline-flex items-center border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-gray-600 uppercase dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            <span className="inline-flex items-center border border-gray-200 bg-white px-1.5 py-0.5 text-[11px] font-medium tracking-[0.14em] text-gray-600 uppercase dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
               {artifact.model}
             </span>
           )}
           {artifact.version && (
-            <span className="inline-flex items-center border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-gray-600 uppercase dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            <span className="inline-flex items-center border border-gray-200 bg-white px-1.5 py-0.5 text-[11px] font-medium tracking-[0.14em] text-gray-600 uppercase dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
               {artifact.version}
             </span>
           )}

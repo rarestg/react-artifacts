@@ -124,7 +124,7 @@ export default function Example() {
           <div className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface-muted)] p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="text-sm font-semibold">Deployment Queue</div>
-              <div className="border border-[var(--accent)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--accent)]">
+              <div className="border border-[var(--accent)] px-2 py-1 text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--accent)]">
                 Active
               </div>
             </div>

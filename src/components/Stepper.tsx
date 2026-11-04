@@ -25,7 +25,7 @@ const inputSize: Record<StepperSize, string> = {
 
 const labelSize: Record<StepperSize, string> = {
   default: 'text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]',
-  compact: 'text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]',
+  compact: 'text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]',
 };
 
 export type StepperProps = {

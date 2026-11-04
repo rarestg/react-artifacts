@@ -55,7 +55,7 @@ policy, but export work should preserve these rules unless product requirements 
   focus-visible, copied, and failed states.
 - Successful tool calls and completed notifications stay quiet; pending, running, error, failed, timed-out, and unknown
   states use compact status badges.
-- Detail labels stay compact and strong: `text-[10px]`, uppercase, semibold/bold, tracked, with icon-only copy buttons and
+- Detail labels stay compact and strong: `text-[11px]`, uppercase, semibold/bold, tracked, with icon-only copy buttons and
   specific accessible labels.
 - Dependent filter chips should be short and disabled when inactive. Prefer labels like `All`; let parent chips carry
   counts.

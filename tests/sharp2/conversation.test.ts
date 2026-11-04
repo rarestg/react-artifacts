@@ -110,11 +110,11 @@ test('MessageCard uses the intended role accent color mapping', () => {
   const thinkingMarkup = renderToStaticMarkup(createElement(MessageCard, { role: 'thinking', content: 'Thinking' }));
 
   assert.match(userMarkup, /--transcript-row-accent:var\(--category-green\)/);
-  assert.match(userMarkup, /text-\[var\(--category-green\)\]/);
+  assert.match(userMarkup, /text-\[var\(--category-green-text\)\]/);
   assert.match(assistantMarkup, /--transcript-row-accent:var\(--category-blue\)/);
-  assert.match(assistantMarkup, /text-\[var\(--category-blue\)\]/);
+  assert.match(assistantMarkup, /text-\[var\(--category-blue-text\)\]/);
   assert.match(thinkingMarkup, /--transcript-row-accent:var\(--category-amber\)/);
-  assert.match(thinkingMarkup, /text-\[var\(--category-amber\)\]/);
+  assert.match(thinkingMarkup, /text-\[var\(--category-amber-text\)\]/);
 });
 
 test('MessageCard renders runtime-unknown roles as neutral literal rows', () => {

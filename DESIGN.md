@@ -54,6 +54,7 @@ These rules cover artifacts and shared primitives. The viewer shell (`src/App.ts
 - Pair color with text, icon, position, border, fill, or shape.
 - Keep labels readable by using normal text tokens instead of colored text when possible.
 - Use `*-text` tokens when colored text sits on a matching `*-weak` background.
+- `--success` and `--warning` fall below 4.5:1 on light surfaces, so use them only for fills, borders, and icons. Colored text uses `--success-text` and `--warning-text`.
 - Use small square indicators for status marks unless another explicit indicator is already present.
 
 ### Tokens And Themes

@@ -346,7 +346,11 @@ export default function ExampleApp() {
         <Grid min="14rem" gap="group">
           <StatCard label="Artifacts" value={12} helper="Active in this workspace" />
           <StatCard label="Sessions" value={visibleSessions.length} helper="Visible rows" />
-          <StatCard label="Errors" value={<span className="text-[var(--success)]">0</span>} helper="Last 24 hours" />
+          <StatCard
+            label="Errors"
+            value={<span className="text-[var(--success-text)]">0</span>}
+            helper="Last 24 hours"
+          />
         </Grid>
 
         <Panel className="p-4 space-y-4">

@@ -29,17 +29,17 @@ export function MessageCard({ role, content, timestamp, renderMode = 'default', 
     user: {
       label: 'User',
       accentColor: 'var(--category-green)',
-      labelColor: 'text-[var(--category-green)]',
+      labelColor: 'text-[var(--category-green-text)]',
     },
     assistant: {
       label: 'Assistant',
       accentColor: 'var(--category-blue)',
-      labelColor: 'text-[var(--category-blue)]',
+      labelColor: 'text-[var(--category-blue-text)]',
     },
     thinking: {
       label: 'Thinking',
       accentColor: 'var(--category-amber)',
-      labelColor: 'text-[var(--category-amber)]',
+      labelColor: 'text-[var(--category-amber-text)]',
     },
     unknown: {
       label: 'Unknown',

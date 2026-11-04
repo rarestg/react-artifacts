@@ -133,9 +133,9 @@ export function TokenCounter({ used, limit, label = 'Context Window', cached }: 
           className={mergeClassNames(
             'tabular-nums',
             percentage !== null && percentage > 90
-              ? 'text-[var(--danger)]'
+              ? 'text-[var(--danger-text)]'
               : percentage !== null && percentage > 75
-                ? 'text-[var(--warning)]'
+                ? 'text-[var(--warning-text)]'
                 : 'text-[var(--text-muted)]',
           )}
         >

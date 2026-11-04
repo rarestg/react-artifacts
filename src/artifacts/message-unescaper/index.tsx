@@ -200,7 +200,7 @@ function renderDashHighlights(text: string, ranges: TextRange[]): ReactNode {
     parts.push(
       <span
         key={`${range.start}-${range.end}`}
-        className="bg-[var(--warning-weak)] text-[var(--warning)] font-semibold"
+        className="bg-[var(--warning-weak)] text-[var(--warning-text)] font-semibold"
       >
         {text.slice(range.start, range.end)}
       </span>,

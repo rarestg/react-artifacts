@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { getArtifactSidebarGroupIndex } from '../artifactOrdering';
 import { isEditableEventTarget } from '../lib/isEditableEventTarget';
 import { SITE_EXPLAINER, SITE_TITLE } from '../site';
+import { ExternalTools } from './ExternalTools';
 import { IndexEntry, type IndexEntryArtifact } from './IndexEntry';
 
 const MAX_JUMP_KEYS = 6;
@@ -40,22 +41,25 @@ export function HomeIndex({ artifacts, onSelectArtifact }: HomeIndexProps) {
   return (
     <div className="mx-auto max-w-3xl px-8 py-16 md:px-12">
       <header>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
-          Index · {tools.length} tools
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-gray-900 dark:text-slate-100">{SITE_TITLE}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-slate-100">{SITE_TITLE}</h1>
         <p className="mt-4 max-w-[62ch] text-sm leading-relaxed text-gray-600 dark:text-slate-400">{SITE_EXPLAINER}</p>
       </header>
-      <ul className="mt-12 divide-y divide-gray-200 dark:divide-slate-800">
-        {tools.map((artifact, index) => (
-          <IndexEntry
-            key={artifact.id}
-            artifact={artifact}
-            onSelect={onSelectArtifact}
-            jumpKey={index < MAX_JUMP_KEYS ? String(index + 1) : undefined}
-          />
-        ))}
-      </ul>
+      <section className="mt-12">
+        <h2 className="border-b border-gray-200 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:border-slate-800 dark:text-slate-400">
+          Tools · {tools.length}
+        </h2>
+        <ul className="divide-y divide-gray-200 dark:divide-slate-800">
+          {tools.map((artifact, index) => (
+            <IndexEntry
+              key={artifact.id}
+              artifact={artifact}
+              onSelect={onSelectArtifact}
+              jumpKey={index < MAX_JUMP_KEYS ? String(index + 1) : undefined}
+            />
+          ))}
+        </ul>
+      </section>
+      <ExternalTools />
       {examples.length > 0 && (
         <section className="mt-12">
           <h2 className="border-b border-gray-200 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:border-slate-800 dark:text-slate-400">

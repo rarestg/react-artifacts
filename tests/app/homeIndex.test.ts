@@ -49,10 +49,11 @@ test('home index renders real standalone links for every artifact', () => {
   }
 });
 
-test('home index overline counts tools without the examples group', () => {
+test('home index tools heading counts tools without the examples group', () => {
   const html = render();
 
-  assert.match(html, /Index · 2 tools/);
+  assert.match(html, /Tools · 2/);
+  assert.ok(html.indexOf('<h1') < html.indexOf('Tools · 2'), 'no count above the title');
 });
 
 test('home index demotes examples under their own rule after the tools list', () => {
@@ -64,6 +65,21 @@ test('home index demotes examples under their own rule after the tools list', ()
   assert.ok(html.indexOf('href="/artifact/palette-lab"') < examplesHeading);
   assert.ok(html.indexOf('href="/artifact/example"') > examplesHeading);
   assert.ok(html.indexOf('href="/artifact/example-app"') > examplesHeading);
+});
+
+test('home index links external tools between the tools list and the examples', () => {
+  const html = render();
+
+  const externalHeading = html.indexOf('External tools');
+  assert.notEqual(externalHeading, -1);
+  assert.ok(html.indexOf('href="/artifact/palette-lab"') < externalHeading);
+  assert.ok(externalHeading < html.indexOf('Examples'));
+
+  for (const domain of ['byobanana.com', 'mdprint.net', 'leasepdf.com', 'pdfsplitparse.com']) {
+    const link = html.indexOf(`href="https://${domain}"`);
+    assert.ok(link > externalHeading, `${domain} links from the external section`);
+    assert.ok(link < html.indexOf('Examples'), `${domain} sits above the examples`);
+  }
 });
 
 test('home index renders the wordmark, explainer, and blog footer link', () => {

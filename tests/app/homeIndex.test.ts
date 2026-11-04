@@ -49,10 +49,11 @@ test('home index renders real standalone links for every artifact', () => {
   }
 });
 
-test('home index overline counts tools without the examples group', () => {
+test('home index tools heading counts tools without the examples group', () => {
   const html = render();
 
-  assert.match(html, /Index · 2 tools/);
+  assert.match(html, /Tools · 2/);
+  assert.ok(html.indexOf('<h1') < html.indexOf('Tools · 2'), 'no count above the title');
 });
 
 test('home index demotes examples under their own rule after the tools list', () => {

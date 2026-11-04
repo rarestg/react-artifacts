@@ -71,10 +71,11 @@ test('mobile index renders no jump-key chips or shortcut attributes', () => {
   assert.doesNotMatch(html, /aria-keyshortcuts/);
 });
 
-test('mobile index overline counts only the non-example tools', () => {
+test('mobile index tools heading counts only the non-example tools', () => {
   const html = render();
 
-  assert.match(html, /Index · 2 tools/);
+  assert.match(html, /Tools · 2/);
+  assert.ok(html.indexOf('<h1') < html.indexOf('Tools · 2'), 'no count above the title');
 });
 
 test('mobile index renders the wordmark, explainer, divided rows, and blog footer link', () => {

@@ -200,6 +200,14 @@ npm i --no-save playwright-core
 node scripts/screenshot.mjs [--url http://localhost:5173/artifact/sharp2] [--out /tmp/artifact-shots]
 ```
 
+**Toggle smoke (manual, not in CI).** Run `scripts/smoke.mjs` after a dependency upgrade. It presses Space and clicks a Prompt Library filter in a real browser, and exits nonzero if the final checked state or filtered count is wrong. This catches the double-toggle regression. The Node tests use happy-dom, which forwards label clicks differently from a browser, so they cannot prove this. It has the same setup as the screenshot helper:
+
+```bash
+npm run dev
+npm i --no-save playwright-core
+node scripts/smoke.mjs [--url http://localhost:5173/artifact/prompt-library] [--browser chromium|firefox|webkit]
+```
+
 ## Cloudflare Workers Deployment
 
 Deployed as a Cloudflare Worker with static assets + SPA routing. Configuration lives in `wrangler.jsonc`; the Worker entry is `worker/index.ts` (handles `/api/*`, injects per-page meta tags into the SPA HTML for `/` and `/artifact/*`, and serves `/sitemap.xml` + `/robots.txt`). Deploy with `npm run deploy` (builds first — `wrangler deploy` reads the Vite-generated config in `dist/`).

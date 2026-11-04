@@ -3,7 +3,7 @@ import {
   Copy as CopyIcon,
   Folder as FolderIcon,
   GitBranch as GitBranchIcon,
-  Github as GitRepoIcon,
+  GitFork as GitRepoIcon,
   MessageSquare as MessageIcon,
   Plug as PlugIcon,
   Search as SearchIcon,

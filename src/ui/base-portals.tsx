@@ -7,7 +7,8 @@ import { useArtifactPortalContainer } from '../components/ArtifactThemeRoot';
 /**
  * Portals that mount Base UI overlays inside the `.artifact-theme` boundary so scoped
  * tokens resolve. An explicit `container` still wins; otherwise each falls back to the
- * theme root ref from context — never `document.body`.
+ * theme root element from context — never `document.body`. While that element is `null`,
+ * Base UI waits instead of falling back to the body.
  *
  * Menu/Combobox/etc. arrive with their migrations so knip does not flag unused exports.
  */

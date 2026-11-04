@@ -257,16 +257,15 @@ test('grid hjkl navigation walks cards, c copies the focused card, and every gua
     await dispatchKey({ key: 'j' }, window.document.body);
     assert.equal(activeElement(), titleButtons()[0], 'closing the palette restores navigation');
 
-    // Filtering re-derives the card list at keypress time. Base UI checkboxes
-    // toggle on Space (keydown + keyup) per the ARIA checkbox pattern.
+    // Filtering re-derives the card list at keypress time. Toggle through the hidden input:
+    // happy-dom forwards a click on the wrapping <label> before React can cancel it, so a
+    // Space keyup would toggle twice here. Real browsers toggle once.
     const filterToggle = window.document.querySelector(
-      'section[aria-label="Prompt tags"] [role="checkbox"]',
+      'section[aria-label="Prompt tags"] input[type="checkbox"]',
     ) as unknown as HTMLElement;
     assert.ok(filterToggle);
-    filterToggle.focus();
-    await dispatchKey({ key: ' ' }, filterToggle);
     await act(async () => {
-      filterToggle.dispatchEvent(new window.KeyboardEvent('keyup', { key: ' ', bubbles: true, cancelable: true }));
+      filterToggle.click();
     });
     const firstTag = (await import('../../src/artifacts/prompt-library/prompts')).promptTags[0];
     assert.ok(firstTag);

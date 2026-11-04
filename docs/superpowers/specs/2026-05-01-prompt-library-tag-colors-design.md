@@ -36,16 +36,16 @@ Light mode keeps weak colors pale and readable on white surfaces. Dark mode weak
 
 Initial token values:
 
-| Color | Light strong | Light weak | Dark strong | Dark weak |
-| --- | --- | --- | --- | --- |
-| blue | `#2563eb` | `#dbeafe` | `#60a5fa` | `#1e3a8a` |
-| green | `#059669` | `#d1fae5` | `#34d399` | `#064e3b` |
-| amber | `#d97706` | `#fef3c7` | `#fbbf24` | `#78350f` |
-| violet | `#7c3aed` | `#ede9fe` | `#c084fc` | `#4c1d95` |
-| red | `#dc2626` | `#fee2e2` | `#fb7185` | `#881337` |
-| cyan | `#0891b2` | `#cffafe` | `#22d3ee` | `#164e63` |
-| pink | `#db2777` | `#fce7f3` | `#f472b6` | `#831843` |
-| lime | `#65a30d` | `#ecfccb` | `#a3e635` | `#365314` |
+| Color  | Light strong | Light weak | Dark strong | Dark weak |
+| ------ | ------------ | ---------- | ----------- | --------- |
+| blue   | `#2563eb`    | `#dbeafe`  | `#60a5fa`   | `#1e3a8a` |
+| green  | `#059669`    | `#d1fae5`  | `#34d399`   | `#064e3b` |
+| amber  | `#d97706`    | `#fef3c7`  | `#fbbf24`   | `#78350f` |
+| violet | `#7c3aed`    | `#ede9fe`  | `#c084fc`   | `#4c1d95` |
+| red    | `#dc2626`    | `#fee2e2`  | `#fb7185`   | `#881337` |
+| cyan   | `#0891b2`    | `#cffafe`  | `#22d3ee`   | `#164e63` |
+| pink   | `#db2777`    | `#fce7f3`  | `#f472b6`   | `#831843` |
+| lime   | `#65a30d`    | `#ecfccb`  | `#a3e635`   | `#365314` |
 
 Implementation may adjust individual values during visual verification, but selected filter labels, counts, borders, focus rings, and checkmarks must remain readable in both light and dark mode. Treat WCAG AA contrast for text-sized content as the target when foreground and background are text-bearing surfaces.
 
@@ -57,13 +57,13 @@ Use `#fda4af` for dark `--danger` and `#d8b4fe` for dark `--info` so text using 
 
 The current curated Prompt Library tags get explicit color ids:
 
-| Tag | Color |
-| --- | --- |
-| `review` | blue |
-| `implementation` | green |
-| `subagents` | violet |
-| `risk` | red |
-| `architecture` | cyan |
+| Tag              | Color  |
+| ---------------- | ------ |
+| `review`         | blue   |
+| `implementation` | green  |
+| `subagents`      | violet |
+| `risk`           | red    |
+| `architecture`   | cyan   |
 
 Amber, pink, and lime remain available for future tags.
 
@@ -95,16 +95,16 @@ Update the Example App palette previews so the expanded color wheel is visible i
 
 The semantic Theme Colors panel should show the updated dark `Danger` and `Info` values. The categorical Message Colors panel should include all category colors in this order:
 
-| ID | Label | Token |
-| --- | --- | --- |
-| `user` | User | blue |
-| `assistant` | Assistant | green |
-| `thinking` | Thinking | amber |
-| `tool` | Tool | violet |
-| `critical` | Critical | red |
-| `system` | System | cyan |
-| `note` | Note | pink |
-| `marker` | Marker | lime |
+| ID          | Label     | Token  |
+| ----------- | --------- | ------ |
+| `user`      | User      | blue   |
+| `assistant` | Assistant | green  |
+| `thinking`  | Thinking  | amber  |
+| `tool`      | Tool      | violet |
+| `critical`  | Critical  | red    |
+| `system`    | System    | cyan   |
+| `note`      | Note      | pink   |
+| `marker`    | Marker    | lime   |
 
 Default active states should keep the panel lively without selecting every color: `user`, `assistant`, `tool`, and `system` selected by default; the remaining category swatches unselected.
 

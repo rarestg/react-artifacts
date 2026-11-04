@@ -42,7 +42,8 @@
       "!!**/node_modules",
       "!!**/coverage",
       "!!**/build",
-      "!!**/worker-configuration.d.ts"
+      "!!**/worker-configuration.d.ts",
+      "!design/UI_IMPLEMENTATION_NOTES.md"
     ]
   },
   "javascript": {
@@ -66,7 +67,7 @@
   },
   "markdown": {
     "formatter": {
-      "enabled": false
+      "formatEmbeds": false
     }
   },
   "overrides": [

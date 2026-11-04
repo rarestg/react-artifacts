@@ -1,4 +1,5 @@
 ---
+
 name: tools.rares.blog
 description: Square, opaque, quiet UI for small single-purpose web tools.
 ---

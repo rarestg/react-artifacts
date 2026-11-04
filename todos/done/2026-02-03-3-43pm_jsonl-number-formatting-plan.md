@@ -1,4 +1,5 @@
 # Implementation Summary (Completed)
+
 - Implemented changes: Added `formatCompactNumber` helper for compact counts and applied it to chars/tokens in Input/Output stats; kept items/lines and truncated-string counts precise.
 - Notes / deviations from plan: Added a guard to render `1m` instead of `1000k` when rounding pushes near the million mark.
 - Validation steps run (commands): Not run (not requested).
@@ -6,11 +7,12 @@
 # Humanized Count Formatting Plan (JSONL Structure Viewer)
 
 ## 1) Problem & Motivation
+
 We want char/token counts to be easier to scan at a glance in the Input and Output subtitles. Today they are raw numbers (e.g., 884 chars, ~221 tokens). For large values this becomes noisy. The requirement is:
 - < 1,000: show full number
 - 1,000–9,999: show one decimal in “k” (e.g., 1.1k)
 - 10,000–999,999: show whole “k” (e.g., 29k)
-- >= 1,000,000: show one decimal “m” (e.g., 1.3m)
+- \>= 1,000,000: show one decimal “m” (e.g., 1.3m)
 
 Success criteria:
 - Input subtitle shows raw input counts with the new compact format.
@@ -19,6 +21,7 @@ Success criteria:
 - Format is consistent and readable; no “1.0k” style trailing zeros.
 
 ## 2) System Context
+
 Relevant files and patterns:
 - `src/artifacts/jsonl-structure-viewer/index.tsx`
   - `formatStatsLine` builds the stats line for Input/Output subtitles.
@@ -33,6 +36,7 @@ The counts displayed are derived in `index.tsx` and displayed in the panel heade
 ## 3) Implementation Plan (ordered)
 
 ### Step 1: Add a compact-number formatter
+
 **Where**: new module `src/artifacts/jsonl-structure-viewer/lib/formatNumber.ts` (or add to an existing formatting util if preferred).
 
 **What**:
@@ -47,6 +51,7 @@ The counts displayed are derived in `index.tsx` and displayed in the panel heade
 **Why**: Keep formatting logic centralized and reusable.
 
 ### Step 2: Update stats line formatting to use compact numbers
+
 **Where**: `src/artifacts/jsonl-structure-viewer/index.tsx`
 
 **What**:
@@ -60,6 +65,7 @@ The counts displayed are derived in `index.tsx` and displayed in the panel heade
 **Why**: Chars/tokens are the high-volume counts where compact formatting helps most.
 
 ### Step 3: Confirm output stats stability
+
 **Where**: `src/artifacts/jsonl-structure-viewer/index.tsx`
 
 **What**:
@@ -69,6 +75,7 @@ The counts displayed are derived in `index.tsx` and displayed in the panel heade
 **Why**: Avoid the prior “view mode changes counts” bug.
 
 ## 4) Key Decisions & Tradeoffs
+
 - **Decision**: Compact format only for chars/tokens, not for items/lines or truncated count.
   - **Why**: Items/lines and truncation are actionable counts; precision matters more than compactness.
 - **Decision**: One decimal only under 10k; otherwise whole k. Millions use one decimal (e.g., 1.3m).
@@ -76,19 +83,21 @@ The counts displayed are derived in `index.tsx` and displayed in the panel heade
 - **Alternative**: Use `Intl.NumberFormat` compact notation. Rejected because it can be locale-dependent and inconsistent (e.g., “1K”, “1 thousand”).
 
 ## 5) Risks & Landmines
+
 - **Trailing zeros**: Make sure `1.0k` becomes `1k` and `1.0m` becomes `1m`.
 - **Rounding edge cases**: Values like `999,950` → `1,000k` should render as `1m` rather than `1000k`. Using the “m” branch for `>= 1,000,000` avoids this; ensure rounding doesn’t push 999,950 into the “m” branch unintentionally.
 - **Negative values**: Not expected for counts; if they appear, formatting rules should be clarified.
 
 ## 6) Verification & Validation
+
 Manual checks in the UI:
-1) Input subtitle:
+1. Input subtitle:
    - Small input → raw numbers (e.g., `842 chars | ~210 tokens`).
    - Large input → compact format (e.g., `12.4k chars | ~3.1k tokens`).
-2) Output subtitle:
+2. Output subtitle:
    - Confirm values match copy output (Raw/Highlighted toggles do not change stats).
    - Large output → compact format.
-3) Edge cases:
+3. Edge cases:
    - `999` → `999`
    - `1,000` → `1k`
    - `9,950` → `10k` (rounded)
@@ -99,6 +108,7 @@ Rollback plan:
 - Revert changes to `formatStatsLine` and remove the new formatter import if unexpected formatting shows up.
 
 ## 7) Open Questions / Follow-ups
+
 - Should truncated count also be compacted for very large values, or remain raw permanently?
 - Should we display line counts in Input subtitle too (currently only chars/tokens/truncated)?
 

@@ -10,23 +10,23 @@ design docs or shared component APIs.
 
 Use this ownership model when resolving conflicts:
 
-| Area | Owner |
-|------|-------|
-| Repo orientation, artifact conventions, scripts | `README.md` |
-| Visual language and practical artifact UI rules | `DESIGN.md` |
-| Token values | `src/theme/artifact-theme.css` |
-| Shared primitive APIs | `src/components/*` |
+| Area                                                                                      | Owner                            |
+| ----------------------------------------------------------------------------------------- | -------------------------------- |
+| Repo orientation, artifact conventions, scripts                                           | `README.md`                      |
+| Visual language and practical artifact UI rules                                           | `DESIGN.md`                      |
+| Token values                                                                              | `src/theme/artifact-theme.css`   |
+| Shared primitive APIs                                                                     | `src/components/*`               |
 | Sharp2-specific structure, local inventory, demonstrated patterns, intentional exceptions | `src/artifacts/sharp2/README.md` |
 
 ## File Map
 
-| Path | Purpose |
-|------|---------|
-| `index.tsx` | Artifact entry and showcase screen. Imports shared primitives, local examples, fixtures, and conversation examples. |
-| `meta.ts` | Viewer metadata for the sidebar label and model/version tags. |
-| `fixtures.tsx` | Static search and conversation data used by the showcase. |
-| `components/*` | Sharp2-local showcase components that are not shared APIs. |
-| `conversation/*` | Sharp2-local conversation rendering examples, helpers, and renderer view-model types. |
+| Path             | Purpose                                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `index.tsx`      | Artifact entry and showcase screen. Imports shared primitives, local examples, fixtures, and conversation examples. |
+| `meta.ts`        | Viewer metadata for the sidebar label and model/version tags.                                                       |
+| `fixtures.tsx`   | Static search and conversation data used by the showcase.                                                           |
+| `components/*`   | Sharp2-local showcase components that are not shared APIs.                                                          |
+| `conversation/*` | Sharp2-local conversation rendering examples, helpers, and renderer view-model types.                               |
 
 ## Boundary
 
@@ -44,38 +44,38 @@ through the shared `Artifact*Portal` wrappers in `src/ui/base-portals.tsx`, whic
 Sharp2 demonstrates several shared primitives from `src/components` and `src/ui`. The shared files own their public
 APIs; update this table when the showcase starts or stops demonstrating one.
 
-| Shared item | Current sharp2 status |
-|-------------|-----------------------|
-| `Button` | Demonstrated in variants, sizes, icon usage, disabled state, modal actions, and focus examples. |
-| `Input` | Demonstrated with accessible names, labels, and error state. |
-| `Tag` | Demonstrated as metadata/status labels and used inside conversation examples. |
-| `Panel` | Demonstrated as default, muted, dashed, list, and layout surfaces. |
-| `Checkbox` | Demonstrated with enabled, disabled, and focus examples. |
-| `FilterCheckbox` | Demonstrated in conversation filters with count badges and category tones. |
-| `Toggle` | Demonstrated as a shared on/off primitive. |
-| `SegmentedControl` | Demonstrated with neutral and accent tones. |
-| `ListboxSelect` | Shared but not currently demonstrated here. |
-| `CopyButton` | Demonstrated directly and used by code, message, tool, and token examples. |
-| `CopyableLabel` | Demonstrated for session metadata and compact identifiers. |
-| `StatusTag` | Demonstrated for stable-width status labels. |
-| `ArtifactDialog` | Demonstrated in the modal section. |
-| `panelHeaderClasses` | Shared but not currently demonstrated here. |
+| Shared item                   | Current sharp2 status                                                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Button`                      | Demonstrated in variants, sizes, icon usage, disabled state, modal actions, and focus examples.                                                              |
+| `Input`                       | Demonstrated with accessible names, labels, and error state.                                                                                                 |
+| `Tag`                         | Demonstrated as metadata/status labels and used inside conversation examples.                                                                                |
+| `Panel`                       | Demonstrated as default, muted, dashed, list, and layout surfaces.                                                                                           |
+| `Checkbox`                    | Demonstrated with enabled, disabled, and focus examples.                                                                                                     |
+| `FilterCheckbox`              | Demonstrated in conversation filters with count badges and category tones.                                                                                   |
+| `Toggle`                      | Demonstrated as a shared on/off primitive.                                                                                                                   |
+| `SegmentedControl`            | Demonstrated with neutral and accent tones.                                                                                                                  |
+| `ListboxSelect`               | Shared but not currently demonstrated here.                                                                                                                  |
+| `CopyButton`                  | Demonstrated directly and used by code, message, tool, and token examples.                                                                                   |
+| `CopyableLabel`               | Demonstrated for session metadata and compact identifiers.                                                                                                   |
+| `StatusTag`                   | Demonstrated for stable-width status labels.                                                                                                                 |
+| `ArtifactDialog`              | Demonstrated in the modal section.                                                                                                                           |
+| `panelHeaderClasses`          | Shared but not currently demonstrated here.                                                                                                                  |
 | `Stack` (`src/ui/layout.tsx`) | Vertical flex stack with the semantic gap tiers (`row`/`group`/`section` → `gap-2`/`gap-4`/`gap-6`). The showcase's primary spacing system; see UI note 009. |
-| `Grid` (`src/ui/layout.tsx`) | Responsive auto-fit grid owning the `minmax(min(M,100%),1fr)` column pattern and `*:min-w-0` child shrinking; small fixed `min` set. |
+| `Grid` (`src/ui/layout.tsx`)  | Responsive auto-fit grid owning the `minmax(min(M,100%),1fr)` column pattern and `*:min-w-0` child shrinking; small fixed `min` set.                         |
 
 ## Local Showcase Components
 
 These components live in `src/artifacts/sharp2/components`. Keep them local until their semantics are stable enough to
 promote to `src/components`.
 
-| Component | Why it is local |
-|-----------|-----------------|
+| Component     | Why it is local                                                                                                                                                      |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SearchInput` | Base UI `Autocomplete`-backed typeahead example over this showcase's search fixture shape; parent owns filtering and the popup portals inside the artifact boundary. |
-| `Popover` | Base UI `Popover`-backed dropdown example with local action styling (`popoverActionClass`); non-modal, and the popup portals inside the artifact boundary. |
-| `Row` | Clickable list row example for selection and scan-friendly row anatomy. |
-| `CodeBlock` | Literal code block example with copy support. |
-| `Section` | Showcase section shell, not a general artifact primitive. |
-| `SubSection` | Showcase subsection label wrapper, not a general artifact primitive. |
+| `Popover`     | Base UI `Popover`-backed dropdown example with local action styling (`popoverActionClass`); non-modal, and the popup portals inside the artifact boundary.           |
+| `Row`         | Clickable list row example for selection and scan-friendly row anatomy.                                                                                              |
+| `CodeBlock`   | Literal code block example with copy support.                                                                                                                        |
+| `Section`     | Showcase section shell, not a general artifact primitive.                                                                                                            |
+| `SubSection`  | Showcase subsection label wrapper, not a general artifact primitive.                                                                                                 |
 
 ## Conversation Examples
 
@@ -83,19 +83,19 @@ Conversation rendering is a sharp2-local domain example. It may import shared pr
 primitives, markdown helpers, and event-row parts are not shared APIs. Production sharp2 code should import through
 `conversation/index.ts` so the local public surface stays deliberate.
 
-| File | Role |
-|------|------|
-| `conversation/index.ts` | Narrow sharp2-local public surface for the renderer: `ConversationTurn`, renderer view-model types, key helpers, and token telemetry normalization. |
-| `conversation/MessageCard.tsx` | Renders one user, assistant, or thinking message row with literal/rendered modes. |
-| `conversation/ToolCall.tsx` | Renders summary-first tool rows with optional literal input/output details and copy behavior. |
-| `conversation/ConversationTurn.tsx` | Groups turn items with a stable header, derives visible transcript rows, and preserves original item indexes. |
-| `conversation/TokenCounter.tsx` | Displays flat context-window telemetry rows with copyable raw summary text and real token telemetry normalization. |
-| `conversation/markdown.tsx` | Local lightweight markdown splitting/rendering helpers and render fallback boundary. |
-| `conversation/keys.ts` | Stable key helpers for turns and turn items. |
-| `conversation/types.ts` | Local conversation data and visibility types. |
-| `conversation/productTypes.ts` | Temporary type-only outline of the target `codexscope.product.v1` transcript/read contract. Replace with generated product DTOs when available. |
-| `conversation-rendering-preferences.md` | Current sharp2 conversation renderer design contract: row anatomy, semantics, controls, copy behavior, and metadata rules. |
-| `conversation-export-readiness.md` | Export-readiness notes for moving the renderer toward a product transcript pane without package extraction yet. |
+| File                                    | Role                                                                                                                                                |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `conversation/index.ts`                 | Narrow sharp2-local public surface for the renderer: `ConversationTurn`, renderer view-model types, key helpers, and token telemetry normalization. |
+| `conversation/MessageCard.tsx`          | Renders one user, assistant, or thinking message row with literal/rendered modes.                                                                   |
+| `conversation/ToolCall.tsx`             | Renders summary-first tool rows with optional literal input/output details and copy behavior.                                                       |
+| `conversation/ConversationTurn.tsx`     | Groups turn items with a stable header, derives visible transcript rows, and preserves original item indexes.                                       |
+| `conversation/TokenCounter.tsx`         | Displays flat context-window telemetry rows with copyable raw summary text and real token telemetry normalization.                                  |
+| `conversation/markdown.tsx`             | Local lightweight markdown splitting/rendering helpers and render fallback boundary.                                                                |
+| `conversation/keys.ts`                  | Stable key helpers for turns and turn items.                                                                                                        |
+| `conversation/types.ts`                 | Local conversation data and visibility types.                                                                                                       |
+| `conversation/productTypes.ts`          | Temporary type-only outline of the target `codexscope.product.v1` transcript/read contract. Replace with generated product DTOs when available.     |
+| `conversation-rendering-preferences.md` | Current sharp2 conversation renderer design contract: row anatomy, semantics, controls, copy behavior, and metadata rules.                          |
+| `conversation-export-readiness.md`      | Export-readiness notes for moving the renderer toward a product transcript pane without package extraction yet.                                     |
 
 ## Conversation Handoff
 

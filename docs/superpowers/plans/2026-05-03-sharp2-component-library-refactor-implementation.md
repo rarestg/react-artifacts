@@ -1495,7 +1495,7 @@ rg -n "allSearchResults|sampleConversation|getTurn(Key|ItemKey)|getDefaultRender
 
 Create `tests/sharp2/conversation.test.ts`:
 
-```ts
+````ts
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
@@ -1582,7 +1582,7 @@ test('ToolCall collapse button has an accessible name, expanded state, and visib
   assert.match(markup, /aria-expanded="true"/);
   assert.match(markup, /focus-visible:ring-2/);
 });
-```
+````
 
 - [ ] **Step 2: Run tests and verify missing modules fail**
 
@@ -1675,7 +1675,7 @@ Create `src/artifacts/sharp2/conversation/markdown.tsx` by extracting `RenderErr
 
 Start with this file:
 
-```tsx
+````tsx
 import { Component, Fragment, type ReactNode } from 'react';
 import type { MessageRole } from './types';
 
@@ -1778,7 +1778,7 @@ export class RenderErrorBoundary extends Component<{ fallback: ReactNode; childr
     return this.props.children;
   }
 }
-```
+````
 
 When creating `MessageCard.tsx`, keep the existing paragraph/list/heading rendering behavior from `src/artifacts/sharp2/index.tsx` and call `splitMessageContent(content)` instead of keeping code-block segmentation inline.
 

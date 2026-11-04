@@ -17,6 +17,7 @@ Validation steps run (commands)
 # Artifact Theme Boundary + Guard Plan
 
 ## 1) Problem & Motivation
+
 - We now rely on shared tokens without fallbacks in shared components (`Checkbox`, `Toggle`, `CopyableLabel`).
 - Tokens are only guaranteed when `.artifact-theme` is applied, but this is currently an implicit convention.
 - This can lead to silent visual regressions if shared components are used outside the token scope (shell UI, tests, future artifacts).
@@ -32,6 +33,7 @@ Validation steps run (commands)
 - No changes to shell visuals; shell remains independent unless intentionally wrapped.
 
 ## 2) System Context
+
 **Relevant files/modules**
 - Tokens:
   - `src/theme/artifact-theme.css`
@@ -60,6 +62,7 @@ Validation steps run (commands)
 ## 3) Implementation Plan (ordered)
 
 ### Step 1: Add explicit theme boundary component
+
 **What**
 - Create `src/components/ArtifactThemeRoot.tsx` exporting:
   - `ArtifactThemeRoot` component that wraps children in a `div` with `artifact-theme` class.
@@ -85,6 +88,7 @@ Validation steps run (commands)
 ---
 
 ### Step 2: Wire shared components to the guard
+
 **What**
 - Update shared components to call `useArtifactThemeGuard` at render time:
   - `src/components/Checkbox.tsx`
@@ -108,6 +112,7 @@ Validation steps run (commands)
 ---
 
 ### Step 3: Replace manual `artifact-theme` usage in artifacts
+
 **What**
 - Update artifact roots to use `ArtifactThemeRoot` instead of string classes:
   - `src/artifacts/example/index.tsx`
@@ -131,6 +136,7 @@ Validation steps run (commands)
 ---
 
 ### Step 4: Document the boundary in the style guide
+
 **What**
 - Update `design/VISUAL_STYLE_GUIDE.txt` to state:
   - “All artifacts must wrap their root in `ArtifactThemeRoot`.”
@@ -142,6 +148,7 @@ Validation steps run (commands)
 ---
 
 ### Step 5: (Optional) Add quick audit note
+
 **What**
 - Add a short note in `design/UI_IMPLEMENTATION_NOTES.md` index (if desired) pointing to the new boundary requirement.
 
@@ -149,6 +156,7 @@ Validation steps run (commands)
 - Keeps the rule in the living guide if this policy is expected to be referenced often.
 
 ## 4) Key Decisions & Tradeoffs
+
 - **Decision:** Enforce the boundary via a React context + dev warning.
   - **Alternative:** Add `artifact-theme` to shell roots (least invasive) or reintroduce fallbacks.
   - **Why:** We want explicit ownership of the boundary and faster feedback without weakening the token contract.
@@ -158,11 +166,13 @@ Validation steps run (commands)
   - **Tradeoff:** Slightly more code (refs in shared components), but fewer false-positive warnings.
 
 ## 5) Risks & Landmines
+
 - If an artifact root is not updated, shared components will warn and may render incorrectly.
 - If any shared components are used in shell UI, they will now warn; this is intentional but could surprise.
 - DOM ancestry checks require a ref; if a shared component forgets to wire it, manual `.artifact-theme` usage may still warn.
 
 ## 6) Verification & Validation
+
 **Manual checks**
 - Open each artifact and confirm no warnings in the console:
   - `/?artifact=example` (switch palettes)
@@ -183,5 +193,6 @@ Validation steps run (commands)
 - (If necessary) restore token fallbacks in shared components.
 
 ## 7) Open Questions / Follow-ups
+
 - Do we want the guard to throw (fail fast) instead of warn in dev?
 - Should the shell ever be wrapped with `ArtifactThemeRoot` for future UI that uses shared components?
